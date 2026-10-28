@@ -63,7 +63,7 @@ func _build() -> void:
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	_entry(col, "MENU_QUIT", _on_quit)
 
-	var version := UITheme.label("V 0.5", 16, Color(UITheme.ASH, 0.6), "caps")
+	var version := UITheme.label("V 0.6", 16, Color(UITheme.ASH, 0.6), "caps")
 	version.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	add_child(version)
 	version.set_anchors_and_offsets_preset(PRESET_BOTTOM_LEFT, PRESET_MODE_MINSIZE, 40)

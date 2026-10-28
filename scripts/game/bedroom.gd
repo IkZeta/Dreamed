@@ -65,6 +65,9 @@ var stretch := 0.0              # se estira / stretches
 var slide := 0.0                # se desliza hasta el borde de la cama / shuffles to the edge of the bed
 var glasses_on_stand := true    # las gafas esperan en la mesilla / glasses wait on the nightstand
 var weapon_taken := false
+## Lo raro que está la habitación: 0 en el Sueño 1 y sube en cada sueño
+## How strange the room is: 0 in Dream 1, rising with each dream
+var weird := 0
 
 var _t := 0.0
 var _wall_stars: Array[Dictionary] = []
@@ -121,14 +124,16 @@ func _draw() -> void:
 	_draw_zzz()
 	_draw_motes()
 	_draw_dream_stars()
+	_draw_floating_things()
 	_draw_room_edges()
 
 
 # --- Pared / Wall -----------------------------------------------------------
 
 func _draw_wall() -> void:
-	var top := Color("1d2463")
-	var bottom := Color("2c3681")
+	var w := minf(1.0, weird / 3.0)
+	var top := Color("1d2463").lerp(Color("3a1d63"), w)
+	var bottom := Color("2c3681").lerp(Color("1f6a7a"), w)
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(1920, 0), Vector2(1920, WALL_BOTTOM), Vector2(0, WALL_BOTTOM)]),
 		PackedColorArray([top, top, bottom, bottom]))
 	# Papel pintado con rayas suaves / Softly striped wallpaper
@@ -163,6 +168,10 @@ func _draw_window() -> void:
 	draw_texture_rect(DreamBackground.soft_texture(), Rect2(moon - Vector2(80, 80), Vector2(160, 160)), false, Color("e9eeff", 0.4))
 	draw_circle(moon, 26, Color("fbf4e2"))
 	draw_circle(moon + Vector2(-8, -6), 5, Color("ece2c8"))
+	# En sueños más hondos aparecen más lunas / Deeper dreams show more moons
+	for i in mini(weird, 3):
+		var m2 := w.position + Vector2(60 + i * 70, 150 - i * 30)
+		draw_circle(m2, 12 - i * 2, Color(["f2b8d8", "b9f0ea", "f6d993"][i]))
 	# Marco y cruceta / Frame and mullions
 	var frame := Color("ece6f6")
 	draw_rect(w, frame, false, 10.0)
@@ -212,7 +221,15 @@ func _draw_floor() -> void:
 	var y := WALL_BOTTOM + 4.0
 	var row := 0
 	while y < FLOOR_BOTTOM - 40.0:
-		draw_line(Vector2(0, y), Vector2(1920, y), Color(0.1, 0.08, 0.3, 0.35), 2.0)
+		if weird > 0:
+			# Las tablas se ondulan como si respiraran / The boards ripple as if breathing
+			var pts := PackedVector2Array()
+			for k in 25:
+				var px := k * 80.0
+				pts.append(Vector2(px, y + sin(px * 0.006 + _t * 0.8 + row) * 4.0 * weird))
+			draw_polyline(pts, Color(0.1, 0.08, 0.3, 0.35), 2.0, true)
+		else:
+			draw_line(Vector2(0, y), Vector2(1920, y), Color(0.1, 0.08, 0.3, 0.35), 2.0)
 		var x := -120.0 + (row % 3) * 140.0
 		while x < 1920.0:
 			draw_line(Vector2(x, y), Vector2(x, y + 46), Color(0.1, 0.08, 0.3, 0.25), 2.0)
@@ -533,6 +550,30 @@ func _draw_bedside_rug() -> void:
 	var inner := _ellipse(BEDSIDE_RUG, Vector2(78, 36), 40)
 	draw_polyline(inner + PackedVector2Array([inner[0]]), Color("f7e6f0", 0.6), 2.0, true)
 	_draw_bunny(BEDSIDE_RUG + Vector2(56, -16))
+
+
+## Objetos que flotan cuando el sueño se vuelve raro / Things that float as the dream gets strange
+func _draw_floating_things() -> void:
+	var count := mini(12, weird * 4)
+	var f := UITheme.font("display")
+	for i in count:
+		var ph := i * 1.7
+		var p := Vector2(fposmod(200.0 + i * 160.0 + _t * (10.0 + i * 2.0), 1920.0),
+			420.0 + fposmod(i * 97.0, 500.0) + sin(_t * 0.7 + ph) * 30.0)
+		draw_set_transform(p, _t * (0.3 + 0.1 * i) * (1 if i % 2 == 0 else -1), Vector2.ONE)
+		match i % 4:
+			0:
+				draw_rect(Rect2(-18, -18, 36, 36), Color(["f6d993", "a9c8f2", "e3a6c4"][i % 3], 0.75))
+				draw_string(f, Vector2(-8, 10), ["A", "B", "C"][i % 3], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("3a346f"))
+			1:
+				draw_rect(Rect2(-26, -18, 52, 36), Color("3b4fa8", 0.8))
+				draw_rect(Rect2(-22, -14, 44, 28), Color("fbf3dc", 0.85))
+			2:
+				draw_circle(Vector2.ZERO, 18, Color("f3effc", 0.8))
+				draw_arc(Vector2.ZERO, 18, -0.6, 0.9, 12, Color("e85d75"), 6.0, true)
+			3:
+				_star_shape(Vector2.ZERO, 16.0, Color(UITheme.GOLD, 0.7))
+		draw_set_transform(Vector2.ZERO)
 
 
 func _draw_room_edges() -> void:

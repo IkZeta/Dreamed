@@ -6,6 +6,12 @@ extends Weapon
 ## The Nightmare Sweeper's vacuum: aims at the nearest enemy and only sucks in that
 ## direction, in a narrow cone. It pulls enemies toward Kroker while hurting them,
 ## which makes it the riskiest weapon. (+25% speed)
+##
+## Mejoras / Upgrades:
+##  Svinho  — Chut: cuando un enemigo llega a la boquilla, la aspiradora lo escupe y sale
+##            rebotando contra las paredes y los demás Foox.
+##  Stolk   — Turbo: más alcance, más fuerza y más daño (cuesta vida máxima).
+##  Silly   — Error de memoria: lo que absorbe queda vulnerable (+50 % de daño recibido).
 
 const RANGE := 300.0
 const CONE := 0.42        # medio ángulo en radianes (~24°) / half angle in radians
@@ -16,6 +22,12 @@ const TICK := 0.25
 var _tick := 0.0
 var _t := 0.0
 var _dir := Vector2.RIGHT
+var _spit_cd := 0.0
+var _boost := 1.0
+
+
+func _ready() -> void:
+	_boost = 1.0 + 0.35 * lv("stolk")
 
 
 func _physics_process(delta: float) -> void:
@@ -25,12 +37,13 @@ func _physics_process(delta: float) -> void:
 		Audio.set_loop("vacuum", false)
 		queue_redraw()
 		return
-	var target := nearest(RANGE)
+	_spit_cd = maxf(0.0, _spit_cd - delta)
+	var target := nearest(RANGE * _boost)
 	if target == null:
 		Audio.set_loop("vacuum", false)
 		queue_redraw()
 		return
-	Audio.set_loop("vacuum", true, -6.0)
+	Audio.set_loop("vacuum", true, -12.0)
 	# Gira la boquilla con suavidad hacia el objetivo / Turns the nozzle smoothly toward the target
 	var want := (_body(target) - _nozzle_base()).normalized()
 	_dir = _dir.slerp(want, minf(1.0, delta * 10.0)).normalized()
@@ -44,15 +57,30 @@ func _physics_process(delta: float) -> void:
 	if do_tick:
 		_tick = TICK
 	for e: Node2D in run.enemies.get_children():
-		if not e.is_targetable():
+		if not e.is_targetable() or e.bounce_t > 0.0:
 			continue
 		var to_e := _body(e) - _nozzle_base()
-		if to_e.length() > RANGE or absf(_dir.angle_to(to_e)) > CONE:
+		if to_e.length() > RANGE * _boost or absf(_dir.angle_to(to_e)) > CONE:
 			continue
-		e.external_pull += -to_e.normalized() * PULL
+		if lv("svinho") > 0 and to_e.length() < 90.0 and _spit_cd <= 0.0:
+			_spit(e)
+			continue
+		e.external_pull += -to_e.normalized() * PULL * _boost
 		if do_tick:
-			deal(e, DPS * TICK)
+			deal(e, DPS * TICK * _boost)
+			if lv("silly") > 0:
+				e.glitch(0.0, 0.0, 1.5 + 0.5 * lv("silly"))
 	queue_redraw()
+
+
+## Escupe al enemigo con fuerza: sale rebotando / Spits the enemy out hard: it ricochets away
+func _spit(e: Node2D) -> void:
+	_spit_cd = maxf(0.5, 1.4 - 0.3 * lv("svinho"))
+	e.stun_t = maxf(e.stun_t, 0.9)
+	e.start_bounce(12.0 * (1.0 + 0.3 * lv("svinho")) * player.damage_mult, lv("svinho"))
+	deal(e, 6.0, _dir * 950.0)
+	run.fx.ring(_nozzle_base() + _dir * 50.0, 24.0, KrokerArt.ACCENT["vacuum"], 0.35, 2.2)
+	Audio.play("kick", -3.0, 0.1)
 
 
 func _nozzle_base() -> Vector2:
@@ -70,12 +98,12 @@ func _draw() -> void:
 	var pts := PackedVector2Array([c])
 	for i in 13:
 		var ang := a - CONE + 2.0 * CONE * i / 12.0
-		pts.append(c + Vector2(cos(ang), sin(ang)) * RANGE)
+		pts.append(c + Vector2(cos(ang), sin(ang)) * RANGE * _boost)
 	draw_colored_polygon(pts, Color(col, 0.07))
 	for i in 7:
 		var k := fposmod(_t * 1.4 + i / 7.0, 1.0)  # 0 lejos → 1 cerca
-		var r := lerpf(RANGE, 40.0, k)
+		var r := lerpf(RANGE * _boost, 40.0, k)
 		var off := sin(i * 2.3) * CONE * 0.8
 		var p := c + Vector2.from_angle(a + off) * r
-		var tail := c + Vector2.from_angle(a + off) * minf(RANGE, r + 36.0)
+		var tail := c + Vector2.from_angle(a + off) * minf(RANGE * _boost, r + 36.0)
 		draw_line(tail, p, Color(col, 0.55 * sin(k * PI)), 1.6, true)

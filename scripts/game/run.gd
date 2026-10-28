@@ -28,7 +28,7 @@ var _overlay: DreamOverlay
 
 func _ready() -> void:
 	var depth := GameState.dream_depth
-	_wave = GameState.WAVES[clampi(depth - 1, 0, GameState.WAVES.size() - 1)]
+	_wave = GameState.wave_for(depth)
 	Audio.play_music("music_dream1", 2.5)
 	_time_left = _wave["duration"]
 
@@ -43,6 +43,13 @@ func _ready() -> void:
 
 	room = Bedroom.new()
 	room.outfit = GameState.selected_character
+	room.weird = depth - 1
+	if depth > 1:
+		# Ya despierto en el sueño: la cama está vacía y el arma ya la lleva
+		# Already awake in the dream: the bed is empty and he already has his weapon
+		room.bed_state = "empty"
+		room.glasses_on_stand = false
+		room.weapon_taken = true
 	add_child(room)
 
 	_camera = Camera2D.new()
@@ -71,7 +78,35 @@ func _ready() -> void:
 	hud.visible = false
 	hud.set_hp(player.hp, player.max_hp)
 	hud.set_time(_time_left)
-	_play_wake_up(depth)
+	if GameState.selected_character == "shield" and GameState.level("svinho") > 0:
+		hud.set_special_mode(false)
+	if depth == 1:
+		_play_wake_up(depth)
+	else:
+		_drop_in(depth)
+
+
+## En los sueños siguientes Kroker cae desde lo alto entre estrellas.
+## In later dreams Kroker falls in from above among stars.
+func _drop_in(depth: int) -> void:
+	var start := Bedroom.to_world(Bedroom.START_POINT)
+	player.position = start
+	player.hop = 600.0
+	player.visible = true
+	var tw := create_tween()
+	tw.tween_interval(0.6)
+	tw.tween_property(player, "hop", 0.0, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func() -> void:
+		player.land()
+		Audio.play("land")
+		shake(6.0)
+		fx.dissipate(start + Vector2(0, -20), UITheme.GOLD)
+		fx.ring(start, 30.0, UITheme.GOLD, 0.5, 2.4))
+	tw.tween_interval(0.5)
+	tw.tween_callback(func() -> void:
+		hud.visible = true
+		hud.start(depth)
+		running = true)
 
 
 ## Intro: Kroker duerme, se revuelve, se incorpora, se estira, se pone las gafas,
@@ -191,9 +226,9 @@ func _spawn_point() -> Vector2:
 func _spawn_foox(pos: Vector2) -> void:
 	if not running:
 		return
-	Audio.play("spawn", -8.0, 0.1)
+	Audio.play("spawn", -13.0, 0.08)
 	var f := Foox.new()
-	f.run = self
+	f.setup(self, float(_wave.get("hp_mult", 1.0)), float(_wave.get("speed_mult", 1.0)))
 	f.position = pos
 	enemies.add_child(f)
 
@@ -262,8 +297,21 @@ func _on_wave_cleared() -> void:
 	hud.set_time(0.0)
 	for e: Node in enemies.get_children():
 		e.die(false)
-	get_tree().create_timer(1.4, false).timeout.connect(func() -> void:
-		_show_end("WIN_TITLE", "WIN_NEXT_HINT", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]]))
+	# Un destello leve y Kroker pasa al plano astral / A soft flash takes Kroker to the astral plane
+	var layer := CanvasLayer.new()
+	layer.layer = 30
+	add_child(layer)
+	var flash := ColorRect.new()
+	flash.color = Color("f7f2ff")
+	flash.modulate.a = 0.0
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(flash)
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var tw := create_tween()
+	tw.tween_interval(1.6)
+	tw.tween_callback(Audio.play.bind("astral", -2.0))
+	tw.tween_property(flash, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_plane.tscn"))
 
 
 # --- Pantallas / Screens ----------------------------------------------------
@@ -304,6 +352,7 @@ func _open_settings() -> void:
 
 
 func _restart() -> void:
+	GameState.reset_run()
 	GameState.change_scene("res://scenes/run.tscn")
 
 

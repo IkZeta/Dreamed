@@ -171,7 +171,7 @@ func _select(id: String) -> void:
 
 func _on_start() -> void:
 	if not _start.disabled:
-		GameState.dream_depth = 1
+		GameState.reset_run()
 		_go(RUN_SCENE)
 
 

@@ -10,6 +10,8 @@ var _timer: Label
 var _intro: Control
 var _intro_title: Label
 var _hint: Label
+var _intro_sub: Label
+var _special: Label
 var _depth := 1
 
 
@@ -77,6 +79,7 @@ func _ready() -> void:
 	_intro_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_intro.add_child(_intro_title)
 	var sub := UITheme.label("RUN_WAVE1_INTRO", 30, UITheme.ASH, "italic")
+	_intro_sub = sub
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_intro.add_child(sub)
 	_refresh_texts()
@@ -84,6 +87,8 @@ func _ready() -> void:
 
 func start(depth: int) -> void:
 	_depth = depth
+	var keys := ["RUN_WAVE1_INTRO", "RUN_INTRO_2", "RUN_INTRO_3"]
+	_intro_sub.text = keys[depth - 1] if depth <= keys.size() else "RUN_INTRO_DEEP"
 	_refresh_texts()
 	_intro.modulate.a = 0.0
 	var tw := create_tween()
@@ -93,6 +98,16 @@ func start(depth: int) -> void:
 	var hint_tw := create_tween()
 	hint_tw.tween_interval(7.0)
 	hint_tw.tween_property(_hint, "modulate:a", 0.0, 1.5)
+
+
+## Muestra la tecla del modo especial (almohada de Svinho) / Shows the special-mode key (Svinho's pillow)
+func set_special_mode(throwing: bool) -> void:
+	if _special == null:
+		_special = UITheme.label("", 16, UITheme.GOLD, "caps")
+		get_child(0).add_child(_special)
+		_special.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		_special.position = Vector2(56, 130)
+	_special.text = "RUN_SPECIAL_THROW" if throwing else "RUN_SPECIAL_DEFEND"
 
 
 func set_hp(hp: float, max_hp: float) -> void:

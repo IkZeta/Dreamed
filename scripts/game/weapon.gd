@@ -48,3 +48,8 @@ func _body(e: Node2D) -> Vector2:
 
 func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO) -> void:
 	e.hit(base_damage * player.damage_mult, impulse)
+
+
+## Nivel de la mejora de un personaje del plano astral / Level of an astral giver's upgrade
+func lv(giver: String) -> int:
+	return GameState.level(giver)

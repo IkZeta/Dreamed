@@ -156,6 +156,14 @@ func _ensure_input() -> void:
 		j.axis = def[2]
 		j.axis_value = def[3]
 		InputMap.action_add_event(action, j)
+	if not InputMap.has_action("special"):
+		InputMap.add_action("special")
+		var e := InputEventKey.new()
+		e.physical_keycode = KEY_E
+		InputMap.action_add_event("special", e)
+		var y := InputEventJoypadButton.new()
+		y.button_index = JOY_BUTTON_Y
+		InputMap.action_add_event("special", y)
 	if not InputMap.has_action("pause"):
 		InputMap.add_action("pause")
 		var esc := InputEventKey.new()

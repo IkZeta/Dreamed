@@ -37,13 +37,77 @@ const WEAPON_BONUS := {
 	"vacuum": {"speed": 75.0},       # +25 % de velocidad / +25% speed
 }
 
-## Definición de cada oleada / Wave definitions
+## Definición de cada oleada. A partir de la última, cada sueño es un poco más difícil.
+## Wave definitions. After the last one, each dream gets a bit harder.
 const WAVES := [
 	{"duration": 30.0, "enemy": "foox", "spawn_every": 3.0, "group": [1, 2], "max_alive": 5},
+	{"duration": 35.0, "enemy": "foox", "spawn_every": 2.6, "group": [1, 3], "max_alive": 7},
+	{"duration": 40.0, "enemy": "foox", "spawn_every": 2.2, "group": [2, 3], "max_alive": 9},
 ]
+
+## Personajes del plano astral y el tipo de mejora que da cada uno.
+## Astral plane characters and the kind of upgrade each one gives.
+const GIVERS: Array[String] = ["svinho", "stolk", "silly"]
+const MAX_UPGRADE_LEVEL := 3
+const STOLK_HP_COST := 5.0   # vida máxima que cuesta cada nivel de Stolk / max health each Stolk level costs
 
 var selected_character := "bat"
 var dream_depth := 1  # oleada actual / current wave
+## Mejoras compradas en esta partida: "svinho" / "stolk" / "silly" → nivel
+## Upgrades taken this run: "svinho" / "stolk" / "silly" → level
+var upgrades := {}
+var _rng := RandomNumberGenerator.new()
+
+
+## Empieza una partida nueva / Starts a new run
+func reset_run() -> void:
+	dream_depth = 1
+	upgrades = {}
+	_rng.randomize()
+
+
+func wave_for(depth: int) -> Dictionary:
+	if depth <= WAVES.size():
+		return WAVES[depth - 1]
+	var extra := depth - WAVES.size()
+	var last: Dictionary = WAVES[WAVES.size() - 1]
+	return {
+		"duration": minf(60.0, float(last["duration"]) + extra * 4.0),
+		"enemy": "foox",
+		"spawn_every": maxf(1.0, float(last["spawn_every"]) - extra * 0.2),
+		"group": [2, 3 + extra / 2],
+		"max_alive": mini(16, int(last["max_alive"]) + extra * 2),
+		"hp_mult": 1.0 + extra * 0.25,
+		"speed_mult": 1.0 + extra * 0.06,
+	}
+
+
+## Nivel de la mejora de un personaje (0 si no la tienes) / Level of a giver's upgrade (0 if not taken)
+func level(giver: String) -> int:
+	return int(upgrades.get(giver, 0))
+
+
+func add_upgrade(giver: String) -> void:
+	upgrades[giver] = mini(MAX_UPGRADE_LEVEL, level(giver) + 1)
+
+
+## Elige dos personajes distintos que aún puedan subir de nivel / Picks two different givers that can still level up
+func pick_offer() -> Array[String]:
+	var pool: Array[String] = []
+	for g in GIVERS:
+		if level(g) < MAX_UPGRADE_LEVEL:
+			pool.append(g)
+	for i in range(pool.size() - 1, 0, -1):
+		var j := _rng.randi_range(0, i)
+		var tmp := pool[i]
+		pool[i] = pool[j]
+		pool[j] = tmp
+	return pool.slice(0, 2)
+
+
+## Clave de traducción del nombre o la descripción de una mejora / Translation key of an upgrade's name or description
+func upgrade_key(giver: String, weapon: String, part: String) -> String:
+	return "UP_%s_%s_%s" % [giver.to_upper(), weapon.to_upper(), part]
 
 
 func get_character(id: String) -> Dictionary:
@@ -58,6 +122,8 @@ func stats_for(id: String) -> Dictionary:
 	var bonus: Dictionary = WEAPON_BONUS.get(id, {})
 	for k: String in bonus:
 		s[k] = float(s[k]) + float(bonus[k])
+	# Stolk: cada nivel quita vida máxima / Stolk: each level costs max health
+	s["max_hp"] = maxf(5.0, float(s["max_hp"]) - STOLK_HP_COST * level("stolk"))
 	return s
 
 

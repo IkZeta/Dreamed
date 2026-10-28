@@ -89,6 +89,57 @@ const STRINGS := {
 	"LOSE_TITLE": {"es": "Kroker se ha despertado", "en": "Kroker woke up"},
 	"BTN_DREAM_AGAIN": {"es": "Soñar de nuevo", "en": "Dream again"},
 	"BTN_MAIN_MENU": {"es": "Menú principal", "en": "Main menu"},
+
+	# --- Más sueños / More dreams ---
+	"RUN_INTRO_2": {"es": "La habitación ya no es del todo tu habitación", "en": "The room isn't quite your room anymore"},
+	"RUN_INTRO_3": {"es": "Los muebles han olvidado dónde estaban", "en": "The furniture has forgotten where it belongs"},
+	"RUN_INTRO_DEEP": {"es": "Cada vez más hondo", "en": "Deeper and deeper"},
+	"RUN_SPECIAL_DEFEND": {"es": "E · Lanzar la almohada", "en": "E · Throw the pillow"},
+	"RUN_SPECIAL_THROW": {"es": "E · Volver a defender", "en": "E · Back to defending"},
+
+	# --- Plano astral / Astral plane ---
+	"ASTRAL_TITLE": {"es": "Plano astral", "en": "Astral plane"},
+	"ASTRAL_SUBTITLE": {"es": "Entre un sueño y otro, alguien te espera. Elige un don.", "en": "Between one dream and the next, someone is waiting. Choose a gift."},
+	"ASTRAL_ACCEPT": {"es": "Aceptar el don", "en": "Accept the gift"},
+	"UP_LEVEL": {"es": "Nivel %d", "en": "Level %d"},
+	"UP_STOLK_COST": {"es": "Cuesta %d de vida máxima", "en": "Costs %d max health"},
+
+	"GIVER_SVINHO_NAME": {"es": "Svinho", "en": "Svinho"},
+	"GIVER_SVINHO_ROLE": {"es": "El futbolista", "en": "The footballer"},
+	"GIVER_SVINHO_LINE": {"es": "«¡Joga bonito, Kroker! Todo lo que golpeas debería rebotar.»", "en": "“Joga bonito, Kroker! Everything you hit should bounce.”"},
+	"GIVER_STOLK_NAME": {"es": "Stolk", "en": "Stolk"},
+	"GIVER_STOLK_ROLE": {"es": "El matón del cole", "en": "The school bully"},
+	"GIVER_STOLK_LINE": {"es": "«¿Quieres ser fuerte? Te va a doler.»", "en": "“Want to be strong? It's gonna hurt.”"},
+	"GIVER_SILLY_NAME": {"es": "Silly", "en": "Silly"},
+	"GIVER_SILLY_ROLE": {"es": "La hacker", "en": "The hacker"},
+	"GIVER_SILLY_LINE": {"es": "«He encontrado un fallo en tu sueño. Vamos a usarlo.»", "en": "“I found a bug in your dream. Let's use it.”"},
+
+	"UP_SVINHO_BAT_NAME": {"es": "Carambola", "en": "Carom"},
+	"UP_SVINHO_BAT_DESC": {"es": "El bate manda a volar al enemigo. Si choca con otro, también le hace daño, y el golpe puede seguir encadenándose.", "en": "The bat sends the enemy flying. If it crashes into another, that one gets hurt too, and the hit can keep chaining."},
+	"UP_SVINHO_SHIELD_NAME": {"es": "Pase largo", "en": "Long pass"},
+	"UP_SVINHO_SHIELD_DESC": {"es": "Pulsa E para lanzar la almohada: rebota entre enemigos y hace más daño, pero pierdes defensa. Pulsa E otra vez para volver a defender.", "en": "Press E to throw the pillow: it bounces between enemies and hits harder, but you lose defense. Press E again to go back to defending."},
+	"UP_SVINHO_BOOK_NAME": {"es": "Rebote de página", "en": "Page bounce"},
+	"UP_SVINHO_BOOK_DESC": {"es": "Los rayos rebotan en dos enemigos más y saltan más lejos.", "en": "Lightning bounces to two more enemies and jumps farther."},
+	"UP_SVINHO_VACUUM_NAME": {"es": "Chut", "en": "Volley"},
+	"UP_SVINHO_VACUUM_DESC": {"es": "Lo que llega a la boquilla sale escupido y va rebotando contra las paredes y los demás enemigos.", "en": "Whatever reaches the nozzle gets spat out and ricochets off the walls and other enemies."},
+
+	"UP_STOLK_BAT_NAME": {"es": "Bate de matón", "en": "Bully's bat"},
+	"UP_STOLK_BAT_DESC": {"es": "+60 % de daño con el bate.", "en": "+60% bat damage."},
+	"UP_STOLK_SHIELD_NAME": {"es": "Almohada de piedra", "en": "Stone pillow"},
+	"UP_STOLK_SHIELD_DESC": {"es": "Los almohadazos hacen el doble de daño y empujan un 40 % más.", "en": "Pillow bashes deal double damage and shove 40% harder."},
+	"UP_STOLK_BOOK_NAME": {"es": "Libro de castigo", "en": "Detention book"},
+	"UP_STOLK_BOOK_DESC": {"es": "Lanzas rayos un 25 % más a menudo.", "en": "You cast lightning 25% more often."},
+	"UP_STOLK_VACUUM_NAME": {"es": "Turbo", "en": "Turbo"},
+	"UP_STOLK_VACUUM_DESC": {"es": "La aspiradora llega más lejos, atrae más fuerte y hace un 35 % más de daño.", "en": "The vacuum reaches farther, pulls harder and deals 35% more damage."},
+
+	"UP_SILLY_BAT_NAME": {"es": "Golpe corrupto", "en": "Corrupted hit"},
+	"UP_SILLY_BAT_DESC": {"es": "Cada golpe puede congelar al enemigo con un glitch durante un momento.", "en": "Each hit may freeze the enemy with a glitch for a moment."},
+	"UP_SILLY_SHIELD_NAME": {"es": "Desfase", "en": "Lag"},
+	"UP_SILLY_SHIELD_DESC": {"es": "Los enemigos que golpeas van a cámara lenta durante unos segundos.", "en": "Enemies you hit move in slow motion for a few seconds."},
+	"UP_SILLY_BOOK_NAME": {"es": "Rayo en bucle", "en": "Looping bolt"},
+	"UP_SILLY_BOOK_DESC": {"es": "Cada rayo deja un eco: el daño se repite un segundo después.", "en": "Each bolt leaves an echo: the damage repeats one second later."},
+	"UP_SILLY_VACUUM_NAME": {"es": "Error de memoria", "en": "Memory leak"},
+	"UP_SILLY_VACUUM_DESC": {"es": "Lo que absorbes queda vulnerable y recibe un 50 % más de daño.", "en": "Whatever you suck in becomes vulnerable and takes 50% more damage."},
 }
 
 
