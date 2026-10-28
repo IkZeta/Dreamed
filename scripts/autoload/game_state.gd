@@ -37,13 +37,18 @@ const WEAPON_BONUS := {
 	"vacuum": {"speed": 75.0},       # +25 % de velocidad / +25% speed
 }
 
-## Definición de cada oleada. A partir de la última, cada sueño es un poco más difícil.
-## Wave definitions. After the last one, each dream gets a bit harder.
+## Definición de cada sueño del Acto 1 (la habitación). "mix" es el peso de cada enemigo al
+## aparecer. Cada piso trae un enemigo nuevo más peligroso; el 5 es el jefe.
+## Definition of each dream in Act 1 (the bedroom). "mix" is each enemy's spawn weight.
+## Every floor brings a new, more dangerous enemy; floor 5 is the boss.
 const WAVES := [
-	{"duration": 30.0, "enemy": "foox", "spawn_every": 3.0, "group": [1, 2], "max_alive": 5},
-	{"duration": 35.0, "enemy": "foox", "spawn_every": 2.6, "group": [1, 3], "max_alive": 7},
-	{"duration": 40.0, "enemy": "foox", "spawn_every": 2.2, "group": [2, 3], "max_alive": 9},
+	{"duration": 30.0, "spawn_every": 3.0, "group": [1, 2], "max_alive": 5, "mix": {"foox": 1}},
+	{"duration": 35.0, "spawn_every": 2.8, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1}, "new": "thug"},
+	{"duration": 40.0, "spawn_every": 2.6, "group": [1, 3], "max_alive": 8, "mix": {"foox": 2, "thug": 1, "sling": 1}, "new": "sling"},
+	{"duration": 45.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 9, "mix": {"foox": 2, "thug": 1, "sling": 1, "skeleton": 2}, "new": "skeleton"},
+	{"boss": true, "spawn_every": 6.0, "group": [1, 2], "max_alive": 3, "mix": {"foox": 2, "skeleton": 1}},
 ]
+const BOSS_DEPTH := 5
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
@@ -67,19 +72,7 @@ func reset_run() -> void:
 
 
 func wave_for(depth: int) -> Dictionary:
-	if depth <= WAVES.size():
-		return WAVES[depth - 1]
-	var extra := depth - WAVES.size()
-	var last: Dictionary = WAVES[WAVES.size() - 1]
-	return {
-		"duration": minf(60.0, float(last["duration"]) + extra * 4.0),
-		"enemy": "foox",
-		"spawn_every": maxf(1.0, float(last["spawn_every"]) - extra * 0.2),
-		"group": [2, 3 + extra / 2],
-		"max_alive": mini(16, int(last["max_alive"]) + extra * 2),
-		"hp_mult": 1.0 + extra * 0.25,
-		"speed_mult": 1.0 + extra * 0.06,
-	}
+	return WAVES[clampi(depth, 1, WAVES.size()) - 1]
 
 
 ## Nivel de la mejora de un personaje (0 si no la tienes) / Level of a giver's upgrade (0 if not taken)

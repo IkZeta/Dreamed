@@ -24,13 +24,15 @@ var _kills := 0
 var _camera: Camera2D
 var _shake := 0.0
 var _overlay: DreamOverlay
+var _spawned_new := 0
+var boss: Boss
 
 
 func _ready() -> void:
 	var depth := GameState.dream_depth
 	_wave = GameState.wave_for(depth)
 	Audio.play_music("music_dream1", 2.5)
-	_time_left = _wave["duration"]
+	_time_left = float(_wave.get("duration", 0.0))
 
 	# El cielo del sueño rodea la habitación / The dream sky surrounds the room
 	var back := CanvasLayer.new()
@@ -99,6 +101,7 @@ func _drop_in(depth: int) -> void:
 	tw.tween_callback(func() -> void:
 		player.land()
 		Audio.play("land")
+		Audio.play("crack", -4.0)
 		shake(6.0)
 		fx.dissipate(start + Vector2(0, -20), UITheme.GOLD)
 		fx.ring(start, 30.0, UITheme.GOLD, 0.5, 2.4))
@@ -106,7 +109,22 @@ func _drop_in(depth: int) -> void:
 	tw.tween_callback(func() -> void:
 		hud.visible = true
 		hud.start(depth)
-		running = true)
+		running = true
+		if _wave.get("boss", false):
+			_spawn_boss())
+
+
+## El jefe del acto: los muebles despiertan / The act boss: the furniture wakes up
+func _spawn_boss() -> void:
+	Audio.play_music("music_boss", 1.0)
+	boss = Boss.new()
+	boss.setup(self)
+	enemies.add_child(boss)
+	hud.show_boss("BOSS_NAME")
+	hud.set_boss_part(Boss.PARTS[boss.active]["name"])
+	hud.set_boss_hp(boss.hp, boss.max_hp)
+	boss.defeated.connect(_on_act_cleared)
+	_spawn_timer = 6.0
 
 
 ## Intro: Kroker duerme, se revuelve, se incorpora, se estira, se pone las gafas,
@@ -185,11 +203,12 @@ func _physics_process(delta: float) -> void:
 	_camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake if Settings.screen_shake else Vector2.ZERO
 	if not running:
 		return
-	_time_left -= delta
-	hud.set_time(_time_left)
-	if _time_left <= 0.0:
-		_on_wave_cleared()
-		return
+	if not _wave.get("boss", false):
+		_time_left -= delta
+		hud.set_time(_time_left)
+		if _time_left <= 0.0:
+			_on_wave_cleared()
+			return
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
 		_spawn_timer = _wave["spawn_every"]
@@ -205,36 +224,73 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Oleada / Wave ----------------------------------------------------------
 
 func _spawn_group() -> void:
-	var alive := enemies.get_child_count()
+	var alive := 0
+	for e in enemies.get_children():
+		if not e is Boss:
+			alive += 1
 	var group: Array = _wave["group"]
 	var count := mini(randi_range(group[0], group[1]), int(_wave["max_alive"]) - alive)
 	for i in count:
 		var pos := _spawn_point()
+		var kind := _pick_kind()
 		fx.telegraph(pos + Vector2(0, -16), 0.8)
-		get_tree().create_timer(0.8, false).timeout.connect(_spawn_foox.bind(pos))
+		get_tree().create_timer(0.8, false).timeout.connect(_spawn_enemy.bind(kind, pos))
+
+
+## Elige qué enemigo sale según los pesos del sueño; el enemigo nuevo sale seguro al principio.
+## Picks which enemy appears by the dream's weights; the new enemy is guaranteed early on.
+func _pick_kind() -> String:
+	var new_kind: String = _wave.get("new", "")
+	if new_kind != "" and _spawned_new < 2:
+		_spawned_new += 1
+		return new_kind
+	var mix: Dictionary = _wave["mix"]
+	var total := 0.0
+	for k: String in mix:
+		total += float(mix[k])
+	var roll := randf() * total
+	for k: String in mix:
+		roll -= float(mix[k])
+		if roll <= 0.0:
+			return k
+	return "foox"
 
 
 func _spawn_point() -> Vector2:
 	var area := Bedroom.rect_world(Bedroom.WALKABLE).grow(-30)
 	for attempt in 30:
 		var p := Vector2(randf_range(area.position.x, area.end.x), randf_range(area.position.y, area.end.y))
-		if p.distance_to(player.position) > 360.0 and not _blocked(p, 40.0):
+		if p.distance_to(player.position) > 360.0 and not _blocked(p, 40.0) and not _near_boss(p):
 			return p
 	return Vector2(area.end.x - 40, area.end.y - 40)
 
 
-func _spawn_foox(pos: Vector2) -> void:
+func _spawn_enemy(kind: String, pos: Vector2) -> void:
 	if not running:
 		return
 	Audio.play("spawn", -13.0, 0.08)
-	var f := Foox.new()
-	f.setup(self, float(_wave.get("hp_mult", 1.0)), float(_wave.get("speed_mult", 1.0)))
-	f.position = pos
-	enemies.add_child(f)
+	var e: Enemy
+	match kind:
+		"thug": e = Thug.new()
+		"sling": e = SlingThug.new()
+		"skeleton": e = Skeleton.new()
+		_: e = Foox.new()
+	e.setup(self)
+	e.position = pos
+	enemies.add_child(e)
+
+
+## Rectángulo de la zona de juego en pantalla / Play area rectangle on screen
+func arena_rect() -> Rect2:
+	return Bedroom.rect_world(Bedroom.WALKABLE)
+
+
+func _near_boss(p: Vector2) -> bool:
+	return is_instance_valid(boss) and p.distance_to(boss.aim_point()) < 160.0
 
 
 func _blocked(p: Vector2, margin: float) -> bool:
-	for r in Bedroom.OBSTACLES:
+	for r in room.blockers():
 		if Bedroom.rect_world(r).grow(margin).has_point(p):
 			return true
 	return false
@@ -245,7 +301,7 @@ func _blocked(p: Vector2, margin: float) -> bool:
 func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
 	var r := Bedroom.rect_world(Bedroom.WALKABLE).grow(-margin * 0.5)
 	p = Vector2(clampf(p.x, r.position.x, r.end.x), clampf(p.y, r.position.y, r.end.y))
-	for o in Bedroom.OBSTACLES:
+	for o in room.blockers():
 		var g := Bedroom.rect_world(o).grow(margin * 0.6)
 		if g.has_point(p):
 			# Empuja hacia el borde más cercano / Push out through the nearest edge
@@ -312,6 +368,20 @@ func _on_wave_cleared() -> void:
 	tw.tween_callback(Audio.play.bind("astral", -2.0))
 	tw.tween_property(flash, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_plane.tscn"))
+
+
+## El jefe ha caído: fin del Acto 1 / The boss has fallen: end of Act 1
+func _on_act_cleared() -> void:
+	running = false
+	Audio.stop_loops()
+	Audio.fade_music(-30.0, 1.5)
+	Audio.play("act_clear", -1.0)
+	for e: Node in enemies.get_children():
+		if e != boss:
+			e.die(false)
+	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
+		GameState.dream_depth = 1
+		_show_end("ACT1_CLEAR_TITLE", "ACT1_CLEAR_SUB", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]]))
 
 
 # --- Pantallas / Screens ----------------------------------------------------

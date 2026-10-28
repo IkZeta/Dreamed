@@ -37,6 +37,15 @@ const OBSTACLES: Array[Rect2] = [
 	Rect2(30, 300, 110, 70),     # cubos / blocks
 ]
 
+## Agujeros que se abren en el suelo según avanza el acto (rectángulo en el lienzo de la habitación).
+## Holes that open in the floor as the act goes on (rectangle on the room canvas).
+const HOLES: Array[Rect2] = [
+	Rect2(1300, 560, 170, 74),
+	Rect2(250, 840, 160, 66),
+	Rect2(1540, 860, 190, 74),
+	Rect2(600, 690, 130, 56),
+]
+
 ## Dónde está cada arma antes de cogerla y desde dónde la coge Kroker.
 ## Where each weapon rests before he takes it, and where Kroker stands to pick it up.
 const PICKUP := {
@@ -68,6 +77,9 @@ var weapon_taken := false
 ## Lo raro que está la habitación: 0 en el Sueño 1 y sube en cada sueño
 ## How strange the room is: 0 in Dream 1, rising with each dream
 var weird := 0
+## Grietas generadas al empezar (paredes, muebles y suelo) / Cracks generated at start (walls, furniture, floor)
+var _cracks: Array[PackedVector2Array] = []
+var _flakes: Array[Dictionary] = []
 
 var _t := 0.0
 var _wall_stars: Array[Dictionary] = []
@@ -96,6 +108,61 @@ func _ready() -> void:
 			"ph": rng.randf() * TAU, "r": rng.randf_range(3.0, 6.0)})
 	for i in 40:
 		_motes.append({"u": rng.randf(), "v": rng.randf(), "ph": rng.randf() * TAU, "sp": rng.randf_range(0.01, 0.03)})
+	_make_cracks()
+
+
+## Cuántos agujeros hay en el suelo según lo corrupto que está el sueño
+## How many floor holes there are depending on how corrupted the dream is
+func hole_count() -> int:
+	return clampi(weird, 0, HOLES.size())
+
+
+## Todo lo que no se puede atravesar: muebles y agujeros / Everything you can't walk through: furniture and holes
+func blockers() -> Array[Rect2]:
+	var out: Array[Rect2] = OBSTACLES.duplicate()
+	for i in hole_count():
+		out.append(HOLES[i].grow(-10))
+	return out
+
+
+## Grietas: líneas quebradas que crecen desde un punto. Salen más en cada sueño.
+## Cracks: jagged lines growing from a point. More of them in each dream.
+func _make_cracks() -> void:
+	if weird <= 0:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 91
+	# Zonas donde pueden salir / Areas where they can appear
+	var zones: Array[Rect2] = [
+		Rect2(20, 20, 1880, 260),            # pared / wall
+		Rect2(BED.position.x, BED.position.y + 90, BED.size.x, BED.size.y - 100),
+		Rect2(DESK.position.x, DESK.position.y, DESK.size.x, DESK.size.y),
+		Rect2(SHELF.position.x, SHELF.position.y, SHELF.size.x, SHELF.size.y),
+		Rect2(60, 340, 1800, 680),           # suelo / floor
+	]
+	var per_zone := [4, 1, 1, 1, 3]
+	for z in zones.size():
+		for i in per_zone[z] * weird:
+			var zone := zones[z]
+			var p := Vector2(rng.randf_range(zone.position.x, zone.end.x), rng.randf_range(zone.position.y, zone.end.y))
+			var ang := rng.randf() * TAU
+			var line := PackedVector2Array([p])
+			var length := rng.randf_range(30, 70) * (1.0 + 0.4 * weird) * (0.6 if z in [1, 2, 3] else 1.0)
+			var steps := 6
+			for k in steps:
+				ang += rng.randf_range(-0.8, 0.8)
+				p += Vector2.from_angle(ang) * length / steps
+				p = Vector2(clampf(p.x, zone.position.x, zone.end.x), clampf(p.y, zone.position.y, zone.end.y))
+				line.append(p)
+				# Ramas pequeñas / Little branches
+				if rng.randf() < 0.3:
+					var b := p + Vector2.from_angle(ang + rng.randf_range(-1.6, 1.6)) * rng.randf_range(8, 20)
+					_cracks.append(PackedVector2Array([p, b]))
+			_cracks.append(line)
+	# Trozos de pared que se desprenden y flotan / Bits of wall breaking off and floating away
+	for i in weird * 5:
+		_flakes.append({"p": Vector2(rng.randf_range(40, 1880), rng.randf_range(30, 270)),
+			"v": rng.randf_range(6, 16), "r": rng.randf() * TAU, "s": rng.randf_range(5, 12), "ph": rng.randf() * 10.0}) 
 
 
 func _process(delta: float) -> void:
@@ -111,6 +178,7 @@ func _draw() -> void:
 	_draw_floor()
 	_draw_moonbeam()
 	_draw_rug()
+	_draw_holes()
 	# Charco de luz cálida de la lamparita / Warm pool of light from the night-light
 	draw_texture_rect(DreamBackground.soft_texture(), Rect2(220, 230, 440, 300), false, Color("ffd2a0", 0.16))
 	_draw_bedside_rug()
@@ -121,6 +189,7 @@ func _draw() -> void:
 	_draw_nightstand()
 	_draw_props()
 	_draw_bed()
+	_draw_corruption()
 	_draw_zzz()
 	_draw_motes()
 	_draw_dream_stars()
@@ -671,6 +740,55 @@ func _draw_zzz() -> void:
 		var k := fposmod(_t * 0.4 + i / 3.0, 1.0)
 		var p := head + Vector2(20 + k * 50 + sin(k * 6.0) * 6, -k * 90)
 		draw_string(f, p, "z", HORIZONTAL_ALIGNMENT_LEFT, -1, int(16 + k * 18), Color(UITheme.BONE, 0.8 * sin(k * PI)))
+
+
+# --- Corrupción del sueño / Dream corruption ---------------------------------
+
+func _draw_holes() -> void:
+	for i in hole_count():
+		var h := HOLES[i]
+		var c := h.get_center()
+		var rr := h.size / 2.0
+		# Borde roto: la forma tiembla un poco / Broken rim: the shape wobbles slightly
+		var rim := PackedVector2Array()
+		var inner := PackedVector2Array()
+		for k in 28:
+			var a := TAU * k / 28.0
+			var jag := 1.0 + 0.12 * sin(a * 5.0 + i * 2.0) + 0.06 * sin(a * 11.0 + i)
+			rim.append(c + Vector2(cos(a) * rr.x, sin(a) * rr.y) * (jag + 0.12))
+			inner.append(c + Vector2(cos(a) * rr.x, sin(a) * rr.y) * jag)
+		draw_colored_polygon(rim, Color("2a2350"))
+		# Dentro se ve el vacío estrellado / Inside you can see the starry void
+		draw_colored_polygon(inner, Color("07061a"))
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - rr * 0.8, rr * 1.6), false, Color("5b4bc4", 0.35))
+		for k in 7:
+			var sp := c + Vector2(sin(k * 2.3 + i) * rr.x * 0.6, cos(k * 1.7 + i) * rr.y * 0.5)
+			draw_circle(sp, 1.4, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + k)))
+		# Astillas de las tablas / Floorboard splinters
+		for k in 6:
+			var a := TAU * k / 6.0 + i
+			var p0 := c + Vector2(cos(a) * rr.x, sin(a) * rr.y)
+			draw_line(p0, p0 + Vector2(cos(a) * 14.0, sin(a) * 6.0), Color("4a4592"), 3.0)
+
+
+func _draw_corruption() -> void:
+	if weird <= 0:
+		return
+	for line in _cracks:
+		draw_polyline(line, Color(0.03, 0.02, 0.1, 0.85), 3.0, true)
+		draw_polyline(line, Color("8d7ff0", 0.25), 1.0, true)
+	# Luz que se cuela por las grietas más grandes / Light leaking through the bigger cracks
+	for i in range(0, _cracks.size(), 4):
+		var line: PackedVector2Array = _cracks[i]
+		if line.size() > 3:
+			var mid := line[line.size() / 2]
+			draw_texture_rect(DreamBackground.soft_texture(), Rect2(mid - Vector2(18, 18), Vector2(36, 36)), false, Color("8d7ff0", 0.18 + 0.08 * sin(_t * 2.0 + i)))
+	for f in _flakes:
+		var p := Vector2(f["p"]) + Vector2(sin(_t * 0.5 + float(f["ph"])) * 10.0, -fposmod(_t * float(f["v"]) + float(f["ph"]) * 20.0, 120.0))
+		var sz := float(f["s"])
+		var rot := float(f["r"]) + _t * 0.4
+		draw_colored_polygon(PackedVector2Array([p + Vector2.from_angle(rot) * sz, p + Vector2.from_angle(rot + 2.1) * sz * 0.7,
+			p + Vector2.from_angle(rot + 3.9) * sz * 0.9]), Color("2c3681", 0.8))
 
 
 # --- Utilidades / Helpers ---------------------------------------------------

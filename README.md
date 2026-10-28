@@ -20,6 +20,18 @@ WASD, flechas o stick izquierdo para moverse. Esc o Start para pausar. El arma a
 Los números (daño, alcance, enfriamiento) están como constantes al principio de cada archivo.
 Las oleadas se definen en `GameState.WAVES` y las estadísticas base en `GameState.BASE_STATS`.
 
+## Acto 1: la habitación / Act 1: the bedroom
+| Sueño | Enemigo nuevo |
+|---|---|
+| 1 | Foox (zorro fantasma) |
+| 2 | Matón: mucha vida, golpes fuertes, lento |
+| 3 | Matón del tirachinas: dispara desde lejos |
+| 4 | Esqueleto: hay que rematar sus huesos o revive |
+| 5 | Jefe: cama, escritorio y estantería con brazos mecánicos |
+
+Entre sueños, en el plano astral, Svinho, Stolk y Silly ofrecen mejoras (valores por nivel en `GameState.UPGRADE_VALUES`).
+La habitación se corrompe en cada sueño: grietas, trozos de pared flotando y agujeros en el suelo.
+
 ## Archivos / Files
 - `scripts/autoload/` — textos ES/EN (`i18n.gd`), ajustes y controles (`settings.gd`), datos (`game_state.gd`)
 - `scripts/ui/` — menú principal, ajustes, selección y tema visual

@@ -11,6 +11,9 @@ var _intro: Control
 var _intro_title: Label
 var _hint: Label
 var _intro_sub: Label
+var _intro_new: Label
+var _boss_bar: ProgressBar
+var _boss_name: Label
 var _special: Label
 var _depth := 1
 
@@ -82,18 +85,24 @@ func _ready() -> void:
 	_intro_sub = sub
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_intro.add_child(sub)
+	_intro_new = UITheme.label("", 18, UITheme.GOLD, "caps")
+	_intro_new.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_intro.add_child(_intro_new)
 	_refresh_texts()
 
 
 func start(depth: int) -> void:
 	_depth = depth
-	var keys := ["RUN_WAVE1_INTRO", "RUN_INTRO_2", "RUN_INTRO_3"]
+	var keys := ["RUN_WAVE1_INTRO", "RUN_INTRO_2", "RUN_INTRO_3", "RUN_INTRO_4", "RUN_INTRO_5"]
 	_intro_sub.text = keys[depth - 1] if depth <= keys.size() else "RUN_INTRO_DEEP"
+	var new_kind: String = GameState.wave_for(depth).get("new", "")
+	_intro_new.text = ("NEW_ENEMY_" + new_kind) if new_kind != "" else ""
+	_timer.visible = not GameState.wave_for(depth).get("boss", false)
 	_refresh_texts()
 	_intro.modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(_intro, "modulate:a", 1.0, 0.6)
-	tw.tween_interval(1.6)
+	tw.tween_interval(2.4)
 	tw.tween_property(_intro, "modulate:a", 0.0, 0.9)
 	var hint_tw := create_tween()
 	hint_tw.tween_interval(7.0)
@@ -108,6 +117,39 @@ func set_special_mode(throwing: bool) -> void:
 		_special.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 		_special.position = Vector2(56, 130)
 	_special.text = "RUN_SPECIAL_THROW" if throwing else "RUN_SPECIAL_DEFEND"
+
+
+## Barra de vida del jefe abajo en el centro / Boss health bar, bottom centre
+func show_boss(name_key: String) -> void:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	get_child(0).add_child(box)
+	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	box.offset_left = -360
+	box.offset_right = 360
+	box.offset_top = -110
+	box.offset_bottom = -60
+	_boss_name = UITheme.label(name_key, 16, UITheme.EMBER, "caps")
+	_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_boss_name)
+	_boss_bar = ProgressBar.new()
+	_boss_bar.show_percentage = false
+	_boss_bar.custom_minimum_size = Vector2(720, 10)
+	_boss_bar.add_theme_stylebox_override("fill", UITheme.bar(UITheme.EMBER, 5.0))
+	_boss_bar.add_theme_stylebox_override("background", UITheme.bar(Color(UITheme.LINE, 0.4), 5.0))
+	box.add_child(_boss_bar)
+	_hint.visible = false
+
+
+func set_boss_part(name_key: String) -> void:
+	if _boss_name:
+		_boss_name.text = tr("BOSS_NAME") + "  ·  " + tr(name_key)
+
+
+func set_boss_hp(hp: float, max_hp: float) -> void:
+	if _boss_bar:
+		_boss_bar.max_value = max_hp
+		_boss_bar.value = hp
 
 
 func set_hp(hp: float, max_hp: float) -> void:
