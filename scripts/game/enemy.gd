@@ -1,0 +1,230 @@
+class_name Enemy
+extends Node2D
+## Base de todos los enemigos: movimiento, choques, daño y los estados que ponen las mejoras.
+## Base for every enemy: movement, collisions, damage and the states upgrades apply.
+##
+## Estados / States: aturdido (stun), lento (slow), vulnerable (vuln), glitch (solo visual)
+## y "en rebote": sale despedido y golpea a los enemigos con los que choca.
+## Para crear un enemigo nuevo: hereda, pon los valores en _init() y dibuja en _draw_body().
+## To make a new enemy: inherit, set values in _init() and draw in _draw_body().
+
+const GLITCH_A := Color("ff5fd2")
+const GLITCH_B := Color("5ff2ff")
+
+enum State { SPAWNING, ALIVE, DYING }
+
+var run: Node  # Run
+var max_hp := 16.0
+var hp := 16.0
+var contact_damage := 2.0
+var radius := 22.0
+var speed := 95.0
+var mass := 1.0            # más masa = menos empuje / more mass = less knockback
+var aim_height := 18.0     # a qué altura apuntan las armas / where weapons aim
+var state := State.SPAWNING
+var knock := Vector2.ZERO
+var external_pull := Vector2.ZERO  # lo usa la aspiradora / used by the vacuum
+
+var stun_t := 0.0
+var slow_t := 0.0
+var vuln_t := 0.0
+var vuln_mult := 1.5
+var glitch_t := 0.0
+var bounce_t := 0.0
+var bounce_damage := 0.0
+var bounce_chain := 0
+var _bounced: Array = []
+
+var _t := 0.0
+var _phase := 0.0
+var _flash := 0.0
+var _fade := 0.0
+var _facing := 1.0
+
+
+func setup(p_run: Node, hp_mult := 1.0, speed_mult := 1.0) -> void:
+	run = p_run
+	max_hp *= hp_mult
+	hp = max_hp
+	speed *= speed_mult
+
+
+func _ready() -> void:
+	speed *= randf_range(0.92, 1.12)
+	_phase = randf() * TAU
+
+
+func _physics_process(delta: float) -> void:
+	_t += delta
+	_flash = maxf(0.0, _flash - delta * 5.0)
+	stun_t = maxf(0.0, stun_t - delta)
+	slow_t = maxf(0.0, slow_t - delta)
+	vuln_t = maxf(0.0, vuln_t - delta)
+	glitch_t = maxf(0.0, glitch_t - delta)
+	bounce_t = maxf(0.0, bounce_t - delta)
+	match state:
+		State.SPAWNING:
+			_fade = minf(1.0, _fade + delta / 0.6)
+			if _fade >= 1.0:
+				state = State.ALIVE
+		State.DYING:
+			_fade -= delta / 0.35
+			if _fade <= 0.0:
+				queue_free()
+			return
+		State.ALIVE:
+			_move(delta)
+			if bounce_t > 0.0:
+				_ricochet()
+			if stun_t <= 0.0 and is_dangerous():
+				_touch_player()
+			if stun_t <= 0.0:
+				_act(delta)
+	queue_redraw()
+
+
+## Velocidad que quiere llevar (por defecto, ir a por Kroker) / Desired velocity (by default, chase Kroker)
+func _desired_velocity() -> Vector2:
+	var to_player: Vector2 = run.player.global_position - global_position
+	var dir := to_player.normalized()
+	return dir * speed
+
+
+## Para comportamientos extra, como disparar / For extra behaviour, such as shooting
+func _act(_delta: float) -> void:
+	pass
+
+
+## ¿Hace daño al tocar a Kroker? / Does touching Kroker hurt him?
+func is_dangerous() -> bool:
+	return true
+
+
+func _move(delta: float) -> void:
+	var vel := Vector2.ZERO
+	if stun_t <= 0.0:
+		vel = _desired_velocity() * (0.5 if slow_t > 0.0 else 1.0)
+	# Se separa de los demás enemigos / Keeps apart from other enemies
+	for other: Node2D in run.enemies.get_children():
+		if other == self:
+			continue
+		var d := global_position - other.global_position
+		var dist := d.length()
+		var min_d := radius + float(other.get("radius"))
+		if dist > 0.01 and dist < min_d:
+			vel += d / dist * (min_d - dist) * 6.0
+	vel += knock + external_pull
+	position += vel * delta
+	knock = knock.move_toward(Vector2.ZERO, (500.0 if bounce_t > 0.0 else 1400.0) * delta)
+	external_pull = Vector2.ZERO
+	if absf(vel.x) > 5.0:
+		_facing = signf(vel.x)
+	var clamped: Vector2 = run.clamp_to_arena(position, radius)
+	if bounce_t > 0.0 and clamped != position:
+		var n := (clamped - position).normalized()
+		if n != Vector2.ZERO:
+			knock = knock.bounce(n) * 0.85
+		Audio.play("ricochet", -14.0, 0.1)
+	position = clamped
+
+
+func _ricochet() -> void:
+	for other: Node2D in run.enemies.get_children():
+		if other == self or _bounced.has(other) or not other.is_targetable():
+			continue
+		if global_position.distance_to(other.global_position) < radius + float(other.get("radius")) + 8.0:
+			_bounced.append(other)
+			var dir := (other.global_position - global_position).normalized()
+			other.hit(bounce_damage, dir * knock.length() * 0.6)
+			run.fx.ring(other.aim_point(), 18.0, UITheme.GOLD, 0.3, 2.0)
+			Audio.play("ricochet", -11.0, 0.1)
+			if bounce_chain > 0:
+				other.start_bounce(bounce_damage, bounce_chain - 1, [self])
+			bounce_chain = 0  # solo pasa el rebote una vez / passes the bounce on only once
+
+
+func start_bounce(damage: float, chain: int, ignore: Array = []) -> void:
+	bounce_t = 0.7
+	bounce_damage = damage
+	bounce_chain = chain
+	_bounced = ignore.duplicate()
+
+
+func _touch_player() -> void:
+	var player: Node2D = run.player
+	if global_position.distance_to(player.global_position + Vector2(0, -45)) < radius + 28.0:
+		player.take_damage(contact_damage)
+
+
+func is_targetable() -> bool:
+	return state != State.DYING
+
+
+func aim_point() -> Vector2:
+	return global_position + Vector2(0, -aim_height)
+
+
+func hit(amount: float, impulse := Vector2.ZERO) -> void:
+	if state == State.DYING:
+		return
+	if vuln_t > 0.0:
+		amount *= vuln_mult
+	hp -= amount
+	knock += impulse / mass
+	_flash = 1.0
+	Audio.play("hit", -13.0, 0.1)
+	run.fx.text(global_position + Vector2(0, -aim_height - 34), str(roundi(amount)), GLITCH_A if vuln_t > 0.0 else UITheme.BONE)
+	if hp <= 0.0:
+		die(true)
+
+
+## Glitch de Silly: congelar, ralentizar o dejar vulnerable / Silly's glitch: freeze, slow or make vulnerable
+func glitch(stun := 0.0, slow := 0.0, vulnerable := 0.0, mult := 1.5) -> void:
+	if glitch_t <= 0.0:
+		Audio.play("glitch", -14.0, 0.05)
+	stun_t = maxf(stun_t, stun)
+	slow_t = maxf(slow_t, slow)
+	if vulnerable > 0.0:
+		vuln_t = maxf(vuln_t, vulnerable)
+		vuln_mult = mult
+	glitch_t = maxf(glitch_t, maxf(stun, maxf(slow, vulnerable)))
+
+
+func die(counted: bool) -> void:
+	if state == State.DYING:
+		return
+	state = State.DYING
+	_fade = 1.0
+	run.fx.dissipate(aim_point(), Color("dfe3f0"))
+	if counted:
+		_death_sound()
+		run.on_enemy_killed(self)
+
+
+func _death_sound() -> void:
+	Audio.play("foox_die", -8.0, 0.1)
+
+
+func _draw() -> void:
+	var a := _fade
+	var bob := sin(_t * 2.6 + _phase) * 3.0
+	if glitch_t > 0.0:
+		var j := Vector2(randf_range(-6, 6), randf_range(-2, 2))
+		_draw_body(Vector2(-5, bob) + j, Color(GLITCH_A, 0.5), a * 0.6)
+		_draw_body(Vector2(5, bob) - j, Color(GLITCH_B, 0.5), a * 0.6)
+	_draw_body(Vector2(0, bob), Color.WHITE, a)
+	draw_set_transform(Vector2.ZERO)
+	if glitch_t > 0.0:
+		for i in 3:
+			var y := randf_range(-aim_height * 2.5, 6)
+			draw_rect(Rect2(randf_range(-40, 10), y, randf_range(20, 50), 3), Color([GLITCH_A, GLITCH_B, Color.WHITE][i], 0.5 * a))
+	if stun_t > 0.0:
+		for i in 3:
+			var ang := _t * 4.0 + i * TAU / 3.0
+			DreamBackground.draw_star(self, Vector2(cos(ang) * 18.0, -aim_height * 3.0 + sin(ang) * 5.0), 2.0, Color(UITheme.GOLD, a))
+
+
+## Dibuja el cuerpo. "tint" es blanco normalmente y rosa/cian en las copias del glitch.
+## Draws the body. "tint" is white normally and pink/cyan for the glitch copies.
+func _draw_body(_offset: Vector2, _tint: Color, _alpha: float) -> void:
+	pass

@@ -110,6 +110,58 @@ func upgrade_key(giver: String, weapon: String, part: String) -> String:
 	return "UP_%s_%s_%s" % [giver.to_upper(), weapon.to_upper(), part]
 
 
+## Valores de cada mejora en los niveles 1, 2 y 3. Empiezan flojas y mejoran con cada nivel.
+## Los porcentajes van en números enteros (30 = 30 %). Las descripciones usan las mismas claves.
+## Each upgrade's values at levels 1, 2 and 3. They start weak and grow with each level.
+## Percentages are whole numbers (30 = 30%). Descriptions use the same keys.
+const UPGRADE_VALUES := {
+	"svinho": {
+		# El golpeado sale volando y golpea a "chain" enemigos más con "pct" % del daño
+		"bat": {"chain": [1, 2, 3], "pct": [30, 45, 60]},
+		# Lanzar la almohada: golpea a "hits" enemigos, "dmg" de daño, recarga "cd" s
+		"shield": {"hits": [1, 2, 3], "dmg": [5, 7, 9], "cd": [1.8, 1.5, 1.2]},
+		# El rayo salta a "extra" enemigos más
+		"book": {"extra": [1, 2, 3]},
+		# La aspiradora escupe un enemigo cada "cd" s; rebota contra "chain" más
+		"vacuum": {"cd": [9.0, 6.0, 3.5], "chain": [0, 1, 2], "dmg": [6, 9, 12]},
+	},
+	"stolk": {
+		"bat": {"pct": [15, 30, 50]},                     # +daño / +damage
+		"shield": {"pct": [25, 50, 80], "push": [10, 20, 35]},
+		"book": {"pct": [8, 16, 25]},                     # −recarga / −cooldown
+		"vacuum": {"pct": [10, 20, 35]},                  # +alcance, fuerza y daño / +reach, pull and damage
+	},
+	"silly": {
+		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
+		"shield": {"chance": [30, 50, 75], "secs": [0.8, 1.4, 2.0]},  # cámara lenta / slow motion
+		"book": {"pct": [15, 25, 35]},                    # eco del daño / damage echo
+		"vacuum": {"pct": [20, 35, 50], "secs": [0.6, 1.0, 1.6]},  # vulnerable
+	},
+}
+
+
+## Valor de una mejora en un nivel (por defecto, el nivel que tienes). 0 si no la tienes.
+## Value of an upgrade at a level (by default, your current level). 0 if you don't have it.
+func up_value(giver: String, key: String, lvl := -1, weapon := "") -> float:
+	if weapon == "":
+		weapon = selected_character
+	if lvl < 0:
+		lvl = level(giver)
+	if lvl <= 0:
+		return 0.0
+	var values: Array = UPGRADE_VALUES[giver][weapon][key]
+	return float(values[mini(lvl, values.size()) - 1])
+
+
+## Descripción traducida con los números del nivel indicado / Translated description with that level's numbers
+func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
+	var vals := {}
+	for key: String in UPGRADE_VALUES[giver][weapon]:
+		var v := up_value(giver, key, lvl, weapon)
+		vals[key] = str(int(v)) if is_equal_approx(v, roundf(v)) else str(snappedf(v, 0.1))
+	return tr(upgrade_key(giver, weapon, "DESC")).format(vals)
+
+
 func get_character(id: String) -> Dictionary:
 	for c: Dictionary in CHARACTERS:
 		if c["id"] == id:

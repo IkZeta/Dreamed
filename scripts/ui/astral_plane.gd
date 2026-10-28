@@ -110,7 +110,8 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	lvl_label.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	up_row.add_child(lvl_label)
 	v.add_child(up_row)
-	var desc := UITheme.label(GameState.upgrade_key(giver, weapon, "DESC"), 19, Color(UITheme.BONE, 0.85), "light")
+	var desc := UITheme.label(GameState.upgrade_desc(giver, weapon, lvl + 1), 19, Color(UITheme.BONE, 0.85), "light")
+	desc.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.custom_minimum_size.y = 84
 	v.add_child(desc)

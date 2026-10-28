@@ -43,7 +43,7 @@ func nearest(max_range: float, from := Vector2.INF, exclude: Array = []) -> Node
 
 
 func _body(e: Node2D) -> Vector2:
-	return e.global_position + Vector2(0, -18)
+	return e.aim_point()
 
 
 func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO) -> void:
@@ -53,3 +53,9 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO) -> void:
 ## Nivel de la mejora de un personaje del plano astral / Level of an astral giver's upgrade
 func lv(giver: String) -> int:
 	return GameState.level(giver)
+
+
+## Valor de una mejora al nivel actual (tabla en GameState.UPGRADE_VALUES)
+## An upgrade's value at the current level (table in GameState.UPGRADE_VALUES)
+func uv(giver: String, key: String) -> float:
+	return GameState.up_value(giver, key)

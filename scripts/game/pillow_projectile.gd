@@ -13,6 +13,7 @@ var player: Node2D
 var damage := 9.0
 var bounces := 2
 var slow := 0.0
+var slow_chance := 0.0
 var target: Node2D
 var _hit: Array = []
 var _returning := false
@@ -35,15 +36,15 @@ func _physics_process(delta: float) -> void:
 				queue_free()
 				return
 		else:
-			goal = target.global_position + Vector2(0, -18)
+			goal = target.aim_point()
 	else:
-		goal = target.global_position + Vector2(0, -18)
+		goal = target.aim_point()
 	var dir := (goal - global_position).normalized()
 	global_position += dir * SPEED * delta
 	if not _returning and is_instance_valid(target) and global_position.distance_to(goal) < 28.0:
 		_hit.append(target)
 		target.hit(damage, dir * 380.0)
-		if slow > 0.0:
+		if slow > 0.0 and randf() * 100.0 < slow_chance:
 			target.glitch(0.0, slow)
 		run.fx.ring(goal, 22.0, UITheme.GOLD, 0.3, 2.0)
 		Audio.play("ricochet", -9.0, 0.1)

@@ -8,10 +8,11 @@ extends Weapon
 ## which makes it the riskiest weapon. (+25% speed)
 ##
 ## Mejoras / Upgrades:
-##  Svinho  — Chut: cuando un enemigo llega a la boquilla, la aspiradora lo escupe y sale
-##            rebotando contra las paredes y los demás Foox.
-##  Stolk   — Turbo: más alcance, más fuerza y más daño (cuesta vida máxima).
-##  Silly   — Error de memoria: lo que absorbe queda vulnerable (+50 % de daño recibido).
+##  (valores por nivel en GameState.UPGRADE_VALUES / per-level values there)
+##  Svinho  — Chut: cada "cd" segundos escupe al enemigo que llega a la boquilla y sale rebotando.
+##            La espera empieza larga y baja con cada nivel.
+##  Stolk   — Turbo: +"pct" % de alcance, fuerza y daño.
+##  Silly   — Error de memoria: lo absorbido recibe +"pct" % de daño durante "secs" segundos.
 
 const RANGE := 300.0
 const CONE := 0.42        # medio ángulo en radianes (~24°) / half angle in radians
@@ -27,7 +28,7 @@ var _boost := 1.0
 
 
 func _ready() -> void:
-	_boost = 1.0 + 0.35 * lv("stolk")
+	_boost = 1.0 + uv("stolk", "pct") / 100.0
 
 
 func _physics_process(delta: float) -> void:
@@ -69,16 +70,16 @@ func _physics_process(delta: float) -> void:
 		if do_tick:
 			deal(e, DPS * TICK * _boost)
 			if lv("silly") > 0:
-				e.glitch(0.0, 0.0, 1.5 + 0.5 * lv("silly"))
+				e.glitch(0.0, 0.0, uv("silly", "secs"), 1.0 + uv("silly", "pct") / 100.0)
 	queue_redraw()
 
 
 ## Escupe al enemigo con fuerza: sale rebotando / Spits the enemy out hard: it ricochets away
 func _spit(e: Node2D) -> void:
-	_spit_cd = maxf(0.5, 1.4 - 0.3 * lv("svinho"))
-	e.stun_t = maxf(e.stun_t, 0.9)
-	e.start_bounce(12.0 * (1.0 + 0.3 * lv("svinho")) * player.damage_mult, lv("svinho"))
-	deal(e, 6.0, _dir * 950.0)
+	_spit_cd = uv("svinho", "cd")
+	e.stun_t = maxf(e.stun_t, 0.6)
+	e.start_bounce(uv("svinho", "dmg") * player.damage_mult, int(uv("svinho", "chain")))
+	deal(e, uv("svinho", "dmg") * 0.5, _dir * 800.0)
 	run.fx.ring(_nozzle_base() + _dir * 50.0, 24.0, KrokerArt.ACCENT["vacuum"], 0.35, 2.2)
 	Audio.play("kick", -3.0, 0.1)
 
