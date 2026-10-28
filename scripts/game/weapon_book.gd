@@ -19,6 +19,7 @@ func attack() -> bool:
 	if target == null:
 		return false
 	player.cast_anim = 1.0
+	Audio.play("zap", -4.0, 0.1)
 	var hit: Array = []
 	var from := player.global_position + Vector2(40 * signf(player._facing), -88)
 	var dmg := DAMAGE

@@ -5,33 +5,56 @@ extends Node2D
 ## Kroker's bedroom, the stage of Dream 1. Top-down 3/4 view: back wall with a
 ## window onto the starry night, and a wooden floor bathed in moonlight.
 
+## La habitación se dibuja en un lienzo propio de 1920 x 1080 y se coloca reducida en el
+## centro de la pantalla, flotando en el cielo del sueño. Todas las constantes de abajo
+## están en ese lienzo; usa to_world() / rect_world() para pasarlas a la pantalla.
+## The room is drawn on its own 1920 x 1080 canvas and placed, scaled down, in the middle
+## of the screen, floating in the dream sky. Constants below are in that canvas; use
+## to_world() / rect_world() to convert them to screen space.
+const S := 0.72
+const OFFSET := Vector2(268.8, 176.0)
+
 const WALL_BOTTOM := 300.0
-const WALKABLE := Rect2(90, 330, 1740, 690)
+const FLOOR_BOTTOM := 1040.0
+const WALKABLE := Rect2(60, 330, 1800, 690)
 const WINDOW := Rect2(800, 46, 320, 214)
-const BED := Rect2(190, 236, 250, 310)
-const NIGHTSTAND := Rect2(492, 246, 96, 84)
+const BED := Rect2(150, 236, 200, 262)
+const NIGHTSTAND := Rect2(372, 246, 90, 80)
+const CHEST := Rect2(500, 262, 150, 82)
 const DESK := Rect2(1470, 226, 300, 104)
 const SHELF := Rect2(1236, 70, 170, 226)
-const RUG_CENTER := Vector2(1000, 700)
+const RUG_CENTER := Vector2(1010, 700)
+const BEDSIDE_RUG := Vector2(450, 560)
 
 ## Zonas por las que no se puede pasar / Areas nobody can walk through
 const OBSTACLES: Array[Rect2] = [
-	Rect2(184, 236, 262, 318),   # cama / bed
-	Rect2(492, 246, 96, 92),     # mesilla / nightstand
+	Rect2(144, 236, 212, 268),   # cama / bed
+	Rect2(372, 246, 90, 88),     # mesilla / nightstand
+	Rect2(500, 262, 150, 90),    # baúl de juguetes / toy chest
 	Rect2(1470, 226, 300, 112),  # escritorio / desk
-	Rect2(1526, 300, 94, 96),    # silla / chair
-	Rect2(1236, 280, 150, 94),   # baúl de juguetes / toy chest
+	Rect2(1532, 320, 92, 90),    # silla / chair
 	Rect2(1800, 290, 70, 80),    # aspiradora en la esquina / vacuum in the corner
+	Rect2(30, 300, 110, 70),     # cubos / blocks
 ]
 
 ## Dónde está cada arma antes de cogerla y desde dónde la coge Kroker.
 ## Where each weapon rests before he takes it, and where Kroker stands to pick it up.
 const PICKUP := {
-	"bat": Vector2(650, 390),
-	"shield": Vector2(500, 470),
-	"book": Vector2(1462, 430),
-	"vacuum": Vector2(1780, 430),
+	"bat": Vector2(700, 400),
+	"shield": Vector2(420, 470),
+	"book": Vector2(1440, 430),
+	"vacuum": Vector2(1780, 440),
 }
+const WAKE_POINT := Vector2(440, 560)    # donde aterriza al bajar de la cama / where he lands
+const START_POINT := Vector2(960, 700)   # donde empieza a jugar / where play begins
+
+
+static func to_world(p: Vector2) -> Vector2:
+	return OFFSET + p * S
+
+
+static func rect_world(rc: Rect2) -> Rect2:
+	return Rect2(to_world(rc.position), rc.size * S)
 
 ## Estado de la intro / Intro state
 var bed_state := "sleeping"     # "sleeping", "sitting" o "empty"
@@ -39,6 +62,7 @@ var outfit := "bat"
 var stir := 0.0                 # se revuelve en sueños / tosses in his sleep
 var sit := 0.0                  # 0 tumbado → 1 sentado / lying → sitting
 var stretch := 0.0              # se estira / stretches
+var slide := 0.0                # se desliza hasta el borde de la cama / shuffles to the edge of the bed
 var glasses_on_stand := true    # las gafas esperan en la mesilla / glasses wait on the nightstand
 var weapon_taken := false
 
@@ -52,6 +76,8 @@ static var _vig: GradientTexture2D
 
 func _ready() -> void:
 	z_index = -10
+	position = OFFSET
+	scale = Vector2(S, S)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 5
 	# Estrellas que proyecta la lamparita sobre la pared / Stars cast on the wall by the night-light
@@ -63,7 +89,7 @@ func _ready() -> void:
 	# Estrellitas que flotan por la habitación: el sueño empieza a colarse
 	# Little stars floating around the room: the dream is starting to seep in
 	for i in 18:
-		_floaters.append({"p": Vector2(rng.randf_range(100, 1820), rng.randf_range(320, 1040)),
+		_floaters.append({"p": Vector2(rng.randf_range(100, 1820), rng.randf_range(340, 1000)),
 			"ph": rng.randf() * TAU, "r": rng.randf_range(3.0, 6.0)})
 	for i in 40:
 		_motes.append({"u": rng.randf(), "v": rng.randf(), "ph": rng.randf() * TAU, "sp": rng.randf_range(0.01, 0.03)})
@@ -83,7 +109,8 @@ func _draw() -> void:
 	_draw_moonbeam()
 	_draw_rug()
 	# Charco de luz cálida de la lamparita / Warm pool of light from the night-light
-	draw_texture_rect(DreamBackground.soft_texture(), Rect2(320, 230, 440, 300), false, Color("ffd2a0", 0.16))
+	draw_texture_rect(DreamBackground.soft_texture(), Rect2(220, 230, 440, 300), false, Color("ffd2a0", 0.16))
+	_draw_bedside_rug()
 	_draw_floor_toys()
 	_draw_toy_chest()
 	_draw_desk()
@@ -94,8 +121,7 @@ func _draw() -> void:
 	_draw_zzz()
 	_draw_motes()
 	_draw_dream_stars()
-	# Viñeta suave en tonos violeta / Soft violet vignette
-	draw_texture_rect(_vignette(), Rect2(0, 0, 1920, 1080), false)
+	_draw_room_edges()
 
 
 # --- Pared / Wall -----------------------------------------------------------
@@ -180,12 +206,12 @@ func _draw_shelf() -> void:
 func _draw_floor() -> void:
 	var a := Color("3e3a7c")
 	var b := Color("2f2c66")
-	draw_polygon(PackedVector2Array([Vector2(0, WALL_BOTTOM), Vector2(1920, WALL_BOTTOM), Vector2(1920, 1080), Vector2(0, 1080)]),
+	draw_polygon(PackedVector2Array([Vector2(0, WALL_BOTTOM), Vector2(1920, WALL_BOTTOM), Vector2(1920, FLOOR_BOTTOM), Vector2(0, FLOOR_BOTTOM)]),
 		PackedColorArray([a, a, b, b]))
 	# Tablas de madera / Floorboards
 	var y := WALL_BOTTOM + 4.0
 	var row := 0
-	while y < 1080.0:
+	while y < FLOOR_BOTTOM - 40.0:
 		draw_line(Vector2(0, y), Vector2(1920, y), Color(0.1, 0.08, 0.3, 0.35), 2.0)
 		var x := -120.0 + (row % 3) * 140.0
 		while x < 1920.0:
@@ -202,7 +228,7 @@ func _draw_moonbeam() -> void:
 	var c := Color("d6e0ff")
 	draw_polygon(PackedVector2Array([
 		Vector2(WINDOW.position.x + 10, WALL_BOTTOM), Vector2(WINDOW.end.x - 10, WALL_BOTTOM),
-		Vector2(1330, 960), Vector2(620, 960),
+		Vector2(1330, 980), Vector2(620, 980),
 	]), PackedColorArray([Color(c, 0.16), Color(c, 0.16), Color(c, 0.0), Color(c, 0.0)]))
 	# Cuadrícula de la ventana proyectada en el suelo / Window grid cast on the floor
 	var cx := 975.0
@@ -213,7 +239,7 @@ func _draw_rug() -> void:
 	var pts := PackedVector2Array()
 	for i in 64:
 		var a := TAU * i / 64.0
-		pts.append(RUG_CENTER + Vector2(cos(a) * 380.0, sin(a) * 170.0))
+		pts.append(RUG_CENTER + Vector2(cos(a) * 340.0, sin(a) * 150.0))
 	draw_colored_polygon(pts, Color("5a4f9e"))
 	var inner := PackedVector2Array()
 	for p in pts:
@@ -221,7 +247,7 @@ func _draw_rug() -> void:
 	draw_polyline(inner + PackedVector2Array([inner[0]]), Color(UITheme.GOLD, 0.35), 3.0, true)
 	for i in 8:
 		var a := TAU * i / 8.0 + 0.2
-		_star_shape(RUG_CENTER + Vector2(cos(a) * 250.0, sin(a) * 105.0), 9.0, Color(UITheme.GOLD, 0.3))
+		_star_shape(RUG_CENTER + Vector2(cos(a) * 225.0, sin(a) * 92.0), 9.0, Color(UITheme.GOLD, 0.3))
 	# Luna bordada en el centro / Moon stitched in the middle
 	draw_arc(RUG_CENTER, 44, PI * 0.35, PI * 1.65, 32, Color(UITheme.GOLD, 0.35), 6.0, true)
 
@@ -234,10 +260,15 @@ func _draw_desk() -> void:
 	draw_rect(Rect2(d.end.x - 24, d.end.y, 14, 40), Color("3a346f"))
 	draw_rect(d, Color("8a7fc4"))
 	draw_rect(Rect2(d.position.x, d.end.y - 18, d.size.x, 18), Color("6e64ad"))
-	# Papeles, lápices y un flexo / Papers, pencils and a desk lamp
-	draw_rect(Rect2(d.position.x + 40, d.position.y + 22, 80, 54), Color("f3effc"))
-	draw_line(Vector2(d.position.x + 140, d.position.y + 30), Vector2(d.position.x + 186, d.position.y + 64), Color("f6d993"), 4.0)
-	draw_line(Vector2(d.position.x + 150, d.position.y + 26), Vector2(d.position.x + 192, d.position.y + 52), Color("e3a6c4"), 4.0)
+	# Un dibujo a medias y las ceras / A half-finished drawing and the crayons
+	draw_set_transform(d.position + Vector2(130, 46), 0.08, Vector2.ONE)
+	draw_rect(Rect2(-36, -24, 72, 48), Color("f7f3ea"))
+	draw_arc(Vector2(-6, 0), 13, 0.8, 5.0, 16, Color("5b67c4"), 3.0, true)
+	draw_set_transform(Vector2.ZERO)
+	for i in 4:
+		var cc: Color = [Color("e85d75"), Color("f6c86a"), Color("5b67c4"), Color("62a9a1")][i]
+		var cp := d.position + Vector2(180 + i * 8, 34 + i * 6)
+		draw_line(cp, cp + Vector2(22, -6), cc, 4.0)
 	# Flexo encendido / Lit desk lamp
 	var base := Vector2(d.end.x - 46, d.position.y + 58)
 	draw_texture_rect(DreamBackground.soft_texture(), Rect2(base - Vector2(120, 110), Vector2(200, 180)), false, Color("ffe1a8", 0.22))
@@ -284,7 +315,7 @@ func _draw_bed() -> void:
 	draw_rect(Rect2(b.position.x, b.position.y + 10, b.size.x, b.size.y - 10), Color("e6e2f6"))
 	draw_rect(Rect2(b.position.x, b.end.y - 26, b.size.x, 26), Color("bdb5e2"))
 	# Almohada / Pillow
-	var pillow := Rect2(b.position.x + 30, b.position.y + 28, b.size.x - 60, 72)
+	var pillow := Rect2(b.position.x + 24, b.position.y + 24, b.size.x - 48, 58)
 	if not (outfit == "shield" and weapon_taken):
 		_soft_rect(pillow, Color("f8f6ff"), 26)
 	else:
@@ -293,22 +324,23 @@ func _draw_bed() -> void:
 	if bed_state == "sleeping":
 		# Se revuelve: la cabeza gira de un lado a otro / Tossing: the head turns side to side
 		var turn := sin(stir * TAU * 1.5) * 0.35 * stir
-		draw_set_transform(pillow.get_center() + Vector2(0, 6), turn, Vector2.ONE)
-		KrokerArt.draw_sleeping(self, Vector2.ZERO, 1.15, _t)
-		draw_set_transform(Vector2.ZERO)
+		KrokerArt.draw_sleeping(self, pillow.get_center() + Vector2(0, 6), 0.9, _t, turn)
 
-	var blanket_top := b.position.y + 104.0
+	var blanket_top := b.position.y + 88.0
 	if bed_state == "sitting":
-		blanket_top = b.position.y + lerpf(110.0, 150.0, sit)
-		# Kroker se incorpora poco a poco, sale de debajo del edredón y se estira
-		# Kroker slowly sits up, rises out from under the quilt and stretches
-		var s := 0.55
-		var rise := (1.0 - sit) * 70.0
-		KrokerArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, Vector2(b.get_center().x - 100 * s, blanket_top + 70 + rise - 288 * s)),
+		blanket_top = b.position.y + lerpf(92.0, 120.0, sit) + slide * 50.0
+		# Kroker se incorpora poco a poco, sale de debajo del edredón, se estira
+		# y después se desliza hasta el borde de la cama.
+		# Kroker slowly sits up out from under the quilt, stretches, then shuffles to the edge.
+		var s := sitting_scale()
+		var feet := sitting_feet()
+		var rise := (1.0 - sit) * 90.0
+		KrokerArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, Vector2(feet.x - 100 * s, feet.y + rise - 288 * s)),
 			outfit, _t, {"armed": false, "glasses": not glasses_on_stand, "stretch": stretch, "yawn": stretch,
-				"lean": (1.0 - sit) * -0.3})
+				"lean": (1.0 - sit) * -0.3 + slide * 0.12, "facing": 1.0,
+				"walk": slide * 6.0, "moving": slide * (1.0 - slide) * 2.0})
 	elif bed_state == "empty":
-		blanket_top = b.position.y + 190.0
+		blanket_top = b.position.y + 170.0
 
 	# Edredón de estrellas / Starry quilt
 	var quilt := Rect2(b.position.x - 6, blanket_top, b.size.x + 12, b.end.y - blanket_top + 4)
@@ -316,27 +348,48 @@ func _draw_bed() -> void:
 	var y := quilt.position.y + 34.0
 	var row := 0
 	while y < quilt.end.y - 10.0:
-		var x := quilt.position.x + (30.0 if row % 2 == 0 else 62.0)
+		var x := quilt.position.x + (24.0 if row % 2 == 0 else 52.0)
 		while x < quilt.end.x - 10.0:
 			_star_shape(Vector2(x, y), 5.0, Color(UITheme.GOLD, 0.7))
-			x += 64.0
-		y += 46.0
+			x += 56.0
+		y += 42.0
 		row += 1
 	# Embozo doblado / Folded-down top edge
 	draw_rect(Rect2(quilt.position.x, quilt.position.y, quilt.size.x, 22), Color("eeeaf8"))
 	draw_line(quilt.position + Vector2(0, 22), Vector2(quilt.end.x, quilt.position.y + 22), Color(0.2, 0.2, 0.5, 0.3), 2.0)
-	_draw_teddy(Vector2(b.end.x - 40, b.end.y - 60), 0.8)
+	_draw_teddy(Vector2(b.position.x + 34, b.end.y - 44), 0.7)
 	if bed_state == "sleeping":
 		# Bulto que respira bajo el edredón / Breathing shape under the quilt
 		var rise := sin(_t * 1.6) * 3.0
-		draw_texture_rect(DreamBackground.soft_texture(), Rect2(b.position.x + 40, blanket_top + 20 - rise, 170, 170), false, Color(1, 1, 1, 0.12))
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(b.position.x + 30, blanket_top + 10 - rise, 140, 150), false, Color(1, 1, 1, 0.12))
+
+
+## Tamaño de Kroker en el lienzo de la habitación, igual que en la partida.
+## Kroker's size on the room canvas, matching the one in play.
+static func sitting_scale() -> float:
+	return Player.ART_SCALE / S
+
+
+## Dónde están los pies de Kroker sentado en la cama (lienzo de la habitación).
+## Where seated Kroker's feet are on the bed (room canvas).
+func sitting_feet() -> Vector2:
+	var b := BED
+	var top := b.position.y + lerpf(92.0, 120.0, sit) + slide * 50.0
+	return Vector2(lerpf(b.get_center().x, b.end.x - 18.0, slide), top + 100.0)
+
+
+## Pies al final del deslizamiento: desde aquí salta al suelo.
+## Feet at the end of the shuffle: he hops down from here.
+func sitting_feet_end() -> Vector2:
+	var b := BED
+	return Vector2(b.end.x - 18.0, b.position.y + 120.0 + 50.0 + 100.0)
 
 
 func _draw_motes() -> void:
 	# Motas de luz flotando en el rayo de luna / Light motes floating in the moonbeam
 	for m in _motes:
 		var v := fposmod(float(m["v"]) - _t * float(m["sp"]), 1.0)
-		var y := lerpf(WALL_BOTTOM, 940.0, v)
+		var y := lerpf(WALL_BOTTOM, 960.0, v)
 		var half := lerpf(150.0, 350.0, v)
 		var x := 975.0 + (float(m["u"]) - 0.5) * 2.0 * half + sin(_t + float(m["ph"])) * 8.0
 		draw_circle(Vector2(x, y), 1.8, Color(UITheme.BONE, 0.5 * sin(v * PI)))
@@ -397,15 +450,19 @@ func _draw_wall_decor() -> void:
 	var ps := Rect2(1490, 52, 250, 150)
 	draw_rect(ps, Color("141a4a"))
 	draw_rect(ps, Color("cfc8ec"), false, 3.0)
-	var sun := ps.position + Vector2(30, 75)
-	draw_texture_rect(DreamBackground.soft_texture(), Rect2(sun - Vector2(40, 40), Vector2(80, 80)), false, Color("f6d993", 0.6))
+	# Estático: el sol a la izquierda y las órbitas recortadas para no salirse del póster
+	# Static: sun on the left, orbits trimmed so they stay inside the poster
+	var sun := ps.position + Vector2(26, 75)
+	draw_circle(sun, 30, Color("f6d993", 0.25))
 	draw_circle(sun, 16, Color("f6c86a"))
-	var planets := [[46.0, 4.0, Color("cfc8ec")], [76.0, 6.0, Color("e3a6c4")], [110.0, 7.0, Color("7fb0e0")], [150.0, 12.0, Color("f0c38f")], [196.0, 9.0, Color("b6e0d6")]]
+	var planets := [[42.0, 4.0, Color("cfc8ec"), 0.5], [70.0, 6.0, Color("e3a6c4"), -0.35], [100.0, 7.0, Color("7fb0e0"), 0.2],
+		[136.0, 11.0, Color("f0c38f"), -0.25], [176.0, 8.0, Color("b6e0d6"), 0.1]]
+	var half_h := ps.size.y / 2.0 - 8.0
 	for pl in planets:
 		var rr: float = pl[0]
-		draw_arc(sun, rr, -0.55, 0.55, 20, Color(1, 1, 1, 0.15), 1.0, true)
-		var ang := sin(_t * 0.2 + rr) * 0.4
-		draw_circle(sun + Vector2.from_angle(ang) * rr, pl[1], pl[2])
+		var span := asin(minf(0.98, half_h / rr))
+		draw_arc(sun, rr, -span, span, 24, Color(1, 1, 1, 0.18), 1.0, true)
+		draw_circle(sun + Vector2.from_angle(float(pl[3]) * span) * rr, pl[1], pl[2])
 
 
 func _stick_figure(p: Vector2) -> void:
@@ -418,19 +475,23 @@ func _stick_figure(p: Vector2) -> void:
 
 
 func _draw_chair() -> void:
-	# Silla de escritorio vista desde arriba / Desk chair seen from above
-	var seat := Rect2(1532, 330, 82, 58)
-	for leg in [Vector2(1538, 386), Vector2(1606, 386)]:
-		draw_rect(Rect2(leg, Vector2(6, 22)), Color("3a346f"))
-	draw_rect(Rect2(1536, 300, 74, 16), Color("5a4f9e"))       # respaldo / backrest
-	draw_rect(Rect2(1540, 312, 6, 22), Color("4a4592"))
-	draw_rect(Rect2(1600, 312, 6, 22), Color("4a4592"))
+	# Silla metida en el escritorio, mirando hacia él: vemos el respaldo por detrás
+	# Chair tucked under the desk, facing it: we see the backrest from behind
+	var seat := Rect2(1538, 326, 82, 44)
+	for leg in [Vector2(1542, 368), Vector2(1610, 368)]:
+		draw_rect(Rect2(leg, Vector2(6, 30)), Color("3a346f"))
 	_soft_rect(seat, Color("7d73bd"), 8)
-	_soft_rect(seat.grow(-8), Color("e3a6c4"), 10)                # cojín / cushion
+	_soft_rect(Rect2(seat.position + Vector2(8, 4), Vector2(seat.size.x - 16, 18)), Color("e3a6c4"), 8)  # cojín / cushion
+	# Respaldo (de espaldas a nosotros) / Backrest (facing away from us)
+	var back := Rect2(seat.position.x + 4, seat.end.y - 58, seat.size.x - 8, 50)
+	draw_rect(Rect2(back.position.x + 6, back.end.y, 6, 14), Color("4a4592"))
+	draw_rect(Rect2(back.end.x - 12, back.end.y, 6, 14), Color("4a4592"))
+	_soft_rect(back, Color("5a4f9e"), 10)
+	draw_rect(Rect2(back.position + Vector2(10, 10), back.size - Vector2(20, 20)), Color("6a5fae"))
 
 
 func _draw_toy_chest() -> void:
-	var c := Rect2(1236, 286, 150, 86)
+	var c := CHEST
 	# Tapa abierta apoyada en la pared / Open lid resting against the wall
 	draw_rect(Rect2(c.position.x + 4, c.position.y - 50, c.size.x - 8, 50), Color("a87fbf"))
 	draw_rect(Rect2(c.position.x + 4, c.position.y - 50, c.size.x - 8, 50), Color("7d5a9a"), false, 3.0)
@@ -448,39 +509,46 @@ func _draw_toy_chest() -> void:
 
 
 func _draw_floor_toys() -> void:
-	# Torre de cubos / Stack of toy blocks
-	var cubes := [[Vector2(560, 800), Color("f6d993"), "A"], [Vector2(606, 800), Color("a9c8f2"), "B"], [Vector2(583, 758), Color("e3a6c4"), "C"]]
+	# Juguetes ordenados junto a la pared / Toys tidied up against the wall
+	# Torre de cubos en la esquina izquierda / Stack of blocks in the left corner
+	var cubes := [[Vector2(36, 318), Color("f6d993"), "A"], [Vector2(82, 318), Color("a9c8f2"), "B"], [Vector2(59, 276), Color("e3a6c4"), "C"]]
 	var f := UITheme.font("display")
 	for cb in cubes:
 		var p: Vector2 = cb[0]
 		draw_rect(Rect2(p, Vector2(42, 42)), cb[1])
 		draw_rect(Rect2(p + Vector2(0, 34), Vector2(42, 8)), Color(0, 0, 0, 0.12))
 		draw_string(f, p + Vector2(12, 30), cb[2], HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color("3a346f"))
-	# Pelota / Ball
-	var ball := Vector2(1690, 950)
-	draw_circle(ball + Vector2(4, 14), 26, Color(0, 0, 0, 0.18))
-	draw_circle(ball, 26, Color("f3effc"))
-	draw_arc(ball, 26, -0.6, 0.9, 16, Color("e85d75"), 10.0, true)
-	draw_arc(ball, 26, 2.4, 3.9, 16, Color("5b67c4"), 10.0, true)
-	# Cohete de juguete tumbado / Toy rocket lying down
-	draw_set_transform(Vector2(1180, 975), -0.3, Vector2.ONE)
-	_soft_rect(Rect2(-40, -12, 80, 24), Color("e9e3f3"), 12)
-	draw_colored_polygon(PackedVector2Array([Vector2(40, -10), Vector2(62, 0), Vector2(40, 10)]), Color("e85d75"))
-	draw_colored_polygon(PackedVector2Array([Vector2(-40, -12), Vector2(-54, -22), Vector2(-46, 0)]), Color("e85d75"))
-	draw_colored_polygon(PackedVector2Array([Vector2(-40, 12), Vector2(-54, 22), Vector2(-46, 0)]), Color("e85d75"))
-	draw_circle(Vector2(12, 0), 6, Color("7fb0e0"))
-	draw_set_transform(Vector2.ZERO)
-	# Ceras y un dibujo a medias junto al escritorio / Crayons and a half-done drawing by the desk
-	draw_set_transform(Vector2(1380, 520), 0.15, Vector2.ONE)
-	draw_rect(Rect2(-40, -28, 80, 56), Color("f7f3ea"))
-	draw_arc(Vector2(-6, 0), 14, 0.8, 5.0, 16, Color("5b67c4"), 3.0, true)
-	draw_set_transform(Vector2.ZERO)
-	for i in 4:
-		var c: Color = [Color("e85d75"), Color("f6c86a"), Color("5b67c4"), Color("62a9a1")][i]
-		var p := Vector2(1440 + i * 10, 556 + i * 4)
-		draw_line(p, p + Vector2(26, -8), c, 5.0)
-	# Peluches / Plush toys
-	_draw_bunny(Vector2(270, 650))
+	# Pelota junto a la estantería / Ball by the bookshelf
+	var ball := Vector2(1214, 322)
+	draw_colored_polygon(_ellipse(ball + Vector2(2, 22), Vector2(22, 6)), Color(0, 0, 0, 0.18))
+	draw_circle(ball, 22, Color("f3effc"))
+	draw_arc(ball, 22, -0.6, 0.9, 16, Color("e85d75"), 8.0, true)
+	draw_arc(ball, 22, 2.4, 3.9, 16, Color("5b67c4"), 8.0, true)
+
+
+## Alfombrita junto a la cama, donde Kroker pone los pies al levantarse.
+## Small bedside rug, where Kroker puts his feet when he gets up.
+func _draw_bedside_rug() -> void:
+	draw_colored_polygon(_ellipse(BEDSIDE_RUG, Vector2(92, 46), 40), Color("c98fb8"))
+	var inner := _ellipse(BEDSIDE_RUG, Vector2(78, 36), 40)
+	draw_polyline(inner + PackedVector2Array([inner[0]]), Color("f7e6f0", 0.6), 2.0, true)
+	_draw_bunny(BEDSIDE_RUG + Vector2(56, -16))
+
+
+func _draw_room_edges() -> void:
+	# La habitación flota en el cielo: canto del suelo y bordes que se funden con la noche
+	# The room floats in the sky: floor edge and sides fading into the night
+	draw_rect(Rect2(0, FLOOR_BOTTOM, 1920, 34), Color("1b1846"))
+	draw_rect(Rect2(0, FLOOR_BOTTOM, 1920, 3), Color("6a63b8"))
+	draw_texture_rect(DreamBackground.soft_texture(), Rect2(-200, FLOOR_BOTTOM - 20, 2320, 160), false, Color("b79be0", 0.12))
+	for side: float in [0.0, 1.0]:
+		var x := side * 1920.0
+		var w := 40.0
+		var x0 := x if side == 0.0 else x - w
+		var c_in := Color(0.05, 0.03, 0.2, 0.0)
+		var c_out := Color(0.05, 0.03, 0.2, 0.45)
+		var cols := PackedColorArray([c_out, c_in, c_in, c_out]) if side == 0.0 else PackedColorArray([c_in, c_out, c_out, c_in])
+		draw_polygon(PackedVector2Array([Vector2(x0, 0), Vector2(x0 + w, 0), Vector2(x0 + w, FLOOR_BOTTOM + 34), Vector2(x0, FLOOR_BOTTOM + 34)]), cols)
 
 
 func _draw_teddy(p: Vector2, s: float) -> void:
@@ -532,7 +600,7 @@ func _draw_bunny(p: Vector2) -> void:
 func _draw_props() -> void:
 	# Bate apoyado en la pared / Bat leaning against the wall
 	if not (outfit == "bat" and weapon_taken):
-		draw_set_transform(Vector2(650, 300), 0.2, Vector2.ONE)
+		draw_set_transform(Vector2(700, 300), 0.2, Vector2.ONE)
 		draw_colored_polygon(PackedVector2Array([Vector2(-3, 0), Vector2(3, 0), Vector2(7, -96), Vector2(0, -106), Vector2(-7, -96)]), Color("c99a68"))
 		draw_rect(Rect2(-4, -16, 8, 16), Color("3a3355"))
 		draw_set_transform(Vector2.ZERO)
@@ -557,7 +625,7 @@ func _draw_zzz() -> void:
 	if bed_state != "sleeping":
 		return
 	var f := UITheme.font("italic")
-	var head := Vector2(BED.get_center().x + 20, BED.position.y + 40)
+	var head := Vector2(BED.get_center().x + 14, BED.position.y + 36)
 	for i in 3:
 		var k := fposmod(_t * 0.4 + i / 3.0, 1.0)
 		var p := head + Vector2(20 + k * 50 + sin(k * 6.0) * 6, -k * 90)

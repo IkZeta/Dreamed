@@ -13,6 +13,7 @@ config/features=PackedStringArray("4.7")
 I18n="*res://scripts/autoload/i18n.gd"
 Settings="*res://scripts/autoload/settings.gd"
 GameState="*res://scripts/autoload/game_state.gd"
+Audio="*res://scripts/autoload/audio.gd"
 
 [display]
 

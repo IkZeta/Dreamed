@@ -22,12 +22,15 @@ func _physics_process(delta: float) -> void:
 	_t += delta
 	player.sucking = false
 	if not run.running or not player.alive:
+		Audio.set_loop("vacuum", false)
 		queue_redraw()
 		return
 	var target := nearest(RANGE)
 	if target == null:
+		Audio.set_loop("vacuum", false)
 		queue_redraw()
 		return
+	Audio.set_loop("vacuum", true, -6.0)
 	# Gira la boquilla con suavidad hacia el objetivo / Turns the nozzle smoothly toward the target
 	var want := (_body(target) - _nozzle_base()).normalized()
 	_dir = _dir.slerp(want, minf(1.0, delta * 10.0)).normalized()

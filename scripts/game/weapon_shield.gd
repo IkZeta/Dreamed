@@ -25,6 +25,7 @@ func attack() -> bool:
 		if to_e.length() <= RANGE + 20.0 and absf(dir.angle_to(to_e)) <= CONE:
 			deal(e, DAMAGE, to_e.normalized() * KNOCKBACK)
 	player.attack_anim = 1.0
+	Audio.play("pillow", -2.0, 0.1)
 	run.fx.swing(origin(), 70.0, dir.angle(), CONE, UITheme.BONE, 9.0)
 	run.fx.ring(origin() + dir * 40.0, 26.0, UITheme.GOLD, 0.3, 2.2)
 	run.shake(4.0)

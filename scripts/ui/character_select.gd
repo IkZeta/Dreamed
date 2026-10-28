@@ -12,6 +12,7 @@ var _start: Button
 
 func _ready() -> void:
 	theme = UITheme.build()
+	Audio.play_music("music_menu")
 	_build()
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.5)

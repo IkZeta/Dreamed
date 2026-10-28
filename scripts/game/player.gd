@@ -20,6 +20,8 @@ var sucking := false         # la aspiradora está absorbiendo / the vacuum is s
 var cast_anim := 0.0         # 1 → 0 al lanzar un rayo / after casting lightning
 var armed := true            # lleva el arma en la mano / holds the weapon
 var hurt_lean := 0.0         # retroceso al recibir daño / recoil when hit
+var hop := 0.0               # altura de un salto en píxeles / jump height in pixels
+var _land := 0.0             # rebote al aterrizar / landing squash
 
 var _walk := 0.0
 var _moving := 0.0
@@ -59,6 +61,7 @@ func _physics_process(delta: float) -> void:
 	attack_anim = maxf(0.0, attack_anim - delta * 4.0)
 	cast_anim = maxf(0.0, cast_anim - delta * 3.0)
 	hurt_lean = move_toward(hurt_lean, 0.0, delta * 1.5)
+	_land = move_toward(_land, 0.0, delta * 4.0)
 	modulate.a = 1.0 if alive else 0.35
 	if alive and run.running:
 		var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -83,6 +86,11 @@ func _process(delta: float) -> void:
 			_facing = signf(position.x - _last_pos.x)
 	_last_pos = position
 	queue_redraw()
+
+
+## Pequeño rebote al caer de un salto / Small bounce when landing from a hop
+func land() -> void:
+	_land = 1.0
 
 
 func set_facing(f: float) -> void:
@@ -111,8 +119,10 @@ func _draw() -> void:
 	var visible_now := _invuln <= 0.0 or fmod(_t, 0.12) < 0.07 or not alive
 	if not visible_now:
 		return
-	var w := 200.0 * ART_SCALE
-	var h := 288.0 * ART_SCALE
-	KrokerArt.draw(self, Transform2D(0.0, Vector2(ART_SCALE, ART_SCALE), 0.0, Vector2(-w / 2.0, -h)),
+	# Al aterrizar se aplasta un poco y recupera la forma / Squashes a little on landing, then springs back
+	var squash := sin(_land * PI) * 0.12
+	var sx := ART_SCALE * (1.0 + squash)
+	var sy := ART_SCALE * (1.0 - squash)
+	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
 		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean})

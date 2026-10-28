@@ -19,5 +19,6 @@ func attack() -> bool:
 	var dir := (_body(target) - origin()).normalized()
 	deal(target, DAMAGE, dir * KNOCKBACK)
 	player.attack_anim = 1.0
+	Audio.play("swing", -3.0, 0.12)
 	run.fx.swing(origin(), 78.0, dir.angle(), 0.9, UITheme.BONE, 5.0)
 	return true

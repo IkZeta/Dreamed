@@ -11,6 +11,7 @@ var _quitting := false
 
 func _ready() -> void:
 	theme = UITheme.build()
+	Audio.play_music("music_menu")
 	_build()
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.8)
@@ -62,7 +63,7 @@ func _build() -> void:
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	_entry(col, "MENU_QUIT", _on_quit)
 
-	var version := UITheme.label("V 0.4", 16, Color(UITheme.ASH, 0.6), "caps")
+	var version := UITheme.label("V 0.5", 16, Color(UITheme.ASH, 0.6), "caps")
 	version.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	add_child(version)
 	version.set_anchors_and_offsets_preset(PRESET_BOTTOM_LEFT, PRESET_MODE_MINSIZE, 40)
@@ -118,4 +119,4 @@ func _on_quit() -> void:
 	_quitting = true
 	var tw := create_tween()
 	tw.tween_property(self, "modulate", Color.BLACK, 0.4)
-	tw.tween_callback(get_tree().quit)
+	tw.tween_callback(Audio.quit_game)

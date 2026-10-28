@@ -98,6 +98,7 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	hp -= amount
 	knock += impulse
 	_flash = 1.0
+	Audio.play("hit", -9.0, 0.15)
 	run.fx.text(global_position + Vector2(0, -50), str(roundi(amount)), UITheme.BONE)
 	if hp <= 0.0:
 		die(true)
@@ -109,6 +110,8 @@ func die(counted: bool) -> void:
 	state = State.DYING
 	_fade = 1.0
 	run.fx.dissipate(global_position + Vector2(0, -16), Color("dfe3f0"))
+	if counted:
+		Audio.play("foox_die", -5.0, 0.1)
 	if counted:
 		run.on_enemy_killed(self)
 

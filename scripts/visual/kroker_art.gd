@@ -217,8 +217,8 @@ static func _head(t: float, glasses: bool, yawn: float) -> void:
 
 
 ## Cabeza dormida sobre la almohada (vista desde arriba) / Sleeping head on the pillow (top view)
-static func draw_sleeping(ci: CanvasItem, center: Vector2, scale: float, t: float) -> void:
-	ci.draw_set_transform(center, -0.25, Vector2(scale, scale))
+static func draw_sleeping(ci: CanvasItem, center: Vector2, scale: float, _t: float, turn := 0.0) -> void:
+	ci.draw_set_transform(center, -0.25 + turn, Vector2(scale, scale))
 	ci.draw_colored_polygon(_ellipse(Vector2(0, 2), Vector2(22, 25)), SKIN)
 	ci.draw_colored_polygon(PackedVector2Array([
 		Vector2(-24, 4), Vector2(-22, -14), Vector2(-12, -26), Vector2(4, -29), Vector2(18, -22), Vector2(25, -6),

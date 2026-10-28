@@ -9,8 +9,6 @@ extends Node2D
 
 const MAIN_MENU := "res://scenes/main_menu.tscn"
 const SETTINGS_SCENE := preload("res://scenes/settings_menu.tscn")
-const WAKE_POINT := Vector2(500, 600)     # donde se pone de pie / where he stands up
-const START_POINT := Vector2(860, 680)    # donde empieza a jugar / where play begins
 
 var running := false
 var player: Player
@@ -31,7 +29,17 @@ var _overlay: DreamOverlay
 func _ready() -> void:
 	var depth := GameState.dream_depth
 	_wave = GameState.WAVES[clampi(depth - 1, 0, GameState.WAVES.size() - 1)]
+	Audio.play_music("music_dream1", 2.5)
 	_time_left = _wave["duration"]
+
+	# El cielo del sueño rodea la habitación / The dream sky surrounds the room
+	var back := CanvasLayer.new()
+	back.layer = -1
+	add_child(back)
+	var sky := DreamBackground.new()
+	sky.show_halo = false  # la luna ya se ve por la ventana / the moon is already in the window
+	back.add_child(sky)
+	sky.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	room = Bedroom.new()
 	room.outfit = GameState.selected_character
@@ -50,7 +58,7 @@ func _ready() -> void:
 	enemies.y_sort_enabled = true
 	actors.add_child(enemies)
 	player = Player.new()
-	player.position = WAKE_POINT
+	player.position = Bedroom.to_world(Bedroom.WAKE_POINT)
 	player.visible = false
 	actors.add_child(player)
 	player.setup(self, GameState.selected_character)
@@ -72,40 +80,65 @@ func _ready() -> void:
 ## of bed, goes to fetch his weapon and the dream begins.
 func _play_wake_up(depth: int) -> void:
 	var outfit := GameState.selected_character
-	var pickup: Vector2 = Bedroom.PICKUP.get(outfit, START_POINT)
+	var wake := Bedroom.to_world(Bedroom.WAKE_POINT)
+	var start := Bedroom.to_world(Bedroom.START_POINT)
+	var pickup := Bedroom.to_world(Bedroom.PICKUP.get(outfit, Bedroom.START_POINT))
 	var tw := create_tween()
 	tw.tween_interval(1.5)
 	tw.tween_property(room, "stir", 1.0, 0.9)
-	tw.tween_callback(func() -> void: room.bed_state = "sitting")
+	tw.tween_callback(func() -> void:
+		room.bed_state = "sitting"
+		Audio.play("blanket"))
 	tw.tween_property(room, "sit", 1.0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(Audio.play.bind("yawn"))
 	tw.tween_property(room, "stretch", 1.0, 0.5).set_trans(Tween.TRANS_SINE)
 	tw.tween_interval(0.45)
 	tw.tween_property(room, "stretch", 0.0, 0.45).set_trans(Tween.TRANS_SINE)
 	tw.tween_interval(0.2)
 	tw.tween_callback(func() -> void:
 		room.glasses_on_stand = false
-		fx.dissipate(Bedroom.NIGHTSTAND.position + Vector2(30, 64), UITheme.GOLD))
-	tw.tween_interval(0.5)
+		Audio.play("chime")
+		fx.dissipate(Bedroom.to_world(Bedroom.NIGHTSTAND.position + Vector2(30, 64)), UITheme.GOLD))
+	tw.tween_interval(0.4)
+	# Se desliza hasta el borde de la cama, mirando hacia fuera
+	# Shuffles to the edge of the bed, facing out
+	tw.tween_callback(Audio.play.bind("blanket"))
+	tw.tween_property(room, "slide", 1.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# Baja de un saltito a la alfombrita / Hops down onto the little rug
 	tw.tween_callback(func() -> void:
 		room.bed_state = "empty"
 		player.armed = false
-		player.position = WAKE_POINT
+		player.set_facing(1.0)
+		player.position = Bedroom.to_world(room.sitting_feet())
 		player.visible = true)
-	tw.tween_interval(0.25)
-	tw.tween_property(player, "position", pickup, _walk_time(WAKE_POINT, pickup))
+	tw.tween_method(_hop_down.bind(Bedroom.to_world(room.sitting_feet_end()), wake), 0.0, 1.0, 0.55)
+	tw.tween_callback(func() -> void:
+		player.hop = 0.0
+		player.land()
+		Audio.play("land")
+		fx.ring(wake + Vector2(0, -4), 22.0, UITheme.BONE, 0.4, 2.2))
+	tw.tween_interval(0.35)
+	tw.tween_property(player, "position", pickup, _walk_time(wake, pickup))
 	tw.tween_callback(func() -> void:
 		room.weapon_taken = true
 		player.armed = true
 		player.attack_anim = 1.0
 		player.cast_anim = 1.0
+		Audio.play("pickup")
 		fx.dissipate(pickup + Vector2(0, -80), UITheme.GOLD)
 		fx.ring(pickup + Vector2(0, -80), 30.0, UITheme.GOLD, 0.5, 2.0))
 	tw.tween_interval(0.6)
-	tw.tween_property(player, "position", START_POINT, _walk_time(pickup, START_POINT))
+	tw.tween_property(player, "position", start, _walk_time(pickup, start))
 	tw.tween_callback(func() -> void:
 		hud.visible = true
 		hud.start(depth)
 		running = true)
+
+
+## Salto en arco desde la cama al suelo / Arcing hop from the bed to the floor
+func _hop_down(k: float, from: Vector2, to: Vector2) -> void:
+	player.position = from.lerp(to, k)
+	player.hop = sin(k * PI) * 34.0
 
 
 func _walk_time(a: Vector2, b: Vector2) -> float:
@@ -147,7 +180,7 @@ func _spawn_group() -> void:
 
 
 func _spawn_point() -> Vector2:
-	var area := Bedroom.WALKABLE.grow(-40)
+	var area := Bedroom.rect_world(Bedroom.WALKABLE).grow(-30)
 	for attempt in 30:
 		var p := Vector2(randf_range(area.position.x, area.end.x), randf_range(area.position.y, area.end.y))
 		if p.distance_to(player.position) > 360.0 and not _blocked(p, 40.0):
@@ -158,6 +191,7 @@ func _spawn_point() -> Vector2:
 func _spawn_foox(pos: Vector2) -> void:
 	if not running:
 		return
+	Audio.play("spawn", -8.0, 0.1)
 	var f := Foox.new()
 	f.run = self
 	f.position = pos
@@ -166,7 +200,7 @@ func _spawn_foox(pos: Vector2) -> void:
 
 func _blocked(p: Vector2, margin: float) -> bool:
 	for r in Bedroom.OBSTACLES:
-		if r.grow(margin).has_point(p):
+		if Bedroom.rect_world(r).grow(margin).has_point(p):
 			return true
 	return false
 
@@ -174,10 +208,10 @@ func _blocked(p: Vector2, margin: float) -> bool:
 ## Mantiene a alguien dentro del suelo y fuera de los muebles.
 ## Keeps someone on the floor and out of the furniture.
 func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
-	var r := Bedroom.WALKABLE.grow(-margin * 0.5)
+	var r := Bedroom.rect_world(Bedroom.WALKABLE).grow(-margin * 0.5)
 	p = Vector2(clampf(p.x, r.position.x, r.end.x), clampf(p.y, r.position.y, r.end.y))
 	for o in Bedroom.OBSTACLES:
-		var g := o.grow(margin * 0.6)
+		var g := Bedroom.rect_world(o).grow(margin * 0.6)
 		if g.has_point(p):
 			# Empuja hacia el borde más cercano / Push out through the nearest edge
 			var d_left := p.x - g.position.x
@@ -204,12 +238,16 @@ func on_enemy_killed(_e: Node) -> void:
 
 
 func on_player_hit(_dmg: float) -> void:
+	Audio.play("hurt", -2.0, 0.08)
 	hud.set_hp(player.hp, player.max_hp)
 	shake(10.0)
 
 
 func on_player_died() -> void:
 	running = false
+	Audio.stop_loops()
+	Audio.fade_music(-24.0, 1.0)
+	Audio.play("lose", -2.0)
 	shake(18.0)
 	fx.dissipate(player.position + Vector2(0, -40), UITheme.BONE)
 	get_tree().create_timer(1.3, false).timeout.connect(func() -> void:
@@ -218,6 +256,9 @@ func on_player_died() -> void:
 
 func _on_wave_cleared() -> void:
 	running = false
+	Audio.stop_loops()
+	Audio.fade_music(-20.0, 1.0)
+	Audio.play("win", -2.0)
 	hud.set_time(0.0)
 	for e: Node in enemies.get_children():
 		e.die(false)
@@ -236,6 +277,8 @@ func _show_end(title: String, subtitle: String, buttons: Array) -> void:
 
 func _open_pause() -> void:
 	get_tree().paused = true
+	Audio.stop_loops()
+	Audio.fade_music(-16.0, 0.4)
 	_overlay = DreamOverlay.new()
 	add_child(_overlay)
 	_overlay.on_cancel = _resume
@@ -251,6 +294,7 @@ func _resume() -> void:
 		_overlay.close()
 		_overlay = null
 	get_tree().paused = false
+	Audio.fade_music(-6.0, 0.4)
 
 
 func _open_settings() -> void:
@@ -265,3 +309,7 @@ func _restart() -> void:
 
 func _to_menu() -> void:
 	GameState.change_scene(MAIN_MENU)
+
+
+func _exit_tree() -> void:
+	Audio.stop_loops()
