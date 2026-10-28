@@ -43,7 +43,9 @@ func _now() -> float:
 
 func _stream(sound: String) -> AudioStream:
 	if not _cache.has(sound):
-		_cache[sound] = load(PATH % sound)
+		# La música va en .ogg y los efectos en .wav / Music is .ogg, effects are .wav
+		var ogg := "res://assets/audio/%s.ogg" % sound
+		_cache[sound] = load(ogg if ResourceLoader.exists(ogg) else PATH % sound)
 	return _cache[sound]
 
 

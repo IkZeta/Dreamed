@@ -6,22 +6,24 @@ Escribe los .wav en assets/audio/. Necesita numpy y scipy.
 Writes the .wav files to assets/audio/. Needs numpy and scipy.
 
 Estilo: cálido y grave, como un sueño lento. Piano eléctrico suave, mazos de fieltro,
-pads cálidos y golpes sordos. Nada de campanitas ni agudos: todo se filtra por debajo
-de ~2,5 kHz para que nunca sea estridente.
+pads cálidos y golpes sordos, sin campanitas. Suena en estéreo con una reverberación de
+sala (convolución con una respuesta generada), así no queda "enlatado".
 Style: warm and low, like a slow dream. Soft electric piano, felt mallets, warm pads
-and muffled thumps. No chimes and no highs: everything is filtered below ~2.5 kHz so
-it is never shrill.
+and muffled thumps, no chimes. Stereo, with a room reverb (convolution with a generated
+impulse response), so it doesn't sound "canned".
 """
+import shutil
+import subprocess
 from pathlib import Path
 
 import numpy as np
 from scipy.io import wavfile
-from scipy.signal import lfilter
+from scipy.signal import fftconvolve, lfilter
 
-SR = 32000
+SR = 44100
 OUT = Path(__file__).resolve().parent.parent / "assets" / "audio"
 RNG = np.random.default_rng(11)
-TOP = 2400.0   # ningún sonido pasa de aquí / nothing goes above this
+TOP = 5000.0   # ningún armónico de los instrumentos pasa de aquí / no instrument partial goes above this
 
 
 def midi(n: float) -> float:
@@ -81,7 +83,7 @@ def pad(freqs: list[float], dur: float, amp: float = 0.08, attack: float = 1.5, 
             out += (2 / np.pi) * np.arcsin(np.sin(2 * np.pi * f * (1 + det) * t + ph))
     env = np.minimum(1.0, t / attack) * np.clip((dur - t) / release, 0, 1)
     breathe = 1.0 + 0.1 * np.sin(2 * np.pi * 0.17 * t)
-    return lowpass(lowpass(out, 1100), 1100) * env * breathe * amp / len(freqs)
+    return lowpass(lowpass(out, 1800), 2600) * env * breathe * amp / len(freqs)
 
 
 def bass(freq: float, dur: float, amp: float = 0.2) -> np.ndarray:
@@ -112,26 +114,49 @@ def glide(f0: float, f1: float, dur: float, amp: float = 0.3) -> np.ndarray:
 
 # --- Mezcla / Mixing ---------------------------------------------------------
 
-def reverb(x: np.ndarray, mix: float = 0.35, size: float = 1.0) -> np.ndarray:
-    """Reverberación Schroeder oscura / Dark Schroeder reverb."""
-    combs = [0.0297, 0.0371, 0.0411, 0.0437, 0.0503, 0.0571]
-    wet = np.zeros_like(x)
-    src = lowpass(x, 1800)
-    for d in combs:
-        n = int(d * size * SR)
-        a = np.zeros(n + 1)
-        a[0] = 1.0
-        a[n] = -0.84
-        wet += lfilter([1.0], a, src)
-    wet /= len(combs)
-    for d, g in [(0.005, 0.7), (0.0017, 0.7)]:
-        n = int(d * SR)
-        b = np.zeros(n + 1)
-        a = np.zeros(n + 1)
-        b[0], b[n] = -g, 1.0
-        a[0], a[n] = 1.0, -g
-        wet = lfilter(b, a, wet)
-    return x * (1 - mix) + lowpass(wet, 1500) * mix
+_IR_CACHE: dict = {}
+
+
+def _impulse(size: float, seed: int) -> np.ndarray:
+    """Respuesta de una sala: ruido que se apaga y se oscurece con el tiempo.
+    A room's response: noise that fades out and darkens over time."""
+    key = (size, seed)
+    if key not in _IR_CACHE:
+        rng = np.random.default_rng(seed)
+        dur = 1.6 * size
+        t = t_axis(dur)
+        early = np.zeros_like(t)
+        for d, g in [(0.011, 0.5), (0.019, 0.4), (0.027, 0.35), (0.037, 0.3), (0.049, 0.25)]:
+            early[int(d * size * SR)] = g * rng.choice([-1, 1])
+        tail = rng.normal(0, 1, len(t)) * np.exp(-t * 4.2 / size)
+        # La cola se oscurece: mezcla de una versión filtrada que gana peso / The tail darkens over time
+        dark = lowpass(lowpass(tail, 2500), 2500)
+        k = np.clip(t / dur, 0, 1)
+        tail = tail * (1 - k) * 0.5 + dark * (0.5 + k)
+        ir = early + tail * 0.12
+        pre = np.zeros(int(0.018 * SR))
+        _IR_CACHE[key] = np.concatenate([pre, ir]) / np.sqrt(np.sum(ir ** 2))
+    return _IR_CACHE[key]
+
+
+def reverb(x: np.ndarray, mix: float = 0.35, size: float = 1.0, tail: bool = True) -> np.ndarray:
+    """Reverberación de sala en estéreo. Devuelve (n, 2). Con tail=True deja sonar la cola.
+    Stereo room reverb. Returns (n, 2). With tail=True it lets the tail ring out."""
+    if x.ndim == 2:
+        x = x.mean(axis=1)
+    n = len(x) + (int(0.9 * size * SR) if tail else 0)
+    dry = np.zeros(n)
+    dry[: len(x)] = x
+    out = np.zeros((n, 2))
+    for ch, seed in enumerate((3, 7)):
+        wet = fftconvolve(x, _impulse(size, seed))[:n]
+        out[: len(wet), ch] = wet * mix * 0.9
+        out[:, ch] += dry * (1 - mix)
+    if tail:
+        # La cola se apaga del todo antes de terminar / The tail fully fades before the end
+        k = int(0.25 * size * SR)
+        out[-k:] *= np.linspace(1, 0, k)[:, None] ** 2
+    return out
 
 
 def mix(*sigs: np.ndarray) -> np.ndarray:
@@ -139,11 +164,13 @@ def mix(*sigs: np.ndarray) -> np.ndarray:
     n = max(len(x) for x in sigs)
     out = np.zeros(n)
     for x in sigs:
-        out[: len(x)] += x
+        out[: len(x)] += x if x.ndim == 1 else x.mean(axis=1)
     return out
 
 
 def place(buf: np.ndarray, sig: np.ndarray, at: float) -> None:
+    if sig.ndim == 2:
+        sig = sig.mean(axis=1)
     i = int(at * SR)
     if i >= len(buf):
         return
@@ -151,18 +178,28 @@ def place(buf: np.ndarray, sig: np.ndarray, at: float) -> None:
     buf[i:end] += sig[: end - i]
 
 
-def save(name: str, x: np.ndarray, peak: float = 0.6, cutoff: float = TOP) -> None:
-    x = lowpass(lowpass(lowpass(x, cutoff), cutoff), cutoff)
+def save(name: str, x: np.ndarray, peak: float = 0.6, cutoff: float = 9000.0) -> None:
+    if x.ndim == 1:
+        x = reverb(x, 0.1, 0.5)   # un poco de sala a todo / a touch of room on everything
+    x = np.stack([lowpass(x[:, 0], cutoff), lowpass(x[:, 1], cutoff)], axis=1)
     # Quita el "clic" del principio y del final / Removes clicks at both ends
-    fade = min(len(x) // 4, int(SR * 0.01))
-    x[:fade] *= np.linspace(0, 1, fade)
+    fade = min(len(x) // 4, int(SR * 0.008))
+    x[:fade] *= np.linspace(0, 1, fade)[:, None]
     if not name.startswith("music") and name != "vacuum":
-        x[-fade:] *= np.linspace(1, 0, fade)
+        x[-fade:] *= np.linspace(1, 0, fade)[:, None]
     m = np.max(np.abs(x)) or 1.0
     x = x / m * peak
     OUT.mkdir(parents=True, exist_ok=True)
-    wavfile.write(OUT / f"{name}.wav", SR, (x * 32767).astype(np.int16))
-    print(f"{name}.wav  {len(x) / SR:.1f}s")
+    wav = OUT / f"{name}.wav"
+    wavfile.write(wav, SR, (x * 32767).astype(np.int16))
+    # La música se guarda en .ogg para que pese poco / Music is saved as .ogg to keep it small
+    if name.startswith("music") and shutil.which("ffmpeg"):
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav), "-c:a", "libvorbis", "-q:a", "6",
+            str(OUT / f"{name}.ogg")], check=True)
+        wav.unlink()
+        print(f"{name}.ogg  {len(x) / SR:.1f}s")
+    else:
+        print(f"{name}.wav  {len(x) / SR:.1f}s")
 
 
 def loop_render(build, length: float, reverb_mix: float, size: float = 1.3) -> np.ndarray:
@@ -171,9 +208,9 @@ def loop_render(build, length: float, reverb_mix: float, size: float = 1.3) -> n
     buf = np.zeros(int(length * 2 * SR) + SR * 4)
     build(buf, 0.0)
     build(buf, length)
-    wet = reverb(buf, reverb_mix, size)
+    wet = reverb(buf, reverb_mix, size, tail=False)
     n = int(length * SR)
-    return wet[n: 2 * n]
+    return wet[n: 2 * n].copy()
 
 
 # --- Música / Music ----------------------------------------------------------
