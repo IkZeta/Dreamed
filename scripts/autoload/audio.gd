@@ -123,13 +123,13 @@ func _on_node_added(node: Node) -> void:
 		var b := node as BaseButton
 		b.focus_entered.connect(_ui_hover)
 		b.mouse_entered.connect(_ui_hover)
-		b.pressed.connect(func() -> void: play("ui_click", -4.0))
+		b.pressed.connect(func() -> void: play("ui_click", -7.0))
 
 
 func _ui_hover() -> void:
 	if _now() < _ui_quiet_until:
 		return
-	play("ui_hover", -10.0, 0.05)
+	play("ui_hover", -14.0, 0.03)
 
 
 ## Para la música y los efectos antes de cerrar, para que el motor los libere bien.

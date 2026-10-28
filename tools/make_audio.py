@@ -15,6 +15,7 @@ from scipy.io import wavfile
 from scipy.signal import lfilter
 
 SR = 32000
+MAX_PARTIAL = 4500.0   # ningún armónico por encima: evita sonidos estridentes / no partial above this: avoids shrill sounds
 OUT = Path(__file__).resolve().parent.parent / "assets" / "audio"
 RNG = np.random.default_rng(7)
 
@@ -35,7 +36,9 @@ def music_box(freq: float, dur: float = 2.5, amp: float = 0.3, wobble: float = 0
     t = t_axis(dur)
     vib = 1.0 + wobble * np.sin(2 * np.pi * 4.5 * t) * np.minimum(1.0, t * 2)
     out = np.zeros_like(t)
-    for ratio, gain, decay in [(1.0, 1.0, 2.2), (2.0, 0.28, 3.5), (3.98, 0.12, 6.0), (5.43, 0.07, 9.0), (8.1, 0.03, 14.0)]:
+    for ratio, gain, decay in [(1.0, 1.0, 2.2), (2.0, 0.25, 3.5), (3.98, 0.08, 6.0), (5.43, 0.04, 9.0), (8.1, 0.015, 14.0)]:
+        if freq * ratio > MAX_PARTIAL:
+            continue  # sin agudos que piten / no piercing highs
         out += gain * np.sin(2 * np.pi * freq * ratio * np.cumsum(vib) / SR) * np.exp(-decay * t)
     attack = np.minimum(1.0, t / 0.004)
     click = RNG.normal(0, 1, len(t)) * np.exp(-t * 900) * 0.05
@@ -44,10 +47,12 @@ def music_box(freq: float, dur: float = 2.5, amp: float = 0.3, wobble: float = 0
 
 def bell(freq: float, dur: float = 1.5, amp: float = 0.3) -> np.ndarray:
     t = t_axis(dur)
-    out = (np.sin(2 * np.pi * freq * t) * np.exp(-3 * t)
-           + 0.4 * np.sin(2 * np.pi * freq * 2.76 * t) * np.exp(-5 * t)
-           + 0.2 * np.sin(2 * np.pi * freq * 5.4 * t) * np.exp(-8 * t))
-    return out * np.minimum(1.0, t / 0.003) * amp
+    out = np.sin(2 * np.pi * freq * t) * np.exp(-3 * t)
+    for ratio, gain, decay in [(2.76, 0.25, 5.0), (5.4, 0.08, 8.0)]:
+        if freq * ratio <= MAX_PARTIAL:
+            out += gain * np.sin(2 * np.pi * freq * ratio * t) * np.exp(-decay * t)
+    # Ataque suave para que no haga "clic" / Soft attack so it doesn't click
+    return out * np.minimum(1.0, t / 0.008) * amp
 
 
 def pad(freqs: list[float], dur: float, amp: float = 0.08, attack: float = 1.2, release: float = 1.6) -> np.ndarray:
@@ -112,7 +117,9 @@ def place(buf: np.ndarray, sig: np.ndarray, at: float) -> None:
     buf[i:end] += sig[: end - i]
 
 
-def save(name: str, x: np.ndarray, peak: float = 0.7) -> None:
+def save(name: str, x: np.ndarray, peak: float = 0.7, soften: float = 5000.0) -> None:
+    # Doble paso bajo para redondear el sonido / Double low-pass to round the sound off
+    x = lowpass(lowpass(x, soften), soften)
     m = np.max(np.abs(x)) or 1.0
     x = x / m * peak
     OUT.mkdir(parents=True, exist_ok=True)
@@ -228,13 +235,15 @@ def dream_theme() -> np.ndarray:
 # --- Efectos / Sound effects -------------------------------------------------
 
 def sfx_hover() -> np.ndarray:
-    return reverb(np.pad(bell(midi(88), 0.4, 0.25), (0, SR // 4)), 0.3)
+    t = t_axis(0.35)
+    soft = np.sin(2 * np.pi * midi(79) * t) * np.exp(-9 * t) * np.minimum(1.0, t / 0.01)
+    return reverb(np.pad(soft * 0.3, (0, SR // 4)), 0.3)
 
 
 def sfx_click() -> np.ndarray:
     x = np.zeros(int(SR * 1.0))
-    place(x, music_box(midi(81), 0.8, 0.4), 0.0)
-    place(x, music_box(midi(88), 0.8, 0.35), 0.07)
+    place(x, music_box(midi(74), 0.8, 0.4), 0.0)
+    place(x, music_box(midi(81), 0.8, 0.3), 0.07)
     return reverb(x, 0.35)
 
 
@@ -254,7 +263,7 @@ def sfx_whoosh(dur: float = 0.32, lo: float = 400, hi: float = 2400) -> np.ndarr
 
 
 def sfx_swing() -> np.ndarray:
-    return reverb(np.pad(lowpass(sfx_whoosh(0.28, 400, 2200), 3000), (0, SR // 4)), 0.2)
+    return reverb(np.pad(lowpass(sfx_whoosh(0.3, 250, 1400), 1800), (0, SR // 4)), 0.2)
 
 
 def sfx_pillow() -> np.ndarray:
@@ -268,11 +277,11 @@ def sfx_zap() -> np.ndarray:
     dur = 0.5
     t = t_axis(dur)
     x = np.zeros_like(t)
-    for _ in range(14):
+    for _ in range(9):
         at = RNG.uniform(0, 0.25)
-        place(x, bell(RNG.uniform(1800, 4200), 0.2, 0.25), at)
-    crackle = lowpass(highpass(noise(dur), 2500), 6000) * (RNG.random(len(t)) > 0.97) * np.exp(-t * 7) * 0.5
-    rise = np.sin(2 * np.pi * (600 + 1400 * t) * t) * np.exp(-t * 6) * 0.25
+        place(x, bell(RNG.uniform(700, 1600), 0.25, 0.2), at)
+    crackle = lowpass(noise(dur), 2500) * (RNG.random(len(t)) > 0.985) * np.exp(-t * 7) * 0.25
+    rise = np.sin(2 * np.pi * (400 + 600 * t) * t) * np.exp(-t * 6) * 0.25
     return reverb(x + crackle + rise, 0.35)
 
 
@@ -282,7 +291,7 @@ def sfx_vacuum() -> np.ndarray:
     t = t_axis(dur)
     hum = (np.sin(2 * np.pi * 120 * t) * 0.3 + np.sin(2 * np.pi * 240 * t) * 0.12
            + np.sin(2 * np.pi * 361 * t) * 0.05)
-    air = lowpass(lowpass(np.tile(noise(0.25), 4)[: len(t)], 700), 700) * 3.0
+    air = lowpass(lowpass(np.tile(noise(0.25), 4)[: len(t)], 450), 450) * 3.0
     wob = 1.0 + 0.2 * np.sin(2 * np.pi * 3 * t)
     return (hum + air) * wob
 
@@ -298,12 +307,14 @@ def sfx_spawn() -> np.ndarray:
 
 
 def sfx_hit() -> np.ndarray:
-    return reverb(np.pad(music_box(midi(76 + RNG.integers(0, 3)), 0.35, 0.5), (0, SR // 5)), 0.2)
+    t = t_axis(0.25)
+    pluck = np.sin(2 * np.pi * midi(67) * t) * np.exp(-16 * t) + 0.3 * np.sin(2 * np.pi * midi(79) * t) * np.exp(-22 * t)
+    return reverb(np.pad(pluck * np.minimum(1.0, t / 0.004) * 0.5, (0, SR // 5)), 0.2)
 
 
 def sfx_foox_die() -> np.ndarray:
     x = np.zeros(int(SR * 1.4))
-    for i, n in enumerate([88, 85, 81, 76]):
+    for i, n in enumerate([81, 78, 74, 69]):
         place(x, bell(midi(n), 0.9, 0.3), i * 0.07)
     return reverb(x, 0.45)
 
@@ -317,15 +328,15 @@ def sfx_hurt() -> np.ndarray:
 
 def sfx_pickup() -> np.ndarray:
     x = np.zeros(int(SR * 1.8))
-    for i, n in enumerate([74, 78, 81, 86, 90]):
+    for i, n in enumerate([69, 74, 78, 81, 86]):
         place(x, music_box(midi(n), 1.2, 0.35), i * 0.08)
     return reverb(x, 0.45)
 
 
 def sfx_chime() -> np.ndarray:
     x = np.zeros(int(SR * 1.4))
-    place(x, bell(midi(86), 1.0, 0.3), 0)
-    place(x, bell(midi(93), 1.0, 0.2), 0.06)
+    place(x, bell(midi(79), 1.0, 0.3), 0)
+    place(x, bell(midi(86), 1.0, 0.18), 0.06)
     return reverb(x, 0.45)
 
 
@@ -368,15 +379,84 @@ def sfx_lose() -> np.ndarray:
     return reverb(x, 0.55, 1.5)
 
 
+def sfx_glitch() -> np.ndarray:
+    """Chisporroteo digital: trocitos de tono que saltan / Digital crackle: jumping tone fragments."""
+    dur = 0.35
+    x = np.zeros(int(SR * dur))
+    seg = int(SR * 0.025)
+    for i in range(0, len(x) - seg, seg):
+        f = RNG.choice([196, 262, 330, 392, 523])
+        tt = np.arange(seg) / SR
+        # Triangular en vez de cuadrada: más suave / Triangle instead of square: softer
+        sq = (2 / np.pi) * np.arcsin(np.sin(2 * np.pi * f * tt)) * 0.3
+        if RNG.random() < 0.7:
+            x[i:i + seg] = sq * (1 - i / len(x))
+    return reverb(lowpass(lowpass(x, 1800), 1800), 0.2)
+
+
+def sfx_ricochet() -> np.ndarray:
+    t = t_axis(0.3)
+    f = 420 * np.exp(-t * 6) + 220
+    boing = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 12)
+    return reverb(boing * 0.7 + lowpass(noise(0.3), 1500) * np.exp(-t * 40) * 0.5, 0.2)
+
+
+def sfx_kick() -> np.ndarray:
+    t = t_axis(0.4)
+    thump = np.sin(2 * np.pi * (160 * np.exp(-t * 10) + 50) * t) * np.exp(-t * 10)
+    slap = highpass(noise(0.4), 800) * np.exp(-t * 50) * 0.6
+    return reverb(thump + slap, 0.2)
+
+
+def sfx_astral() -> np.ndarray:
+    """Destello hacia el plano astral: brillo que sube / Flash into the astral plane: rising shimmer."""
+    dur = 2.2
+    x = np.zeros(int(SR * dur))
+    for i, n in enumerate([69, 74, 78, 81, 86, 90]):
+        place(x, bell(midi(n), 1.6, 0.25), i * 0.09)
+    t = t_axis(dur)
+    sweep = sfx_whoosh(dur, 200, 2500) * 0.4
+    place(x, lowpass(sweep, 2500), 0.0)
+    return reverb(x, 0.55, 1.6)
+
+
+MELODY_ASTRAL = [(0, 0, 79, 4), (1, 0, 83, 4), (2, 0, 86, 2), (2, 2, 85, 2), (3, 0, 81, 4)]
+
+
+def astral_theme() -> np.ndarray:
+    """Plano astral: acordes suspendidos que flotan, sin pulso claro / Astral plane: floating suspended chords, no clear pulse."""
+    bpm = 50.0
+    beat = 60.0 / bpm
+    bar = beat * 4
+    bars = 8
+    length = bar * bars
+    chords = [[55, 62, 67, 69, 74], [52, 59, 64, 66, 71], [48, 55, 62, 64, 67], [50, 57, 62, 64, 69]]
+
+    def build(buf: np.ndarray, off: float) -> None:
+        for i in range(bars // 2):
+            chord = chords[i % len(chords)]
+            start = off + i * 2 * bar
+            place(buf, pad([midi(n) for n in chord], 2 * bar + 2.0, 0.12, attack=2.5, release=2.5), start)
+            for b in range(4):
+                place(buf, bell(midi(chord[(b * 2) % 5] + 24), 2.0, 0.03), start + b * bar * 0.5 + 0.3)
+        for k, (bar_i, b, n, _) in enumerate(MELODY_ASTRAL * 2):
+            place(buf, music_box(midi(n), 3.6, 0.2, wobble=0.003), off + (bar_i + (4 if k >= 5 else 0)) * bar + b * beat)
+
+    return loop_render(build, length, 0.6, 1.7)
+
+
 if __name__ == "__main__":
     save("music_menu", menu_theme(), 0.6)
     save("music_dream1", dream_theme(), 0.6)
+    save("music_astral", astral_theme(), 0.6)
     for name, fn, peak in [
-        ("ui_hover", sfx_hover, 0.25), ("ui_click", sfx_click, 0.45), ("swing", sfx_swing, 0.5),
+        ("ui_hover", sfx_hover, 0.2), ("ui_click", sfx_click, 0.4), ("swing", sfx_swing, 0.45),
         ("pillow", sfx_pillow, 0.6), ("zap", sfx_zap, 0.5), ("vacuum", sfx_vacuum, 0.35),
         ("spawn", sfx_spawn, 0.4), ("hit", sfx_hit, 0.35), ("foox_die", sfx_foox_die, 0.45),
         ("hurt", sfx_hurt, 0.6), ("pickup", sfx_pickup, 0.5), ("chime", sfx_chime, 0.4),
         ("blanket", sfx_blanket, 0.4), ("yawn", sfx_yawn, 0.4), ("land", sfx_land, 0.5),
         ("win", sfx_win, 0.6), ("lose", sfx_lose, 0.55),
+        ("glitch", sfx_glitch, 0.35), ("ricochet", sfx_ricochet, 0.45), ("kick", sfx_kick, 0.55),
+        ("astral", sfx_astral, 0.5),
     ]:
-        save(name, fn(), peak)
+        save(name, fn(), peak, 3500.0)
