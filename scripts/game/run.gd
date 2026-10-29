@@ -563,6 +563,7 @@ func _open_pause() -> void:
 		["MENU_SETTINGS", _open_settings],
 		["PAUSE_QUIT_RUN", _to_menu],
 	])
+	_overlay.add_side(PauseSummary.make(player))
 
 
 func _resume() -> void:

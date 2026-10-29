@@ -21,7 +21,7 @@ func text(pos: Vector2, value: String, color := UITheme.BONE, size := 22) -> voi
 
 
 func bolt(points: PackedVector2Array, color := UITheme.GOLD) -> void:
-	_items.append({"kind": "bolt", "points": points, "color": color, "life": 0.22, "max": 0.22})
+	_items.append({"kind": "bolt", "points": points, "color": color, "life": 0.3, "max": 0.3})
 
 
 func swing(center: Vector2, radius: float, angle: float, spread: float, color := UITheme.BONE, width := 6.0) -> void:
@@ -71,9 +71,10 @@ func _draw() -> void:
 				var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, it["size"]).x
 				draw_string(font, Vector2(it["pos"]) - Vector2(w / 2.0, 0), s, HORIZONTAL_ALIGNMENT_LEFT, -1, it["size"], c)
 			"bolt":
-				draw_polyline(it["points"], Color(col, 0.25 * k), 9.0, true)
-				draw_polyline(it["points"], Color(col, k), 2.5, true)
-				draw_polyline(it["points"], Color(1, 1, 1, k), 1.0, true)
+				# Grueso para que se vea en pixel art / Thick so it shows in pixel art
+				draw_polyline(it["points"], Color(col, 0.3 * k), 16.0)
+				draw_polyline(it["points"], Color(col, k), 6.0)
+				draw_polyline(it["points"], Color(1, 1, 1, k), 2.5)
 			"swing":
 				var a := float(it["a"])
 				var sp := float(it["s"])

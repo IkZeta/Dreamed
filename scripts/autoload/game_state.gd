@@ -120,8 +120,14 @@ func reset_run() -> void:
 	_rng.randomize()
 
 
+## Estadística de nivel con lo que trae cada arma de serie (el libro empieza con −3 de suerte)
+## Level stat plus what each weapon starts with (the book starts with −3 luck)
+const BASE_LEVEL_STATS := {"book": {"luck": -3.0}}
+
+
 func stat(id: String) -> float:
-	return float(stat_bonus.get(id, 0.0))
+	var base: Dictionary = BASE_LEVEL_STATS.get(selected_character, {})
+	return float(stat_bonus.get(id, 0.0)) + float(base.get(id, 0.0))
 
 
 ## Trozos que hacen falta para el siguiente nivel / Shards needed for the next level

@@ -8,6 +8,7 @@ signal closed
 ## Qué hacer al pulsar Esc (opcional) / What Esc does (optional)
 var on_cancel: Callable
 var _first_button: Button
+var _row: HBoxContainer
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -34,10 +35,14 @@ func build(title_key: String, subtitle_key: String, buttons: Array, extra_lines:
 	var center := CenterContainer.new()
 	_root.add_child(center)
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_row = HBoxContainer.new()
+	_row.add_theme_constant_override("separation", 72)
+	center.add_child(_row)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 14)
 	col.custom_minimum_size.x = 640
-	center.add_child(col)
+	col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_row.add_child(col)
 
 	var title := UITheme.label(title_key, 88, UITheme.BONE, "display")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -72,6 +77,11 @@ func build(title_key: String, subtitle_key: String, buttons: Array, extra_lines:
 	var tw := create_tween()
 	tw.tween_property(_root, "modulate:a", 1.0, 0.35)
 	_first_button.grab_focus.call_deferred()
+
+
+## Añade un panel al lado de los botones (el resumen de la pausa) / Adds a panel beside the buttons (the pause summary)
+func add_side(panel: Control) -> void:
+	_row.add_child(panel)
 
 
 func refocus() -> void:
