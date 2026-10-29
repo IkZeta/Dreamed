@@ -12,6 +12,32 @@ var life := 3.0
 var _spin := 0.0
 
 
+## Aviso de trayectoria antes de disparar (como en Brotato): una franja que se llena.
+## "k" va de 0 a 1 mientras el enemigo apunta. Se dibuja en coordenadas del CanvasItem.
+## Trajectory warning before a shot (Brotato style): a strip that fills up.
+## "k" goes from 0 to 1 while the enemy aims. Drawn in the CanvasItem's coordinates.
+static func draw_warning(ci: CanvasItem, from: Vector2, dir: Vector2, length: float, width: float, k: float) -> void:
+	var to := from + dir * length
+	var side := Vector2(-dir.y, dir.x) * width * 0.5
+	var col := Color("ff6f86")
+	ci.draw_colored_polygon(PackedVector2Array([from + side, to + side, to - side, from - side]), Color(col, 0.10 + 0.12 * k))
+	# Lo que ya está "cargado" avanza desde el enemigo / The "charged" part grows out from the enemy
+	var fill := from + dir * length * k
+	var core := side * 0.35
+	ci.draw_colored_polygon(PackedVector2Array([from + core, fill + core, fill - core, from - core]), Color(col, 0.35 + 0.35 * k))
+	ci.draw_line(from + side, to + side, Color(col, 0.5), 2.0)
+	ci.draw_line(from - side, to - side, Color(col, 0.5), 2.0)
+
+
+## Hasta dónde llega un disparo antes de salir de la habitación / How far a shot goes before leaving the room
+static func reach(run: Node, from: Vector2, dir: Vector2, max_len: float) -> float:
+	var r: Rect2 = run.arena_rect().grow(30)
+	var d := 0.0
+	while d < max_len and r.has_point(from + dir * d):
+		d += 12.0
+	return maxf(d, 40.0)
+
+
 func _ready() -> void:
 	z_index = 30
 

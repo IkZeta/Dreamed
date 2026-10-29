@@ -1,0 +1,17 @@
+[remap]
+
+importer="font_data_bmfont"
+type="FontFile"
+uid="uid://du2umd4ntx7ab"
+path="res://.godot/imported/dreampix_italic.fnt-b64ef0bf968e7ca2c2d5a4d79a105250.fontdata"
+
+[deps]
+
+source_file="res://assets/fonts/dreampix_italic.fnt"
+dest_files=["res://.godot/imported/dreampix_italic.fnt-b64ef0bf968e7ca2c2d5a4d79a105250.fontdata"]
+
+[params]
+
+fallbacks=[]
+compress=false
+scaling_mode=1

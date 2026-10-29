@@ -19,6 +19,8 @@ const EYES := Color("ffcf7a")
 
 var _shot_t := 1.5
 var _aiming := 0.0   # 0..1 mientras tensa la goma / while drawing the band
+var _aim_dir := Vector2.ZERO   # dirección fijada al empezar a apuntar / direction locked when aiming starts
+const SHOT_SPEED := 420.0
 
 
 func _init() -> void:
@@ -48,9 +50,14 @@ func _desired_velocity() -> Vector2:
 
 
 func _act(delta: float) -> void:
-	_facing = signf(run.player.global_position.x - global_position.x) if absf(run.player.global_position.x - global_position.x) > 4.0 else _facing
+	if _aiming <= 0.0:
+		_facing = signf(run.player.global_position.x - global_position.x) if absf(run.player.global_position.x - global_position.x) > 4.0 else _facing
 	_shot_t -= delta * (0.5 if slow_t > 0.0 else 1.0)
 	if _shot_t <= AIM_TIME:
+		if _aim_dir == Vector2.ZERO:
+			# Fija hacia dónde va a disparar y lo avisa / Locks where it will shoot and shows it
+			_aim_dir = (run.player.global_position + Vector2(0, -44) - _shot_from()).normalized()
+			_facing = signf(_aim_dir.x) if absf(_aim_dir.x) > 0.05 else _facing
 		_aiming = 1.0 - maxf(0.0, _shot_t) / AIM_TIME
 	if _shot_t <= 0.0:
 		_shot_t = SHOT_EVERY + randf_range(-0.3, 0.4)
@@ -59,6 +66,8 @@ func _act(delta: float) -> void:
 
 
 func _draw() -> void:
+	if state == State.ALIVE and _aiming > 0.0 and _aim_dir != Vector2.ZERO:
+		EnemyShot.draw_warning(self, _shot_from() - global_position, _aim_dir, EnemyShot.reach(run, _shot_from(), _aim_dir, 900.0), 20.0, _aiming)
 	super._draw()
 	if state == State.ALIVE:
 		# Barra de recarga del tirachinas / Slingshot reload bar
@@ -68,12 +77,19 @@ func _draw() -> void:
 		draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(UITheme.EMBER, 0.8 * _fade))
 
 
+func _shot_from() -> Vector2:
+	return global_position + Vector2(18 * _facing, -60)
+
+
 func _fire() -> void:
-	var from := global_position + Vector2(18 * _facing, -60)
+	var from := _shot_from()
 	var shot := EnemyShot.new()
 	shot.run = run
 	shot.position = from
-	shot.velocity = (run.player.global_position + Vector2(0, -44) - from).normalized() * 420.0
+	if _aim_dir == Vector2.ZERO:
+		_aim_dir = (run.player.global_position + Vector2(0, -44) - from).normalized()
+	shot.velocity = _aim_dir * SHOT_SPEED
+	_aim_dir = Vector2.ZERO
 	shot.damage = SHOT_DAMAGE
 	run.world.add_child(shot)
 	Audio.play("shoot", -8.0, 0.1)

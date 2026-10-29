@@ -80,8 +80,9 @@ func _card(choice: Dictionary, index: int) -> Control:
 	var icon := RarityStar.new()
 	icon.color = color
 	icon.rarity = r
-	icon.custom_minimum_size = Vector2(0, 110)
-	v.add_child(icon)
+	var icon_px := PixelView.wrap(icon, 3)
+	icon_px.custom_minimum_size = Vector2(0, 110)
+	v.add_child(icon_px)
 	var name_l := UITheme.label("STAT_NAME_" + id.to_upper(), 32, UITheme.BONE, "display")
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

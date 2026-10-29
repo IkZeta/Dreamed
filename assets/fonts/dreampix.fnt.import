@@ -1,0 +1,17 @@
+[remap]
+
+importer="font_data_bmfont"
+type="FontFile"
+uid="uid://cbeiinbwg3gdx"
+path="res://.godot/imported/dreampix.fnt-36c305517e553a614462651e34e7fa87.fontdata"
+
+[deps]
+
+source_file="res://assets/fonts/dreampix.fnt"
+dest_files=["res://.godot/imported/dreampix.fnt-36c305517e553a614462651e34e7fa87.fontdata"]
+
+[params]
+
+fallbacks=[]
+compress=false
+scaling_mode=1

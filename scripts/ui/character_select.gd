@@ -29,8 +29,9 @@ func _unhandled_input(event: InputEvent) -> void:
 func _build() -> void:
 	var bg := DreamBackground.new()
 	bg.halo = Vector2(0.94, 0.07)
-	add_child(bg)
-	bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	var bg_px := PixelView.wrap(bg, 2)
+	add_child(bg_px)
+	bg_px.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 
 	var margin := MarginContainer.new()
 	add_child(margin)
@@ -112,8 +113,9 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 
 	var portrait := DreamerPortrait.new()
 	portrait.character_id = data["id"]
-	portrait.custom_minimum_size = Vector2(0, 230)
-	v.add_child(portrait)
+	var portrait_px := PixelView.wrap(portrait, 3)
+	portrait_px.custom_minimum_size = Vector2(0, 230)
+	v.add_child(portrait_px)
 	_portraits[data["id"]] = portrait
 
 	var who := UITheme.label("Kroker", 14, UITheme.ASH, "caps")

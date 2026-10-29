@@ -21,11 +21,12 @@ func _ready() -> void:
 func _build() -> void:
 	var bg := DreamBackground.new()
 	bg.halo = Vector2(0.86, 0.17)
-	add_child(bg)
-	bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	var bg_px := PixelView.wrap(bg, 2)
+	add_child(bg_px)
+	bg_px.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 
 	# Kroker, de pie bajo el halo / Kroker, standing under the halo
-	var kroker := DreamerPortrait.new()
+	var kroker := PixelView.wrap(DreamerPortrait.new(), 6)
 	add_child(kroker)
 	kroker.anchor_left = 0.62
 	kroker.anchor_right = 0.84

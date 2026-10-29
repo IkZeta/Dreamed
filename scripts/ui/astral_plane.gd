@@ -31,7 +31,7 @@ func _ready() -> void:
 
 
 func _build() -> void:
-	var sky := AstralSky.new()
+	var sky := PixelView.wrap(AstralSky.new(), 2)
 	add_child(sky)
 	sky.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 
@@ -66,9 +66,10 @@ func _build() -> void:
 		if i == 0:
 			# Kroker flota en medio, esperando / Kroker floats in the middle, waiting
 			var k := FloatingKroker.new()
-			k.custom_minimum_size = Vector2(260, 0)
 			k.outfit = weapon
-			row.add_child(k)
+			var k_px := PixelView.wrap(k, 5)
+			k_px.custom_minimum_size = Vector2(260, 0)
+			row.add_child(k_px)
 
 
 func _offer_column(giver: String, weapon: String) -> Control:
@@ -78,9 +79,10 @@ func _offer_column(giver: String, weapon: String) -> Control:
 
 	var fig := GiverFigure.new()
 	fig.who = giver
-	fig.custom_minimum_size = Vector2(0, 380)
-	fig.size_flags_vertical = SIZE_EXPAND_FILL
-	col.add_child(fig)
+	var fig_px := PixelView.wrap(fig, 3)
+	fig_px.custom_minimum_size = Vector2(0, 380)
+	fig_px.size_flags_vertical = SIZE_EXPAND_FILL
+	col.add_child(fig_px)
 	_figures.append(fig)
 
 	var card := PanelContainer.new()

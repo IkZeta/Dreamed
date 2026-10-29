@@ -26,40 +26,35 @@ const NIGHT := INK
 const DEEP := VOID
 const PANEL := SLATE
 
-const _SERIF := preload("res://assets/fonts/Lora-Variable.ttf")
-const _SERIF_ITALIC := preload("res://assets/fonts/Lora-Italic-Variable.ttf")
-const _SANS_LIGHT := preload("res://assets/fonts/Poppins-Light.ttf")
-const _SANS := preload("res://assets/fonts/Poppins-Regular.ttf")
-const _SANS_MEDIUM := preload("res://assets/fonts/Poppins-Medium.ttf")
+## Fuente pixel art propia (tools/make_font.py), escalada solo en múltiplos enteros
+## Our own pixel-art font (tools/make_font.py), scaled only by whole multiples
+const _PIX := preload("res://assets/fonts/dreampix.fnt")
+const _PIX_ITALIC := preload("res://assets/fonts/dreampix_italic.fnt")
 
 static var _fonts := {}
 
 
-## Roles: "display" (serif), "italic", "body", "light", "caps" (versalitas espaciadas)
+## Roles: "display" (negrita / bold), "italic", "body", "light", "caps" (versalitas espaciadas / spaced capitals)
 static func font(role := "body") -> Font:
 	if _fonts.has(role):
 		return _fonts[role]
 	var f: Font
 	match role:
 		"display":
+			# Títulos: la misma letra, con un poco más de aire / Titles: the same letters, with a little more air
 			var v := FontVariation.new()
-			v.base_font = _SERIF
-			v.variation_opentype = {"wght": 500}
+			v.base_font = _PIX
+			v.spacing_glyph = 1
 			f = v
 		"italic":
-			var v := FontVariation.new()
-			v.base_font = _SERIF_ITALIC
-			v.variation_opentype = {"wght": 400}
-			f = v
-		"light":
-			f = _SANS_LIGHT
+			f = _PIX_ITALIC
 		"caps":
 			var v := FontVariation.new()
-			v.base_font = _SANS_MEDIUM
-			v.spacing_glyph = 4
+			v.base_font = _PIX
+			v.spacing_glyph = 2
 			f = v
 		_:
-			f = _SANS
+			f = _PIX
 	_fonts[role] = f
 	return f
 
@@ -212,10 +207,16 @@ static func label(key: String, font_size := 26, color := BONE, role := "body") -
 	var l := Label.new()
 	l.text = key
 	l.add_theme_font_override("font", font(role))
-	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_font_size_override("font_size", pixel_size(font_size))
 	l.add_theme_color_override("font_color", color)
 	l.uppercase = role == "caps"
 	return l
+
+
+## La fuente pixel art solo se ve nítida en múltiplos de su tamaño (12). Nada por debajo de x2.
+## The pixel font is only crisp at multiples of its size (12). Nothing below x2.
+static func pixel_size(font_size: int) -> int:
+	return maxi(2, roundi(font_size / 12.0)) * 12
 
 
 static func rule(color := LINE, width := 0.0) -> ColorRect:

@@ -223,7 +223,9 @@ func _begin_attack() -> void:
 			_atk = {"kind": "crouch", "t": 0.0, "dur": 0.6, "target": target}
 		"shelf":
 			_volleys += 1
-			_atk = {"kind": "aim", "t": 0.0, "dur": 0.55, "n": 5 if _volleys % 3 == 0 else 3}
+			var from := aim_point() + Vector2(0, -40)
+			_atk = {"kind": "aim", "t": 0.0, "dur": 0.8, "n": 5 if _volleys % 3 == 0 else 3,
+				"dir": (p + Vector2(0, -44) - from).normalized()}
 		"chest":
 			_atk = {"kind": "open", "t": 0.0, "dur": 0.8}
 
@@ -258,7 +260,7 @@ func _update_attack(delta: float) -> void:
 				_atk_cd = 2.8
 		"aim":
 			if t >= dur:
-				_throw_books(int(_atk["n"]))
+				_throw_books(int(_atk["n"]), _atk["dir"])
 				_atk = {}
 				_atk_cd = 1.9
 		"open":
@@ -298,10 +300,8 @@ func _update_waves(delta: float) -> void:
 			_waves.remove_at(i)
 
 
-func _throw_books(n: int) -> void:
-	var player: Player = run.player
+func _throw_books(n: int, dir: Vector2) -> void:
 	var from := aim_point() + Vector2(0, -40)
-	var dir := (player.global_position + Vector2(0, -44) - from).normalized()
 	for i in n:
 		var shot := EnemyShot.new()
 		shot.run = run
@@ -361,6 +361,15 @@ func _draw() -> void:
 
 func _draw_warning() -> void:
 	if _atk.is_empty():
+		return
+	if _atk["kind"] == "aim":
+		# Trayectoria de cada libro antes de lanzarlos / Each book's path before throwing them
+		var n := int(_atk["n"])
+		var k := float(_atk["t"]) / float(_atk["dur"])
+		var from := Vector2(0, -aim_height - 40)
+		for i in n:
+			var d := (_atk["dir"] as Vector2).rotated((i - (n - 1) / 2.0) * 0.22)
+			EnemyShot.draw_warning(self, from, d, EnemyShot.reach(run, global_position + from, d, 1100.0), 28.0, k)
 		return
 	if _atk["kind"] in ["crouch", "jump"]:
 		# Dónde va a caer la cama / Where the bed will land
