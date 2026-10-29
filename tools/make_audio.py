@@ -2,15 +2,18 @@
 Generates Dreamed's music and sound effects by synthesis (no external samples).
 
 Uso / Usage:  python3 tools/make_audio.py
-Escribe los .wav en assets/audio/. Necesita numpy y scipy.
-Writes the .wav files to assets/audio/. Needs numpy and scipy.
+Escribe los .wav (efectos) y .ogg (música) en assets/audio/. Necesita numpy, scipy y ffmpeg.
+Writes .wav (effects) and .ogg (music) to assets/audio/. Needs numpy, scipy and ffmpeg.
 
-Estilo: cálido y grave, como un sueño lento. Piano eléctrico suave, mazos de fieltro,
-pads cálidos y golpes sordos, sin campanitas. Suena en estéreo con una reverberación de
-sala (convolución con una respuesta generada), así no queda "enlatado".
-Style: warm and low, like a slow dream. Soft electric piano, felt mallets, warm pads
-and muffled thumps, no chimes. Stereo, with a room reverb (convolution with a generated
-impulse response), so it doesn't sound "canned".
+Para que no suene "enlatado" se usan instrumentos de modelado físico en vez de ondas
+puras: una cuerda pulsada (arpa), barras de kalimba y marimba que resuenan al golpearlas
+y pads de dientes de sierra con coro. Cada voz va en estéreo con su propia posición, las
+notas llevan pequeñas variaciones de tiempo y fuerza, como si las tocara alguien, y todo
+pasa por una reverberación de sala por convolución.
+To avoid a "canned" sound it uses physically modelled instruments instead of pure waves:
+a plucked string (harp), kalimba and marimba bars that ring when struck, and chorused
+sawtooth pads. Every voice is stereo with its own position, notes vary slightly in timing
+and strength as if someone played them, and everything goes through a convolution room reverb.
 """
 import shutil
 import subprocess
@@ -18,12 +21,11 @@ from pathlib import Path
 
 import numpy as np
 from scipy.io import wavfile
-from scipy.signal import fftconvolve, lfilter
+from scipy.signal import butter, fftconvolve, lfilter, sosfilt
 
 SR = 44100
 OUT = Path(__file__).resolve().parent.parent / "assets" / "audio"
-RNG = np.random.default_rng(11)
-TOP = 5000.0   # ningún armónico de los instrumentos pasa de aquí / no instrument partial goes above this
+RNG = np.random.default_rng(23)
 
 
 def midi(n: float) -> float:
@@ -38,163 +40,231 @@ def noise(dur: float) -> np.ndarray:
     return RNG.normal(0, 1, int(dur * SR))
 
 
-def lowpass(x: np.ndarray, cutoff: float) -> np.ndarray:
-    a = np.exp(-2 * np.pi * cutoff / SR)
-    return lfilter([1 - a], [1, -a], x)
+def lp(x: np.ndarray, cutoff: float, order: int = 2) -> np.ndarray:
+    return sosfilt(butter(order, min(cutoff, SR * 0.45), "low", fs=SR, output="sos"), x, axis=0)
 
 
-def highpass(x: np.ndarray, cutoff: float) -> np.ndarray:
-    return x - lowpass(x, cutoff)
+def hp(x: np.ndarray, cutoff: float, order: int = 2) -> np.ndarray:
+    return sosfilt(butter(order, cutoff, "high", fs=SR, output="sos"), x, axis=0)
 
 
-def soft_env(t: np.ndarray, attack: float, decay: float) -> np.ndarray:
-    return np.minimum(1.0, t / max(attack, 1e-4)) * np.exp(-decay * t)
+def bp(x: np.ndarray, lo: float, hi: float, order: int = 2) -> np.ndarray:
+    return sosfilt(butter(order, [lo, min(hi, SR * 0.45)], "band", fs=SR, output="sos"), x, axis=0)
 
 
-# --- Instrumentos / Instruments ----------------------------------------------
-
-def epiano(freq: float, dur: float = 2.5, amp: float = 0.3) -> np.ndarray:
-    """Piano eléctrico suave (tipo Rhodes apagado) / Soft, muted electric piano (Rhodes-like)."""
-    t = t_axis(dur)
-    mod = np.sin(2 * np.pi * freq * t) * 0.6 * np.exp(-4 * t)          # FM breve al inicio / brief FM bite
-    body = np.sin(2 * np.pi * freq * t + mod)
-    if freq * 2 < TOP:
-        body += 0.18 * np.sin(2 * np.pi * freq * 2 * t) * np.exp(-3 * t)
-    trem = 1.0 + 0.06 * np.sin(2 * np.pi * 4.2 * t)
-    return body * trem * soft_env(t, 0.012, 1.6) * amp
+def env_ar(n: int, attack: float, release: float) -> np.ndarray:
+    t = np.arange(n) / SR
+    dur = n / SR
+    return np.clip(t / max(attack, 1e-4), 0, 1) * np.clip((dur - t) / max(release, 1e-4), 0, 1)
 
 
-def mallet(freq: float, dur: float = 1.2, amp: float = 0.3) -> np.ndarray:
-    """Mazo de fieltro sobre madera, grave y redondo / Felt mallet on wood, low and round."""
-    t = t_axis(dur)
-    out = np.sin(2 * np.pi * freq * t) * np.exp(-5 * t)
-    if freq * 3.9 < TOP:
-        out += 0.12 * np.sin(2 * np.pi * freq * 3.9 * t) * np.exp(-14 * t)
-    return out * np.minimum(1.0, t / 0.006) * amp
+# --- Instrumentos de modelado físico / Physically modelled instruments -------
+
+def pluck(freq: float, dur: float = 3.0, amp: float = 0.4, bright: float = 0.5, damp: float = 0.996) -> np.ndarray:
+    """Cuerda pulsada (Karplus-Strong): arpa suave / Plucked string (Karplus-Strong): soft harp.
+    bright: 0 = muy apagada, 1 = brillante. damp: cuánto tarda en apagarse."""
+    n = int(dur * SR)
+    # Se calcula un poco más agudo y se reajusta para afinar exacto / Rendered slightly sharp, then resampled to exact pitch
+    period = SR / freq - 0.5
+    N = int(np.floor(period))
+    exc = RNG.uniform(-1, 1, N)
+    exc = lp(exc, 600 + 5000 * bright)
+    # Posición de pulsación: quita armónicos como un dedo real / Pluck position: removes harmonics like a real finger
+    k = max(1, int(N * 0.18))
+    exc = exc - np.roll(exc, k) * 0.6
+    x = np.zeros(n + N + 2)
+    x[:N] = exc
+    a = np.zeros(N + 2)
+    a[0] = 1.0
+    a[N] = -damp * 0.5
+    a[N + 1] = -damp * 0.5
+    y = lfilter([1.0], a, x)
+    ratio = period / N
+    idx = np.arange(n) / ratio
+    y = np.interp(idx, np.arange(len(y)), y)
+    y = hp(y, 40)
+    return y / (np.max(np.abs(y)) or 1) * amp * env_ar(n, 0.001, 0.05)
 
 
-def pad(freqs: list[float], dur: float, amp: float = 0.08, attack: float = 1.5, release: float = 2.0) -> np.ndarray:
-    """Pad cálido de ondas triangulares desafinadas / Warm pad of detuned triangle waves."""
-    t = t_axis(dur)
-    out = np.zeros_like(t)
+def bar(freq: float, dur: float = 2.0, amp: float = 0.4, kind: str = "kalimba", hardness: float = 0.5) -> np.ndarray:
+    """Barra que resuena al golpearla (síntesis modal) / A bar that rings when struck (modal synthesis).
+    kind: "kalimba" (lengüeta metálica suave), "marimba" (madera) o "wood" (golpe seco)."""
+    modes = {
+        "kalimba": [(1.0, 1.0, 1.8), (5.4, 0.12, 0.35), (12.6, 0.03, 0.12)],
+        "marimba": [(1.0, 1.0, 0.9), (3.93, 0.25, 0.25), (9.24, 0.06, 0.08)],
+        "wood": [(1.0, 1.0, 0.12), (2.57, 0.5, 0.06), (4.21, 0.3, 0.04), (6.1, 0.15, 0.03)],
+    }[kind]
+    n = int(dur * SR)
+    # Golpe del mazo: un pulso corto, más corto cuanto más duro / Mallet strike: a short pulse, shorter when harder
+    plen = max(8, int(SR * (0.004 - 0.003 * hardness)))
+    exc = np.zeros(n)
+    exc[:plen] = np.hanning(plen * 2)[plen:][::-1] * np.hanning(plen * 2)[:plen]
+    exc[:plen] += RNG.normal(0, 0.05, plen)
+    out = np.zeros(n)
+    for ratio, gain, t60 in modes:
+        f = freq * ratio
+        if f > SR * 0.4:
+            continue
+        r = np.exp(-6.91 / (t60 * SR))
+        w = 2 * np.pi * f / SR
+        out += gain * lfilter([1 - r], [1, -2 * r * np.cos(w), r * r], exc)
+    return out / (np.max(np.abs(out)) or 1) * amp
+
+
+def saw_pad(freqs: list[float], dur: float, amp: float = 0.1, attack: float = 1.5, release: float = 2.0,
+            cutoff: float = 1600.0) -> np.ndarray:
+    """Pad de dientes de sierra con coro, en estéreo / Chorused sawtooth pad, stereo."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    out = np.zeros((n, 2))
     for f in freqs:
-        for det in (-0.003, 0.0, 0.0035):
-            ph = RNG.uniform(0, 2 * np.pi)
-            out += (2 / np.pi) * np.arcsin(np.sin(2 * np.pi * f * (1 + det) * t + ph))
-    env = np.minimum(1.0, t / attack) * np.clip((dur - t) / release, 0, 1)
-    breathe = 1.0 + 0.1 * np.sin(2 * np.pi * 0.17 * t)
-    return lowpass(lowpass(out, 1800), 2600) * env * breathe * amp / len(freqs)
+        kmax = int(min(40, 6000 / f))
+        for ch, det in ((0, -0.004), (1, 0.0045)):
+            for d2 in (0.0, 0.0017):
+                ph = RNG.uniform(0, 2 * np.pi)
+                vib = 1 + 0.0015 * np.sin(2 * np.pi * (0.3 + RNG.uniform(0, 0.3)) * t + ph)
+                phase = 2 * np.pi * f * (1 + det + d2) * np.cumsum(vib) / SR
+                wave = np.zeros(n)
+                for k in range(1, kmax + 1):
+                    wave += np.sin(k * phase) / k
+                out[:, ch] += wave
+    out = lp(out, cutoff, 4)
+    out *= env_ar(n, attack, release)[:, None] * (1 + 0.08 * np.sin(2 * np.pi * 0.11 * t))[:, None]
+    return out / (len(freqs) * 2.5) * amp
 
 
-def bass(freq: float, dur: float, amp: float = 0.2) -> np.ndarray:
+def breath(dur: float, lo: float, hi: float, amp: float = 0.5) -> np.ndarray:
+    """Aire filtrado: soplos, telas, viento / Filtered air: puffs, cloth, wind."""
+    return bp(noise(dur), lo, hi, 2) * amp
+
+
+def sweep_noise(dur: float, f0: float, f1: float, q: float = 2.0, amp: float = 0.6) -> np.ndarray:
+    """Ruido con un filtro que se desliza (zumbidos de aire) / Noise through a sliding filter (air swooshes)."""
+    n = int(dur * SR)
+    x = noise(dur)
+    out = np.zeros(n)
+    block = 256
+    zi = None
+    for i in range(0, n, block):
+        f = f0 * (f1 / f0) ** (i / n)
+        bw = f / q
+        sos = butter(1, [max(30, f - bw / 2), min(SR * 0.45, f + bw / 2)], "band", fs=SR, output="sos")
+        if zi is None:
+            zi = np.zeros((sos.shape[0], 2))
+        out[i:i + block], zi = sosfilt(sos, x[i:i + block], zi=zi)
+    return out * np.sin(np.pi * np.arange(n) / n) ** 1.5 * amp * 3
+
+
+def thump(freq: float = 80.0, dur: float = 0.4, amp: float = 0.8, drop: float = 6.0) -> np.ndarray:
+    """Golpe grave, como una tela pesada o un bombo de fieltro / Low thump, like heavy cloth or a felt drum."""
     t = t_axis(dur)
-    return np.sin(2 * np.pi * freq * t) * soft_env(t, 0.05, 0.9) * amp
+    f = freq * (1 + 1.2 * np.exp(-t * drop * 3))
+    body = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * drop)
+    click = lp(noise(dur), 1500) * np.exp(-t * 60) * 0.3
+    return (body + click) * np.clip(t / 0.002, 0, 1) * amp
 
 
-def thump(freq: float = 90.0, dur: float = 0.4, amp: float = 0.8, drop: float = 6.0) -> np.ndarray:
-    """Golpe sordo / Muffled thump."""
-    t = t_axis(dur)
-    f = freq * (1 + 0.8 * np.exp(-t * drop))
-    return np.sin(2 * np.pi * np.cumsum(f) / SR) * soft_env(t, 0.003, 9.0) * amp
+def vowel(dur: float, f_start: float, f_end: float, amp: float = 0.4) -> np.ndarray:
+    """Un 'aaah' soplado con formantes, para bostezos y gemidos / A breathy formant 'aaah' for yawns and groans."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    f0 = f_start + (f_end - f_start) * t / dur
+    src = np.zeros(n)
+    phase = 2 * np.pi * np.cumsum(f0) / SR
+    for k in range(1, 30):
+        src += np.sin(k * phase) / k
+    src = src * 0.5 + noise(dur) * 0.4
+    out = bp(src, 600, 1000) * 1.0 + bp(src, 1100, 1500) * 0.5 + bp(src, 2300, 2900) * 0.15
+    return out * np.sin(np.pi * t / dur) ** 1.3 * amp
 
 
-def puff(dur: float = 0.3, cutoff: float = 700.0, amp: float = 1.0) -> np.ndarray:
-    """Soplo de aire apagado / Muffled puff of air."""
-    t = t_axis(dur)
-    return lowpass(lowpass(noise(dur), cutoff), cutoff) * np.sin(np.pi * t / dur) ** 1.5 * amp * 3
-
-
-def glide(f0: float, f1: float, dur: float, amp: float = 0.3) -> np.ndarray:
-    """Tono que se desliza, suave como un 'uuuh' / Gliding tone, soft like an 'oooh'."""
-    t = t_axis(dur)
-    f = f0 + (f1 - f0) * (t / dur)
-    tone = np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.2 * np.sin(4 * np.pi * np.cumsum(f) / SR)
-    return tone * np.sin(np.pi * t / dur) ** 1.2 * amp
-
-
-# --- Mezcla / Mixing ---------------------------------------------------------
+# --- Mezcla en estéreo / Stereo mixing ----------------------------------------
 
 _IR_CACHE: dict = {}
 
 
 def _impulse(size: float, seed: int) -> np.ndarray:
-    """Respuesta de una sala: ruido que se apaga y se oscurece con el tiempo.
-    A room's response: noise that fades out and darkens over time."""
+    """Respuesta de una sala: reflexiones tempranas y una cola que se oscurece.
+    A room's response: early reflections and a tail that darkens."""
     key = (size, seed)
     if key not in _IR_CACHE:
         rng = np.random.default_rng(seed)
-        dur = 1.6 * size
+        dur = 2.0 * size
         t = t_axis(dur)
-        early = np.zeros_like(t)
-        for d, g in [(0.011, 0.5), (0.019, 0.4), (0.027, 0.35), (0.037, 0.3), (0.049, 0.25)]:
-            early[int(d * size * SR)] = g * rng.choice([-1, 1])
-        tail = rng.normal(0, 1, len(t)) * np.exp(-t * 4.2 / size)
-        # La cola se oscurece: mezcla de una versión filtrada que gana peso / The tail darkens over time
-        dark = lowpass(lowpass(tail, 2500), 2500)
+        ir = np.zeros_like(t)
+        for _ in range(18):
+            d = rng.uniform(0.005, 0.08) * size
+            ir[int(d * SR)] += rng.uniform(0.15, 0.45) * rng.choice([-1, 1]) * np.exp(-d * 20)
+        tail = rng.normal(0, 1, len(t)) * np.exp(-t * 3.6 / size)
         k = np.clip(t / dur, 0, 1)
-        tail = tail * (1 - k) * 0.5 + dark * (0.5 + k)
-        ir = early + tail * 0.12
-        pre = np.zeros(int(0.018 * SR))
-        _IR_CACHE[key] = np.concatenate([pre, ir]) / np.sqrt(np.sum(ir ** 2))
+        tail = lp(tail, 5000) * (1 - k) + lp(tail, 1800) * k
+        ir += tail * 0.09
+        ir = np.concatenate([np.zeros(int(0.012 * SR)), ir])
+        _IR_CACHE[key] = ir / np.sqrt(np.sum(ir ** 2))
     return _IR_CACHE[key]
 
 
-def reverb(x: np.ndarray, mix: float = 0.35, size: float = 1.0, tail: bool = True) -> np.ndarray:
-    """Reverberación de sala en estéreo. Devuelve (n, 2). Con tail=True deja sonar la cola.
-    Stereo room reverb. Returns (n, 2). With tail=True it lets the tail ring out."""
+def stereo(x: np.ndarray, pan: float = 0.0) -> np.ndarray:
+    """Coloca un sonido mono a la izquierda (-1) o la derecha (+1) / Places a mono sound left (-1) or right (+1)."""
     if x.ndim == 2:
-        x = x.mean(axis=1)
-    n = len(x) + (int(0.9 * size * SR) if tail else 0)
-    dry = np.zeros(n)
-    dry[: len(x)] = x
+        return x
+    a = (pan + 1) * np.pi / 4
+    return np.stack([x * np.cos(a), x * np.sin(a)], axis=1) * 1.414
+
+
+def reverb(x: np.ndarray, mix: float = 0.3, size: float = 1.0, tail: bool = True) -> np.ndarray:
+    x = stereo(x)
+    n = len(x) + (int(1.2 * size * SR) if tail else 0)
     out = np.zeros((n, 2))
-    for ch, seed in enumerate((3, 7)):
-        wet = fftconvolve(x, _impulse(size, seed))[:n]
-        out[: len(wet), ch] = wet * mix * 0.9
-        out[:, ch] += dry * (1 - mix)
+    out[: len(x)] += x * (1 - mix * 0.6)
+    for ch, seed in ((0, 3), (1, 7)):
+        wet = fftconvolve(x[:, ch], _impulse(size, seed))[:n]
+        out[: len(wet), ch] += wet * mix
     if tail:
-        # La cola se apaga del todo antes de terminar / The tail fully fades before the end
-        k = int(0.25 * size * SR)
+        k = int(0.3 * size * SR)
         out[-k:] *= np.linspace(1, 0, k)[:, None] ** 2
     return out
 
 
 def mix(*sigs: np.ndarray) -> np.ndarray:
-    """Suma sonidos de distinta duración / Adds sounds of different lengths."""
     n = max(len(x) for x in sigs)
-    out = np.zeros(n)
+    out = np.zeros((n, 2))
     for x in sigs:
-        out[: len(x)] += x if x.ndim == 1 else x.mean(axis=1)
+        out[: len(x)] += stereo(x)
     return out
 
 
-def place(buf: np.ndarray, sig: np.ndarray, at: float) -> None:
-    if sig.ndim == 2:
-        sig = sig.mean(axis=1)
-    i = int(at * SR)
+def place(buf: np.ndarray, sig: np.ndarray, at: float, pan: float = 0.0, human: bool = True) -> None:
+    """Pone un sonido en el compás. human: pequeñas variaciones como un músico / Small human variations."""
+    if human:
+        at += RNG.normal(0, 0.008)
+        sig = sig * RNG.uniform(0.85, 1.05)
+    sig = stereo(sig, pan)
+    i = max(0, int(at * SR))
     if i >= len(buf):
         return
     end = min(len(buf), i + len(sig))
     buf[i:end] += sig[: end - i]
 
 
-def save(name: str, x: np.ndarray, peak: float = 0.6, cutoff: float = 9000.0) -> None:
-    if x.ndim == 1:
-        x = reverb(x, 0.1, 0.5)   # un poco de sala a todo / a touch of room on everything
-    x = np.stack([lowpass(x[:, 0], cutoff), lowpass(x[:, 1], cutoff)], axis=1)
-    # Quita el "clic" del principio y del final / Removes clicks at both ends
-    fade = min(len(x) // 4, int(SR * 0.008))
+def save(name: str, x: np.ndarray, peak: float = 0.6, room: float = 0.18, size: float = 0.6) -> None:
+    if room > 0:
+        x = reverb(x, room, size)
+    x = stereo(x)
+    x = hp(x, 35)
+    # Saturación muy suave para que el sonido "pegue" / Very gentle saturation to glue the sound
+    m = np.max(np.abs(x)) or 1.0
+    x = np.tanh(x / m * 1.2) / np.tanh(1.2)
+    fade = min(len(x) // 4, int(SR * 0.006))
     x[:fade] *= np.linspace(0, 1, fade)[:, None]
     if not name.startswith("music") and name != "vacuum":
         x[-fade:] *= np.linspace(1, 0, fade)[:, None]
-    m = np.max(np.abs(x)) or 1.0
-    x = x / m * peak
+    x = x / (np.max(np.abs(x)) or 1.0) * peak
     OUT.mkdir(parents=True, exist_ok=True)
     wav = OUT / f"{name}.wav"
     wavfile.write(wav, SR, (x * 32767).astype(np.int16))
-    # La música se guarda en .ogg para que pese poco / Music is saved as .ogg to keep it small
     if name.startswith("music") and shutil.which("ffmpeg"):
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav), "-c:a", "libvorbis", "-q:a", "6",
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav), "-c:a", "libvorbis", "-q:a", "7",
             str(OUT / f"{name}.ogg")], check=True)
         wav.unlink()
         print(f"{name}.ogg  {len(x) / SR:.1f}s")
@@ -202,10 +272,10 @@ def save(name: str, x: np.ndarray, peak: float = 0.6, cutoff: float = 9000.0) ->
         print(f"{name}.wav  {len(x) / SR:.1f}s")
 
 
-def loop_render(build, length: float, reverb_mix: float, size: float = 1.3) -> np.ndarray:
+def loop_render(build, length: float, reverb_mix: float, size: float = 1.4) -> np.ndarray:
     """Dibuja dos vueltas y se queda con la segunda para que el bucle empalme.
     Renders two passes and keeps the second, so the loop joins seamlessly."""
-    buf = np.zeros(int(length * 2 * SR) + SR * 4)
+    buf = np.zeros((int(length * 2 * SR) + SR * 6, 2))
     build(buf, 0.0)
     build(buf, length)
     wet = reverb(buf, reverb_mix, size, tail=False)
@@ -214,285 +284,311 @@ def loop_render(build, length: float, reverb_mix: float, size: float = 1.3) -> n
 
 
 # --- Música / Music ----------------------------------------------------------
-# Todo en un registro medio-grave; la melodía nunca pasa de Do5.
-# Everything in a low-mid register; the melody never goes above C5.
+
+def _arp(buf, chord, start, beat, beats, amp=0.12, pan_spread=0.6):
+    """Arpegio de arpa que sube y baja / Harp arpeggio going up and down."""
+    order = chord + chord[-2:0:-1]
+    for b in range(int(beats * 2)):
+        n = order[b % len(order)]
+        pan = -pan_spread + 2 * pan_spread * ((b % len(order)) / max(1, len(order) - 1))
+        place(buf, pluck(midi(n), 2.5, amp, 0.35), start + b * beat / 2, pan)
+
 
 def menu_theme() -> np.ndarray:
-    """Nana lenta de piano eléctrico en Re mayor / Slow electric piano lullaby in D major."""
-    beat = 60.0 / 64
-    bar = beat * 4
-    chords = [[38, 54, 57, 61, 64], [35, 50, 54, 57, 62], [31, 50, 55, 59, 62], [33, 49, 52, 57, 64]]
-    melody = [(0, 0, 69, 2), (0, 2, 66, 2), (1, 0, 62, 3), (1, 3, 64, 1), (2, 0, 66, 2), (2, 2, 67, 2),
-              (3, 0, 64, 4), (4, 0, 69, 2), (4, 2, 71, 2), (5, 0, 69, 3), (5, 3, 66, 1), (6, 0, 67, 2),
-              (6, 2, 64, 2), (7, 0, 62, 4)]
+    """Nana de arpa y kalimba en Re mayor / Harp and kalimba lullaby in D major."""
+    beat = 60.0 / 66
+    bar_len = beat * 4
+    chords = [[50, 57, 62, 66], [47, 54, 59, 62], [43, 50, 55, 59], [45, 52, 57, 61]]
+    melody = [(0, 0, 74, 2), (0, 2, 73, 1), (0, 3, 71, 1), (1, 0, 69, 3), (2, 0, 71, 2), (2, 2, 74, 2),
+              (3, 0, 73, 4), (4, 0, 78, 2), (4, 2, 76, 1), (4, 3, 74, 1), (5, 0, 71, 3), (6, 0, 69, 2),
+              (6, 2, 71, 1), (6, 3, 73, 1), (7, 0, 74, 4)]
     bars = 8
 
-    def build(buf: np.ndarray, off: float) -> None:
+    def build(buf, off):
         for i in range(bars):
             ch = chords[i % 4]
-            start = off + i * bar
-            place(buf, pad([midi(n) for n in ch[1:]], bar + 1.8, 0.13), start)
-            place(buf, bass(midi(ch[0]), bar, 0.22), start)
-            for b in range(4):
-                place(buf, epiano(midi(ch[1 + b % 4]), 1.6, 0.06), start + b * beat + 0.02)
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 2.0, 0.09, 1.2, 2.0, 1300), s, human=False)
+            place(buf, pluck(midi(ch[0] - 12), 4.0, 0.3, 0.2, 0.998), s)
+            _arp(buf, ch, s, beat, 4, 0.07)
         for bi, b, n, _ in melody:
-            place(buf, epiano(midi(n), 3.0, 0.24), off + bi * bar + b * beat)
+            place(buf, bar(midi(n), 2.5, 0.22, "kalimba", 0.3), off + bi * bar_len + b * beat, 0.15)
 
-    return loop_render(build, bar * bars, 0.4)
+    return loop_render(build, bar_len * bars, 0.35)
 
 
 def dream_theme() -> np.ndarray:
-    """Más lenta, con un acorde que se tuerce / Slower, with a chord that bends."""
-    beat = 60.0 / 56
-    bar = beat * 4
-    chords = [[38, 50, 57, 62, 64], [35, 47, 54, 59, 62], [34, 46, 53, 58, 62], [33, 45, 52, 57, 61]]
+    """Más lenta y un poco rara: marimba, arpa y un acorde que se tuerce / Slower and a little strange."""
+    beat = 60.0 / 58
+    bar_len = beat * 4
+    chords = [[50, 57, 62, 64], [47, 54, 59, 62], [46, 53, 58, 62], [45, 52, 57, 61]]
     melody = [(0, 0, 69, 3), (0, 3, 67, 1), (1, 0, 66, 4), (2, 0, 65, 2), (2, 2, 62, 2), (3, 0, 64, 4),
               (4, 0, 69, 2), (4, 2, 71, 2), (5, 0, 67, 4), (6, 0, 65, 3), (6, 3, 62, 1), (7, 0, 61, 4)]
     bars = 8
 
-    def build(buf: np.ndarray, off: float) -> None:
+    def build(buf, off):
         for i in range(bars):
             ch = chords[i % 4]
-            start = off + i * bar
-            place(buf, pad([midi(n) for n in ch[1:]], bar + 2.0, 0.14, 2.0), start)
-            place(buf, bass(midi(ch[0]), bar, 0.2), start)
-            for b in (0, 2.5):
-                place(buf, mallet(midi(ch[2 + int(b) % 3]), 1.4, 0.07), start + b * beat)
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 2.4, 0.1, 2.0, 2.4, 1100), s, human=False)
+            place(buf, pluck(midi(ch[0] - 12), 4.0, 0.3, 0.15, 0.998), s)
+            for b, idx in ((0.5, 1), (1.5, 2), (2.5, 3), (3.5, 2)):
+                place(buf, bar(midi(ch[idx] + 12), 1.6, 0.07, "marimba", 0.3), s + b * beat, -0.4 + 0.25 * idx)
         for bi, b, n, _ in melody:
-            place(buf, epiano(midi(n), 3.4, 0.22), off + bi * bar + b * beat)
+            place(buf, pluck(midi(n), 3.0, 0.2, 0.45), off + bi * bar_len + b * beat, 0.1)
 
-    return loop_render(build, bar * bars, 0.5, 1.5)
+    return loop_render(build, bar_len * bars, 0.45, 1.6)
 
 
 def astral_theme() -> np.ndarray:
-    """Acordes suspendidos que flotan / Floating suspended chords."""
-    beat = 60.0 / 50
-    bar = beat * 4
+    """Acordes suspendidos que flotan, con kalimba lejana / Floating suspended chords with a distant kalimba."""
+    beat = 60.0 / 52
+    bar_len = beat * 4
     chords = [[43, 55, 62, 67, 69], [40, 52, 59, 64, 66], [36, 48, 55, 62, 64], [38, 50, 57, 62, 64]]
     bars = 8
 
-    def build(buf: np.ndarray, off: float) -> None:
+    def build(buf, off):
         for i in range(bars):
             ch = chords[i % 4]
-            start = off + i * bar
-            place(buf, pad([midi(n) for n in ch[1:]], bar + 2.5, 0.16, 2.5, 2.5), start)
-            place(buf, bass(midi(ch[0]), bar * 0.9, 0.16), start)
-            place(buf, epiano(midi(ch[3]), 3.0, 0.12), start + beat)
-            place(buf, epiano(midi(ch[4]), 3.0, 0.1), start + beat * 2.5)
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 3.0, 0.11, 2.5, 3.0, 1200), s, human=False)
+            place(buf, pluck(midi(ch[0]), 4.0, 0.22, 0.15, 0.998), s)
+            for b, idx in ((1.0, 3), (2.5, 4), (3.25, 2)):
+                place(buf, bar(midi(ch[idx] + 12), 2.5, 0.09, "kalimba", 0.2), s + b * beat, RNG.uniform(-0.6, 0.6))
 
-    return loop_render(build, bar * bars, 0.6, 1.7)
+    return loop_render(build, bar_len * bars, 0.55, 1.8)
 
 
 def boss_theme() -> np.ndarray:
-    """Jefe: pulso grave y lento, inquietante pero no agresivo / Boss: slow low pulse, uneasy but not harsh."""
-    beat = 60.0 / 92
-    bar = beat * 4
+    """Jefe: pulso grave de tambor de fieltro y marimba inquieta / Boss: low felt-drum pulse and uneasy marimba."""
+    beat = 60.0 / 96
+    bar_len = beat * 4
     roots = [38, 38, 34, 36]
     bars = 8
 
-    def build(buf: np.ndarray, off: float) -> None:
+    def build(buf, off):
         for i in range(bars):
             r = roots[i % 4]
-            start = off + i * bar
-            place(buf, pad([midi(r + 12), midi(r + 15), midi(r + 19)], bar + 1.0, 0.12, 0.6, 1.0), start)
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(r + 12), midi(r + 15), midi(r + 19)], bar_len + 1.2, 0.1, 0.5, 1.2, 900), s, human=False)
             for b in range(4):
-                place(buf, thump(55, 0.5, 0.35, 4.0), start + b * beat)
-                place(buf, bass(midi(r), beat * 0.9, 0.18), start + b * beat)
-            for b in (1.5, 3.5):
-                place(buf, mallet(midi(r + 24 + (3 if i % 2 else 0)), 0.8, 0.12), start + b * beat)
+                place(buf, thump(52, 0.6, 0.45, 5.0), s + b * beat)
+                place(buf, pluck(midi(r - 12 + 12), beat * 1.2, 0.22, 0.25, 0.99), s + b * beat)
+            for b in (0.5, 1.5, 2.75, 3.5):
+                place(buf, bar(midi(r + 24 + (3 if (i + int(b)) % 2 else 0)), 0.9, 0.11, "marimba", 0.5), s + b * beat,
+                      -0.5 if b < 2 else 0.5)
         for k, n in enumerate([62, 61, 58, 57, 62, 65, 64, 61]):
-            place(buf, epiano(midi(n), 2.6, 0.13), off + k * bar)
+            place(buf, pluck(midi(n), 3.0, 0.15, 0.4), off + k * bar_len + beat * 0.5, 0.2)
 
-    return loop_render(build, bar * bars, 0.35)
+    return loop_render(build, bar_len * bars, 0.3)
 
 
 # --- Efectos / Sound effects -------------------------------------------------
 
 def sfx_hover():
-    return mallet(midi(55), 0.25, 0.3)
+    return bar(midi(69), 0.6, 0.35, "kalimba", 0.2)
 
 
 def sfx_click():
-    x = np.zeros(int(SR * 0.6))
-    place(x, mallet(midi(57), 0.5, 0.35), 0)
-    place(x, mallet(midi(62), 0.5, 0.3), 0.06)
-    return reverb(x, 0.25)
+    return mix(bar(midi(69), 0.7, 0.4, "kalimba", 0.4), np.pad(bar(midi(76), 0.7, 0.3, "kalimba", 0.4), (int(SR * 0.05), 0)))
 
 
 def sfx_swing():
-    return reverb(np.pad(puff(0.25, 600, 0.8), (0, SR // 6)), 0.15)
+    return lp(sweep_noise(0.26, 350, 1300, 1.8, 0.5), 4500)
 
 
 def sfx_pillow():
-    x = mix(thump(80, 0.35, 0.8, 8), puff(0.3, 500, 0.9))
-    return reverb(x, 0.2)
+    return mix(thump(70, 0.4, 0.8, 9), breath(0.25, 200, 900, 1.2) * env_ar(int(0.25 * SR), 0.005, 0.2))
 
 
 def sfx_zap():
-    """Rayo: un 'fum' tonal que baja, sin chisporroteo / Lightning: a falling tonal 'whum', no crackle."""
-    x = mix(glide(520, 180, 0.4, 0.5), puff(0.3, 900, 0.4))
-    return reverb(x, 0.3)
+    """Magia del libro: arpa rápida hacia arriba y un soplo / Book magic: quick upward harp and a breeze."""
+    x = np.zeros((int(SR * 1.2), 2))
+    for i, n in enumerate([62, 66, 69, 74]):
+        place(x, pluck(midi(n), 1.0, 0.25, 0.5), i * 0.035, -0.3 + i * 0.2, human=False)
+    return mix(x, sweep_noise(0.45, 300, 1200, 2.0, 0.25))
 
 
 def sfx_vacuum():
-    t = t_axis(1.0)
-    hum = np.sin(2 * np.pi * 90 * t) * 0.3 + np.sin(2 * np.pi * 180 * t) * 0.08
-    air = lowpass(lowpass(np.tile(noise(0.25), 4)[: len(t)], 350), 350) * 3.0
-    return (hum + air) * (1.0 + 0.15 * np.sin(2 * np.pi * 2 * t))
+    """Zumbido de motor y aire, en bucle de 2 s / Motor and air hum, 2 s loop."""
+    dur = 2.0
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    base = np.zeros(n)
+    for k, g in ((1, 0.3), (2, 0.15), (3, 0.08), (5, 0.03)):
+        base += g * np.sin(2 * np.pi * 110 * k * t)
+    air = bp(noise(dur + 0.2), 250, 1400)[: n] * 0.9
+    x = base + air
+    # Fundido cruzado del final con el principio para que el bucle no haga clic / Crossfade so the loop doesn't click
+    k = int(0.1 * SR)
+    x[:k] = x[:k] * np.linspace(0, 1, k) + x[-k:] * np.linspace(1, 0, k)
+    return stereo(x[:-k])
 
 
 def sfx_spawn():
-    return reverb(mix(glide(140, 260, 0.9, 0.4), puff(0.9, 400, 0.3)), 0.45)
+    """Un fantasma que aparece: un acorde al revés que crece / A ghost appearing: a reversed swelling chord."""
+    x = mix(*[pluck(midi(n), 1.2, 0.3, 0.3) for n in (55, 62, 67)])
+    return mix(x[::-1] * 0.6, sweep_noise(1.0, 200, 700, 2.0, 0.2))
 
 
 def sfx_hit():
-    return thump(150, 0.18, 0.6, 10)
+    return bar(RNG.uniform(260, 320), 0.3, 0.6, "wood", 0.7)
 
 
 def sfx_foox_die():
-    x = np.zeros(int(SR * 1.0))
-    for i, n in enumerate([62, 57, 54]):
-        place(x, epiano(midi(n), 0.8, 0.25), i * 0.08)
-    return reverb(mix(x, puff(0.5, 500, 0.3)), 0.4)
+    x = np.zeros((int(SR * 1.6), 2))
+    for i, n in enumerate([74, 69, 66, 62]):
+        place(x, pluck(midi(n), 1.2, 0.25, 0.4), i * 0.07, 0.3 - i * 0.2, human=False)
+    return mix(x, sweep_noise(0.7, 900, 300, 2.0, 0.2))
 
 
 def sfx_hurt():
-    return reverb(mix(glide(240, 120, 0.35, 0.6), thump(70, 0.3, 0.5)), 0.2)
+    return mix(thump(90, 0.35, 0.7, 10), vowel(0.3, 260, 200, 0.35))
 
 
 def sfx_pickup():
-    x = np.zeros(int(SR * 1.4))
-    for i, n in enumerate([50, 54, 57, 62]):
-        place(x, epiano(midi(n), 1.0, 0.3), i * 0.09)
-    return reverb(x, 0.4)
+    x = np.zeros((int(SR * 2.0), 2))
+    for i, n in enumerate([62, 66, 69, 74, 78]):
+        place(x, pluck(midi(n), 1.6, 0.28, 0.5), i * 0.07, -0.5 + i * 0.25, human=False)
+    return x
 
 
 def sfx_chime():
-    x = np.zeros(int(SR * 1.0))
-    place(x, epiano(midi(62), 0.9, 0.3), 0)
-    place(x, epiano(midi(66), 0.9, 0.22), 0.07)
-    return reverb(x, 0.4)
+    return mix(bar(midi(74), 1.2, 0.35, "kalimba", 0.3), np.pad(bar(midi(81), 1.2, 0.25, "kalimba", 0.3), (int(SR * 0.08), 0)))
 
 
 def sfx_blanket():
-    t = t_axis(0.7)
-    return puff(0.7, 900, 0.5) * (1.0 + 0.5 * np.sin(2 * np.pi * 8 * t))
+    n = int(0.8 * SR)
+    t = np.arange(n) / SR
+    rustle = breath(0.8, 700, 3000, 0.6)
+    gate = np.clip(np.convolve(RNG.random(n) > 0.9993, np.hanning(900), "same"), 0, 1) * 0.7 + 0.3
+    return rustle * gate * np.sin(np.pi * t / 0.8)
 
 
 def sfx_yawn():
-    return reverb(mix(lowpass(glide(220, 160, 1.2, 0.4), 900), puff(1.2, 500, 0.3)), 0.3)
+    return vowel(1.3, 230, 150, 0.6)
 
 
 def sfx_land():
-    return mix(thump(70, 0.3, 0.8, 8), puff(0.2, 400, 0.4))
+    return mix(thump(60, 0.35, 0.9, 10), bar(180, 0.25, 0.25, "wood", 0.4))
 
 
 def sfx_win():
-    x = np.zeros(int(SR * 3.5))
-    for i, n in enumerate([50, 54, 57, 61, 62, 66]):
-        place(x, epiano(midi(n), 2.5, 0.28), i * 0.15)
-    place(x, pad([midi(n) for n in [50, 54, 57, 61]], 3.4, 0.16, 0.4, 1.8), 0)
-    return reverb(x, 0.45)
+    x = np.zeros((int(SR * 4.0), 2))
+    for i, n in enumerate([62, 66, 69, 73, 74, 78, 81]):
+        place(x, pluck(midi(n), 2.8, 0.26, 0.5), i * 0.12, -0.6 + i * 0.2, human=False)
+    place(x, saw_pad([midi(n) for n in (50, 57, 62, 66)], 3.8, 0.12, 0.3, 2.0, 1500), 0, human=False)
+    return x
 
 
 def sfx_lose():
-    x = np.zeros(int(SR * 3.5))
-    for i, n in enumerate([62, 58, 57, 53, 50]):
-        place(x, epiano(midi(n), 2.5, 0.26), i * 0.3)
-    place(x, pad([midi(n) for n in [38, 45, 50, 53]], 3.4, 0.15, 0.5, 2.0), 0.2)
-    return reverb(x, 0.5)
+    x = np.zeros((int(SR * 4.0), 2))
+    for i, n in enumerate([74, 70, 69, 65, 62]):
+        place(x, pluck(midi(n), 2.8, 0.25, 0.35), i * 0.28, 0.5 - i * 0.25, human=False)
+    place(x, saw_pad([midi(n) for n in (50, 53, 57, 62)], 3.8, 0.11, 0.5, 2.2, 900), 0.1, human=False)
+    return x
 
 
 def sfx_glitch():
-    """Glitch: notas graves que tartamudean / Glitch: stuttering low notes."""
-    x = np.zeros(int(SR * 0.35))
-    for i in range(6):
-        if RNG.random() < 0.75:
-            place(x, mallet(midi(RNG.choice([43, 46, 50, 53])), 0.06, 0.35), i * 0.05)
+    """Una nota de kalimba que tartamudea / A stuttering kalimba note."""
+    note = bar(midi(RNG.choice([62, 65, 69])), 0.5, 0.4, "kalimba", 0.6)
+    x = np.zeros(int(SR * 0.4))
+    seg = int(SR * 0.035)
+    for i in range(0, len(x) - seg, seg):
+        if RNG.random() < 0.7:
+            j = RNG.integers(0, seg * 3)
+            x[i:i + seg] = note[j:j + seg] * np.hanning(seg)
     return x
 
 
 def sfx_ricochet():
-    return mix(glide(300, 200, 0.18, 0.5), thump(120, 0.15, 0.4))
+    return mix(bar(RNG.uniform(380, 450), 0.3, 0.5, "wood", 0.8), pluck(110, 0.4, 0.2, 0.3, 0.98))
 
 
 def sfx_kick():
-    return mix(thump(100, 0.35, 0.9, 7), puff(0.15, 700, 0.5))
+    return mix(thump(85, 0.35, 0.9, 9), breath(0.08, 600, 2500, 0.8) * env_ar(int(0.08 * SR), 0.001, 0.07))
 
 
 def sfx_astral():
-    x = np.zeros(int(SR * 2.4))
-    for i, n in enumerate([50, 54, 57, 62, 66, 69]):
-        place(x, epiano(midi(n), 1.8, 0.22), i * 0.1)
-    place(x, puff(2.0, 600, 0.35), 0)
-    return reverb(x, 0.55, 1.6)
+    x = np.zeros((int(SR * 3.0), 2))
+    for i, n in enumerate([62, 66, 69, 74, 78, 81, 86]):
+        place(x, pluck(midi(n), 2.2, 0.22, 0.45), i * 0.08, -0.6 + i * 0.2, human=False)
+    return mix(x, sweep_noise(2.0, 200, 1500, 2.0, 0.22))
 
 
 def sfx_crack():
-    """Algo se resquebraja en la habitación / Something cracks in the room."""
-    x = np.zeros(int(SR * 1.0))
-    for i in range(5):
-        place(x, thump(RNG.uniform(70, 130), 0.2, 0.5, 12), i * RNG.uniform(0.04, 0.09))
-    return reverb(mix(x, puff(0.6, 300, 0.4)), 0.35)
+    """La habitación se resquebraja: chasquidos de madera y un crujido / The room cracks: wood snaps and a creak."""
+    x = np.zeros((int(SR * 1.3), 2))
+    at = 0.0
+    for i in range(6):
+        place(x, bar(RNG.uniform(500, 900), 0.15, 0.4, "wood", 1.0), at, RNG.uniform(-0.5, 0.5), human=False)
+        at += RNG.uniform(0.03, 0.12)
+    creak = vowel(0.9, 70, 55, 0.3)
+    return mix(x, np.pad(creak, (int(SR * 0.2), 0)), thump(55, 0.5, 0.5, 6))
 
 
 def sfx_shoot():
-    """Tirachinas: goma que suelta / Slingshot: rubber snapping."""
-    return mix(glide(260, 120, 0.12, 0.5), puff(0.15, 800, 0.4))
+    """Goma del tirachinas / Slingshot rubber."""
+    return mix(pluck(150, 0.35, 0.5, 0.2, 0.97), lp(sweep_noise(0.15, 450, 1200, 1.8, 0.3), 4000))
 
 
 def sfx_bone():
-    """Huesos que caen / Bones clattering down."""
-    x = np.zeros(int(SR * 0.7))
+    x = np.zeros((int(SR * 0.8), 2))
+    at = 0.0
     for i in range(7):
-        place(x, mallet(midi(RNG.choice([52, 55, 57, 59])), 0.12, 0.3), i * RNG.uniform(0.04, 0.08))
-    return reverb(x, 0.25)
+        place(x, bar(RNG.uniform(600, 1100), 0.2, 0.35, "wood", 0.9), at, RNG.uniform(-0.6, 0.6), human=False)
+        at += RNG.uniform(0.03, 0.08)
+    return x
 
 
 def sfx_revive():
-    return reverb(mix(glide(110, 260, 0.9, 0.5), puff(0.9, 400, 0.4)), 0.4)
+    x = mix(*[pluck(midi(n), 1.4, 0.3, 0.3) for n in (43, 50, 55)])
+    return mix(x[::-1] * 0.7, vowel(1.0, 90, 120, 0.35))
 
 
 def sfx_stomp():
-    """Aplastón de la cama / The bed's stomp."""
-    return reverb(mix(thump(48, 0.9, 1.0, 3.0), puff(0.6, 300, 0.7)), 0.35, 1.4)
+    rumble = lp(noise(1.2), 160, 4) * np.exp(-np.arange(int(1.2 * SR)) / SR * 3) * 2.5
+    return mix(thump(45, 1.0, 1.0, 3.5), rumble, bar(120, 0.4, 0.4, "wood", 0.6))
 
 
 def sfx_boss_wake():
-    x = np.zeros(int(SR * 2.5))
-    place(x, glide(70, 140, 2.0, 0.6), 0)
+    x = np.zeros((int(SR * 3.0), 2))
+    place(x, vowel(2.4, 60, 90, 0.5), 0, human=False)
     for i in range(4):
-        place(x, thump(60, 0.5, 0.6, 5), 0.3 + i * 0.45)
-    return reverb(x, 0.45, 1.5)
+        place(x, thump(55, 0.6, 0.6, 5), 0.3 + i * 0.45, human=False)
+        place(x, bar(RNG.uniform(140, 220), 0.4, 0.3, "wood", 0.5), 0.35 + i * 0.45, RNG.uniform(-0.5, 0.5), human=False)
+    return x
 
 
 def sfx_throw():
-    return mix(puff(0.3, 700, 0.6), glide(200, 150, 0.25, 0.25))
+    return lp(sweep_noise(0.32, 280, 1000, 1.8, 0.5), 4500)
 
 
 def sfx_act_clear():
-    x = np.zeros(int(SR * 5.0))
-    for i, n in enumerate([50, 54, 57, 62, 66, 69, 74]):
-        place(x, epiano(midi(n), 3.0, 0.26), i * 0.18)
-    place(x, pad([midi(n) for n in [38, 50, 54, 57, 62]], 4.8, 0.18, 0.6, 2.5), 0)
-    return reverb(x, 0.5, 1.5)
+    x = np.zeros((int(SR * 5.5), 2))
+    for i, n in enumerate([62, 66, 69, 74, 78, 81, 86]):
+        place(x, pluck(midi(n), 3.5, 0.26, 0.5), i * 0.16, -0.6 + i * 0.2, human=False)
+    for i, n in enumerate([74, 78, 81]):
+        place(x, bar(midi(n), 2.5, 0.18, "kalimba", 0.3), 1.4 + i * 0.3, 0.3, human=False)
+    place(x, saw_pad([midi(n) for n in (38, 50, 57, 62, 66)], 5.2, 0.13, 0.6, 2.5, 1400), 0, human=False)
+    return x
 
 
 if __name__ == "__main__":
-    save("music_menu", menu_theme(), 0.55)
-    save("music_dream1", dream_theme(), 0.55)
-    save("music_astral", astral_theme(), 0.55)
-    save("music_boss", boss_theme(), 0.55)
-    for name, fn, peak in [
-        ("ui_hover", sfx_hover, 0.25), ("ui_click", sfx_click, 0.35), ("swing", sfx_swing, 0.45),
-        ("pillow", sfx_pillow, 0.55), ("zap", sfx_zap, 0.45), ("vacuum", sfx_vacuum, 0.3),
-        ("spawn", sfx_spawn, 0.35), ("hit", sfx_hit, 0.4), ("foox_die", sfx_foox_die, 0.4),
-        ("hurt", sfx_hurt, 0.55), ("pickup", sfx_pickup, 0.45), ("chime", sfx_chime, 0.35),
-        ("blanket", sfx_blanket, 0.35), ("yawn", sfx_yawn, 0.4), ("land", sfx_land, 0.5),
-        ("win", sfx_win, 0.5), ("lose", sfx_lose, 0.5), ("glitch", sfx_glitch, 0.35),
-        ("ricochet", sfx_ricochet, 0.4), ("kick", sfx_kick, 0.5), ("astral", sfx_astral, 0.45),
-        ("crack", sfx_crack, 0.5), ("shoot", sfx_shoot, 0.4), ("bone", sfx_bone, 0.4),
-        ("revive", sfx_revive, 0.45), ("stomp", sfx_stomp, 0.6), ("boss_wake", sfx_boss_wake, 0.55),
-        ("throw", sfx_throw, 0.4), ("act_clear", sfx_act_clear, 0.5),
+    save("music_menu", menu_theme(), 0.55, room=0)
+    save("music_dream1", dream_theme(), 0.55, room=0)
+    save("music_astral", astral_theme(), 0.55, room=0)
+    save("music_boss", boss_theme(), 0.55, room=0)
+    for name, fn, peak, room in [
+        ("ui_hover", sfx_hover, 0.25, 0.12), ("ui_click", sfx_click, 0.35, 0.12), ("swing", sfx_swing, 0.45, 0.1),
+        ("pillow", sfx_pillow, 0.55, 0.12), ("zap", sfx_zap, 0.45, 0.25), ("vacuum", sfx_vacuum, 0.3, 0.0),
+        ("spawn", sfx_spawn, 0.35, 0.3), ("hit", sfx_hit, 0.4, 0.1), ("foox_die", sfx_foox_die, 0.4, 0.3),
+        ("hurt", sfx_hurt, 0.55, 0.12), ("pickup", sfx_pickup, 0.45, 0.3), ("chime", sfx_chime, 0.35, 0.25),
+        ("blanket", sfx_blanket, 0.35, 0.1), ("yawn", sfx_yawn, 0.4, 0.2), ("land", sfx_land, 0.5, 0.15),
+        ("win", sfx_win, 0.5, 0.35), ("lose", sfx_lose, 0.5, 0.35), ("glitch", sfx_glitch, 0.35, 0.1),
+        ("ricochet", sfx_ricochet, 0.4, 0.15), ("kick", sfx_kick, 0.5, 0.12), ("astral", sfx_astral, 0.45, 0.4),
+        ("crack", sfx_crack, 0.5, 0.25), ("shoot", sfx_shoot, 0.4, 0.12), ("bone", sfx_bone, 0.4, 0.15),
+        ("revive", sfx_revive, 0.45, 0.3), ("stomp", sfx_stomp, 0.6, 0.25), ("boss_wake", sfx_boss_wake, 0.55, 0.35),
+        ("throw", sfx_throw, 0.4, 0.1), ("act_clear", sfx_act_clear, 0.5, 0.4),
     ]:
-        save(name, fn(), peak)
+        save(name, fn(), peak, room)
