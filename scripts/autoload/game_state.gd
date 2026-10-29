@@ -51,10 +51,10 @@ const WAVES := [
 	# acabar; "act_end" = de momento, aquí termina el acto (el jefe del salón vendrá después).
 	# --- Act 2: the living room. "fire" = the fireplace is lit; "shop" = Charo opens her kiosk
 	# at the end; "act_end" = for now the act ends here (the living-room boss comes later).
-	{"duration": 40.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 10, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}, "fire": true},
-	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2}, "shop": true},
-	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2}, "fire": true},
-	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3}, "shop": true, "act_end": true},
+	{"duration": 40.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 10, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "nest": 1}, "new": "nest", "fire": true},
+	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2, "nest": 1}, "shop": true},
+	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1}, "fire": true},
+	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1}, "shop": true, "act_end": true},
 ]
 const BOSS_DEPTH := 5
 ## Primer sueño de cada acto / First dream of each act

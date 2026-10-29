@@ -10,6 +10,12 @@ var _offer: Array[String] = []
 var _buttons: Array[Button] = []
 var _figures: Array[Control] = []
 var _chosen := false
+var _content: Control
+## Pantalla de charla con el personaje elegido / Talk screen with the chosen character
+var _talk_text: RichTextLabel
+var _talk_prompt: Label
+var _talk_t := -1.0
+var _leaving := false
 
 
 func _ready() -> void:
@@ -39,6 +45,7 @@ func _build() -> void:
 	sky.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 
 	var margin := MarginContainer.new()
+	_content = margin
 	add_child(margin)
 	margin.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	for side in ["left", "right"]:
@@ -144,7 +151,110 @@ func _choose(giver: String) -> void:
 	Audio.play("giver_" + giver, -1.0)
 	Audio.play("pickup", -4.0)
 	Audio.play("astral", -2.0)
-	_say(giver)
+	for b in _buttons:
+		b.disabled = true
+	# Se van los demás y queda solo el elegido, que te habla
+	# The others fade away and only the chosen one is left, talking to you
+	var tw := create_tween()
+	tw.tween_property(_content, "modulate:a", 0.0, 0.45).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(_talk_scene.bind(giver))
+
+
+## Pantalla de charla: el personaje grande a un lado y lo que dice al otro.
+## PROVISIONAL: de momento es texto de relleno (lorem ipsum); los diálogos de verdad vendrán con el lore.
+## Talk screen: the character large on one side and what they say on the other.
+## PLACEHOLDER: filler text (lorem ipsum) for now; the real dialogue will come with the lore.
+func _talk_scene(giver: String) -> void:
+	_content.visible = false
+	var aura: Color = GiverFigure.AURA[giver]
+	var talk := Control.new()
+	talk.mouse_filter = MOUSE_FILTER_IGNORE
+	add_child(talk)
+	talk.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+
+	var fig := GiverFigure.new()
+	fig.who = giver
+	fig.highlight = true
+	var fig_px := PixelView.wrap(fig, 4)
+	talk.add_child(fig_px)
+	fig_px.position = Vector2(140, 110)
+	fig_px.size = Vector2(640, 860)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 14)
+	talk.add_child(col)
+	col.position = Vector2(860, 250)
+	col.size = Vector2(920, 560)
+	var name_l := UITheme.label("GIVER_%s_NAME" % giver.to_upper(), 84, aura, "display")
+	col.add_child(name_l)
+	col.add_child(UITheme.label("GIVER_%s_ROLE" % giver.to_upper(), 24, UITheme.ASH, "caps"))
+	col.add_child(UITheme.rule(Color(aura, 0.5)))
+	var weapon := GameState.selected_character
+	var gift := UITheme.label(tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver)}), 24, UITheme.GOLD, "caps")
+	gift.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	col.add_child(gift)
+
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.92), Color(aura, 0.8), Color(aura, 0.16), 18, 14, 28))
+	box.custom_minimum_size = Vector2(920, 240)
+	col.add_child(box)
+	var v := VBoxContainer.new()
+	box.add_child(v)
+	_talk_text = RichTextLabel.new()
+	_talk_text.bbcode_enabled = true
+	_talk_text.fit_content = true
+	_talk_text.scroll_active = false
+	_talk_text.size_flags_vertical = SIZE_EXPAND_FILL
+	_talk_text.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	_talk_text.add_theme_font_override("normal_font", UITheme.font("italic"))
+	_talk_text.add_theme_font_size_override("normal_font_size", UITheme.pixel_size(36))
+	_talk_text.add_theme_color_override("default_color", UITheme.BONE)
+	_talk_text.add_theme_constant_override("line_separation", 8)
+	_talk_text.mouse_filter = MOUSE_FILTER_IGNORE
+	_talk_text.text = tr("GIVER_TALK_PLACEHOLDER")
+	_talk_text.visible_ratio = 0.0
+	v.add_child(_talk_text)
+	_talk_prompt = UITheme.label("DIALOGUE_NEXT", 14, Color(UITheme.ASH, 0.8), "caps")
+	_talk_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_talk_prompt.modulate.a = 0.0
+	v.add_child(_talk_prompt)
+
+	talk.modulate.a = 0.0
+	create_tween().tween_property(talk, "modulate:a", 1.0, 0.4)
+	_talk_t = 0.0
+
+
+func _process(delta: float) -> void:
+	if _talk_t < 0.0 or _leaving:
+		return
+	_talk_t += delta
+	var total := maxi(1, _talk_text.get_total_character_count())
+	var before := _talk_text.visible_ratio
+	_talk_text.visible_ratio = minf(1.0, _talk_t * CharoDialogue.CPS / total)
+	if _talk_text.visible_ratio < 1.0 and int(_talk_t * 12.0) != int((_talk_t - delta) * 12.0) and before < 1.0:
+		Audio.play("ui_hover", -22.0, 0.15)
+	_talk_prompt.modulate.a = (0.5 + 0.5 * sin(_talk_t * 5.0)) if _talk_text.visible_ratio >= 1.0 else 0.0
+
+
+func _input(event: InputEvent) -> void:
+	if _talk_t < 0.3 or _leaving:
+		return
+	var press: bool = event.is_action_pressed("ui_accept") \
+		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	if not press:
+		return
+	get_viewport().set_input_as_handled()
+	if _talk_text.visible_ratio < 1.0:
+		_talk_t = 1000.0
+		_talk_text.visible_ratio = 1.0
+		return
+	_leave()
+
+
+## Destello y al siguiente sueño / Flash, then on to the next dream
+func _leave() -> void:
+	_leaving = true
+	Audio.play("astral", -4.0)
 	var flash := ColorRect.new()
 	flash.color = Color("f7f2ff")
 	flash.modulate.a = 0.0
@@ -152,38 +262,8 @@ func _choose(giver: String) -> void:
 	add_child(flash)
 	flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	var tw := create_tween()
-	tw.tween_interval(2.2)
 	tw.tween_property(flash, "modulate:a", 1.0, 0.45)
 	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
-
-
-## Bocadillo con lo que dice el personaje al darte su don.
-## PROVISIONAL: de momento es texto de relleno (lorem ipsum); los diálogos de verdad vendrán con el lore.
-## Speech bubble with what the character says as it gives you its gift.
-## PLACEHOLDER: filler text (lorem ipsum) for now; the real dialogue will come with the lore.
-func _say(giver: String) -> void:
-	for b in _buttons:
-		b.disabled = true
-	var box := PanelContainer.new()
-	box.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.95), Color(GiverFigure.AURA[giver], 0.8), Color(GiverFigure.AURA[giver], 0.18), 18, 14, 26))
-	add_child(box)
-	box.set_anchors_and_offsets_preset(PRESET_CENTER_BOTTOM)
-	box.grow_horizontal = GROW_DIRECTION_BOTH
-	box.grow_vertical = GROW_DIRECTION_BEGIN
-	box.offset_bottom = -60
-	box.custom_minimum_size = Vector2(1100, 0)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
-	box.add_child(v)
-	v.add_child(UITheme.label("GIVER_%s_NAME" % giver.to_upper(), 36, GiverFigure.AURA[giver], "display"))
-	var line := UITheme.label("GIVER_TALK_PLACEHOLDER", 24, UITheme.BONE, "italic")
-	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	line.visible_ratio = 0.0
-	v.add_child(line)
-	box.modulate.a = 0.0
-	var tw := create_tween()
-	tw.tween_property(box, "modulate:a", 1.0, 0.2)
-	tw.tween_property(line, "visible_ratio", 1.0, 1.2)
 
 
 # --- Piezas visuales / Visual pieces ------------------------------------------

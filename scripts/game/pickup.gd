@@ -4,15 +4,15 @@ extends Node2D
 ##  - "milk": vaso de leche, cura un 30 % de la vida máxima.
 ##  - "pillow": almohada, para el siguiente golpe.
 ##  - "clock": despertador, congela a todos los enemigos 3 segundos.
-## Desaparece al cabo de 12 segundos (parpadea los últimos 3).
+## Desaparece al cabo de 25 segundos (parpadea los últimos 4).
 ## An item an enemy sometimes drops; Kroker picks it up by walking over it:
 ##  - "milk": glass of milk, heals 30% of max health.
 ##  - "pillow": pillow, blocks the next hit.
 ##  - "clock": alarm clock, freezes every enemy for 3 seconds.
-## It vanishes after 12 seconds (blinking for the last 3).
+## It vanishes after 25 seconds (blinking for the last 4).
 
 const KINDS: Array[String] = ["milk", "pillow", "clock"]
-const LIFE := 12.0
+const LIFE := 25.0
 const COLORS := {"milk": Color("fbf8ff"), "pillow": Color("8fe0ff"), "clock": Color("ffd36a")}
 
 var run: Node
@@ -55,7 +55,7 @@ func _collect(player: Player) -> void:
 
 
 func _draw() -> void:
-	if _t > LIFE - 3.0 and fmod(_t, 0.25) < 0.1:
+	if _t > LIFE - 4.0 and fmod(_t, 0.25) < 0.1:
 		return  # parpadea antes de irse / blinks before leaving
 	var hop := -absf(sin(_t * 3.0)) * 6.0
 	draw_colored_polygon(_ellipse(Vector2.ZERO, Vector2(16, 5)), Color(0.05, 0.02, 0.15, 0.35))

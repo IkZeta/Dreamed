@@ -28,6 +28,7 @@ var mass := 1.0            # más masa = menos empuje / more mass = less knockba
 var aim_height := 18.0     # a qué altura apuntan las armas / where weapons aim
 var shards := 1            # trozos de estrella que suelta / star shards it drops
 var bestiary_id := ""      # entrada del bestiario / bestiary entry
+var drop_mult := 1.0       # multiplica la probabilidad de soltar objetos / scales the item drop chance
 ## Élite: más grande, brillante, con más vida y una habilidad ("split", "puddle" o "haste")
 ## Elite: bigger, glowing, with more health and an ability ("split", "puddle" or "haste")
 var elite := false

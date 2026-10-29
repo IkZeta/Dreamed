@@ -523,7 +523,8 @@ func _god_key(key: Key) -> bool:
 func _spawn_group() -> void:
 	var alive := 0
 	for e in enemies.get_children():
-		if not e is BossPiece:
+		# Los mosquitos de los nidos no cuentan / Nest mosquitoes don't count
+		if not e is BossPiece and not e is Mosquito:
 			alive += 1
 	var group: Array = _wave["group"]
 	var count := mini(randi_range(group[0], group[1]), int(_wave["max_alive"]) - alive)
@@ -540,7 +541,8 @@ func _pick_kind() -> String:
 	var new_kind: String = _wave.get("new", "")
 	if new_kind != "" and _spawned_new < 2:
 		_spawned_new += 1
-		return new_kind
+		if new_kind != "nest" or _count_alive(Nest) < 3:
+			return new_kind
 	var mix: Dictionary = _wave["mix"]
 	var total := 0.0
 	for k: String in mix:
@@ -549,8 +551,19 @@ func _pick_kind() -> String:
 	for k: String in mix:
 		roll -= float(mix[k])
 		if roll <= 0.0:
+			# Como mucho 3 nidos a la vez / At most 3 nests at a time
+			if k == "nest" and _count_alive(Nest) >= 3:
+				return "foox"
 			return k
 	return "foox"
+
+
+func _count_alive(type: Variant) -> int:
+	var n := 0
+	for e: Node in enemies.get_children():
+		if is_instance_of(e, type) and e.is_targetable():
+			n += 1
+	return n
 
 
 func _spawn_point() -> Vector2:
@@ -576,6 +589,8 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"thug": e = Thug.new()
 		"sling": e = SlingThug.new()
 		"skeleton": e = Skeleton.new()
+		"nest": e = Nest.new()
+		"mosquito": e = Mosquito.new()
 		_: e = Foox.new()
 	e.setup(self)
 	e.position = pos
@@ -674,7 +689,7 @@ func on_enemy_killed(e: Node) -> void:
 	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult()))
 	# Los objetos solo salen de los enemigos y es raro; la suerte los hace más probables
 	# Items only drop from enemies and rarely; luck makes them likelier
-	if randf() < item_drop_chance(elite):
+	if randf() < item_drop_chance(elite) * float(e.get("drop_mult")):
 		spawn_pickup(clamp_to_arena(e.global_position + Vector2(randf_range(-30, 30), 10), 20.0))
 	# Élite que se divide: salen dos Foox / Splitting elite: two Foox come out
 	if elite and e.get("elite_power") == "split" and running:
@@ -682,11 +697,11 @@ func on_enemy_killed(e: Node) -> void:
 			_spawn_enemy("foox", clamp_to_arena(e.global_position + Vector2(-30 + k * 60, 0), 22.0))
 
 
-## Probabilidad de soltar un objeto: 2,5 % (35 % los élites), +2 % relativo por punto de suerte
-## Chance to drop an item: 2.5% (35% for elites), +2% relative per luck point
+## Probabilidad de soltar un objeto: 6 % (50 % los élites), +2 % relativo por punto de suerte
+## Chance to drop an item: 6% (50% for elites), +2% relative per luck point
 func item_drop_chance(elite: bool) -> float:
 	var luck_k := maxf(0.2, 1.0 + GameState.stat("luck") / 50.0)
-	return clampf((0.35 if elite else 0.025) * luck_k, 0.0, 0.9)
+	return clampf((0.5 if elite else 0.06) * luck_k, 0.0, 0.9)
 
 
 func spawn_pickup(pos: Vector2, kind := "") -> void:

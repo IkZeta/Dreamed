@@ -160,6 +160,8 @@ class BestiaryPreview extends Control:
 			"thug": e = Thug.new()
 			"sling": e = SlingThug.new()
 			"skeleton": e = Skeleton.new()
+			"nest": e = Nest.new()
+			"mosquito": e = Mosquito.new()
 			"golden_foox": e = GoldenFoox.new()
 			_: e = Foox.new()
 		if id == "elite":
@@ -176,7 +178,7 @@ class BestiaryPreview extends Control:
 		_enemy = e
 
 	## Alto de cada dibujo (con cuernos y aura) / Height of each drawing (with horns and aura)
-	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0,
+	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0,
 		"boss_bed": 200.0, "boss_shelf": 190.0, "boss_chest": 130.0}
 
 	## Escala para que quepa entero en el hueco / Scale so it fits whole in the space

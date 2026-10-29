@@ -1277,19 +1277,22 @@ def charo_body(small):
         b += shaded("M%g,240 L%g,240 L%g,278 L%g,278 Z" % (x, x + 14, x + 14, x), "#d9b8a8", shade=0.35, rim=0.3)
         b += shaded(ellipse_d(x + 7, 282, 12, 6), "#5a3a2e", shade=0.3, rim=0.4)
     # Falda / Skirt
-    b += shaded("M58,186 L142,186 L152,248 L48,248 Z", "#6a3a6e", shade=0.45, rim=0.35)
+    b += shaded("M48,184 L152,184 Q172,214 160,250 L40,250 Q28,214 48,184 Z", "#6a3a6e", shade=0.45, rim=0.35)
     # Vestido de flores y barriguita / Floral dress and round tummy
-    dots = "".join("<circle cx='%g' cy='%g' r='2.6' fill='#fbe8f0'/>" % (70 + (k * 17) % 62, 120 + (k * 23) % 70) for k in range(14))
-    b += shaded("M80,104 L120,104 Q162,126 162,172 Q162,204 136,206 L64,206 Q38,204 38,172 Q38,126 80,104 Z", "#d98aa6", shade=0.5, rim=0.4, extra=dots)
+    dots = "".join("<circle cx='%g' cy='%g' r='2.6' fill='#fbe8f0'/>" % (60 + (k * 17) % 80, 120 + (k * 23) % 76) for k in range(18))
+    b += shaded("M78,102 L122,102 Q168,108 170,140 Q170,164 150,176 Q164,198 146,214 L54,214 Q36,198 50,176 Q30,164 30,140 Q32,108 78,102 Z", "#d98aa6", shade=0.5, rim=0.4, extra=dots)
+    # Pecho generoso: curva y sombra bajo el busto / Ample bosom: curve and shade under the bust
+    b += "<path d='M44,146 Q70,166 100,150 Q130,166 156,146' fill='none' stroke='#a85a7a' stroke-width='3' opacity='0.7'/>"
+    b += "<path d='M50,124 Q74,112 96,128 M104,128 Q126,112 150,124' fill='none' stroke='#f2b8cc' stroke-width='2.4' opacity='0.8'/>"
     # Delantal del kiosco con bolsillo / Kiosk apron with a pocket
-    b += shaded("M68,150 L132,150 L138,234 L62,234 Z", "#4fa89a", shade=0.4, rim=0.4,
+    b += shaded("M64,154 L136,154 L144,238 L56,238 Z", "#4fa89a", shade=0.4, rim=0.4,
                 extra="<rect x='84' y='190' width='32' height='18' fill='#3f8a7e'/><path d='M72,150 Q100,140 128,150' fill='none' stroke='#f4ecdc' stroke-width='2'/>")
     # Rebeca abierta / Open cardigan
-    b += shaded("M78,102 L92,104 L82,204 L50,202 Q36,152 54,116 Z", "#7a6ab8", shade=0.45, rim=0.4)
-    b += shaded("M122,102 L108,104 L118,204 L150,202 Q164,152 146,116 Z", "#6a5aa8", shade=0.45, rim=0.3)
+    b += shaded("M78,100 L90,104 L86,206 L60,206 Q52,160 58,110 Z", "#7a6ab8", shade=0.45, rim=0.4)
+    b += shaded("M122,100 L110,104 L114,206 L140,206 Q148,160 142,110 Z", "#6a5aa8", shade=0.45, rim=0.3)
     # Brazos regordetes con las manos juntas / Chubby arms with hands clasped
-    b += shaded("M50,118 L66,112 L84,166 L68,176 Z", "#7a6ab8", shade=0.4, rim=0.4)
-    b += shaded("M150,118 L134,112 L116,166 L132,176 Z", "#6a5aa8", shade=0.4, rim=0.3)
+    b += shaded("M40,122 L54,112 L86,172 L70,184 Z", "#7a6ab8", shade=0.4, rim=0.4)
+    b += shaded("M160,122 L146,112 L114,172 L130,184 Z", "#6a5aa8", shade=0.4, rim=0.3)
     b += shaded(ellipse_d(92, 170, 10, 9), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(108, 170, 10, 9), shade_c, shade=0.3, rim=0.2, sw=0.8)
     # Cuello y cabeza / Neck and head
     b += shaded("M92,94 L108,94 L108,108 L92,108 Z", shade_c, shade=0.3, rim=0.1, outline=False)
@@ -1306,9 +1309,9 @@ def charo_body(small):
     b += "<path d='M99,80 L101,80' stroke='#7a2e4a' stroke-width='2.4'/>"
     b += "<path d='M83,82 Q76,100 88,106 M117,82 Q124,100 112,106' fill='none' stroke='#e0b860' stroke-width='1.2'/>"
     if small:
-        add("charo_small", 30, 34, 140, 258, b, px=PX_KROKER, colors=24, post=charo_face_small)
+        add("charo_small", 18, 34, 164, 258, b, px=PX_KROKER, colors=24, post=charo_face_small)
     else:
-        add("npc_charo", 30, 34, 140, 258, b, px=PX_NPC, colors=32, post=npc_face(80, "#3a2a30", 1))
+        add("npc_charo", 18, 34, 164, 258, b, px=PX_NPC, colors=32, post=npc_face(80, "#3a2a30", 1))
 
 
 def charo_face_small(img, to_px):
@@ -1351,6 +1354,35 @@ def charo_kiosk(px, name):
     add(name, x0 - 20, 40, x1 - x0 + 40, 256, b, px=px, colors=24)
 
 
+def act2_enemies():
+    # Mosquito: diminuto, a rayas, con trompa; las alas se dibujan en el juego
+    # Mosquito: tiny and striped, with a proboscis; the wings are drawn in game
+    b = ""
+    for lx, ly in ((-2, -27), (2, -27), (5, -28)):
+        b += "<path d='M%g,%g L%g,%g L%g,%g' fill='none' stroke='#2a2040' stroke-width='1.6'/>" % (lx, ly, lx - 4, ly + 5, lx - 5, ly + 9)
+    stripes = "".join("<rect x='%g' y='-34' width='2.4' height='10' fill='#9a8ac8' opacity='0.8'/>" % x for x in (-14, -10, -6))
+    b += "<g transform='rotate(-12 -8 -29)'>%s</g>" % shaded(ellipse_d(-9, -29, 10, 4.6), "#4a3a66", shade=0.4, rim=0.5, sw=0.8, extra=stripes)
+    b += shaded(ellipse_d(2, -31, 5, 4.4), "#3a2e52", shade=0.35, rim=0.5, sw=0.8)
+    b += shaded(ellipse_d(8, -33, 3.6, 3.4), "#3a2e52", shade=0.3, rim=0.5, sw=0.7)
+    b += "<circle cx='9.5' cy='-34' r='1.6' fill='#ff5a7a'/>"
+    b += "<path d='M11,-32.5 L21,-28' stroke='#2a2040' stroke-width='1.4' stroke-linecap='round'/>"
+    add("mosquito_body", -22, -40, 46, 24, b)
+
+    # Nido: montículo de barro y papel con agujeros de los que salen / Nest: mound of mud and paper with holes they come out of
+    mound = "M-36,0 Q-40,-20 -22,-34 Q-4,-48 14,-40 Q36,-30 36,-8 Q36,0 30,2 L-30,2 Q-36,2 -36,0 Z"
+    rings = ""
+    for k, y in enumerate((-30, -20, -10)):
+        rings += "<path d='M%g,%g Q0,%g %g,%g' fill='none' stroke='#5a4458' stroke-width='2.2' opacity='0.7'/>" % (-30 + k * -2, y + 2, y - 6, 30 + k * 2, y + 2)
+    b = "<path d='%s' fill='#000000' opacity='0.25'/>" % ellipse_d(0, 2, 40, 7)
+    b += shaded(mound, "#8a6a7a", shade=0.5, rim=0.4, deep="#4a3048", extra=rings)
+    for hx, hy, r in ((-14, -18, 5), (8, -28, 4.5), (16, -10, 5.5)):
+        b += "<path d='%s' fill='#1a1020'/>" % ellipse_d(hx, hy, r, r * 0.8)
+        b += "<path d='M%g,%g A%g,%g 0 0 1 %g,%g' fill='none' stroke='#c9a8b8' stroke-width='1.4' opacity='0.8'/>" % (hx - r, hy, r, r * 0.8, hx + r, hy)
+    for mx, my in ((-30, -4), (-24, -12), (26, -2), (30, -14)):
+        b += "<circle cx='%g' cy='%g' r='4' fill='#5fa88a' opacity='0.9'/>" % (mx, my)
+    add("nest_body", -42, -50, 84, 60, b, colors=14)
+
+
 def act2_npcs():
     charo_body(False)
     charo_body(True)
@@ -1376,6 +1408,7 @@ def build():
     room()
     living_room()
     act2_npcs()
+    act2_enemies()
     drawings()
     pickups()
     thug()
