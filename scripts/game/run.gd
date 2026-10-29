@@ -59,10 +59,15 @@ func _ready() -> void:
 	var act := GameState.act_of(depth)
 	Audio.play_music(["", "music_dream1", "music_living", "music_dream1"][act], 2.5)
 	# Llegar al salón por primera vez desbloquea a Mr. Ad / Reaching the living room for the first time unlocks Mr. Ad
+	# El Acto 2 también desbloquea la pistola de dedos; el Acto 3, el oso de peluche y El Pinche
+	# Act 2 also unlocks the finger gun; Act 3, the teddy bear and the Kitchen Boy
 	if act >= 2:
 		Progress.flag("mr_ad")
+		Progress.flag("finger")
 	if act >= 3:
 		Progress.flag("two_weapons")
+		Progress.flag("teddy")
+		Progress.flag("pinche")
 	_time_left = float(_wave.get("duration", 0.0))
 
 	# Pantalla pequeña donde vive el mundo / Small screen where the world lives
@@ -268,6 +273,11 @@ func _on_ware(id: String) -> void:
 	hud.set_hp(player.hp, player.max_hp)
 	hud.set_reality()
 	hud.set_xp()
+
+
+## ¿Es un sueño con jefe? / Is this a boss dream?
+func boss_wave() -> bool:
+	return bool(_wave.get("boss", false))
 
 
 ## Gana Realidad Fragmentada (solo desde el Acto 2) / Gains Fragmented Reality (only from Act 2)

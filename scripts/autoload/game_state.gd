@@ -25,7 +25,25 @@ const CHARACTERS := [
 		"bonus": "CHAR_VACUUM_BONUS", "outfit": "CHAR_VACUUM_OUTFIT", "desc": "CHAR_VACUUM_DESC",
 		"stats": {"STAT_ATTACK": 2, "STAT_DEFENSE": 2, "STAT_SPEED": 5, "STAT_RANGE": 3},
 	},
+	# Se desbloquea al llegar al Acto 2 por primera vez / Unlocked on first reaching Act 2
+	{
+		"id": "finger", "name": "CHAR_FINGER_NAME", "tag": "CHAR_FINGER_TAG", "weapon": "CHAR_FINGER_WEAPON",
+		"bonus": "CHAR_FINGER_BONUS", "outfit": "CHAR_FINGER_OUTFIT", "desc": "CHAR_FINGER_DESC",
+		"stats": {"STAT_ATTACK": 2, "STAT_DEFENSE": 1, "STAT_SPEED": 3, "STAT_RANGE": 4},
+	},
+	# Se desbloquea al llegar al Acto 3 por primera vez / Unlocked on first reaching Act 3
+	{
+		"id": "teddy", "name": "CHAR_TEDDY_NAME", "tag": "CHAR_TEDDY_TAG", "weapon": "CHAR_TEDDY_WEAPON",
+		"bonus": "CHAR_TEDDY_BONUS", "outfit": "CHAR_TEDDY_OUTFIT", "desc": "CHAR_TEDDY_DESC",
+		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 3, "STAT_SPEED": 2, "STAT_RANGE": 1},
+	},
 ]
+## Logro que desbloquea cada pijama nuevo / Achievement that unlocks each new pajama
+const WEAPON_UNLOCK := {"finger": "finger", "teddy": "teddy"}
+
+
+func weapon_unlocked(id: String) -> bool:
+	return not WEAPON_UNLOCK.has(id) or Progress.has_achieved(WEAPON_UNLOCK[id])
 
 ## Estadísticas base de Kroker y lo que suma cada arma.
 ## Kroker's base stats and what each weapon adds.
@@ -35,6 +53,8 @@ const WEAPON_BONUS := {
 	"shield": {"armor": 3.0},        # aumenta la defensa / raises defense
 	"book": {},
 	"vacuum": {"speed": 75.0},       # +25 % de velocidad / +25% speed
+	"finger": {},                    # +10 de suerte (en BASE_LEVEL_STATS) / +10 luck (in BASE_LEVEL_STATS)
+	"teddy": {"max_hp": 6.0},        # +6 de vida máxima / +6 max health
 }
 
 ## Definición de cada sueño del Acto 1 (la habitación). "mix" es el peso de cada enemigo al
@@ -43,6 +63,9 @@ const WEAPON_BONUS := {
 ## "shop_met": Charo abre aquí el kiosco, pero solo si ya la conoces del salón.
 ## "shop_met": Charo opens her kiosk here, but only once you've met her in the living room.
 ## Every floor brings a new, more dangerous enemy; floor 5 is the boss.
+## Qué hace El Pinche con cada arma / What the Kitchen Boy does with each weapon
+const PINCHE_KIND := {"bat": "bleed", "shield": "burn", "book": "burn", "vacuum": "bleed", "finger": "burn", "teddy": "bleed"}
+
 const WAVES := [
 	{"duration": 30.0, "spawn_every": 3.0, "group": [1, 2], "max_alive": 5, "mix": {"foox": 1}},
 	{"duration": 35.0, "spawn_every": 2.8, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1}, "new": "thug"},
@@ -73,12 +96,12 @@ const ACT2_START := 6
 const ACT3_START := 11
 ## Armas cuerpo a cuerpo y a distancia: la segunda arma tiene que ser del otro tipo
 ## Melee and ranged weapons: the second weapon must be of the other kind
-const MELEE: Array[String] = ["bat", "shield"]
-const RANGED: Array[String] = ["book", "vacuum"]
+const MELEE: Array[String] = ["bat", "shield", "teddy"]
+const RANGED: Array[String] = ["book", "vacuum", "finger"]
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
-const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad"]
+const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche"]
 const MAX_UPGRADE_LEVEL := 3
 const STOLK_HP_COST := 5.0   # vida máxima que cuesta cada nivel de Stolk / max health each Stolk level costs
 
@@ -137,9 +160,16 @@ var reality := 0
 ## Hackeos del Cyberpunk: id del enemigo → {stat, value}. Duran hasta que muere el que te hackeó.
 ## Cyberpunk hacks: enemy id → {stat, value}. They last until whoever hacked you dies.
 var hacks := {}
+## Se ganaba demasiado (sobre todo tirando enemigos por los agujeros en las peleas de jefe):
+## ahora caer solo da 1 a veces, y casi nunca durante un jefe.
+## Too much was earned (above all by throwing enemies down holes during boss fights): now a
+## fall only gives 1 sometimes, and hardly ever during a boss.
 const REALITY_ELITE := 2
-const REALITY_BOSS := 5
+const REALITY_BOSS := 3          # cada mueble del jefe del Acto 1 / each Act 1 boss piece
+const REALITY_CHEF := 10
 const REALITY_FALL := 1
+const FALL_REALITY_CHANCE := 0.35
+const FALL_REALITY_CHANCE_BOSS := 0.1
 const REALITY_SACRIFICE := 4
 
 
@@ -166,10 +196,10 @@ func start_run() -> void:
 		if dream_depth >= ACT2_START:
 			reality = 30
 		# Segunda arma elegida en el panel; en el Acto 3 hace falta una / Second weapon from the panel; Act 3 needs one
-		if god_second in other_weapons():
+		if god_second in (RANGED if selected_character in MELEE else MELEE):
 			second_weapon = god_second
 			upgrades2 = god_upgrades2.duplicate()
-		elif dream_depth >= ACT3_START:
+		elif dream_depth >= ACT3_START and not other_weapons().is_empty():
 			second_weapon = other_weapons()[0]
 
 
@@ -178,7 +208,7 @@ func start_run() -> void:
 ## At the start of every dream the state is saved; "Continue" goes back to that moment.
 const RUN_SAVE := "user://run.cfg"
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought"]
 
 
 func save_run() -> void:
@@ -234,6 +264,7 @@ func reset_run() -> void:
 	run_hits = 0
 	stat_bonus = {}
 	reality = 0
+	bought = {}
 	hacks = {}
 	_rng.randomize()
 
@@ -247,6 +278,8 @@ const BASE_LEVEL_STATS := {
 	"shield": {"regen": 3.0},
 	"book": {"luck": -10.0, "lifesteal": 5.0},
 	"vacuum": {"lifesteal": 5.0},
+	"finger": {"luck": 10.0, "lifesteal": 5.0},
+	"teddy": {"regen": 3.0},
 }
 ## Entre un sueño y otro solo se recupera un 5 % de la vida máxima
 ## Between one dream and the next only 5% of max health comes back
@@ -300,7 +333,7 @@ func stat(id: String) -> float:
 ## --- Mr. Ad: cuanta más Realidad Fragmentada ahorrada, más estadística ----------------
 ## --- Mr. Ad: the more Fragmented Reality saved, the higher the stat ------------------------
 ## Qué estadística sube Mr. Ad con cada arma / Which stat Mr. Ad raises with each weapon
-const AD_STAT := {"bat": "attack", "shield": "defense", "book": "attack_speed", "vacuum": "speed"}
+const AD_STAT := {"bat": "attack", "shield": "defense", "book": "attack_speed", "vacuum": "speed", "finger": "luck", "teddy": "regen"}
 const AD_MAX_TIERS := 10   # cuenta hasta 100 de Realidad Fragmentada / counts up to 100 Fragmented Reality
 
 
@@ -400,7 +433,11 @@ func weapons() -> Array[String]:
 
 ## Armas que se pueden coger como segunda: las del otro tipo / Weapons that can be taken second: the other kind
 func other_weapons() -> Array[String]:
-	return RANGED.duplicate() if selected_character in MELEE else MELEE.duplicate()
+	var out: Array[String] = []
+	for w in (RANGED if selected_character in MELEE else MELEE):
+		if weapon_unlocked(w):
+			out.append(w)
+	return out
 
 
 func _ups(weapon: String) -> Dictionary:
@@ -482,9 +519,13 @@ func _giver_weight(g: String) -> float:
 	return 1.0 + (stat("luck") / 20.0 if best_level(g) > 0 else 0.0)
 
 
-## Mr. Ad aparece desde que se llega al Acto 2 por primera vez / Mr. Ad shows up once Act 2 has been reached
+## Mr. Ad aparece desde que se llega al Acto 2 por primera vez y El Pinche desde el Acto 3
+## Mr. Ad shows up once Act 2 has been reached, and the Kitchen Boy once Act 3 has
 func giver_unlocked(g: String) -> bool:
-	return g != "ad" or Progress.has_achieved("mr_ad")
+	match g:
+		"ad": return Progress.has_achieved("mr_ad")
+		"pinche": return Progress.has_achieved("pinche")
+	return true
 
 
 ## Clave de traducción del nombre o la descripción de una mejora / Translation key of an upgrade's name or description
@@ -506,12 +547,18 @@ const UPGRADE_VALUES := {
 		"book": {"extra": [1, 2, 3]},
 		# La aspiradora escupe un enemigo cada "cd" s; rebota contra "chain" más
 		"vacuum": {"cd": [9.0, 6.0, 3.5], "chain": [0, 1, 2], "dmg": [6, 9, 12]},
+		# Más disparos que rebotan, y rebotan en "extra" enemigos más
+		"finger": {"chance": [10, 18, 26], "extra": [1, 2, 3]},
+		# La pelusa salta a "extra" enemigos cercanos
+		"teddy": {"extra": [1, 2, 3]},
 	},
 	"stolk": {
 		"bat": {"pct": [30, 60, 100]},                    # +daño / +damage
 		"shield": {"pct": [60, 120, 200], "push": [25, 50, 80]},
 		"book": {"pct": [15, 28, 40]},                    # −recarga / −cooldown
 		"vacuum": {"pct": [25, 50, 80]},                  # +alcance, fuerza y daño / +reach, pull and damage
+		"finger": {"pct": [30, 60, 100]},                 # +daño / +damage
+		"teddy": {"pct": [30, 60, 100], "fluff": [1, 1, 2]},  # +daño y pelusa extra / +damage and extra fluff
 	},
 	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
 	## Doc: more max health in exchange for weakening another weapon stat
@@ -520,6 +567,8 @@ const UPGRADE_VALUES := {
 		"shield": {"hp": [10, 18, 28], "pct": [10, 15, 20]},   # −empuje / −shove
 		"book": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
 		"vacuum": {"hp": [10, 18, 28], "pct": [6, 9, 12]},     # −velocidad / −speed
+		"finger": {"hp": [10, 18, 28], "pct": [8, 12, 16]},    # +recarga / +cooldown
+		"teddy": {"hp": [10, 18, 28], "pct": [15, 25, 35]},    # −duración de la pelusa / −fluff duration
 	},
 	## Mr. Ad: "extra" = % de ganar 1 más de Realidad Fragmentada; "per10" = estadística por cada 10 ahorradas
 	## Mr. Ad: "extra" = % chance of 1 extra Fragmented Reality; "per10" = stat per 10 saved
@@ -528,12 +577,26 @@ const UPGRADE_VALUES := {
 		"shield": {"extra": [20, 35, 50], "per10": [0.4, 0.7, 1.0]},  # +defensa / +defense
 		"book": {"extra": [20, 35, 50], "per10": [3, 5, 8]},          # +% velocidad de ataque / +% attack speed
 		"vacuum": {"extra": [20, 35, 50], "per10": [2, 4, 6]},        # +% velocidad / +% speed
+		"finger": {"extra": [20, 35, 50], "per10": [2, 3, 5]},        # +suerte / +luck
+		"teddy": {"extra": [20, 35, 50], "per10": [0.2, 0.35, 0.5]},  # +regeneración / +regen
 	},
 	"silly": {
 		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
 		"shield": {"chance": [30, 50, 75], "secs": [0.8, 1.4, 2.0]},  # cámara lenta / slow motion
 		"book": {"pct": [15, 25, 35]},                    # eco del daño / damage echo
 		"vacuum": {"pct": [20, 35, 50], "secs": [0.6, 1.0, 1.6]},  # vulnerable
+		"finger": {"chance": [10, 18, 28], "secs": [1.0, 1.5, 2.0]},  # ralentizar / slow
+		"teddy": {"pct": [20, 35, 50]},                   # pegados reciben más daño / stuck ones take more damage
+	},
+	## El Pinche: sangrado (daño residual fuerte) o quemadura (flojo, pero baja su daño y su defensa)
+	## The Kitchen Boy: bleed (strong damage over time) or burn (weak, but lowers its damage and defence)
+	"pinche": {
+		"bat": {"dps": [2, 3, 4.5], "secs": [3, 3.5, 4]},                 # sangrado / bleed
+		"shield": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
+		"book": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},    # quemadura / burn
+		"vacuum": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},          # sangrado / bleed
+		"finger": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
+		"teddy": {"dps": [2, 3, 4.5], "secs": [3, 3.5, 4]},               # sangrado / bleed
 	},
 }
 
@@ -562,13 +625,15 @@ func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
 
 ## --- Kiosco de Charo / Charo's kiosk ------------------------------------------------
 const WARES := {
-	"milk": 3,       # recupera un 40 % de la vida / restores 40% health
-	"candy": 4,      # +8 de suerte / +8 luck
-	"gum": 5,        # estadística rara al azar / random rare stat
-	"glasses": 5,    # +15 % de alcance / +15% range
-	"newspaper": 6,  # sube de nivel una mejora / levels up an upgrade
-	"battery": 7,    # una subida de nivel / one level-up
+	"milk": 5,       # recupera un 40 % de la vida / restores 40% health
+	"candy": 6,      # +8 de suerte / +8 luck
+	"gum": 8,        # estadística rara al azar / random rare stat
+	"glasses": 8,    # +15 % de alcance / +15% range
+	"newspaper": 10, # sube de nivel una mejora / levels up an upgrade
+	"battery": 12,   # una subida de nivel / one level-up
 }
+## Lo comprado en esta partida: artículo → cuántos / Bought this run: ware → how many
+var bought := {}
 
 
 ## Mejoras que aún pueden subir de nivel / Upgrades that can still level up
@@ -599,6 +664,7 @@ func roll_wares() -> Array[String]:
 
 ## Aplica un artículo comprado (lo que toca la vida lo hace la partida) / Applies a bought ware (health is handled by the run)
 func apply_ware(id: String) -> void:
+	bought[id] = int(bought.get(id, 0)) + 1
 	match id:
 		"candy":
 			stat_bonus["luck"] = float(stat_bonus.get("luck", 0.0)) + 8.0

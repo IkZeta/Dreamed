@@ -46,6 +46,33 @@ func _build(player: Player) -> void:
 		val.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		grid.add_child(val)
 
+	# Lo comprado en el kiosco de Charo, con cuántos de cada / What was bought at Charo's kiosk, with how many of each
+	if not s.bought.is_empty():
+		var gap_b := Control.new()
+		gap_b.custom_minimum_size.y = 14
+		v.add_child(gap_b)
+		v.add_child(UITheme.label("PAUSE_BOUGHT", 24, UITheme.GOLD, "caps"))
+		var flow := HFlowContainer.new()
+		flow.add_theme_constant_override("h_separation", 26)
+		flow.add_theme_constant_override("v_separation", 6)
+		v.add_child(flow)
+		for id: String in s.WARES:
+			var n := int(s.bought.get(id, 0))
+			if n <= 0:
+				continue
+			var item := HBoxContainer.new()
+			item.add_theme_constant_override("separation", 6)
+			var icon := CharoShop.WareIcon.new()
+			icon.ware = id
+			var icon_px := PixelView.wrap(icon, 4)
+			icon_px.custom_minimum_size = Vector2(52, 52)
+			item.add_child(icon_px)
+			var lbl := UITheme.label("%s x%d" % [tr("WARE_%s_NAME" % id.to_upper()), n], 24, UITheme.BONE, "body")
+			lbl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+			lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			item.add_child(lbl)
+			flow.add_child(item)
+
 	var gap := Control.new()
 	gap.custom_minimum_size.y = 14
 	v.add_child(gap)

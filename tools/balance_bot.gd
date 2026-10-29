@@ -11,7 +11,7 @@ extends Node
 ## The bot isn't an expert player: it dodges what's near, keeps a distance that suits its weapon,
 ## picks up stars and chooses upgrades at random. It's for comparing, not for exact numbers.
 
-const WEAPONS: Array[String] = ["bat", "shield", "book", "vacuum"]
+const WEAPONS: Array[String] = ["bat", "shield", "book", "vacuum", "finger", "teddy"]
 const OUT := "user://balance_report.json"
 const SPEED := 6.0
 

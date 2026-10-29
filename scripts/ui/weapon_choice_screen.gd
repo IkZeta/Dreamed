@@ -1,8 +1,8 @@
 class_name WeaponChoiceScreen
 extends CanvasLayer
 ## Al vencer a El Chef, Kroker elige una segunda arma, siempre del otro tipo: si su pijama
-## lleva un arma cuerpo a cuerpo (bate o almohada), elige una a distancia (libro o
-## aspiradora), y al revés. La segunda arma flota a su lado y tiene sus propias mejoras.
+## lleva un arma cuerpo a cuerpo (bate, almohada u oso), elige una a distancia (libro,
+## aspiradora o pistola de dedos), y al revés. Solo salen las que ya están desbloqueadas. La segunda arma flota a su lado y tiene sus propias mejoras.
 ## After beating The Chef, Kroker picks a second weapon, always of the other kind: if his
 ## pajama has a melee weapon (bat or pillow) he picks a ranged one (book or vacuum), and vice
 ## versa. The second weapon floats beside him and has its own upgrades.
@@ -134,4 +134,9 @@ class WeaponIcon extends Control:
 				Sprites.draw(self, "weapon_tank")
 				draw_set_transform(c + Vector2(14, -10), -0.5, Vector2(s, s))
 				Sprites.draw(self, "weapon_nozzle")
+			"finger":
+				KrokerArt.finger_gun(self, Transform2D(-0.12, c + Vector2(-6, 6)), Vector2.ZERO, Vector2(1, 0), 0.6 + 0.4 * sin(_t * 3.0), "icon_finger", 1.25)
+			"teddy":
+				draw_set_transform(c, sin(_t) * 0.1, Vector2(s, s) * 1.4)
+				Sprites.draw(self, "weapon_teddy")
 		draw_set_transform(Vector2.ZERO)

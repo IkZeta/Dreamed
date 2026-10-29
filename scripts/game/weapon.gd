@@ -110,10 +110,22 @@ func _body(e: Node2D) -> Vector2:
 
 func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0) -> void:
 	e.hit(base_damage * player.damage_mult, impulse)
+	_pinche(e)
 	# Robo de salud: probabilidad de curar 1 / Life steal: chance to heal 1
 	var ls := GameState.stat("lifesteal") * steal_k
 	if ls > 0.0 and randf() * 100.0 < ls:
 		player.heal(1.0)
+
+
+## El Pinche: cada golpe sangra o quema según el arma / The Kitchen Boy: every hit bleeds or burns depending on the weapon
+func _pinche(e: Node2D) -> void:
+	if lv("pinche") <= 0 or not e is Enemy or not e.is_targetable():
+		return
+	var en := e as Enemy
+	if GameState.PINCHE_KIND.get(id, "bleed") == "bleed":
+		en.bleed(uv("pinche", "dps"), uv("pinche", "secs"))
+	else:
+		en.burn(uv("pinche", "dps"), uv("pinche", "secs"), uv("pinche", "pct"))
 
 
 ## Nivel de la mejora de un personaje del plano astral / Level of an astral giver's upgrade

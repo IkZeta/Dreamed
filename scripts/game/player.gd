@@ -71,6 +71,8 @@ func _make_weapon(id: String, primary: bool) -> Weapon:
 		"shield": w = WeaponShield.new()
 		"book": w = WeaponBook.new()
 		"vacuum": w = WeaponVacuum.new()
+		"finger": w = WeaponFinger.new()
+		"teddy": w = WeaponTeddy.new()
 		_: w = WeaponBat.new()
 	w.id = id
 	w.primary = primary
@@ -331,4 +333,10 @@ func _draw_floating_weapon() -> void:
 			Sprites.draw(self, "weapon_tank")
 			draw_set_transform(c + dir * 14.0, dir.angle(), Vector2(s, s))
 			Sprites.draw(self, "weapon_nozzle")
+		"finger":
+			# Una mano que flota haciendo la pistola con los dedos / A floating hand making a finger gun
+			KrokerArt.finger_gun(self, Transform2D(0.0, Vector2(_facing, 1.0) * s * 1.6, 0.0, c), Vector2.ZERO, Vector2(1, 0), w.anim)
+		"teddy":
+			draw_set_transform(c, sin(_t * 1.4) * 0.12 - w.anim * 0.4 * _facing, Vector2(s, s) * (1.0 + w.anim * 0.2))
+			Sprites.draw(self, "weapon_teddy")
 	draw_set_transform(Vector2.ZERO)

@@ -113,7 +113,9 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	v.add_theme_constant_override("separation", 6)
 	card.add_child(v)
 
-	var name_row := HBoxContainer.new()
+	# Si el nombre es largo, el papel baja a la línea siguiente / If the name is long, the role drops to the next line
+	var name_row := HFlowContainer.new()
+	name_row.add_theme_constant_override("h_separation", 12)
 	var giver_name := UITheme.label("GIVER_%s_NAME" % giver.to_upper(), 40, UITheme.BONE, "display")
 	giver_name.size_flags_horizontal = SIZE_EXPAND_FILL
 	name_row.add_child(giver_name)
@@ -320,7 +322,7 @@ func _leave() -> void:
 
 ## Personaje sobre una roca flotante / A character standing on a floating rock
 class GiverFigure extends Control:
-	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a")}
+	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a")}
 	var who := "svinho"
 	var highlight := false
 	var _t := 0.0

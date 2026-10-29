@@ -91,7 +91,7 @@ func _fire() -> void:
 		_aim_dir = (run.player.global_position + Vector2(0, -44) - from).normalized()
 	shot.velocity = _aim_dir * SHOT_SPEED
 	_aim_dir = Vector2.ZERO
-	shot.damage = SHOT_DAMAGE
+	shot.damage = SHOT_DAMAGE * atk_mult()
 	run.world.add_child(shot)
 	Audio.play("shoot", -8.0, 0.1)
 

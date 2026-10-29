@@ -21,6 +21,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float) -> void
 		"doc": _doc(t)
 		"charo": _charo(t)
 		"ad": _ad(t)
+		"pinche": _pinche(t)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -47,6 +48,22 @@ static func _ad(t: float) -> void:
 	for i in 3:
 		var a := t * 2.0 + i * TAU / 3.0
 		DreamBackground.draw_star(_ci, Vector2(100, 150) + Vector2(cos(a) * 62.0, sin(a) * 20.0), 3.0, Color("f6c24a", 0.8))
+
+
+## El Pinche: la llama del soplete baila y el cuchillo destella
+## The Kitchen Boy: the blowtorch flame dances and the knife glints
+static func _pinche(t: float) -> void:
+	Sprites.draw(_ci, "npc_pinche")
+	var tip := Vector2(166, 131)
+	var flick := 1.0 + 0.25 * sin(t * 23.0) + 0.15 * sin(t * 37.0)
+	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(tip - Vector2(22, 22), Vector2(44, 44)), false, Color("ff9a3a", 0.35))
+	var pts := PackedVector2Array([tip + Vector2(0, -5), tip + Vector2(22 * flick, -1), tip + Vector2(0, 5)])
+	_ci.draw_colored_polygon(pts, Color("ff9a3a", 0.9))
+	var inner := PackedVector2Array([tip + Vector2(0, -2.5), tip + Vector2(12 * flick, 0), tip + Vector2(0, 2.5)])
+	_ci.draw_colored_polygon(inner, Color("8fd8ff", 0.95))
+	var glint := fposmod(t, 3.2)
+	if glint < 0.3:
+		_ci.draw_rect(Rect2(64, 150 + glint * 80.0, 3, 3), Color(1, 1, 1, 0.9))
 
 
 ## La Kioskera Charo; sus gafas brillan de vez en cuando / Kiosk lady Charo; her glasses glint now and then

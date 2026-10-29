@@ -61,6 +61,7 @@ const PICKUP := {
 	"shield": Vector2(420, 470),
 	"book": Vector2(1440, 430),
 	"vacuum": Vector2(1780, 440),
+	"teddy": Vector2(330, 560),      # el osito de la cama / the teddy on the bed
 }
 const WAKE_POINT := Vector2(440, 560)    # donde aterriza al bajar de la cama / where he lands
 const START_POINT := Vector2(960, 700)   # donde empieza a jugar / where play begins
@@ -411,7 +412,8 @@ func _draw_bed() -> void:
 	# Edredón de estrellas: se ve desde el embozo hasta los pies de la cama
 	# Starry quilt: shown from its folded edge down to the foot of the bed
 	Sprites.draw_top(self, "room_quilt", blanket_top - 2.0, b.end.y + 6.0)
-	_draw_teddy(Vector2(b.position.x + 34, b.end.y - 44), 0.7)
+	if not (outfit == "teddy" and weapon_taken):
+		_draw_teddy(Vector2(b.position.x + 34, b.end.y - 44), 0.7)
 	if bed_state == "sleeping":
 		# Bulto que respira bajo el edredón / Breathing shape under the quilt
 		var rise := sin(_t * 1.6) * 3.0

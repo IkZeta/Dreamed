@@ -42,6 +42,11 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "shopper", "stat": "bought", "goal": 10},
 	{"id": "pyro", "stat": "sacrifices", "goal": 5},
 	{"id": "saver", "stat": "best_reality", "goal": 100, "drawing": "coin"},
+	# Pijamas y personajes nuevos que se desbloquean al llegar a cada acto
+	# New pajamas and characters unlocked on reaching each act
+	{"id": "finger", "flag": true, "goal": 1},
+	{"id": "teddy", "flag": true, "goal": 1},
+	{"id": "pinche", "flag": true, "goal": 1},
 ]
 
 ## Aviso de logro en pantalla / On-screen achievement notice

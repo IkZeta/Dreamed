@@ -114,7 +114,7 @@ func die(counted: bool) -> void:
 	_dying = 0.0
 	_atk = {}
 	run.drop_shards(global_position, roundi(30 * GameState.shard_mult()))
-	run.gain_reality(GameState.REALITY_BOSS * 3, global_position)
+	run.gain_reality(GameState.REALITY_CHEF, global_position)
 	Progress.kill(bestiary_id)
 	GameState.run_kills += 1
 	Progress.add_stat("kills")
@@ -258,7 +258,7 @@ func _pan_strike() -> void:
 	var d: Vector2 = player.global_position - global_position
 	if d.length() < PAN_RANGE and d.x * _facing > -40.0:
 		var before := player.hp
-		player.take_damage(PAN_DAMAGE * GameState.enemy_dmg_mult())
+		player.take_damage(PAN_DAMAGE * GameState.enemy_dmg_mult() * atk_mult())
 		if player.hp < before:
 			player.root(PAN_ROOT)
 
@@ -314,6 +314,9 @@ func _draw() -> void:
 		_draw_chef(off + Vector2(5, 0) - j, s, Color(GLITCH_B, 0.5), a * 0.5)
 	_draw_chef(off, s, Color.WHITE, a)
 	draw_set_transform(Vector2.ZERO)
+	# Pelusa, sangrado y quemadura también en los jefes / Fluff, bleeding and burning on bosses too
+	draw_set_transform(Vector2.ZERO)
+	_draw_statuses(0.0, 1.0 if _dying < 0.0 else 0.0)
 
 
 func _draw_attack_warnings() -> void:

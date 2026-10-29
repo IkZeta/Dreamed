@@ -292,7 +292,7 @@ func _land() -> void:
 	run.fx.dissipate(global_position, Color("cfc6e8"))
 	var player: Player = run.player
 	if player.global_position.distance_to(global_position) < QUAKE_RADIUS:
-		player.take_damage(5.0 * GameState.enemy_dmg_mult())
+		player.take_damage(5.0 * GameState.enemy_dmg_mult() * atk_mult())
 	_waves.append({"r": 40.0, "hit": false})
 
 
@@ -307,7 +307,7 @@ func _update_waves(delta: float) -> void:
 		var dist := Vector2(d.x, d.y / 0.45).length()
 		if not w["hit"] and absf(dist - r) < 26.0 and r > QUAKE_RADIUS:
 			w["hit"] = true
-			player.take_damage(3.0 * GameState.enemy_dmg_mult())
+			player.take_damage(3.0 * GameState.enemy_dmg_mult() * atk_mult())
 		if r > WAVE_REACH:
 			_waves.remove_at(i)
 
@@ -369,6 +369,9 @@ func _draw() -> void:
 		var r := Rect2(-40, -top - _hop, 80, 5)
 		draw_rect(r.grow(1.5), Color(0.05, 0.03, 0.18, 0.55))
 		draw_rect(Rect2(r.position, Vector2(r.size.x * charge(), r.size.y)), Color(EYE, 0.85))
+	# Pelusa, sangrado y quemadura también en los jefes / Fluff, bleeding and burning on bosses too
+	draw_set_transform(Vector2.ZERO)
+	_draw_statuses(0.0, 1.0 if _dying < 0.0 else 0.0)
 
 
 func _draw_warning() -> void:

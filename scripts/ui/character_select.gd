@@ -51,11 +51,17 @@ func _build() -> void:
 	gap.custom_minimum_size.y = 18
 	root.add_child(gap)
 
+	# Seis pijamas no caben a la vez: fila desplazable que sigue al foco
+	# Six pajamas don't fit at once: a scrolling row that follows the focus
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = SIZE_EXPAND_FILL
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	root.add_child(scroll)
 	var cards := HBoxContainer.new()
-	cards.alignment = BoxContainer.ALIGNMENT_CENTER
 	cards.size_flags_vertical = SIZE_EXPAND_FILL
-	cards.add_theme_constant_override("separation", 24)
-	root.add_child(cards)
+	cards.add_theme_constant_override("separation", 22)
+	scroll.add_child(cards)
 
 	var group := ButtonGroup.new()
 	for data: Dictionary in GameState.CHARACTERS:
@@ -106,16 +112,19 @@ func _build() -> void:
 
 
 func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
+	var locked := not GameState.weapon_unlocked(data["id"])
 	var card := Button.new()
 	card.toggle_mode = true
 	card.button_group = group
-	card.custom_minimum_size = Vector2(404, 690)
+	card.custom_minimum_size = Vector2(396, 676)
+	card.disabled = locked
 	# Post-it con los actos superados, como en The Binding of Isaac
 	# Post-it with the acts cleared, like in The Binding of Isaac
 	var note := PixelView.wrap(PostIt.new(data["id"]), 2)
 	note.custom_minimum_size = Vector2(120, 120)
 	note.size = Vector2(120, 120)
-	note.position = Vector2(404 - 118, -14)
+	note.position = Vector2(396 - 118, -14)
+	note.visible = not locked
 	note.z_index = 2
 	card.add_child(note)
 	card.toggled.connect(func(on: bool) -> void: if on: _select(data["id"]))
@@ -133,7 +142,7 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	v.add_theme_constant_override("separation", 6)
 	content.add_child(v)
 
-	v.add_child(UITheme.label(data["tag"], 14, UITheme.GOLD, "caps"))
+	v.add_child(UITheme.label("SELECT_LOCKED" if locked else data["tag"], 14, UITheme.ASH if locked else UITheme.GOLD, "caps"))
 
 	var portrait := DreamerPortrait.new()
 	portrait.character_id = data["id"]
@@ -141,6 +150,17 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	portrait_px.custom_minimum_size = Vector2(0, 230)
 	v.add_child(portrait_px)
 	_portraits[data["id"]] = portrait
+	# Bloqueado: solo la silueta y cómo se consigue / Locked: just the silhouette and how to get it
+	if locked:
+		portrait_px.modulate = Color(0, 0, 0, 0.8)
+		var q := UITheme.label("???", 36, UITheme.ASH, "display")
+		q.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+		v.add_child(q)
+		var hint := UITheme.label("SELECT_UNLOCK_" + str(data["id"]).to_upper(), 20, Color(UITheme.BONE, 0.7), "italic")
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		v.add_child(hint)
+		UITheme.ignore_mouse(content)
+		return card
 
 	var who := UITheme.label("Kroker", 14, UITheme.ASH, "caps")
 	who.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED

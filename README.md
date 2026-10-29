@@ -36,9 +36,9 @@ El mando vibra al recibir golpes; se puede desactivar en *Ajustes → Accesibili
 
 ---
 
-## Los cuatro pijamas
+## Los pijamas
 
-Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma.
+Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza con cuatro; la pistola de dedos se desbloquea al llegar por primera vez al Acto 2 y el oso de peluche al llegar al Acto 3. Los bloqueados salen en silueta en la selección.
 
 ![Selección de personaje](docs/screenshots/seleccion.jpg)
 
@@ -48,6 +48,8 @@ Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma.
 | **El Guardián** | Escudo-almohada | Poco daño, pero empuja mucho en cono | +3 de defensa y 3 de regeneración |
 | **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −10 de suerte y 5 % de robo de salud |
 | **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña | +25 % de velocidad y 5 % de robo de salud |
+| **El Pistolero** | Pistola de dedos | Rayos láser con un efecto al azar: normal, atraviesa, empuja (puede tirarlos por los agujeros), crítico x1,75, rebota hacia otro enemigo... o sale hacia atrás. La suerte hace más probables los buenos | +10 de suerte y 5 % de robo de salud |
+| **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: daño moderado y cada pelusa lo frena (dura 8 s). Si dos enemigos con pelusa se tocan, se quedan pegados y van aún más lentos | +6 de vida máxima y 3 de regeneración |
 
 Cada pijama tiene un **post-it** con los actos que has superado con él (Acto I y Acto II; estrella en normal, luna en pesadilla), al estilo de *The Binding of Isaac*. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
 
@@ -92,14 +94,15 @@ Con menos de la mitad de vida se enfada: ataca más a menudo y lanza más cosas.
 El resto del salón:
 
 - **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**. Una vez la conoces, también aparece tras el sueño 3 del Acto 1.
-- **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes.
+- **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes. Tirar enemigos por los agujeros solo la da a veces (casi nunca durante un jefe), y los precios del kiosco van de 5 a 12 ◆.
+- **En la pausa** se ve lo que has comprado en el kiosco, con cuántos de cada (por ejemplo, *Pila del despertador x2*).
 - **La chimenea:** en algunos sueños está encendida. Quédate delante y podrás echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada.
 
 ![El kiosco de Charo](docs/screenshots/kiosco.jpg)
 
 ### Segunda arma y Acto 3 (provisional, sueños 11–13)
 
-Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate o almohada), eliges una a distancia (libro o aspiradora), y al revés. La segunda arma flota junto a Kroker, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
+Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate, almohada u oso), eliges una a distancia (libro, aspiradora o pistola de dedos), y al revés. Solo salen las que ya tengas desbloqueadas. La segunda arma flota junto a Kroker, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
 
 El Acto 3 es por ahora un escenario **en obras**, pensado para probar las dos armas. La partida termina al acabar el sueño 13.
 
@@ -131,7 +134,7 @@ Son enemigos demoníacos, con cuernos, más grandes y con el triple de vida. El 
 
 ### Plano astral
 
-Entre un sueño y otro aparecen dos de estos personajes. Cada uno da un tipo de mejora que cambia según tu arma y que sube hasta el nivel 3. Al elegir, te quedas a solas con él y te habla.
+Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 de Kroker). Cada uno da un tipo de mejora que cambia según tu arma y que sube hasta el nivel 3. Al elegir, te quedas a solas con él y te habla.
 
 | Personaje | Quién es | Tipo de mejora |
 |---|---|---|
@@ -140,6 +143,7 @@ Entre un sueño y otro aparecen dos de estos personajes. Cada uno da un tipo de 
 | **Silly** | Una hacker | Glitches: congelar, ralentizar o dejar vulnerables a los enemigos |
 | **Doc** | Un doctor | Más vida máxima a cambio de empeorar otra estadística |
 | **Mr. Ad** | Un humanoide cubierto de anuncios de chocolatinas y comida basura | Más Realidad Fragmentada y una estadística que sube cuanta más tengas ahorrada. Se desbloquea al llegar por primera vez al Acto 2 (con un logro) y desde entonces puede salir desde el principio |
+| **El Pinche** | El aprendiz de El Chef, con gorro de papel, cuchillo y soplete | Sangrado (daño residual fuerte) o quemadura (daño residual flojo, pero el enemigo hace menos daño y recibe más), según el arma. Se desbloquea al llegar por primera vez al Acto 3 |
 
 ![Plano astral](docs/screenshots/plano-astral.jpg)
 
@@ -166,9 +170,9 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 ## Más
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
-- **Personajes:** menú con Kroker y sus pijamas, los personajes del plano astral, Mr. Ad y Charo. Cada uno se desbloquea al conocerlo.
+- **Personajes:** menú con Kroker y sus pijamas, los personajes del plano astral (Mr. Ad y El Pinche incluidos) y Charo. Cada uno se desbloquea al conocerlo.
 - **Bestiario:** está en el menú principal y cada entrada está escrita con la voz de Kroker.
-- **Logros:** hay 18 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea y ahorrar 100 de Realidad Fragmentada). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 21 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea y ahorrar 100 de Realidad Fragmentada). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;
@@ -259,10 +263,10 @@ El informe queda en `user://balance_report.json`.
 **Dreamed** is a Brotato-style survival roguelite with Hades-style upgrades, made in Godot 4.7 (tested on 4.7.2), fully playable in **English and Spanish**.
 
 - **Kroker:** a boy with glasses who falls asleep. Every wave is a dream inside the previous one, each stranger than the last.
-- **Weapons:** pick one of four pajamas, each with its own auto-attacking weapon: bat, pillow shield, storybook (lightning from the sky) or vacuum.
+- **Weapons:** pick a pajama, each with its own auto-attacking weapon: bat, pillow shield, storybook (lightning from the sky) or vacuum, plus two you unlock: a finger gun (Act 2; lasers that randomly pierce, push, crit, bounce or backfire) and a teddy bear (Act 3; sticky fluff that slows enemies and glues them together).
 - **Act 1, the bedroom:** Foox, thugs, slingshots and skeletons, then a living-furniture boss.
 - **Act 2, the living room:** mosquito nests, hacking Cyberpunks, a fireplace where you can sacrifice upgrades, *Karen the kiosk lady*, who trades in **Fragmented Reality**, and **The Chef**: a grown-up Kroker who climbs out of the TV throwing knives (bleeding), plates (shards on the floor) and swinging a frying pan (it roots you).
 - **Second weapon:** after The Chef you pick a second weapon of the other kind (melee or ranged). It floats beside Kroker and has its own upgrades; Act 3 is a placeholder stage to try it out.
-- **Upgrades:** between dreams, on the astral plane, Svinho, Stolk, Silly, Doc and Mr. Ad (unlocked in Act 2, all about Fragmented Reality) each offer a different kind of upgrade. Star shards level Kroker up with stat boosts from common to legendary.
-- **Extras:** Nightmare difficulty, a bestiary, 12 achievements, accessibility options, full gamepad support and a God mode for testing.
+- **Upgrades:** between dreams, on the astral plane, Svinho, Stolk, Silly, Doc, Mr. Ad (unlocked in Act 2, all about Fragmented Reality) and the Kitchen Boy (unlocked in Act 3, bleeding and burning) each offer a different kind of upgrade; from Kroker's level 3 three of them show up. Star shards level Kroker up with stat boosts from common to legendary.
+- **Extras:** Nightmare difficulty, a bestiary, 21 achievements, accessibility options, full gamepad support and a God mode for testing.
 - **Running it:** open `project.godot` and press **F5**. All sprites, sounds and the font are generated by the scripts in `tools/`.

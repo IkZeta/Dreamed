@@ -26,6 +26,8 @@ const PAJAMAS := {
 	"shield": {"base": Color("b46e8f"), "pattern": Color("7c4063"), "piping": Color("f6e9ef"), "slippers": Color("6d3a5a"), "print": "plaid"},
 	"book": {"base": Color("2b3d8f"), "pattern": Color("f6d993"), "piping": Color("f6d993"), "slippers": Color("1d2560"), "print": "stars"},
 	"vacuum": {"base": Color("62a9a1"), "pattern": Color("f4f1e6"), "piping": Color("f4f1e6"), "slippers": Color("2f6e69"), "print": "dots"},
+	"finger": {"base": Color("3a2457"), "pattern": Color("ff5f7a"), "piping": Color("7ff5ff"), "slippers": Color("ff5f7a"), "print": "bolts"},
+	"teddy": {"base": Color("b8845e"), "pattern": Color("f4e2c8"), "piping": Color("f4e2c8"), "slippers": Color("6e432c"), "print": "paws"},
 }
 
 ## Color de acento del arma / Weapon accent color
@@ -35,6 +37,8 @@ const ACCENT := {
 	"shield": Color("f6d993"),
 	"book": Color("fff0b8"),
 	"vacuum": Color("b9f0ea"),
+	"finger": Color("ff8fa2"),
+	"teddy": Color("f4e9da"),
 }
 
 static var _ci: CanvasItem
@@ -61,7 +65,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var armed: bool = opts.get("armed", true)
 	var breath := 1.0 + sin(t * 1.8) * 0.008
 	_xf = xf * Transform2D(0.0, Vector2(facing, breath), 0.0, Vector2(100.0 - 100.0 * facing, 288.0 * (1.0 - breath)))
-	var o := outfit if outfit in ["bat", "shield", "book", "vacuum"] else "bat"
+	var o := outfit if PAJAMAS.has(outfit) and outfit != "" else "bat"
 	var mod := Sprites.flash_color(flash)
 
 	# Sombra suave en el suelo / Soft ground shadow
@@ -78,12 +82,15 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 
 	# Ángulos de piernas y brazos / Leg and arm angles
 	var swing := sin(walk) * 0.42 * moving
-	var arm_l := -swing * 0.8 + 2.7 * stretch - 1.25 * (attack if outfit == "shield" else 0.0)
+	var arm_l := -swing * 0.8 + 2.7 * stretch - 1.25 * (attack if outfit in ["shield", "teddy"] else 0.0)
 	var arm_r := swing * 0.8 - 2.7 * stretch
 	if outfit == "bat":
 		arm_r += -0.9 * attack
 	elif outfit == "book":
 		arm_r += -1.2 * cast
+	elif outfit == "finger" and armed:
+		# Apunta con el dedo hacia delante y da un respingo al disparar / Points forward and kicks up when firing
+		arm_r = -1.3 + swing * 0.15 - 0.35 * cast
 	if armed and outfit in ["bat", "vacuum"]:
 		arm_r *= 0.5  # el arma pesa / the weapon is heavy
 	# Kroker es bajito: hombros y caderas más abajo, brazos y piernas cortos
@@ -120,6 +127,10 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 			"shield": _pillow(t, attack, hand_l, mod)
 			"book": _book(t, cast, hand_r, mod)
 			"vacuum": _vacuum_nozzle(t, opts.get("aim", Vector2(1, 0.5)) * Vector2(facing, 1), opts.get("sucking", false), hand_r, mod)
+			"finger":
+				_use(Transform2D.IDENTITY)
+				finger_gun(ci, _xf, hand_r + Vector2(5, 53.3).rotated(arm_r).normalized() * 3.0, Vector2(5, 53.3).rotated(arm_r).normalized(), cast, "weapon_finger", 1.0)
+			"teddy": _teddy(t, attack, hand_l, mod)
 
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
@@ -187,6 +198,33 @@ static func _book(t: float, cast: float, hand: Vector2, mod: Color) -> void:
 			p += Vector2(rng.randf_range(-8, 8), -rng.randf_range(5, 9))
 			pts.append(p)
 		_ci.draw_polyline(pts, Color(ACCENT["book"], 0.85), 1.4, true)
+	_use(Transform2D.IDENTITY)
+
+
+## Mano haciendo la pistola (sprite con la forma que pidió el autor: puño redondeado, pulgar
+## recto hacia arriba e índice apuntando) y un fogonazo en la punta al disparar.
+## "base" es la transformación del lienzo donde se dibuja.
+## Hand making a finger gun (sprite shaped as the author asked: rounded fist, thumb straight up
+## and index finger pointing) and a flash at the tip when firing. "base" is the canvas transform.
+const FINGER_TIP := Vector2(18.5, -3.0)
+
+
+static func finger_gun(ci: CanvasItem, base: Transform2D, hand: Vector2, dir: Vector2, cast: float, sprite := "weapon_finger", scale := 1.0) -> void:
+	var flip := -1.0 if dir.x < 0.0 else 1.0
+	var local := Transform2D(dir.angle(), Vector2(scale, scale * flip), 0.0, hand)
+	ci.draw_set_transform_matrix(base * local)
+	Sprites.draw(ci, sprite)
+	if cast > 0.4:
+		var k := (cast - 0.4) / 0.6
+		ci.draw_circle(FINGER_TIP + Vector2(4, 0), 7.0 * k, Color(ACCENT["finger"], 0.8 * k))
+		ci.draw_circle(FINGER_TIP + Vector2(4, 0), 3.5 * k, Color(1, 1, 1, 0.9 * k))
+	ci.draw_set_transform_matrix(base)
+
+
+## El osito en la mano izquierda; al atacar lo estira hacia delante / The teddy in the left hand; pushed forward to attack
+static func _teddy(t: float, attack: float, hand: Vector2, mod: Color) -> void:
+	_use(Transform2D(-0.1 + sin(t * 1.3) * 0.05 + attack * 0.3, hand + Vector2(-4 + attack * 14.0, -14)))
+	Sprites.draw(_ci, "weapon_teddy", mod)
 	_use(Transform2D.IDENTITY)
 
 

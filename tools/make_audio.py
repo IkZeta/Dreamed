@@ -771,6 +771,33 @@ def sfx_dash():
     return mix(lp(sweep_noise(0.3, 400, 2000, 1.8, 0.4), 4500), stereo(lp(buzz, 2500)))
 
 
+def sfx_laser():
+    # Pistola de dedos: un "piu" suave que baja de tono, sin estridencias / Finger gun: a soft falling "pew", nothing shrill
+    n = int(SR * 0.22)
+    t = np.arange(n) / SR
+    f = 1100 * np.exp(-t * 9) + 380
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    tone = (np.sin(ph) + 0.25 * np.sin(2 * ph)) * np.exp(-t * 14) * 0.35
+    return mix(stereo(lp(tone, 2600)), lp(sweep_noise(0.12, 1500, 600, 2.0, 0.05), 3000))
+
+
+def sfx_fluff():
+    # Pelusa: un soplo blandito y un "pop" de algodón / Fluff: a soft breath and a cottony "pop"
+    return mix(breath(0.22, 300, 1400, 1.0) * env_ar(int(0.22 * SR), 0.01, 0.18), np.pad(bar(midi(79), 0.35, 0.08, "kalimba", 0.2), (int(SR * 0.03), 0)))
+
+
+def giver_pinche():
+    # El Pinche: golpecitos de cuchara de palo, un chisporroteo suave y una melodía alegre
+    # The Kitchen Boy: wooden spoon taps, a soft sizzle and a cheerful tune
+    x = np.zeros((int(SR * 2.4), 2))
+    for i, at in enumerate([0.0, 0.14, 0.28]):
+        place(x, thump(180 + i * 30, 0.12, 0.35, 30), at, -0.3 + i * 0.3, human=False)
+    for i, (n, at) in enumerate([(67, 0.45), (71, 0.6), (74, 0.75), (79, 0.95), (76, 1.2)]):
+        place(x, pluck(midi(n), 1.2, 0.22, 0.45), at, -0.3 + i * 0.15, human=False)
+    sizzle = lp(hp(noise(1.6), 2500), 6000) * env_ar(int(1.6 * SR), 0.3, 0.9) * 0.03
+    return mix(x, np.pad(stereo(sizzle), ((int(SR * 0.4), 0), (0, 0)))[: len(x)])
+
+
 def sfx_plate_break():
     # Plato que se rompe, pero suave: tintineo de porcelana amortiguado / A plate breaking, but soft: muffled porcelain clink
     x = np.zeros((int(SR * 1.2), 2))
@@ -807,7 +834,8 @@ if __name__ == "__main__":
         ("giver_charo", giver_charo, 0.4, 0.3), ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
         ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2), ("giver_ad", giver_ad, 0.4, 0.3),
         ("pan_clang", sfx_pan_clang, 0.45, 0.2), ("knife", sfx_knife, 0.3, 0.15), ("hack", sfx_hack, 0.3, 0.2),
-        ("dash", sfx_dash, 0.35, 0.1),
+        ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("fluff", sfx_fluff, 0.3, 0.12),
+        ("giver_pinche", giver_pinche, 0.4, 0.3),
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)

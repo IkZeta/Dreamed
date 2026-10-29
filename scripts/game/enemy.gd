@@ -49,6 +49,32 @@ var bounce_damage := 0.0
 var bounce_chain := 0
 var _bounced: Array = []
 
+## --- Pelusa del oso de peluche / Teddy bear fluff ---------------------------------
+## Cada pelusa pegada frena un poco y se cae a los 8 s. Si dos enemigos con pelusa se tocan,
+## se quedan pegados y van aún más lentos.
+## Each fluff stuck on slows a bit and falls off after 8 s. If two fluffy enemies touch,
+## they get stuck together and go even slower.
+const FLUFF_TIME := 8.0
+const FLUFF_SLOW := 0.12        # por pelusa / per fluff
+const FLUFF_MAX_SLOW := 0.6
+const STUCK_SLOW := 0.5         # pegados: la mitad de lo que les quede / stuck: half of what's left
+var fluffs: Array[float] = []   # segundos que le quedan a cada pelusa / seconds left on each fluff
+var fluff_time := FLUFF_TIME
+var stuck_to: Enemy = null
+var stuck_bonus := 0.0          # Silly: daño extra mientras está pegado / Silly: extra damage while stuck
+
+## --- Sangrado y quemadura (El Pinche) / Bleeding and burning (The Kitchen Boy) ------------
+## Sangrado: daño residual fuerte. Quemadura: daño residual flojo, pero hace menos daño y
+## recibe más (le baja el ataque y la defensa).
+## Bleed: strong damage over time. Burn: weak damage over time, but it deals less damage and
+## takes more (lowers its attack and defence).
+var bleed_t := 0.0
+var bleed_dps := 0.0
+var burn_t := 0.0
+var burn_dps := 0.0
+var burn_pct := 0.0
+var _dot_tick := 0.0
+
 var _fall_t := -1.0          # cayendo por un agujero / falling down a hole
 var _fall_from := Vector2.ZERO
 var _fall_to := Vector2.ZERO
@@ -102,6 +128,9 @@ func _physics_process(delta: float) -> void:
 	vuln_t = maxf(0.0, vuln_t - delta)
 	glitch_t = maxf(0.0, glitch_t - delta)
 	bounce_t = maxf(0.0, bounce_t - delta)
+	if state == State.ALIVE:
+		_update_fluff(delta)
+		_update_dots(delta)
 	match state:
 		State.SPAWNING:
 			_fade = minf(1.0, _fade + delta / 0.6)
@@ -152,7 +181,7 @@ func is_dangerous() -> bool:
 func _move(delta: float) -> void:
 	var vel := Vector2.ZERO
 	if stun_t <= 0.0:
-		vel = _desired_velocity() * (0.5 if slow_t > 0.0 else 1.0)
+		vel = _desired_velocity() * (0.5 if slow_t > 0.0 else 1.0) * fluff_speed_mult()
 	# Se separa de los demás enemigos / Keeps apart from other enemies
 	for other: Node2D in run.enemies.get_children():
 		if other == self:
@@ -163,6 +192,12 @@ func _move(delta: float) -> void:
 		if dist > 0.01 and dist < min_d:
 			vel += d / dist * (min_d - dist) * 6.0
 	vel += knock + external_pull
+	# Pegado a otro por la pelusa: tiran el uno del otro / Stuck to another by fluff: they pull on each other
+	if stuck_to != null and is_instance_valid(stuck_to):
+		var gap := stuck_to.global_position - global_position
+		var want := radius + stuck_to.radius
+		if gap.length() > want:
+			vel += gap.normalized() * (gap.length() - want) * 8.0
 	position += vel * delta
 	# Empujado hacia un agujero: se cae y desaparece / Shoved into a hole: it falls in and is gone
 	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0):
@@ -207,7 +242,9 @@ func _start_fall(to: Vector2) -> void:
 	_death_sound()
 	run.on_enemy_killed(self)
 	# Tirar enemigos por los agujeros da Realidad Fragmentada / Throwing enemies down holes gives Fragmented Reality
-	run.gain_reality(GameState.REALITY_FALL, _fall_from)
+	var chance := GameState.FALL_REALITY_CHANCE_BOSS if run.boss_wave() else GameState.FALL_REALITY_CHANCE
+	if randf() < chance:
+		run.gain_reality(GameState.REALITY_FALL, _fall_from)
 
 
 func _update_fall(delta: float) -> void:
@@ -248,7 +285,112 @@ func start_bounce(damage: float, chain: int, ignore: Array = []) -> void:
 func _touch_player() -> void:
 	var player: Node2D = run.player
 	if global_position.distance_to(player.global_position + Vector2(0, -28)) < radius + 22.0:
-		player.take_damage(contact_damage)
+		player.take_damage(contact_damage * atk_mult())
+
+
+## Lo que la quemadura le deja de daño (1 = todo) / What burning leaves of its damage (1 = all of it)
+func atk_mult() -> float:
+	return 1.0 - burn_pct / 100.0 if burn_t > 0.0 else 1.0
+
+
+# --- Pelusa / Fluff ---------------------------------------------------------------------
+
+func add_fluff(n := 1, secs := FLUFF_TIME) -> void:
+	for i in n:
+		fluffs.append(secs)
+
+
+func fluff_speed_mult() -> float:
+	if fluffs.is_empty():
+		return 1.0
+	var k := 1.0 - minf(FLUFF_MAX_SLOW, FLUFF_SLOW * fluffs.size())
+	if stuck_to != null:
+		k *= STUCK_SLOW
+	return k
+
+
+func _update_fluff(delta: float) -> void:
+	if fluffs.is_empty():
+		_unstick()
+		return
+	for i in range(fluffs.size() - 1, -1, -1):
+		fluffs[i] -= delta
+		if fluffs[i] <= 0.0:
+			fluffs.remove_at(i)
+	if fluffs.is_empty():
+		_unstick()
+		return
+	if stuck_to != null and (not is_instance_valid(stuck_to) or not stuck_to.is_targetable() or stuck_to.fluffs.is_empty()):
+		_unstick()
+	# Dos enemigos con pelusa que se tocan se quedan pegados / Two fluffy enemies that touch get stuck together
+	if stuck_to == null and not is_boss():
+		for other: Node in run.enemies.get_children():
+			if other == self or not other is Enemy:
+				continue
+			var o := other as Enemy
+			if o.stuck_to != null or o.fluffs.is_empty() or o.is_boss() or not o.is_targetable():
+				continue
+			if global_position.distance_to(o.global_position) < radius + o.radius + 6.0:
+				stuck_to = o
+				o.stuck_to = self
+				Audio.play("fluff", -8.0, 0.15)
+				run.fx.ring((global_position + o.global_position) / 2.0 + Vector2(0, -20), 22.0, Color("f4e9da"), 0.4, 2.0)
+				break
+
+
+func _unstick() -> void:
+	if stuck_to != null and is_instance_valid(stuck_to) and stuck_to.stuck_to == self:
+		stuck_to.stuck_to = null
+	stuck_to = null
+
+
+# --- Sangrado y quemadura / Bleeding and burning -----------------------------------------
+
+func bleed(dps: float, secs: float) -> void:
+	bleed_dps = maxf(bleed_dps if bleed_t > 0.0 else 0.0, dps)
+	bleed_t = maxf(bleed_t, secs)
+
+
+func burn(dps: float, secs: float, pct: float) -> void:
+	burn_dps = maxf(burn_dps if burn_t > 0.0 else 0.0, dps)
+	burn_pct = maxf(burn_pct if burn_t > 0.0 else 0.0, pct)
+	burn_t = maxf(burn_t, secs)
+
+
+## El daño residual entra cada medio segundo / Damage over time ticks every half second
+func _update_dots(delta: float) -> void:
+	bleed_t = maxf(0.0, bleed_t - delta)
+	burn_t = maxf(0.0, burn_t - delta)
+	if bleed_t <= 0.0 and burn_t <= 0.0:
+		_dot_tick = 0.0
+		return
+	_dot_tick += delta
+	if _dot_tick < 0.5:
+		return
+	_dot_tick -= 0.5
+	var dmg := 0.0
+	if bleed_t > 0.0:
+		dmg += bleed_dps * 0.5
+		if randf() < 0.6:
+			run.fx.ring(aim_point() + Vector2(randf_range(-8, 8), 10), 5.0, Color("d8344a"), 0.35, 1.5)
+	if burn_t > 0.0:
+		dmg += burn_dps * 0.5
+		run.fx.ring(aim_point() + Vector2(randf_range(-10, 10), -10), 7.0, Color("ff9a3a"), 0.35, 1.5)
+	if dmg > 0.0:
+		_dot_hit(dmg)
+
+
+## Daño residual: no empuja ni hace sonido de golpe / Damage over time: no knockback or hit sound
+func _dot_hit(amount: float) -> void:
+	if state == State.DYING:
+		return
+	hp -= amount
+	_flash = maxf(_flash, 0.4)
+	if Settings.damage_numbers:
+		run.fx.text(global_position + Vector2(randf_range(-14, 14), -aim_height - 30), str(snappedf(amount, 0.1)),
+			Color("ff7a5a") if burn_t > 0.0 and bleed_t <= 0.0 else Color("ff5a6e"), 16)
+	if hp <= 0.0:
+		die(true)
 
 
 func is_targetable() -> bool:
@@ -269,6 +411,12 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 		return
 	if vuln_t > 0.0:
 		amount *= vuln_mult
+	# La quemadura le baja la defensa; pegado con el virus de Silly recibe más
+	# Burning lowers its defence; stuck with Silly's virus it takes more
+	if burn_t > 0.0:
+		amount *= 1.0 + burn_pct / 100.0
+	if stuck_to != null and stuck_bonus > 0.0:
+		amount *= 1.0 + stuck_bonus / 100.0
 	hp -= amount
 	knock += impulse / mass
 	_flash = 1.0
@@ -294,6 +442,7 @@ func glitch(stun := 0.0, slow := 0.0, vulnerable := 0.0, mult := 1.5) -> void:
 func die(counted: bool) -> void:
 	if state == State.DYING:
 		return
+	_unstick()
 	state = State.DYING
 	_fade = 1.0
 	run.fx.dissipate(aim_point(), Color("dfe3f0"))
@@ -329,6 +478,7 @@ func _draw() -> void:
 		for i in 3:
 			var y := randf_range(-aim_height * 2.5, 6)
 			draw_rect(Rect2(randf_range(-40, 10), y, randf_range(20, 50), 3), Color([GLITCH_A, GLITCH_B, Color.WHITE][i], 0.5 * a))
+	_draw_statuses(bob, a)
 	if stun_t > 0.0:
 		for i in 3:
 			var ang := _t * 4.0 + i * TAU / 3.0
@@ -358,3 +508,38 @@ func _draw_horns(top: Vector2, a: float) -> void:
 ## Draws the body. "tint" is white normally and pink/cyan for the glitch copies.
 func _draw_body(_offset: Vector2, _tint: Color, _alpha: float) -> void:
 	pass
+
+
+## Pelusas pegadas, el hilo que une a los pegados, gotas de sangre y llamitas
+## Stuck-on fluffs, the strand joining stuck enemies, drops of blood and little flames
+func _draw_statuses(bob: float, a: float) -> void:
+	if state != State.ALIVE:
+		return
+	var body_h := aim_height * 2.0
+	for i in fluffs.size():
+		var ang := float(i) * 2.4 + _phase
+		var p := Vector2(cos(ang) * radius * 0.7, -body_h * (0.25 + 0.5 * fmod(float(i) * 0.37 + 0.2, 1.0)) + bob)
+		var fade := clampf(fluffs[i] / 1.0, 0.0, 1.0)
+		var col := Color("f4e9da", 0.9 * a * fade)
+		for k in 4:
+			draw_circle(p + Vector2(cos(k * 1.7 + _t) * 4.0, sin(k * 2.3) * 3.0), 4.5, col)
+		draw_circle(p + Vector2(-2, -2), 2.0, Color(1, 1, 1, 0.8 * a * fade))
+	if stuck_to != null and is_instance_valid(stuck_to) and get_instance_id() < stuck_to.get_instance_id():
+		var to := stuck_to.global_position - global_position + Vector2(0, -stuck_to.aim_height)
+		var from := Vector2(0, -aim_height)
+		var pts := PackedVector2Array()
+		for k in 9:
+			var u := k / 8.0
+			pts.append(from.lerp(to, u) + Vector2(0, sin(u * PI) * 10.0 + sin(_t * 6.0 + u * 8.0) * 2.0))
+		draw_polyline(pts, Color("f4e9da", 0.85 * a), 5.0)
+		draw_polyline(pts, Color(1, 1, 1, 0.6 * a), 1.5)
+	if bleed_t > 0.0:
+		for k in 2:
+			var u := fposmod(_t * 1.3 + k * 0.5, 1.0)
+			draw_circle(Vector2(-8 + k * 16, -body_h * 0.4 + u * body_h * 0.4 + bob), 2.5 * (1.0 - u * 0.5), Color("d8344a", 0.9 * a * (1.0 - u)))
+	if burn_t > 0.0:
+		for k in 3:
+			var u := fposmod(_t * 1.8 + k * 0.33, 1.0)
+			var p := Vector2(-14 + k * 14 + sin(_t * 7.0 + k) * 3.0, -body_h * 0.2 - u * body_h * 0.7 + bob)
+			draw_circle(p, 5.0 * (1.0 - u), Color("ff9a3a", 0.8 * a * (1.0 - u)))
+			draw_circle(p, 2.5 * (1.0 - u), Color("ffe08a", 0.9 * a * (1.0 - u)))

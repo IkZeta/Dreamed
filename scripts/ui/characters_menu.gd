@@ -6,9 +6,9 @@ extends Control
 
 signal closed
 
-const IDS: Array[String] = ["kroker", "svinho", "stolk", "silly", "doc", "ad", "charo"]
+const IDS: Array[String] = ["kroker", "svinho", "stolk", "silly", "doc", "ad", "pinche", "charo"]
 const AURA := {"kroker": Color("f6d993"), "svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"),
-	"doc": Color("ffe3a3"), "ad": Color("ffb04a"), "charo": Color("7fe0d0")}
+	"doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "charo": Color("7fe0d0")}
 
 var _list: VBoxContainer
 var _preview_holder: Control
@@ -115,6 +115,8 @@ static func met(id: String) -> bool:
 		return true
 	if id == "ad" and Progress.has_achieved("mr_ad"):
 		return true
+	if id == "pinche" and Progress.has_achieved("pinche"):
+		return true
 	return Progress.stats.has("met_" + id)
 
 
@@ -174,7 +176,7 @@ func _close() -> void:
 
 ## Dibujo animado del personaje; Kroker va cambiando de pijama / Animated drawing of the character; Kroker cycles pajamas
 class CharacterPreview extends Control:
-	const OUTFITS: Array[String] = ["bat", "shield", "book", "vacuum"]
+	const OUTFITS: Array[String] = ["bat", "shield", "book", "vacuum", "finger", "teddy"]
 	var id := "kroker"
 	var hidden_shape := false
 	var aura := Color.WHITE
@@ -197,7 +199,12 @@ class CharacterPreview extends Control:
 			modulate = Color(0, 0, 0, 0.75)
 		var xf := Transform2D(0.0, Vector2(s, s), 0.0, origin)
 		if id == "kroker":
-			var outfit := OUTFITS[int(_t / 2.5) % OUTFITS.size()]
+			# Solo los pijamas desbloqueados / Only the unlocked pajamas
+			var outfits: Array[String] = []
+			for o in OUTFITS:
+				if GameState.weapon_unlocked(o):
+					outfits.append(o)
+			var outfit := outfits[int(_t / 2.5) % outfits.size()]
 			KrokerArt.draw(self, xf, outfit, _t, {"lean": sin(_t * 0.9) * 0.04})
 		else:
 			NpcArt.draw(self, xf, id, _t)
