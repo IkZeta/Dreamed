@@ -73,62 +73,54 @@ func _death_sound() -> void:
 
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
-	var bone := BONE.lerp(Color.WHITE, _flash) * tint
-	var shade := BONE_SHADE * tint
+	var mod := Sprites.flash_color(_flash, a) * tint
 	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
 	draw_colored_polygon(_ellipse(Vector2(0, 0), Vector2(24, 7)), Color(0.05, 0.02, 0.15, 0.4 * a))
 	if _rise <= 0.02:
-		_draw_pile(bone, shade, a)
+		_draw_pile(mod, a)
 		return
 	# Se levanta desde el suelo / Rises from the ground
-	draw_set_transform(offset + Vector2(0, (1.0 - _rise) * 40.0), (1.0 - _rise) * 0.6, Vector2(_facing, _rise))
+	var base := Transform2D((1.0 - _rise) * 0.6, Vector2(_facing, _rise), 0.0, offset + Vector2(0, (1.0 - _rise) * 40.0))
+	draw_set_transform_matrix(base)
 	var walk := sin(_t * 10.0 + _phase)
 	# Piernas / Legs
 	for side in [-1.0, 1.0]:
 		var hip := Vector2(side * 7, -40)
 		var knee := hip + Vector2(side * 2 + walk * side * 5, 18)
-		draw_line(hip, knee, Color(bone, a), 4.0, true)
-		draw_line(knee, knee + Vector2(0, 20), Color(bone, a), 4.0, true)
-		draw_line(knee + Vector2(0, 20), knee + Vector2(8, 22), Color(bone, a), 4.0, true)
-	# Pelvis y columna / Pelvis and spine
-	draw_colored_polygon(PackedVector2Array([Vector2(-12, -46), Vector2(12, -46), Vector2(8, -38), Vector2(-8, -38)]), Color(bone, a))
-	draw_line(Vector2(0, -46), Vector2(0, -82), Color(shade, a), 4.0)
-	# Costillas / Ribs
-	for i in 4:
-		var y := -78.0 + i * 8.0
-		draw_arc(Vector2(0, y), 13.0 - i * 1.5, PI * 0.15, PI * 0.85, 10, Color(bone, a), 3.0, true)
-		draw_arc(Vector2(0, y), 13.0 - i * 1.5, PI * 1.15, PI * 1.85, 10, Color(bone, a), 3.0, true)
+		_bone(base, hip, knee, mod)
+		_bone(base, knee, knee + Vector2(0, 20), mod)
+		_bone(base, knee + Vector2(0, 20), knee + Vector2(8, 22), mod)
+	draw_set_transform_matrix(base)
+	Sprites.draw(self, "skel_pelvis", mod)
+	Sprites.draw(self, "skel_ribs", mod)
 	# Brazos estirados hacia delante / Arms reaching forward
 	for side in [-1.0, 1.0]:
 		var sh := Vector2(side * 12, -80)
 		var el := sh + Vector2(14, 10 + side * 4)
-		draw_line(sh, el, Color(bone, a), 3.5, true)
-		draw_line(el, el + Vector2(16, -2 + walk * 3.0), Color(bone, a), 3.5, true)
-	# Calavera / Skull
-	draw_colored_polygon(_ellipse(Vector2(2, -98), Vector2(15, 14)), Color(bone, a))
-	draw_rect(Rect2(-6, -88, 16, 8), Color(bone, a))
+		_bone(base, sh, el, mod)
+		_bone(base, el, el + Vector2(16, -2 + walk * 3.0), mod)
+	draw_set_transform_matrix(base)
+	Sprites.draw(self, "skel_skull", mod)
 	for x in [-3.0, 8.0]:
-		draw_circle(Vector2(x, -98), 4.5, Color(0.08, 0.05, 0.15, a))
-		draw_circle(Vector2(x, -98), 2.0, Color(EYES, a))
-	for i in 3:
-		draw_line(Vector2(-3 + i * 5, -88), Vector2(-3 + i * 5, -82), Color(0.08, 0.05, 0.15, a), 1.5)
+		draw_rect(Rect2(x - 1.5, -99.5, 3, 3), Color(EYES, a))
 
 
-func _draw_pile(bone: Color, shade: Color, a: float) -> void:
+## Un hueso de p1 a p2 (el sprite mide 20) / A bone from p1 to p2 (the sprite is 20 long)
+func _bone(base: Transform2D, p1: Vector2, p2: Vector2, mod: Color) -> void:
+	var d := p2 - p1
+	draw_set_transform_matrix(base * Transform2D(d.angle(), Vector2(d.length() / 20.0, 1.0), 0.0, p1))
+	Sprites.draw(self, "skel_bone", mod)
+
+
+func _draw_pile(mod: Color, a: float) -> void:
 	# Montón de huesos que tiembla cuando está a punto de levantarse
 	# A pile of bones that shakes when it's about to rise again
 	var shake := Vector2(randf_range(-2, 2), 0) * (1.0 - clampf(_revive_t / 1.5, 0.0, 1.0))
 	draw_set_transform(shake, 0.0, Vector2.ONE)
-	for i in 6:
-		var ang := i * 1.1 + _phase
-		var c := Vector2(cos(ang) * 14.0, -4 + sin(ang) * 4.0)
-		draw_line(c - Vector2.from_angle(ang * 2.0) * 10.0, c + Vector2.from_angle(ang * 2.0) * 10.0, Color(bone if i % 2 else shade, a), 4.0, true)
-	draw_colored_polygon(_ellipse(Vector2(4, -12), Vector2(11, 10)), Color(bone, a))
-	draw_circle(Vector2(1, -12), 3.0, Color(0.08, 0.05, 0.15, a))
-	draw_circle(Vector2(8, -12), 3.0, Color(0.08, 0.05, 0.15, a))
+	Sprites.draw(self, "skel_pile", mod)
 	# Cuenta atrás: un anillo que se cierra / Countdown: a ring that closes
 	var k := clampf(_revive_t / REVIVE_TIME, 0.0, 1.0)
-	draw_arc(Vector2(0, -10), 24.0, -PI / 2.0, -PI / 2.0 + TAU * k, 24, Color(EYES, 0.7 * a), 2.0, true)
+	draw_arc(Vector2(0, -10), 24.0, -PI / 2.0, -PI / 2.0 + TAU * k, 24, Color(EYES, 0.7 * a), 2.0)
 
 
 func _ellipse(c: Vector2, r: Vector2, n := 18) -> PackedVector2Array:

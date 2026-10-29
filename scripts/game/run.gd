@@ -16,6 +16,10 @@ var enemies: Node2D
 var fx: FX
 var hud: HUD
 var room: Bedroom
+## Mundo de la partida, dibujado a 960 x 540 y ampliado x2 sin suavizar (pixel art).
+## The run's world, drawn at 960 x 540 and scaled up x2 without smoothing (pixel art).
+var world: Node2D
+const PIXEL_SHRINK := 2
 
 var _wave: Dictionary
 var _time_left := 0.0
@@ -36,10 +40,29 @@ func _ready() -> void:
 	Audio.play_music("music_dream1", 2.5)
 	_time_left = float(_wave.get("duration", 0.0))
 
+	# Pantalla pequeña donde vive el mundo / Small screen where the world lives
+	var screen := CanvasLayer.new()
+	screen.layer = 0
+	add_child(screen)
+	var holder := SubViewportContainer.new()
+	holder.stretch = true
+	holder.stretch_shrink = PIXEL_SHRINK
+	holder.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	screen.add_child(holder)
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var vp := SubViewport.new()
+	vp.snap_2d_transforms_to_pixel = true
+	vp.snap_2d_vertices_to_pixel = true
+	vp.msaa_2d = Viewport.MSAA_DISABLED
+	holder.add_child(vp)
+	world = Node2D.new()
+	vp.add_child(world)
+
 	# El cielo del sueño rodea la habitación / The dream sky surrounds the room
 	var back := CanvasLayer.new()
 	back.layer = -1
-	add_child(back)
+	world.add_child(back)
 	var sky := DreamBackground.new()
 	sky.show_halo = false  # la luna ya se ve por la ventana / the moon is already in the window
 	back.add_child(sky)
@@ -54,17 +77,18 @@ func _ready() -> void:
 		room.bed_state = "empty"
 		room.glasses_on_stand = false
 		room.weapon_taken = true
-	add_child(room)
+	world.add_child(room)
 
 	_camera = Camera2D.new()
 	_camera.position = Vector2(960, 540)
-	add_child(_camera)
+	_camera.zoom = Vector2.ONE / PIXEL_SHRINK
+	world.add_child(_camera)
 	_camera.make_current()
 
 	# Actores ordenados por altura / Actors sorted by height
 	var actors := Node2D.new()
 	actors.y_sort_enabled = true
-	add_child(actors)
+	world.add_child(actors)
 	enemies = Node2D.new()
 	enemies.y_sort_enabled = true
 	actors.add_child(enemies)
@@ -75,7 +99,7 @@ func _ready() -> void:
 	player.setup(self, GameState.selected_character)
 
 	fx = FX.new()
-	add_child(fx)
+	world.add_child(fx)
 
 	hud = HUD.new()
 	add_child(hud)
@@ -415,7 +439,7 @@ func drop_shards(pos: Vector2, n: int) -> void:
 		s.run = self
 		s.position = clamp_to_arena(pos + Vector2(randf_range(-8, 8), randf_range(-6, 6)), 10.0)
 		s.add_to_group("shards")
-		add_child(s)
+		world.add_child(s)
 
 
 func collect_shards(n: int) -> void:

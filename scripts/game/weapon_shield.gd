@@ -49,7 +49,7 @@ func charge_bars() -> Array:
 
 ## El anillo sale junto a la almohada (mano izquierda) / The ring sits by the pillow (left hand)
 func charge_anchor() -> Vector2:
-	return Vector2(-40.0 * player._facing, -84.0)
+	return Vector2(-38.0 * player._facing, -68.0)
 
 
 func attack() -> bool:
@@ -92,7 +92,7 @@ func _throw() -> bool:
 	p.slow = uv("silly", "secs")
 	p.target = target
 	p.position = origin()
-	run.add_child(p)
+	run.world.add_child(p)
 	_projectile = p
 	player.armed = false
 	p.tree_exited.connect(func() -> void: player.armed = true)

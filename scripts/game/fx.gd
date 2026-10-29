@@ -13,6 +13,9 @@ func _ready() -> void:
 
 
 func text(pos: Vector2, value: String, color := UITheme.BONE, size := 22) -> void:
+	# El mundo se ve a la mitad (pixel art): los textos van un poco más grandes para leerse
+	# The world is shown at half size (pixel art): texts are a bit bigger to stay readable
+	size = int(size * 1.35)
 	_items.append({"kind": "text", "pos": pos, "text": value, "color": color, "size": size,
 		"life": 0.8, "max": 0.8, "vel": Vector2(randf_range(-20, 20), -70)})
 

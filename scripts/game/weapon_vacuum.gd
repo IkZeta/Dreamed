@@ -94,12 +94,12 @@ func charge_bars() -> Array:
 
 ## El anillo del chut sale en la propia boquilla / The volley ring sits on the nozzle itself
 func charge_anchor() -> Vector2:
-	var hand := Vector2(16.5 * player._facing, -55.0)
+	var hand := Vector2(16.5 * player._facing, -40.0)
 	return hand + player.aim.normalized() * 44.0 + Vector2(0, -14)
 
 
 func _nozzle_base() -> Vector2:
-	return player.global_position + Vector2(0, -62)
+	return player.global_position + Vector2(0, -48)
 
 
 func _draw() -> void:
@@ -107,7 +107,7 @@ func _draw() -> void:
 		return
 	# Cono de succión con corrientes que viajan hacia la boquilla
 	# Suction cone with currents travelling toward the nozzle
-	var c := Vector2(0, -62)
+	var c := Vector2(0, -48)
 	var col: Color = KrokerArt.ACCENT["vacuum"]
 	var a := _dir.angle()
 	var pts := PackedVector2Array([c])

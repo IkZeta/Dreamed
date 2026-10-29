@@ -26,7 +26,7 @@ func charge_bars() -> Array:
 ## Dónde se dibuja el anillo de carga, relativo a Kroker (ya girado según hacia dónde mira).
 ## Where the charge ring is drawn, relative to Kroker (already flipped by facing).
 func charge_anchor() -> Vector2:
-	return Vector2(34.0 * player._facing, -66.0)
+	return Vector2(30.0 * player._facing, -56.0)
 
 
 ## Estadísticas de nivel de Kroker que afectan al arma / Kroker's level stats that affect the weapon
@@ -45,7 +45,7 @@ func attack() -> bool:
 
 ## Centro del cuerpo de Kroker (no los pies). / Kroker's body center (not his feet).
 func origin() -> Vector2:
-	return player.global_position + Vector2(0, -80)
+	return player.global_position + Vector2(0, -62)
 
 
 func nearest(max_range: float, from := Vector2.INF, exclude: Array = []) -> Node2D:

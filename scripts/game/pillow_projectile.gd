@@ -31,7 +31,7 @@ func _physics_process(delta: float) -> void:
 		if not _returning:
 			_next_target()
 		if _returning:
-			goal = player.global_position + Vector2(0, -80)
+			goal = player.global_position + Vector2(0, -62)
 			if global_position.distance_to(goal) < 30.0:
 				queue_free()
 				return

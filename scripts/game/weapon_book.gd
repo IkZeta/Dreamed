@@ -71,4 +71,4 @@ func _jagged(a: Vector2, b: Vector2) -> PackedVector2Array:
 
 ## El anillo sale junto al libro / The ring sits by the book
 func charge_anchor() -> Vector2:
-	return Vector2(46.0 * player._facing, -90.0)
+	return Vector2(40.0 * player._facing, -72.0)

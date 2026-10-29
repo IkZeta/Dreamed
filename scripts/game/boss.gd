@@ -310,7 +310,7 @@ func _throw_books(n: int) -> void:
 		shot.damage = 3.0
 		shot.position = from
 		shot.velocity = dir.rotated((i - (n - 1) / 2.0) * 0.22) * 470.0
-		run.add_child(shot)
+		run.world.add_child(shot)
 	Audio.play("throw", -3.0, 0.1)
 
 

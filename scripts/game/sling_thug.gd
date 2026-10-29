@@ -75,37 +75,31 @@ func _fire() -> void:
 	shot.position = from
 	shot.velocity = (run.player.global_position + Vector2(0, -60) - from).normalized() * 420.0
 	shot.damage = SHOT_DAMAGE
-	run.add_child(shot)
+	run.world.add_child(shot)
 	Audio.play("shoot", -8.0, 0.1)
 
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
-	var jacket := JACKET.lerp(Color.WHITE, _flash * 0.6) * tint
-	var dark := JACKET_DARK.lerp(Color.WHITE, _flash * 0.6) * tint
+	var mod := Sprites.flash_color(_flash * 0.6, a) * tint
 	var skin := SKIN.lerp(Color.WHITE, _flash * 0.6) * tint
 	draw_colored_polygon(_ellipse(Vector2(0, 0), Vector2(24, 7)), Color(0.05, 0.02, 0.15, 0.4 * a))
 	for x in [-8.0, 8.0]:
-		draw_colored_polygon(PackedVector2Array([Vector2(x - 6, -40), Vector2(x + 6, -40), Vector2(x + 5, -6), Vector2(x - 5, -6)]), Color(dark, a))
-		draw_circle(Vector2(x, -5 + sin(_t * 6.0 + x) * 2.0), 5.0, Color(dark, a * 0.6))
-	draw_colored_polygon(PackedVector2Array([Vector2(-18, -82), Vector2(18, -82), Vector2(22, -40), Vector2(-22, -40)]), Color(jacket, a))
-	draw_line(Vector2(0, -82), Vector2(0, -42), Color(dark, a), 2.0)
-	# Cabeza con gorra hacia atrás / Head with a backwards cap
-	draw_colored_polygon(_ellipse(Vector2(0, -98), Vector2(15, 16)), Color(skin * Color(0.6, 0.55, 0.7), a))
-	draw_colored_polygon(PackedVector2Array([Vector2(-16, -104), Vector2(-12, -114), Vector2(12, -114), Vector2(16, -104)]), Color(CAP * tint, a))
-	draw_colored_polygon(PackedVector2Array([Vector2(-16, -106), Vector2(-28, -102), Vector2(-16, -101)]), Color(CAP.darkened(0.3) * tint, a))
-	draw_circle(Vector2(6, -98), 2.5, Color(EYES, a))
-	draw_circle(Vector2(-4, -98), 2.5, Color(EYES, a))
+		Sprites.draw(self, "sling_leg", mod, Vector2(x, sin(_t * 6.0 + x) * 1.5))
+	Sprites.draw(self, "sling_body", mod)
+	Sprites.draw(self, "sling_head", mod)
+	draw_rect(Rect2(5, -99, 3, 3), Color(EYES, a))
+	draw_rect(Rect2(-5, -99, 3, 3), Color(EYES, a))
 	# Tirachinas: la goma se tensa antes de disparar / Slingshot: the band stretches before firing
 	var hand := Vector2(26, -66)
 	draw_line(Vector2(14, -74), hand, Color(skin, a), 6.0)
 	draw_line(hand, hand + Vector2(4, -16), Color("8a5a3a") * tint, 3.0)
 	draw_line(hand, hand + Vector2(12, -12), Color("8a5a3a") * tint, 3.0)
 	var pull := Vector2(-14, 4) * _aiming
-	draw_polyline(PackedVector2Array([hand + Vector2(4, -16), hand + Vector2(4, -10) + pull, hand + Vector2(12, -12)]), Color("e0cfa8") * tint, 1.5, true)
+	draw_polyline(PackedVector2Array([hand + Vector2(4, -16), hand + Vector2(4, -10) + pull, hand + Vector2(12, -12)]), Color("e0cfa8") * tint, 2.0)
 	if _aiming > 0.0:
 		draw_circle(hand + Vector2(4, -10) + pull, 4.0, Color("cfc6e8", a))
-		draw_arc(hand + Vector2(4, -10), 16.0 * (1.0 - _aiming) + 6.0, 0, TAU, 16, Color(EYES, 0.6 * _aiming * a), 1.5, true)
+		draw_arc(hand + Vector2(4, -10), 16.0 * (1.0 - _aiming) + 6.0, 0, TAU, 16, Color(EYES, 0.6 * _aiming * a), 2.0)
 
 
 func _ellipse(c: Vector2, r: Vector2, n := 18) -> PackedVector2Array:
