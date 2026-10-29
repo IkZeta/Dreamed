@@ -28,7 +28,9 @@ func _ready() -> void:
 	add_child(center)
 	center.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(1400, 820)
+	panel.custom_minimum_size = Vector2(1780, 1020)
+	panel.size_flags_horizontal = SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = SIZE_SHRINK_CENTER
 	center.add_child(panel)
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 18)
@@ -56,8 +58,12 @@ func _ready() -> void:
 	# Texto con colores (la entrada del élite explica cada color) / Coloured text (the elite entry explains each colour)
 	_desc = RichTextLabel.new()
 	_desc.bbcode_enabled = true
-	_desc.fit_content = true
+	# Tamaño fijo: el panel no cambia de tamaño al pasar de una entrada a otra
+	# Fixed size: the panel doesn't resize when moving between entries
+	_desc.fit_content = false
 	_desc.scroll_active = false
+	_desc.clip_contents = true
+	_desc.size_flags_vertical = SIZE_EXPAND_FILL
 	_desc.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	_desc.add_theme_font_override("normal_font", UITheme.font("body"))
 	_desc.add_theme_font_size_override("normal_font_size", UITheme.pixel_size(24))
