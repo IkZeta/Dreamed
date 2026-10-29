@@ -23,7 +23,8 @@ RECTS = os.path.join(ROOT, "scripts", "visual", "sprite_rects.gd")
 ## Pixel art: the game is seen at 960 x 540 (half of 1920 x 1080). One art pixel is one
 ## pixel of that small screen. Kroker is drawn at 0.55 of his canvas, enemies at 1.
 PX_KROKER = 0.5 / 2.0     # Kroker se dibuja a 0,5 / Kroker is drawn at 0.5
-PX_NPC = 0.42             # personajes del plano astral, que se ven grandes / astral characters, shown large
+PX_NPC = 0.42
+PX_ROOM = 0.72 / 2.0      # la habitación se dibuja a 0,72 y luego a la mitad / the room is drawn at 0.72, then halved             # personajes del plano astral, que se ven grandes / astral characters, shown large
 PX_ENEMY = 1.0 / 2.0
 SUPER = 8          # se dibuja 8 veces más grande y luego se reduce / drawn 8x larger, then reduced
 
@@ -721,6 +722,267 @@ def npcs():
     add("npc_doc", 48, 28, 104, 264, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a2238", 1))
 
 
+# --- Habitación de Kroker / Kroker's bedroom -------------------------------------------
+# Coordenadas del lienzo de la habitación (1920 x 1080) / Room canvas coordinates (1920 x 1080)
+
+def rect_d(x, y, w, h):
+    return "M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y, x + w, y, x + w, y + h, x, y + h)
+
+
+def room_add(name, x, y, w, h, body, colors=24):
+    add(name, x, y, w, h, body, px=PX_ROOM, colors=colors)
+
+
+def room():
+    WB = 300
+    # Pared: un sprite por nivel de rareza / Wall: one sprite per strangeness level
+    for wl in range(4):
+        k = min(1.0, wl / 3.0)
+        top, bot = mix("#1d2463", "#3a1d63", k), mix("#2c3681", "#1f6a7a", k)
+        i = uid()
+        b = ("<defs><linearGradient id='w%s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%s'/>"
+             "<stop offset='1' stop-color='%s'/></linearGradient></defs><rect x='0' y='0' width='1920' height='%d' fill='url(#w%s)'/>" % (i, top, bot, WB, i))
+        for x in range(0, 1920, 48):
+            b += "<rect x='%d' y='0' width='18' height='%d' fill='#ffffff' opacity='0.035'/>" % (x, WB)
+        b += shaded(rect_d(0, WB - 14, 1920, 18), "#cfc8ec", shade=0.3, rim=0.5, sw=1.2)
+        room_add("room_wall_%d" % wl, 0, 0, 1920, WB + 4, b, colors=12)
+    # Suelo de tablas / Floorboards
+    i = uid()
+    b = ("<defs><linearGradient id='f%s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#3e3a7c'/>"
+         "<stop offset='1' stop-color='#2f2c66'/></linearGradient></defs><rect x='0' y='%d' width='1920' height='740' fill='url(#f%s)'/>" % (i, WB, i))
+    y, row = WB + 4, 0
+    while y < 1000:
+        b += "<rect x='0' y='%d' width='1920' height='3' fill='#1c1846' opacity='0.55'/>" % y
+        b += "<rect x='0' y='%d' width='1920' height='2' fill='#5a54a8' opacity='0.25'/>" % (y + 3)
+        x = -120 + (row % 3) * 140
+        while x < 1920:
+            b += "<rect x='%d' y='%d' width='3' height='46' fill='#1c1846' opacity='0.45'/>" % (x, y)
+            for nx in (60, 300):
+                b += "<circle cx='%d' cy='%d' r='2.4' fill='#24205a' opacity='0.6'/>" % (x + nx, y + 23)
+            x += 420
+        # Vetas / Grain
+        for gx in range(row * 37 % 200, 1920, 240):
+            b += "<path d='M%d,%d Q%d,%d %d,%d' fill='none' stroke='#4a4590' stroke-width='2' opacity='0.35'/>" % (gx, y + 16, gx + 50, y + 12, gx + 110, y + 18)
+        y += 46
+        row += 1
+    room_add("room_floor", 0, WB, 1920, 742, b, colors=12)
+
+    # Ventana: marco, alféizar, cortinas y barra / Window: frame, sill, curtains and rod
+    wx, wy, ww, wh = 800, 46, 320, 214
+    fr = "#ece6f6"
+    b = "<path d='%s %s' fill-rule='evenodd' fill='%s'/>" % (rect_d(wx - 5, wy - 5, ww + 10, wh + 10), rect_d(wx + 5, wy + 5, ww - 10, wh - 10), fr)
+    b += "<rect x='%g' y='%g' width='6' height='%g' fill='%s'/>" % (wx + ww / 2 - 3, wy, wh, fr)
+    b += "<rect x='%g' y='%g' width='%g' height='6' fill='%s'/>" % (wx, wy + wh / 2 - 3, ww, fr)
+    b += "<rect x='%g' y='%g' width='%g' height='3' fill='#b9b0dc'/>" % (wx + 5, wy + wh - 8, ww - 10)
+    b += shaded(rect_d(wx - 22, wy + wh + 2, ww + 44, 14), "#f4f0fb", shade=0.3, rim=0.4, sw=1)
+    room_add("room_window_frame", wx - 26, wy - 8, ww + 52, wh + 30, b, colors=8)
+    for side, x0 in (("l", wx - 70), ("r", wx + ww + 6)):
+        cur = "M%g,20 L%g,20 Q%g,150 %g,270 Q%g,276 %g,278 Q%g,150 %g,20 Z" % (x0, x0 + 64, x0 + 66, x0 + 64, x0 + 32, x0, x0 - 2, x0)
+        folds = "".join(fold("M%g,26 Q%g,150 %g,272" % (x0 + 14 + k * 18, x0 + 18 + k * 18, x0 + 14 + k * 18), "#8a82d6", 3.5, 0.45) for k in range(3))
+        b = shaded(cur, "#8a82d6", shade=0.45, rim=0.45, extra=folds)
+        room_add("room_curtain_" + side, x0 - 6, 14, 78, 270, b)
+    room_add("room_curtain_rod", wx - 94, 10, ww + 188, 16, shaded(rect_d(wx - 90, 14, ww + 180, 8), "#cfc8ec", shade=0.3, rim=0.5, sw=1), colors=6)
+
+    # Estantería / Bookshelf
+    r = (1236, 70, 170, 226)
+    b = shaded(rect_d(*r), "#4a4592", shade=0.5, rim=0.35, sw=2)
+    cols = ["#e3a6c4", "#f6d993", "#8fb3e8", "#b6e0d6", "#c9b6f0"]
+    for row in range(3):
+        y = r[1] + 70 * (row + 1)
+        x, k = r[0] + 10, row * 2
+        while x < r[0] + r[2] - 20:
+            bw, bh = 12 + (k % 3) * 4, 40 + (k % 4) * 6
+            b += shaded(rect_d(x, y - bh, bw, bh), cols[k % len(cols)], shade=0.35, rim=0.35, sw=1)
+            b += "<rect x='%g' y='%g' width='%g' height='3' fill='#ffffff' opacity='0.35'/>" % (x + 2, y - bh + 8, bw - 4)
+            x += bw + 3
+            k += 1
+        b += shaded(rect_d(r[0], y, r[2], 6), "#2c2a66", shade=0.2, rim=0.2, sw=0.6)
+    room_add("room_shelf", r[0] - 4, r[1] - 4, r[2] + 8, r[3] + 8, b)
+
+    # Escritorio / Desk
+    dx, dy, dw, dh = 1470, 226, 300, 104
+    b = ""
+    for lx in (dx + 10, dx + dw - 24):
+        b += shaded(rect_d(lx, dy + dh, 14, 40), "#3a346f", shade=0.3, rim=0.3, sw=1)
+    b += shaded(rect_d(dx, dy, dw, dh), "#8a7fc4", shade=0.4, rim=0.4, sw=1.4)
+    b += shaded(rect_d(dx, dy + dh - 18, dw, 18), "#6e64ad", shade=0.3, rim=0.2, sw=1)
+    b += "<g transform='translate(%g,%g) rotate(4.6)'>%s<path d='M-19,-5 A13,13 0 1 0 -2,12' fill='none' stroke='#5b67c4' stroke-width='3'/></g>" % (
+        dx + 130, dy + 46, shaded(rect_d(-36, -24, 72, 48), "#f7f3ea", shade=0.2, rim=0.2, sw=1))
+    for k, cc in enumerate(("#e85d75", "#f6c86a", "#5b67c4", "#62a9a1")):
+        cx, cy = dx + 180 + k * 8, dy + 34 + k * 6
+        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='4.5' stroke-linecap='round'/>" % (cx, cy, cx + 22, cy - 6, cc)
+    base_x, base_y = dx + dw - 46, dy + 58
+    b += shaded(ellipse_d(base_x, base_y, 18, 8), "#3a346f", shade=0.3, rim=0.3, sw=0.8)
+    b += "<path d='M%g,%g L%g,%g L%g,%g' fill='none' stroke='#3a346f' stroke-width='4.5' stroke-linejoin='round'/>" % (base_x, base_y, base_x - 10, base_y - 40, base_x - 34, base_y - 30)
+    b += shaded("M%g,%g L%g,%g L%g,%g Z" % (base_x - 26, base_y - 42, base_x - 48, base_y - 20, base_x - 28, base_y - 14), "#e3a6c4", shade=0.3, rim=0.4, sw=0.8)
+    gx, gy = dx + 230, dy + 30
+    b += shaded(ellipse_d(gx, gy, 18, 18), "#7fb0e0", shade=0.4, rim=0.4, sw=1,
+                extra="<path d='M%g,%g L%g,%g L%g,%g L%g,%g Z' fill='#9fd29a'/>" % (gx - 8, gy - 10, gx + 4, gy - 12, gx + 6, gy + 2, gx - 6, gy + 6))
+    b += "<path d='M%g,%g A22,22 0 0 1 %g,%g' fill='none' stroke='#cfc8ec' stroke-width='2.4'/>" % (gx - 16, gy - 15, gx + 15, gy + 16)
+    b += shaded(rect_d(gx - 4, gy + 20, 8, 6), "#cfc8ec", shade=0.2, rim=0.2, sw=0.6)
+    room_add("room_desk", dx - 4, dy - 30, dw + 8, dh + 76, b)
+
+    # Silla de espaldas / Chair seen from behind
+    sx_, sy_, sw_, sh_ = 1538, 326, 82, 44
+    b = ""
+    for lx in (1542, 1610):
+        b += shaded(rect_d(lx, 368, 6, 30), "#3a346f", shade=0.2, rim=0.2, sw=0.6)
+    b += shaded("M%g,%g Q%g,%g %g,%g L%g,%g Q%g,%g %g,%g Z" % (sx_ + 6, sy_, sx_ + sw_ / 2, sy_ - 3, sx_ + sw_ - 6, sy_, sx_ + sw_, sy_ + sh_,
+                sx_ + sw_ / 2, sy_ + sh_ + 3, sx_, sy_ + sh_), "#7d73bd", shade=0.35, rim=0.35)
+    b += shaded(rect_d(sx_ + 8, sy_ + 4, sw_ - 16, 18), "#e3a6c4", shade=0.3, rim=0.3, sw=0.8)
+    bx, by, bw, bh = sx_ + 4, sy_ + sh_ - 58, sw_ - 8, 50
+    for lx in (bx + 6, bx + bw - 12):
+        b += shaded(rect_d(lx, by + bh, 6, 14), "#4a4592", shade=0.2, rim=0.2, sw=0.6)
+    b += shaded("M%g,%g Q%g,%g %g,%g L%g,%g L%g,%g Z" % (bx, by + 10, bx + bw / 2, by - 6, bx + bw, by + 10, bx + bw, by + bh, bx, by + bh), "#5a4f9e", shade=0.4, rim=0.35)
+    b += shaded(rect_d(bx + 10, by + 10, bw - 20, bh - 20), "#6a5fae", shade=0.25, rim=0.2, sw=0.6)
+    room_add("room_chair", 1530, 300, 98, 102, b)
+
+    # Mesilla con la lamparita / Nightstand with the night-light
+    nx, ny, nw, nh = 372, 246, 90, 80
+    b = shaded(rect_d(nx, ny, nw, nh), "#9b92d4", shade=0.4, rim=0.4, sw=1.2)
+    b += shaded(rect_d(nx, ny + nh - 30, nw, 30), "#7d73bd", shade=0.3, rim=0.2, sw=0.8)
+    b += "<circle cx='%g' cy='%g' r='3.5' fill='#f3effc'/>" % (nx + nw / 2, ny + nh - 15)
+    b += shaded(ellipse_d(nx + 48, ny + 30, 16, 16), "#fff1c9", shade=0.2, rim=0.2, sw=0.8)
+    b += "<path d='%s' fill='#f6c86a'/>" % star_d(nx + 48, ny + 30, 8.5)
+    room_add("room_nightstand", nx - 4, ny - 4, nw + 8, nh + 8, b)
+    g = (nx + 20, ny + 64)
+    b = ("<circle cx='%g' cy='%g' r='7' fill='none' stroke='#2b2945' stroke-width='2.4'/><circle cx='%g' cy='%g' r='7' fill='none' stroke='#2b2945' stroke-width='2.4'/>"
+         "<path d='M%g,%g L%g,%g' stroke='#2b2945' stroke-width='2.4'/>" % (g[0], g[1], g[0] + 18, g[1], g[0] + 7, g[1], g[0] + 11, g[1]))
+    room_add("room_glasses", g[0] - 10, g[1] - 10, 40, 20, b, colors=4)
+
+    # Cama: cabecero, colchón y sábana / Bed: headboard, mattress and sheet
+    bx, by, bw, bh = 150, 236, 200, 262
+    b = "<rect x='%g' y='%g' width='%g' height='16' fill='#0d0833' opacity='0.35'/>" % (bx + 12, by + bh - 6, bw - 4)
+    b += shaded("M%g,%g Q%g,%g %g,%g L%g,%g L%g,%g Z" % (bx - 8, by - 26, bx + bw / 2, by - 48, bx + bw + 8, by - 26, bx + bw + 8, by + 24, bx - 8, by + 24),
+                "#aab4ea", shade=0.45, rim=0.5)
+    for x in (bx - 2, bx + bw + 2):
+        b += shaded(ellipse_d(x, by - 36, 10, 10), "#cfd6f6", shade=0.35, rim=0.5, sw=0.8)
+    b += shaded(rect_d(bx, by + 10, bw, bh - 10), "#e6e2f6", shade=0.4, rim=0.4)
+    b += shaded(rect_d(bx, by + bh - 26, bw, 26), "#bdb5e2", shade=0.3, rim=0.2, sw=0.8)
+    room_add("room_bed", bx - 20, by - 50, bw + 40, bh + 70, b)
+    pl = (bx + 24, by + 24, bw - 48, 58)
+    b = shaded("M%g,%g Q%g,%g %g,%g Q%g,%g %g,%g Q%g,%g %g,%g Q%g,%g %g,%g Z" % (
+        pl[0] + 6, pl[1] + 2, pl[0] + pl[2] / 2, pl[1] - 6, pl[0] + pl[2] - 6, pl[1] + 2,
+        pl[0] + pl[2] + 6, pl[1] + pl[3] / 2, pl[0] + pl[2] - 6, pl[1] + pl[3] - 2,
+        pl[0] + pl[2] / 2, pl[1] + pl[3] + 6, pl[0] + 6, pl[1] + pl[3] - 2,
+        pl[0] - 6, pl[1] + pl[3] / 2, pl[0] + 6, pl[1] + 2), "#f8f6ff", shade=0.35, rim=0.4, deep="#8d82c4")
+    room_add("room_bed_pillow", pl[0] - 10, pl[1] - 10, pl[2] + 20, pl[3] + 20, b)
+    # Edredón con su embozo (se recorta por arriba según dónde esté) / Quilt with its fold (cropped to height)
+    qx, qy, qw, qh = bx - 6, by + 88, bw + 12, bh - 88 + 4
+    stars = ""
+    y, row = qy + 34, 0
+    while y < qy + qh - 10:
+        x = qx + (24 if row % 2 == 0 else 52)
+        while x < qx + qw - 10:
+            stars += "<path d='%s' fill='#f6d993' opacity='0.8'/>" % star_d(x, y, 5.5)
+            x += 56
+        y += 42
+        row += 1
+    b = shaded(rect_d(qx, qy, qw, qh), "#5b67c4", shade=0.5, rim=0.35, extra=stars + fold("M%g,%g Q%g,%g %g,%g" % (qx + 60, qy + 40, qx + 70, qy + 100, qx + 62, qy + 160), "#5b67c4", 4, 0.4))
+    b += shaded(rect_d(qx, qy, qw, 22), "#eeeaf8", shade=0.3, rim=0.3, sw=0.8)
+    room_add("room_quilt", qx - 2, qy - 2, qw + 4, qh + 4, b)
+
+    # Baúl de juguetes con la tapa abierta / Toy chest with the lid open
+    cx, cy, cw, ch = 500, 262, 150, 82
+    b = shaded(rect_d(cx + 4, cy - 50, cw - 8, 50), "#a87fbf", shade=0.35, rim=0.4, sw=1.4)
+    b += shaded(ellipse_d(cx + 40, cy + 8, 18, 18), "#e3a6c4", shade=0.35, rim=0.4, sw=0.8)
+    b += shaded("M%g,%g L%g,%g L%g,%g Z" % (cx + 84, cy + 14, cx + 96, cy - 22, cx + 108, cy + 14), "#f6d993", shade=0.3, rim=0.4, sw=0.8)
+    b += "<circle cx='%g' cy='%g' r='4' fill='#7fb0e0'/>" % (cx + 96, cy)
+    b += shaded(rect_d(cx + 112, cy - 6, 20, 20), "#9fd29a", shade=0.3, rim=0.3, sw=0.8)
+    b += shaded(rect_d(cx, cy, cw, ch), "#c0a0dc", shade=0.45, rim=0.45, sw=1.4)
+    b += shaded(rect_d(cx, cy + ch - 22, cw, 22), "#9e7fbf", shade=0.3, rim=0.2, sw=0.8)
+    b += "<path d='%s' fill='#f6d993' stroke='#c9a24e' stroke-width='1'/>" % star_d(cx + cw / 2, cy + ch / 2 - 6, 12)
+    room_add("room_toy_chest", cx - 4, cy - 56, cw + 8, ch + 60, b)
+
+    # Alfombra redonda con estrellas y luna / Round rug with stars and moon
+    rx, ry = 1010, 700
+    b = shaded(ellipse_d(rx, ry, 340, 150), "#5a4f9e", shade=0.35, rim=0.25, sw=2)
+    b += "<path d='%s' fill='none' stroke='#f6d993' stroke-width='3' opacity='0.5'/>" % ellipse_d(rx, ry, 340 * 0.86, 150 * 0.86)
+    for k in range(8):
+        a = math.tau * k / 8 + 0.2
+        b += "<path d='%s' fill='#f6d993' opacity='0.45'/>" % star_d(rx + math.cos(a) * 225, ry + math.sin(a) * 92, 9.5)
+    b += "<path d='M%g,%g A44,44 0 1 1 %g,%g' fill='none' stroke='#f6d993' stroke-width='6' opacity='0.5'/>" % (
+        rx + 44 * math.cos(math.pi * 0.35), ry + 44 * math.sin(math.pi * 0.35), rx + 44 * math.cos(math.pi * 1.65), ry + 44 * math.sin(math.pi * 1.65))
+    room_add("room_rug", rx - 346, ry - 156, 692, 312, b, colors=10)
+    # Alfombrita y conejo / Bedside rug and bunny
+    brx, bry = 450, 560
+    b = shaded(ellipse_d(brx, bry, 92, 46), "#c98fb8", shade=0.3, rim=0.3, sw=1.4)
+    b += "<path d='%s' fill='none' stroke='#f7e6f0' stroke-width='2.4' opacity='0.7'/>" % ellipse_d(brx, bry, 78, 36)
+    room_add("room_bedside_rug", brx - 96, bry - 50, 192, 100, b, colors=8)
+    bun = "<g transform='translate(%g,%g) rotate(-23)'>" % (brx + 56, bry - 16)
+    bun += "<path d='%s' fill='#000000' opacity='0.12'/>" % ellipse_d(4, 30, 30, 8)
+    for ex in (-4, 12):
+        bun += shaded(ellipse_d(ex, -40 + (2 if ex > 0 else 0), 7, 20), "#eeeaf6", shade=0.3, rim=0.3, sw=0.8)
+        bun += "<path d='%s' fill='#f2b8c8'/>" % ellipse_d(ex, -40 + (2 if ex > 0 else 0), 3, 13)
+    bun += shaded(ellipse_d(4, 10, 20, 22), "#eeeaf6", shade=0.35, rim=0.35)
+    bun += shaded(ellipse_d(4, -14, 16, 16), "#eeeaf6", shade=0.3, rim=0.35)
+    bun += "<circle cx='-2' cy='-16' r='2.4' fill='#3a2a30'/><circle cx='10' cy='-16' r='2.4' fill='#3a2a30'/><circle cx='4' cy='-10' r='2.2' fill='#f2b8c8'/></g>"
+    room_add("room_bunny", brx + 10, bry - 90, 90, 130, bun, colors=10)
+
+    # Osito / Teddy bear (centrado en su punto, escala 0,7) / (centred on its point, scale 0.7)
+    t = "<g transform='scale(0.7)'>"
+    t += "<circle cx='0' cy='30' r='26' fill='#000000' opacity='0.1'/>"
+    for x in (-18, 18):
+        t += shaded(ellipse_d(x, 30, 10, 10), "#a87a5c", shade=0.3, rim=0.3, sw=0.8)
+    t += shaded(ellipse_d(0, 14, 22, 24), "#c99a78", shade=0.4, rim=0.4) + "<path d='%s' fill='#e8c9a8'/>" % ellipse_d(0, 18, 12, 14)
+    for x in (-20, 20):
+        t += shaded(ellipse_d(x, 8, 8, 8), "#a87a5c", shade=0.3, rim=0.3, sw=0.8)
+    for x in (-14, 14):
+        t += shaded(ellipse_d(x, -28, 9, 9), "#c99a78", shade=0.3, rim=0.3, sw=0.8) + "<circle cx='%d' cy='-28' r='4.5' fill='#e8c9a8'/>" % x
+    t += shaded(ellipse_d(0, -16, 18, 18), "#c99a78", shade=0.4, rim=0.4)
+    t += "<path d='%s' fill='#e8c9a8'/><circle cx='0' cy='-12' r='2.8' fill='#3a2a30'/><circle cx='-7' cy='-20' r='2.4' fill='#3a2a30'/><circle cx='7' cy='-20' r='2.4' fill='#3a2a30'/>" % ellipse_d(0, -10, 8, 6)
+    t += "<path d='M0,0 L-10,-6 L-10,6 Z M0,0 L10,-6 L10,6 Z' fill='#5b67c4'/></g>"
+    room_add("room_teddy", -30, -36, 60, 66, t, colors=10)
+
+    # Cubos y pelota / Blocks and ball
+    b = ""
+    for (x, y), col, letter in (((36, 318), "#f6d993", "A"), ((82, 318), "#a9c8f2", "B"), ((59, 276), "#e3a6c4", "C")):
+        b += shaded(rect_d(x, y, 42, 42), col, shade=0.35, rim=0.4, sw=1.2)
+        b += "<text x='%g' y='%g' font-family='Georgia,serif' font-weight='bold' font-size='26' fill='#3a346f'>%s</text>" % (x + 12, y + 30, letter)
+    room_add("room_blocks", 32, 272, 94, 92, b, colors=12)
+    bx_, by_ = 1214, 322
+    b = "<path d='%s' fill='#000000' opacity='0.18'/>" % ellipse_d(bx_ + 2, by_ + 22, 22, 6)
+    b += shaded(ellipse_d(bx_, by_, 22, 22), "#f3effc", shade=0.4, rim=0.4,
+                extra="<path d='M%g,%g A22,22 0 0 1 %g,%g' fill='none' stroke='#e85d75' stroke-width='9'/><path d='M%g,%g A22,22 0 0 1 %g,%g' fill='none' stroke='#5b67c4' stroke-width='9'/>" % (
+                    bx_ + 22 * math.cos(-0.6), by_ + 22 * math.sin(-0.6), bx_ + 22 * math.cos(0.9), by_ + 22 * math.sin(0.9),
+                    bx_ + 22 * math.cos(2.4), by_ + 22 * math.sin(2.4), bx_ + 22 * math.cos(3.9), by_ + 22 * math.sin(3.9)))
+    room_add("room_ball", bx_ - 26, by_ - 26, 54, 58, b, colors=10)
+
+    # Dibujo y póster / Drawing and poster
+    d = "<g transform='translate(615,134) rotate(-2.9)'>" + shaded(rect_d(-55, -42, 110, 84), "#f7f3ea", shade=0.2, rim=0.2, sw=1)
+    d += "<circle cx='26' cy='-18' r='12' fill='#f6d993'/><path d='M-40,30 L-40,6 L-24,-8 L-8,6 L-8,30 Z' fill='#e3a6c4'/>"
+    d += "<path d='M-50,32 L50,32' stroke='#9fd29a' stroke-width='3'/>"
+    d += "<circle cx='14' cy='6' r='5' fill='#5b67c4'/><path d='M14,11 L14,22 L9,30 M14,22 L19,30 M8,14 L20,14' fill='none' stroke='#5b67c4' stroke-width='2.4'/>"
+    d += "<rect x='-14' y='-46' width='28' height='8' fill='#ffffff' opacity='0.6'/></g>"
+    room_add("room_drawing", 552, 84, 126, 102, d, colors=12)
+    psx, psy, psw, psh = 1490, 52, 250, 150
+    b = "<rect x='%g' y='%g' width='%g' height='%g' fill='#141a4a' stroke='#cfc8ec' stroke-width='3.5'/>" % (psx, psy, psw, psh)
+    sun = (psx + 26, psy + 75)
+    b += "<circle cx='%g' cy='%g' r='30' fill='#f6d993' opacity='0.25'/>" % sun + shaded(ellipse_d(sun[0], sun[1], 16, 16), "#f6c86a", shade=0.3, rim=0.3, sw=0.6)
+    half = psh / 2 - 8
+    for rr, pr, col, ph in ((42, 4, "#cfc8ec", 0.5), (70, 6, "#e3a6c4", -0.35), (100, 7, "#7fb0e0", 0.2), (136, 11, "#f0c38f", -0.25), (176, 8, "#b6e0d6", 0.1)):
+        span = math.asin(min(0.98, half / rr))
+        b += "<path d='M%g,%g A%g,%g 0 0 1 %g,%g' fill='none' stroke='#ffffff' stroke-width='1.4' opacity='0.25'/>" % (
+            sun[0] + rr * math.cos(-span), sun[1] + rr * math.sin(-span), rr, rr, sun[0] + rr * math.cos(span), sun[1] + rr * math.sin(span))
+        b += shaded(ellipse_d(sun[0] + math.cos(ph * span) * rr, sun[1] + math.sin(ph * span) * rr, pr, pr), col, shade=0.3, rim=0.3, sw=0.6)
+    room_add("room_poster", psx - 4, psy - 4, psw + 8, psh + 8, b, colors=16)
+
+    # Armas en su sitio / Weapons in place
+    bat = "<g transform='rotate(11.5)'>" + shaded("M-3,0 L3,0 L7,-96 L0,-106 L-7,-96 Z", "#c99a68", shade=0.4, rim=0.4, sw=1) + shaded(rect_d(-4, -16, 8, 16), "#3a3355", shade=0.2, rim=0.2, sw=0.6) + "</g>"
+    room_add("room_bat", -30, -112, 44, 116, bat, colors=8)
+    bk = (1500, 250, 56, 40)
+    b = shaded(rect_d(*bk), "#3b4fa8", shade=0.3, rim=0.3, sw=1) + shaded(rect_d(bk[0] + 4, bk[1] + 4, bk[2] - 8, bk[3] - 8), "#fbf3dc", shade=0.2, rim=0.2, sw=0.6)
+    b += "<path d='M%g,%g L%g,%g' stroke='#3b4fa8' stroke-width='3'/>" % (bk[0] + bk[2] / 2, bk[1], bk[0] + bk[2] / 2, bk[1] + bk[3])
+    room_add("room_book", bk[0] - 4, bk[1] - 4, bk[2] + 8, bk[3] + 8, b, colors=8)
+    vx, vy = 1835, 330
+    b = "<path d='%s' fill='#000000' opacity='0.2'/>" % ellipse_d(vx, vy + 30, 26, 8)
+    b += "<path d='M%g,%g L%g,%g L%g,%g' fill='none' stroke='#4a4f86' stroke-width='6' stroke-linejoin='round'/>" % (vx - 16, vy - 10, vx - 40, vy - 40, vx - 30, vy - 80)
+    b += shaded(rect_d(vx - 44, vy - 92, 26, 12), "#4a4f86", shade=0.3, rim=0.3, sw=0.8)
+    b += shaded(ellipse_d(vx, vy, 22, 30), "#e9e3f3", shade=0.45, rim=0.4, deep="#6c64a8")
+    b += shaded(ellipse_d(vx - 2, vy - 8, 10, 12), "#8fd6cf", shade=0.3, rim=0.4, sw=0.8)
+    room_add("room_vacuum", vx - 50, vy - 96, 80, 136, b, colors=12)
+
+
 # --- Render ---------------------------------------------------------------------
 
 def build():
@@ -736,6 +998,7 @@ def build():
     boss()
     shots()
     npcs()
+    room()
     thug()
     sling()
     skeleton()
