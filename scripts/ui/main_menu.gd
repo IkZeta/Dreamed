@@ -11,6 +11,8 @@ const CHARACTERS_SCENE := preload("res://scripts/ui/characters_menu.gd")
 var _play: Button
 var _settings: Button
 var _bestiary: Button
+var _unlock: Button
+var _unlock_armed := false
 var _achievements: Button
 var _characters: Button
 var _quitting := false
@@ -81,6 +83,7 @@ func _build() -> void:
 	_bestiary = _entry(col, "MENU_BESTIARY", _on_bestiary)
 	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
+	_unlock = _entry(col, "MENU_UNLOCK_ALL", _on_unlock_all)
 	_entry(col, "MENU_QUIT", _on_quit)
 
 	var version := UITheme.label("V 1.4", 16, Color(UITheme.ASH, 0.6), "caps")
@@ -105,7 +108,7 @@ func _entry(parent: Container, key: String, callback: Callable) -> Button:
 	b.theme_type_variation = "MenuEntry"
 	b.text = key
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.custom_minimum_size = Vector2(380, 72)
+	b.custom_minimum_size = Vector2(380, 64)
 	b.pressed.connect(callback)
 	row.add_child(b)
 
@@ -118,6 +121,20 @@ func _entry(parent: Container, key: String, callback: Callable) -> Button:
 	b.focus_exited.connect(show_line.bind(false))
 	b.mouse_entered.connect(b.grab_focus)
 	return b
+
+
+## Desbloquear todo: hay que pulsarlo dos veces para que no se haga sin querer
+## Unlock everything: it has to be pressed twice so it isn't done by accident
+func _on_unlock_all() -> void:
+	if not _unlock_armed:
+		_unlock_armed = true
+		_unlock.text = "MENU_UNLOCK_CONFIRM"
+		Audio.play("ui_click", -6.0)
+		return
+	Progress.unlock_everything()
+	_unlock.text = "MENU_UNLOCK_DONE"
+	_unlock.disabled = true
+	Audio.play("chime", -2.0)
 
 
 func _on_play() -> void:

@@ -95,6 +95,8 @@ func _act_key(difficulty: String, act: int) -> String:
 ## ¿Se ha superado el Acto 1 con cualquier arma? (desbloquea la pesadilla)
 ## Has Act 1 been cleared with any weapon? (unlocks nightmare)
 func any_cleared() -> bool:
+	if stats.has("unlock_all"):
+		return true   # desbloquear todo también abre la pesadilla / unlocking everything also opens nightmare
 	for w: String in cleared:
 		if has_cleared(w, "normal"):
 			return true
@@ -165,6 +167,23 @@ func check_achievements() -> void:
 		var p := achievement_progress(a)
 		if int(p[0]) >= int(p[1]):
 			_unlock(a["id"])
+
+
+## Botón «Desbloquear todo» del menú: logros (y con ellos pijamas, Mr. Ad, El Pinche y dibujos),
+## bestiario, personajes, Charo y la dificultad pesadilla. Sin avisos uno a uno.
+## Menu "Unlock everything" button: achievements (and with them pajamas, Mr. Ad, the Kitchen Boy
+## and drawings), bestiary, characters, Charo and nightmare difficulty. No one-by-one notices.
+func unlock_everything() -> void:
+	for a in ACHIEVEMENTS:
+		achieved[a["id"]] = true
+	for id in BESTIARY:
+		if not kills.has(id):
+			kills[id] = 0
+	for g in ["svinho", "stolk", "silly", "doc", "ad", "pinche"]:
+		stats["met_" + g] = 1
+	stats["charo_met"] = 1
+	stats["unlock_all"] = 1
+	save_progress()
 
 
 func _unlock(id: String) -> void:

@@ -54,13 +54,18 @@ var _bounced: Array = []
 ## se quedan pegados y van aún más lentos.
 ## Each fluff stuck on slows a bit and falls off after 8 s. If two fluffy enemies touch,
 ## they get stuck together and go even slower.
+## Las bolas crecen: cada enemigo con pelusa que toque a una se une. Con 5 se aplastan entre ellos.
+## Clumps grow: every fluffy enemy touching one joins it. At 5 they crush each other.
+const CLUMP_KILL := 5
 const FLUFF_TIME := 8.0
 const FLUFF_SLOW := 0.12        # por pelusa / per fluff
 const FLUFF_MAX_SLOW := 0.6
 const STUCK_SLOW := 0.5         # pegados: la mitad de lo que les quede / stuck: half of what's left
 var fluffs: Array[float] = []   # segundos que le quedan a cada pelusa / seconds left on each fluff
 var fluff_time := FLUFF_TIME
-var stuck_to: Enemy = null
+## Bola de pelusa a la que pertenece (el mismo Array lo comparten todos sus miembros)
+## Fluff clump it belongs to (all members share the same Array)
+var clump: Array = []
 var stuck_bonus := 0.0          # Silly: daño extra mientras está pegado / Silly: extra damage while stuck
 
 ## --- Sangrado y quemadura (El Pinche) / Bleeding and burning (The Kitchen Boy) ------------
@@ -193,11 +198,12 @@ func _move(delta: float) -> void:
 			vel += d / dist * (min_d - dist) * 6.0
 	vel += knock + external_pull
 	# Pegado a otro por la pelusa: tiran el uno del otro / Stuck to another by fluff: they pull on each other
-	if stuck_to != null and is_instance_valid(stuck_to):
-		var gap := stuck_to.global_position - global_position
-		var want := radius + stuck_to.radius
+	# En una bola de pelusa: todos tiran hacia el centro / In a fluff clump: everyone pulls to the middle
+	if is_stuck():
+		var gap := clump_center() - global_position
+		var want := radius * 0.8
 		if gap.length() > want:
-			vel += gap.normalized() * (gap.length() - want) * 8.0
+			vel += gap.normalized() * (gap.length() - want) * 6.0
 	position += vel * delta
 	# Empujado hacia un agujero: se cae y desaparece / Shoved into a hole: it falls in and is gone
 	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0):
@@ -229,6 +235,7 @@ func can_fall() -> bool:
 
 
 func _start_fall(to: Vector2) -> void:
+	_unstick()
 	Progress.add_stat("falls")
 	_fall_from = run.clamp_to_arena(position, radius)
 	position = _fall_from
@@ -304,9 +311,24 @@ func fluff_speed_mult() -> float:
 	if fluffs.is_empty():
 		return 1.0
 	var k := 1.0 - minf(FLUFF_MAX_SLOW, FLUFF_SLOW * fluffs.size())
-	if stuck_to != null:
-		k *= STUCK_SLOW
+	if is_stuck():
+		# Cuanto más grande la bola, más pesa / The bigger the clump, the heavier it is
+		k *= STUCK_SLOW * pow(0.85, clump.size() - 2)
 	return k
+
+
+func is_stuck() -> bool:
+	return clump.size() >= 2
+
+
+func clump_center() -> Vector2:
+	var c := Vector2.ZERO
+	var n := 0
+	for m in clump:
+		if is_instance_valid(m):
+			c += (m as Node2D).global_position
+			n += 1
+	return c / float(n) if n > 0 else global_position
 
 
 func _update_fluff(delta: float) -> void:
@@ -320,28 +342,63 @@ func _update_fluff(delta: float) -> void:
 	if fluffs.is_empty():
 		_unstick()
 		return
-	if stuck_to != null and (not is_instance_valid(stuck_to) or not stuck_to.is_targetable() or stuck_to.fluffs.is_empty()):
-		_unstick()
-	# Dos enemigos con pelusa que se tocan se quedan pegados / Two fluffy enemies that touch get stuck together
-	if stuck_to == null and not is_boss():
-		for other: Node in run.enemies.get_children():
-			if other == self or not other is Enemy:
-				continue
-			var o := other as Enemy
-			if o.stuck_to != null or o.fluffs.is_empty() or o.is_boss() or not o.is_targetable():
-				continue
-			if global_position.distance_to(o.global_position) < radius + o.radius + 6.0:
-				stuck_to = o
-				o.stuck_to = self
-				Audio.play("fluff", -8.0, 0.15)
-				run.fx.ring((global_position + o.global_position) / 2.0 + Vector2(0, -20), 22.0, Color("f4e9da"), 0.4, 2.0)
-				break
+	# Enemigos con pelusa que se tocan se pegan; las bolas se van uniendo
+	# Fluffy enemies that touch stick together; clumps keep merging
+	if is_boss():
+		return
+	for other: Node in run.enemies.get_children():
+		if other == self or not other is Enemy:
+			continue
+		var o := other as Enemy
+		if o.fluffs.is_empty() or o.is_boss() or not o.is_targetable():
+			continue
+		if is_stuck() and clump.has(o):
+			continue
+		if global_position.distance_to(o.global_position) < radius + o.radius + 12.0:
+			_join(o)
+			return
+
+
+## Une las dos bolas (o los dos sueltos) en una / Merges both clumps (or both loose ones) into one
+func _join(o: Enemy) -> void:
+	var merged: Array = []
+	for m in (clump if is_stuck() else [self]) + (o.clump if o.is_stuck() else [o]):
+		if is_instance_valid(m) and not merged.has(m):
+			merged.append(m)
+	for m in merged:
+		(m as Enemy).clump = merged
+	Audio.play("fluff", -8.0, 0.15)
+	run.fx.ring((global_position + o.global_position) / 2.0 + Vector2(0, -20), 18.0 + 6.0 * merged.size(), Color("f4e9da"), 0.4, 2.0)
+	if merged.size() >= CLUMP_KILL:
+		_crush(merged)
+
+
+## Una bola de 5: se aplastan entre ellos y mueren todos / A clump of 5: they crush each other and all die
+func _crush(members: Array) -> void:
+	var c := clump_center()
+	for m in members:
+		(m as Enemy).clump = []
+	Audio.play("pillow", -2.0, 0.1)
+	Audio.play("fluff", -2.0)
+	run.shake(6.0)
+	run.fx.ring(c + Vector2(0, -30), 90.0, Color("f4e9da"), 0.6, 1.6)
+	run.fx.dissipate(c + Vector2(0, -30), Color("f4e9da"))
+	run.fx.text(c + Vector2(0, -110), tr("FLUFF_CRUSH"), Color("f4e9da"), 26)
+	for m in members:
+		if is_instance_valid(m) and (m as Enemy).is_targetable():
+			(m as Enemy).die(true)
 
 
 func _unstick() -> void:
-	if stuck_to != null and is_instance_valid(stuck_to) and stuck_to.stuck_to == self:
-		stuck_to.stuck_to = null
-	stuck_to = null
+	if not is_stuck():
+		clump = []
+		return
+	var shared := clump
+	shared.erase(self)
+	clump = []
+	# Si se queda uno solo, ya no está pegado a nadie / If only one is left, it's no longer stuck to anyone
+	if shared.size() == 1 and is_instance_valid(shared[0]):
+		(shared[0] as Enemy).clump = []
 
 
 # --- Sangrado y quemadura / Bleeding and burning -----------------------------------------
@@ -415,7 +472,7 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	# Burning lowers its defence; stuck with Silly's virus it takes more
 	if burn_t > 0.0:
 		amount *= 1.0 + burn_pct / 100.0
-	if stuck_to != null and stuck_bonus > 0.0:
+	if is_stuck() and stuck_bonus > 0.0:
 		amount *= 1.0 + stuck_bonus / 100.0
 	hp -= amount
 	knock += impulse / mass
@@ -524,8 +581,11 @@ func _draw_statuses(bob: float, a: float) -> void:
 		for k in 4:
 			draw_circle(p + Vector2(cos(k * 1.7 + _t) * 4.0, sin(k * 2.3) * 3.0), 4.5, col)
 		draw_circle(p + Vector2(-2, -2), 2.0, Color(1, 1, 1, 0.8 * a * fade))
-	if stuck_to != null and is_instance_valid(stuck_to) and get_instance_id() < stuck_to.get_instance_id():
-		var to := stuck_to.global_position - global_position + Vector2(0, -stuck_to.aim_height)
+	# Hilo de pelusa hasta el siguiente de la bola / Fluff strand to the next one in the clump
+	var idx := clump.find(self) if is_stuck() else -1
+	if idx >= 0 and idx + 1 < clump.size() and is_instance_valid(clump[idx + 1]):
+		var nxt := clump[idx + 1] as Enemy
+		var to := nxt.global_position - global_position + Vector2(0, -nxt.aim_height)
 		var from := Vector2(0, -aim_height)
 		var pts := PackedVector2Array()
 		for k in 9:

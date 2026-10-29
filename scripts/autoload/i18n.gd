@@ -436,7 +436,7 @@ const STRINGS := {
 	"CHAR_TEDDY_WEAPON": {"es": "Oso de peluche", "en": "Teddy bear"},
 	"CHAR_TEDDY_BONUS": {"es": "+6 de vida máxima", "en": "+6 max health"},
 	"CHAR_TEDDY_OUTFIT": {"es": "Pijama de huellitas", "en": "Paw-print pajamas"},
-	"CHAR_TEDDY_DESC": {"es": "Le arranca pelusa al osito y se la pega a los enemigos: cada pelusa los frena, y si dos con pelusa se tocan, se quedan pegados.", "en": "Tears fluff out of the teddy and sticks it on enemies: every fluff slows them, and if two fluffy ones touch, they get stuck together."},
+	"CHAR_TEDDY_DESC": {"es": "Le arranca pelusa al osito y se la pega a los enemigos: cada pelusa los frena y, si se tocan, se quedan pegados. Una bola de 5 se aplasta sola.", "en": "Tears fluff out of the teddy and sticks it on enemies: every fluff slows them and, if they touch, they get stuck together. A ball of 5 crushes itself."},
 	"WEAPON_SHORT_FINGER": {"es": "Pistola de dedos", "en": "Finger gun"},
 	"WEAPON_SHORT_TEDDY": {"es": "Oso", "en": "Teddy"},
 	"UP_SVINHO_FINGER_NAME": {"es": "Carambola láser", "en": "Laser carom"},
@@ -481,6 +481,10 @@ const STRINGS := {
 	"ACH_TEDDY_DESC": {"es": "Llega al Acto 3. Desbloquea el pijama del oso de peluche.", "en": "Reach Act 3. Unlocks the teddy bear pajamas."},
 	"ACH_PINCHE_NAME": {"es": "Pinche de cocina", "en": "Kitchen hand"},
 	"ACH_PINCHE_DESC": {"es": "Llega al Acto 3. El Pinche empieza a aparecer en el plano astral.", "en": "Reach Act 3. The Kitchen Boy starts showing up on the astral plane."},
+	"MENU_UNLOCK_ALL": {"es": "Desbloquear todo", "en": "Unlock everything"},
+	"MENU_UNLOCK_CONFIRM": {"es": "¿Seguro? Pulsa otra vez", "en": "Sure? Press again"},
+	"MENU_UNLOCK_DONE": {"es": "Todo desbloqueado", "en": "Everything unlocked"},
+	"FLUFF_CRUSH": {"es": "¡Bola de pelusa!", "en": "Fluff ball!"},
 }
 
 

@@ -49,7 +49,7 @@ Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza
 | **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −10 de suerte y 5 % de robo de salud |
 | **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña | +25 % de velocidad y 5 % de robo de salud |
 | **El Pistolero** | Pistola de dedos | Rayos láser con un efecto al azar: normal, atraviesa, empuja (puede tirarlos por los agujeros), crítico x1,75, rebota hacia otro enemigo... o sale hacia atrás. La suerte hace más probables los buenos | +10 de suerte y 5 % de robo de salud |
-| **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: daño moderado y cada pelusa lo frena (dura 8 s). Si dos enemigos con pelusa se tocan, se quedan pegados y van aún más lentos | +6 de vida máxima y 3 de regeneración |
+| **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: daño moderado y cada pelusa lo frena (dura 8 s). Los enemigos con pelusa que se tocan se quedan pegados y las bolas van creciendo, cada vez más lentas; una bola de 5 se aplasta y mueren todos | +6 de vida máxima y 3 de regeneración |
 
 Cada pijama tiene un **post-it** con los actos que has superado con él (Acto I y Acto II; estrella en normal, luna en pesadilla), al estilo de *The Binding of Isaac*. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
 
@@ -171,6 +171,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
 - **Personajes:** menú con Kroker y sus pijamas, los personajes del plano astral (Mr. Ad y El Pinche incluidos) y Charo. Cada uno se desbloquea al conocerlo.
+- **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Bestiario:** está en el menú principal y cada entrada está escrita con la voz de Kroker.
 - **Logros:** hay 21 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea y ahorrar 100 de Realidad Fragmentada). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
