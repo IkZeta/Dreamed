@@ -17,6 +17,7 @@ var _boss_name: Label
 var _special: Label
 var _god: Label
 var _event: Label
+var _level_bubble: TiltBubble
 var _xp_bar: ProgressBar
 var _lvl: Label
 var _depth := 1
@@ -124,6 +125,11 @@ func _ready() -> void:
 	_event.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_event.visible = false
 	center.add_child(_event)
+	# Nivel de burbuja que indica hacia dónde se inclina el suelo / Spirit level showing which way the floor tips
+	_level_bubble = TiltBubble.new()
+	_level_bubble.custom_minimum_size = Vector2(0, 92)
+	_level_bubble.visible = false
+	center.add_child(_level_bubble)
 	_fire = UITheme.label("EVENT_FIRE", 14, Color("ffb06a"), "caps")
 	_fire.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_fire.visible = false
@@ -231,6 +237,7 @@ func set_hp(hp: float, max_hp: float) -> void:
 
 func show_event(id: String) -> void:
 	_event.visible = id != ""
+	_level_bubble.visible = id == "tilt"
 	if id != "":
 		_event.text = "EVENT_" + id.to_upper()
 
@@ -305,3 +312,40 @@ func _refresh_texts() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED and _dream != null:
 		_refresh_texts()
+
+
+## Inclinación actual del suelo (para el nivel de burbuja) / Current floor tilt (for the spirit level)
+func set_tilt(v: Vector2) -> void:
+	_level_bubble.tilt = v
+
+
+## Nivel de burbuja: la burbuja sube hacia el lado alto y la flecha señala cuesta abajo
+## Spirit level: the bubble rises to the high side and the arrow points downhill
+class TiltBubble extends Control:
+	const R := 38.0
+	var tilt := Vector2.ZERO
+
+	func _ready() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _process(_delta: float) -> void:
+		queue_redraw()
+
+	func _draw() -> void:
+		var c := Vector2(size.x - R - 6.0, size.y * 0.5)
+		var k := clampf(tilt.length() / 75.0, 0.0, 1.0)
+		var dir := tilt.normalized() if tilt.length() > 0.5 else Vector2.ZERO
+		draw_circle(c, R, Color(UITheme.VOID, 0.7))
+		draw_arc(c, R, 0, TAU, 40, Color(UITheme.ROSE, 0.8), 3.0)
+		draw_arc(c, R * 0.35, 0, TAU, 24, Color(UITheme.ROSE, 0.35), 2.0)
+		# Flecha cuesta abajo / Downhill arrow
+		if k > 0.05:
+			var tip := c + dir * R * 0.85
+			var side := dir.orthogonal()
+			var col := Color(UITheme.ROSE, 0.35 + 0.5 * k)
+			draw_line(c, tip, col, 4.0)
+			draw_colored_polygon(PackedVector2Array([tip + dir * 6.0, tip - dir * 8.0 + side * 9.0, tip - dir * 8.0 - side * 9.0]), col)
+		# La burbuja va al lado contrario / The bubble goes the opposite way
+		var b := c - dir * R * 0.55 * k
+		draw_circle(b, 11.0, Color(0.85, 1.0, 0.9, 0.85))
+		draw_circle(b + Vector2(-3, -4), 3.5, Color(1, 1, 1, 0.9))

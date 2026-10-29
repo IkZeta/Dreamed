@@ -118,6 +118,7 @@ func _ready() -> void:
 	_camera = Camera2D.new()
 	_camera.position = Vector2(960, 540)
 	_camera.zoom = Vector2.ONE / PIXEL_SHRINK
+	_camera.ignore_rotation = false  # para que la cámara se ladee en el suelo inclinado / so the camera leans on the tilted floor
 	world.add_child(_camera)
 	_camera.make_current()
 
@@ -877,6 +878,11 @@ func _roll_event(depth: int) -> void:
 			world.add_child(d)
 		"golden":
 			_golden_t = randf_range(6.0, 14.0)
+		"tilt":
+			var tf := TiltFloor.new()
+			tf.run = self
+			world.add_child(tf)
+			world.move_child(tf, room.get_index() + 1)
 
 
 func _update_event(delta: float) -> void:
@@ -891,7 +897,11 @@ func _update_event(delta: float) -> void:
 			for e: Node in enemies.get_children():
 				if e is Enemy and not e.is_boss():
 					e.external_pull += _tilt * 0.8
-			_camera.rotation = lerpf(_camera.rotation, _tilt.x / 75.0 * 0.025, minf(1.0, delta * 2.0))
+			# La cámara se ladea con la pendiente y se desplaza un poco cuesta abajo
+			# The camera leans with the slope and drifts a little downhill
+			_camera.rotation = lerpf(_camera.rotation, -_tilt.x / 75.0 * 0.06, minf(1.0, delta * 2.0))
+			_camera.offset += _tilt * 0.35
+			hud.set_tilt(_tilt)
 		"golden":
 			if _golden_t > 0.0:
 				_golden_t -= delta
@@ -1000,7 +1010,7 @@ func _wake_scene(won: bool) -> void:
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
 func _build_real_room(won: bool) -> void:
 	for n: Node in world.get_children():
-		if n is Darkness or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
+		if n is Darkness or n is TiltFloor or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
 			n.queue_free()
 	for e: Node in enemies.get_children():
 		e.queue_free()
