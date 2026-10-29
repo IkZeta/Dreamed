@@ -5,7 +5,7 @@
 
 ![Menú principal](docs/screenshots/menu.jpg)
 
-Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada es un sueño dentro del anterior, cada vez más raro y abstracto. Se juega como **Brotato**: el arma ataca sola y tú solo te mueves y esquivas. Entre sueño y sueño mejoras al estilo de **Hades**: en el plano astral aparecen dos personajes y cada uno te ofrece un don distinto.
+Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada es un sueño dentro del anterior, cada vez más raro y abstracto. Se juega como **Brotato**: el arma ataca sola y tú solo te mueves y esquivas. Entre sueño y sueño mejoras al estilo de **Hades**: en el plano astral aparecen dos personajes (tres desde el nivel 3 de Kroker) y cada uno te ofrece un don distinto.
 
 - **Motor:** Godot 4.7, probado en **Godot 4.7.2**.
 - **Idiomas:** español e inglés, que se cambian en Ajustes.

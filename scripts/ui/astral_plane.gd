@@ -54,8 +54,9 @@ func _build() -> void:
 	_content = margin
 	add_child(margin)
 	margin.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	var three := _offer.size() >= 3
 	for side in ["left", "right"]:
-		margin.add_theme_constant_override("margin_" + side, 120)
+		margin.add_theme_constant_override("margin_" + side, 60 if three else 120)
 	margin.add_theme_constant_override("margin_top", 50)
 	margin.add_theme_constant_override("margin_bottom", 50)
 
@@ -78,8 +79,12 @@ func _build() -> void:
 
 	var weapon := GameState.selected_character
 	for i in _offer.size():
-		row.add_child(_offer_column(_offer[i], weapon))
-		if i == 0:
+		var col := _offer_column(_offer[i], weapon)
+		if three:
+			col.custom_minimum_size.x = 540
+		row.add_child(col)
+		# Con tres personajes no queda sitio para Kroker en medio / With three characters there's no room for Kroker in the middle
+		if i == 0 and not three:
 			# Kroker flota en medio, esperando / Kroker floats in the middle, waiting
 			var k := FloatingKroker.new()
 			k.outfit = weapon

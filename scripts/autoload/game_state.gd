@@ -439,6 +439,15 @@ func add_upgrade(giver: String, weapon := "") -> void:
 
 
 ## Elige dos personajes distintos que aún puedan subir de nivel / Picks two different givers that can still level up
+## A partir de este nivel de Kroker aparecen tres personajes en el plano astral en vez de dos
+## From this Kroker level on, three characters show up on the astral plane instead of two
+const THIRD_GIVER_LEVEL := 3
+
+
+func offer_size() -> int:
+	return 3 if plevel >= THIRD_GIVER_LEVEL else 2
+
+
 func pick_offer() -> Array[String]:
 	var pool: Array[String] = []
 	for g in GIVERS:
@@ -451,7 +460,7 @@ func pick_offer() -> Array[String]:
 	# Con suerte es más fácil que vuelva alguien que ya te ha dado un don, para subirlo de nivel
 	# With luck, someone who already gave you a gift is likelier to return, to level it up
 	var out: Array[String] = []
-	for n in 2:
+	for n in offer_size():
 		if pool.is_empty():
 			break
 		var total := 0.0
