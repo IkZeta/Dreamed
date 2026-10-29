@@ -33,6 +33,9 @@ const PARTS := {
 }
 
 var kind := "bed"
+## En pesadilla salen los tres a la vez pero atacan más despacio
+## On nightmare all three come out at once but attack more slowly
+var attack_slow := 1.0
 var _wake := WAKE_TIME
 var _dying := -1.0
 var _walk := 0.0
@@ -119,7 +122,7 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	if not is_targetable():
 		return
 	super.hit(amount, impulse)
-	run.hud.set_boss_hp(maxf(hp, 0.0), max_hp)
+	run.update_boss_hp()
 
 
 func die(counted: bool) -> void:
@@ -213,7 +216,7 @@ func _act(delta: float) -> void:
 	if not _atk.is_empty():
 		_update_attack(delta)
 		return
-	_atk_cd -= delta * (0.5 if slow_t > 0.0 else 1.0)
+	_atk_cd -= delta * (0.5 if slow_t > 0.0 else 1.0) / attack_slow
 	if _atk_cd <= 0.0:
 		_begin_attack()
 

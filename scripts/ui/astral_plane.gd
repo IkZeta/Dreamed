@@ -144,14 +144,46 @@ func _choose(giver: String) -> void:
 	Audio.play("giver_" + giver, -1.0)
 	Audio.play("pickup", -4.0)
 	Audio.play("astral", -2.0)
+	_say(giver)
 	var flash := ColorRect.new()
 	flash.color = Color("f7f2ff")
 	flash.modulate.a = 0.0
+	flash.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(flash)
 	flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	var tw := create_tween()
+	tw.tween_interval(2.2)
 	tw.tween_property(flash, "modulate:a", 1.0, 0.45)
 	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
+
+
+## Bocadillo con lo que dice el personaje al darte su don.
+## PROVISIONAL: de momento es texto de relleno (lorem ipsum); los diálogos de verdad vendrán con el lore.
+## Speech bubble with what the character says as it gives you its gift.
+## PLACEHOLDER: filler text (lorem ipsum) for now; the real dialogue will come with the lore.
+func _say(giver: String) -> void:
+	for b in _buttons:
+		b.disabled = true
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.95), Color(GiverFigure.AURA[giver], 0.8), Color(GiverFigure.AURA[giver], 0.18), 18, 14, 26))
+	add_child(box)
+	box.set_anchors_and_offsets_preset(PRESET_CENTER_BOTTOM)
+	box.grow_horizontal = GROW_DIRECTION_BOTH
+	box.grow_vertical = GROW_DIRECTION_BEGIN
+	box.offset_bottom = -60
+	box.custom_minimum_size = Vector2(1100, 0)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	box.add_child(v)
+	v.add_child(UITheme.label("GIVER_%s_NAME" % giver.to_upper(), 36, GiverFigure.AURA[giver], "display"))
+	var line := UITheme.label("GIVER_TALK_PLACEHOLDER", 24, UITheme.BONE, "italic")
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	line.visible_ratio = 0.0
+	v.add_child(line)
+	box.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(box, "modulate:a", 1.0, 0.2)
+	tw.tween_property(line, "visible_ratio", 1.0, 1.2)
 
 
 # --- Piezas visuales / Visual pieces ------------------------------------------

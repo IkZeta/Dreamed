@@ -30,6 +30,7 @@ var _shake := 0.0
 var _overlay: DreamOverlay
 var _spawned_new := 0
 var boss: BossPiece
+var bosses: Array[BossPiece] = []
 var _boss_step := 0
 var _level_screen: LevelUpScreen
 ## Evento de este sueño: "", "dark", "tilt" o "golden" / This dream's event
@@ -153,7 +154,14 @@ func _spawn_boss() -> void:
 	Audio.play_music("music_boss", 1.0)
 	hud.show_boss("BOSS_NAME")
 	_boss_step = 0
-	_next_boss_piece()
+	if GameState.difficulty == "nightmare":
+		# Pesadilla: los tres muebles despiertan a la vez / Nightmare: all three pieces wake at once
+		hud.set_boss_part("BOSS_PART_ALL")
+		for i in BossPiece.ORDER.size():
+			get_tree().create_timer(0.6 * i, false).timeout.connect(_add_boss_piece.bind(BossPiece.ORDER[i], 1.6))
+		_boss_step = BossPiece.ORDER.size()
+	else:
+		_next_boss_piece()
 
 
 func _next_boss_piece() -> void:
@@ -162,21 +170,45 @@ func _next_boss_piece() -> void:
 		return
 	var kind: String = BossPiece.ORDER[_boss_step]
 	_boss_step += 1
+	hud.set_boss_part(BossPiece.PARTS[kind]["name"])
+	_add_boss_piece(kind)
+
+
+func _add_boss_piece(kind: String, slow := 1.0) -> void:
+	if not running:
+		return
 	room.gone.append(kind)
 	boss = BossPiece.new()
+	boss.attack_slow = slow
 	boss.setup_piece(self, kind)
 	enemies.add_child(boss)
-	hud.set_boss_part(BossPiece.PARTS[kind]["name"])
-	hud.set_boss_hp(boss.hp, boss.max_hp)
+	bosses.append(boss)
 	boss.defeated.connect(_on_piece_defeated)
+	update_boss_hp()
+
+
+## Barra del jefe: la vida que les queda a los muebles despiertos / Boss bar: health left on the awake pieces
+func update_boss_hp() -> void:
+	var hp := 0.0
+	var total := 0.0
+	for b in bosses:
+		if is_instance_valid(b) and b._dying < 0.0:
+			hp += maxf(b.hp, 0.0)
+		total += BossPiece.HP_PER_PIECE * GameState.enemy_hp_mult()
+	hud.set_boss_hp(hp, maxf(total, 1.0))
 
 
 func _on_piece_defeated() -> void:
 	if not running:
 		return
-	hud.set_boss_hp(0.0, 1.0)
+	update_boss_hp()
 	if _boss_step >= BossPiece.ORDER.size():
-		_on_act_cleared()
+		# Se acaba cuando no queda ningún mueble en pie / It ends when no piece is left standing
+		for b in bosses:
+			if is_instance_valid(b) and b._dying < 0.0:
+				return
+		if bosses.size() >= BossPiece.ORDER.size():
+			_on_act_cleared()
 		return
 	# Respiro entre muebles (los enemigos siguen saliendo) / A breather between pieces (enemies keep coming)
 	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
@@ -282,6 +314,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _god_key(event.physical_keycode):
 			get_viewport().set_input_as_handled()
 			return
+	# Con mando: el botón Select cambia la invulnerabilidad del modo Dios
+	# With a gamepad: the Select button toggles god mode invulnerability
+	if GameState.god_mode and running and event is InputEventJoypadButton and event.pressed \
+			and event.button_index == JOY_BUTTON_BACK:
+		_god_key(KEY_F)
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("pause") and running and _overlay == null and _level_screen == null:
 		get_viewport().set_input_as_handled()
 		_open_pause()
@@ -295,9 +334,11 @@ func _god_key(key: Key) -> bool:
 			hud.set_god()
 			Audio.play("chime", -8.0)
 		KEY_N:
-			if is_instance_valid(boss):
-				if boss.is_targetable():
-					boss.hit(1000000.0)
+			if _wave.get("boss", false):
+				for b in bosses:
+					if is_instance_valid(b) and b.is_targetable():
+						b.hit(1000000.0)
+						break
 			else:
 				_on_wave_cleared()
 		KEY_K:
@@ -402,7 +443,10 @@ func hole_at(p: Vector2, margin: float, push: Vector2) -> Vector2:
 
 
 func _near_boss(p: Vector2) -> bool:
-	return is_instance_valid(boss) and p.distance_to(boss.aim_point()) < 160.0
+	for b in bosses:
+		if is_instance_valid(b) and p.distance_to(b.aim_point()) < 160.0:
+			return true
+	return false
 
 
 func _blocked(p: Vector2, margin: float) -> bool:
@@ -435,6 +479,8 @@ func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
 
 
 func shake(amount: float) -> void:
+	if amount >= 10.0:
+		Settings.rumble(0.3, 0.6 * minf(1.0, amount / 18.0), 0.25)
 	_shake = maxf(_shake, amount)
 
 

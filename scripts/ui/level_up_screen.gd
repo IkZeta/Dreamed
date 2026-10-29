@@ -13,6 +13,10 @@ var _choices: Array[Dictionary] = []
 var _ready_t := 0.4
 var _done := false
 var _first: Button
+var _row: HBoxContainer
+var _reroll: Button
+## Cada vez que cambias las opciones pierdes esta suerte / Each reroll costs this much luck
+const REROLL_LUCK := 2.0
 
 
 func build(choices: Array[Dictionary], level: int) -> void:
@@ -50,17 +54,53 @@ func build(choices: Array[Dictionary], level: int) -> void:
 	gap.custom_minimum_size.y = 24
 	col.add_child(gap)
 
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 32)
-	col.add_child(row)
-	for i in choices.size():
-		row.add_child(_card(choices[i], i))
+	_row = HBoxContainer.new()
+	_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_row.add_theme_constant_override("separation", 32)
+	col.add_child(_row)
+	_fill_cards()
+
+	# Cambiar las opciones a cambio de suerte / Reroll the options in exchange for luck
+	var gap2 := Control.new()
+	gap2.custom_minimum_size.y = 12
+	col.add_child(gap2)
+	_reroll = Button.new()
+	_reroll.custom_minimum_size = Vector2(520, 58)
+	_reroll.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_reroll.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_reroll.pressed.connect(_do_reroll)
+	_reroll.mouse_entered.connect(_reroll.grab_focus)
+	col.add_child(_reroll)
+	_update_reroll()
 
 	root.modulate.a = 0.0
 	create_tween().tween_property(root, "modulate:a", 1.0, 0.3)
 	Audio.play("chime", -4.0)
 	_first.grab_focus.call_deferred()
+
+
+func _fill_cards() -> void:
+	for c in _row.get_children():
+		c.queue_free()
+	_first = null
+	for i in _choices.size():
+		_row.add_child(_card(_choices[i], i))
+
+
+func _update_reroll() -> void:
+	_reroll.text = tr("LEVELUP_REROLL").format({"cost": int(REROLL_LUCK), "luck": roundi(GameState.stat("luck"))})
+
+
+func _do_reroll() -> void:
+	if _done or _ready_t > 0.0:
+		return
+	GameState.stat_bonus["luck"] = float(GameState.stat_bonus.get("luck", 0.0)) - REROLL_LUCK
+	_choices = GameState.roll_level_choices()
+	_fill_cards()
+	_update_reroll()
+	Audio.play("glitch", -6.0)
+	_ready_t = 0.25
+	_reroll.grab_focus()
 
 
 func _card(choice: Dictionary, index: int) -> Control:

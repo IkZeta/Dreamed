@@ -243,6 +243,13 @@ func _build_access() -> Control:
 	dn.button_pressed = Settings.damage_numbers
 	dn.toggled.connect(func(on: bool) -> void: Settings.damage_numbers = on)
 	page.add_child(_row("ACCESS_DAMAGE_NUMBERS", dn))
+	var vib := CheckButton.new()
+	vib.button_pressed = Settings.vibration
+	vib.toggled.connect(func(on: bool) -> void:
+		Settings.vibration = on
+		if on:
+			Settings.rumble(0.4, 0.4, 0.2))
+	page.add_child(_row("ACCESS_VIBRATION", vib))
 	page.add_child(UITheme.label("ACCESS_HINT", 22, UITheme.ASH, "italic"))
 	return page
 

@@ -22,6 +22,7 @@ var screen_shake := true
 var shake_amount := 1.0       # 0..1, fuerza de la sacudida / shake strength
 var colorblind := false       # avisos en amarillo en vez de rojo / warnings in yellow instead of red
 var damage_numbers := true    # números de daño sobre los enemigos / damage numbers above enemies
+var vibration := true         # vibración del mando / gamepad rumble
 
 
 func _ready() -> void:
@@ -45,6 +46,7 @@ func reset_defaults(apply := true) -> void:
 	shake_amount = 1.0
 	colorblind = false
 	damage_numbers = true
+	vibration = true
 	if apply:
 		apply_all()
 
@@ -126,6 +128,7 @@ func save_settings() -> void:
 	cfg.set_value("access", "shake_amount", shake_amount)
 	cfg.set_value("access", "colorblind", colorblind)
 	cfg.set_value("access", "damage_numbers", damage_numbers)
+	cfg.set_value("access", "vibration", vibration)
 	cfg.save(PATH)
 
 
@@ -145,6 +148,15 @@ func load_settings() -> void:
 	shake_amount = clampf(float(cfg.get_value("access", "shake_amount", 1.0 if screen_shake else 0.0)), 0.0, 1.0)
 	colorblind = bool(cfg.get_value("access", "colorblind", colorblind))
 	damage_numbers = bool(cfg.get_value("access", "damage_numbers", damage_numbers))
+	vibration = bool(cfg.get_value("access", "vibration", vibration))
+
+
+## Vibra el mando si hay alguno conectado / Rumbles the gamepad if one is connected
+func rumble(weak: float, strong: float, secs: float) -> void:
+	if not vibration:
+		return
+	for pad in Input.get_connected_joypads():
+		Input.start_joy_vibration(pad, weak, strong, secs)
 
 
 ## Color de los avisos de peligro (trayectorias, zonas de caída)
@@ -156,10 +168,10 @@ func warning_color() -> Color:
 ## Controles de movimiento: WASD, flechas y mando. / Movement: WASD, arrows and gamepad.
 func _ensure_input() -> void:
 	var map := {
-		"move_left": [KEY_A, KEY_LEFT, JOY_AXIS_LEFT_X, -1.0],
-		"move_right": [KEY_D, KEY_RIGHT, JOY_AXIS_LEFT_X, 1.0],
-		"move_up": [KEY_W, KEY_UP, JOY_AXIS_LEFT_Y, -1.0],
-		"move_down": [KEY_S, KEY_DOWN, JOY_AXIS_LEFT_Y, 1.0],
+		"move_left": [KEY_A, KEY_LEFT, JOY_AXIS_LEFT_X, -1.0, JOY_BUTTON_DPAD_LEFT],
+		"move_right": [KEY_D, KEY_RIGHT, JOY_AXIS_LEFT_X, 1.0, JOY_BUTTON_DPAD_RIGHT],
+		"move_up": [KEY_W, KEY_UP, JOY_AXIS_LEFT_Y, -1.0, JOY_BUTTON_DPAD_UP],
+		"move_down": [KEY_S, KEY_DOWN, JOY_AXIS_LEFT_Y, 1.0, JOY_BUTTON_DPAD_DOWN],
 	}
 	for action: String in map:
 		if InputMap.has_action(action):
@@ -174,6 +186,10 @@ func _ensure_input() -> void:
 		j.axis = def[2]
 		j.axis_value = def[3]
 		InputMap.action_add_event(action, j)
+		# Cruceta del mando / Gamepad d-pad
+		var d := InputEventJoypadButton.new()
+		d.button_index = def[4]
+		InputMap.action_add_event(action, d)
 	if not InputMap.has_action("special"):
 		InputMap.add_action("special")
 		var e := InputEventKey.new()

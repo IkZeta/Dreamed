@@ -155,6 +155,7 @@ func take_damage(amount: float) -> void:
 	hp = maxf(0.0, hp - dmg)
 	_invuln = HIT_INVULN
 	_flash = 1.0
+	Settings.rumble(0.5, 0.7, 0.2)
 	hurt_lean = -0.18
 	run.fx.text(global_position + Vector2(0, -88), "-%d" % roundi(dmg), UITheme.EMBER, 26)
 	run.on_player_hit(dmg)
