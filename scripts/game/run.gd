@@ -38,12 +38,20 @@ var event := ""
 var _tilt := Vector2.ZERO
 var _tilt_t := 0.0
 var _golden_t := -1.0
+var _actors: Node2D
+## Pantalla que tapa la partida (diálogo, kiosco, chimenea): mientras está, no se pausa
+## Screen covering the run (dialogue, kiosk, fireplace): while it's up, pausing is disabled
+var _modal: Node
+## Tras cancelar en la chimenea hay que apartarse para volver a cargarla
+## After cancelling at the fireplace you have to step away before charging it again
+var _hearth_lock := false
 
 
 func _ready() -> void:
 	var depth := GameState.dream_depth
 	_wave = GameState.wave_for(depth)
-	Audio.play_music("music_dream1", 2.5)
+	var act := GameState.act_of(depth)
+	Audio.play_music("music_living" if act >= 2 else "music_dream1", 2.5)
 	_time_left = float(_wave.get("duration", 0.0))
 
 	# Pantalla pequeña donde vive el mundo / Small screen where the world lives
@@ -74,9 +82,16 @@ func _ready() -> void:
 	back.add_child(sky)
 	sky.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	room = Bedroom.new()
+	if act >= 2:
+		# Acto 2: el salón, más raro desde el primer sueño / Act 2: the living room, stranger from the first dream
+		var lr := LivingRoom.new()
+		lr.weird = depth - GameState.ACT2_START + 1
+		lr.fire_lit = bool(_wave.get("fire", false))
+		room = lr
+	else:
+		room = Bedroom.new()
+		room.weird = depth - 1
 	room.outfit = GameState.selected_character
-	room.weird = depth - 1
 	if depth > 1:
 		# Ya despierto en el sueño: la cama está vacía y el arma ya la lleva
 		# Already awake in the dream: the bed is empty and he already has his weapon
@@ -95,9 +110,17 @@ func _ready() -> void:
 	var actors := Node2D.new()
 	actors.y_sort_enabled = true
 	world.add_child(actors)
+	_actors = actors
 	enemies = Node2D.new()
 	enemies.y_sort_enabled = true
 	actors.add_child(enemies)
+	# Los muebles del medio del salón se ordenan con los personajes / Mid-room furniture sorts with the characters
+	if room is LivingRoom:
+		for sprite: String in LivingRoom.PROPS:
+			var prop := LivingRoom.Prop.new()
+			prop.sprite = sprite
+			prop.base = LivingRoom.PROPS[sprite]
+			actors.add_child(prop)
 	player = Player.new()
 	player.position = Bedroom.to_world(Bedroom.WAKE_POINT)
 	player.visible = false
@@ -139,14 +162,156 @@ func _drop_in(depth: int) -> void:
 		fx.dissipate(start + Vector2(0, -20), UITheme.GOLD)
 		fx.ring(start, 30.0, UITheme.GOLD, 0.5, 2.4))
 	tw.tween_interval(0.5)
-	tw.tween_callback(func() -> void:
-		hud.visible = true
-		hud.start(depth)
-		hud.show_event(event)
-		running = true
-		_resolve_level_ups(Callable())
-		if _wave.get("boss", false):
-			_spawn_boss())
+	# La primera vez que llega al salón, Charo le da la bienvenida
+	# The first time he reaches the living room, Charo welcomes him
+	if depth == GameState.ACT2_START and not Progress.stats.has("charo_met"):
+		tw.tween_callback(_charo_welcome.bind(_begin.bind(depth)))
+	else:
+		tw.tween_callback(_begin.bind(depth))
+
+
+## Empieza el sueño de verdad / The dream really starts
+func _begin(depth: int) -> void:
+	hud.visible = true
+	hud.start(depth)
+	hud.show_event(event)
+	hud.set_reality()
+	running = true
+	if room is LivingRoom and (room as LivingRoom).fire_lit:
+		hud.show_fire(true)
+		Audio.set_loop("fire", true, -16.0)
+	_resolve_level_ups(Callable())
+	if _wave.get("boss", false):
+		_spawn_boss()
+
+
+# --- Kioskera Charo / Kiosk lady Charo -------------------------------------------------
+
+func _spawn_charo(kiosk: bool) -> CharoNpc:
+	var charo := CharoNpc.new()
+	charo.run = self
+	charo.with_kiosk = kiosk
+	charo.position = Bedroom.to_world(LivingRoom.KIOSK_POINT if kiosk else LivingRoom.CHARO_POINT)
+	_actors.add_child(charo)
+	player.set_facing(signf(charo.position.x - player.position.x))
+	return charo
+
+
+## Bienvenida al Acto 2: quién es, dónde está Kroker y qué es la Realidad Fragmentada
+## Welcome to Act 2: who she is, where Kroker is and what Fragmented Reality is
+func _charo_welcome(then: Callable) -> void:
+	var charo := _spawn_charo(false)
+	get_tree().create_timer(0.9, false).timeout.connect(func() -> void:
+		Audio.play("giver_charo", -4.0)
+		var lines: Array[String] = []
+		for i in 8:
+			lines.append("CHARO_WELCOME_%d" % (i + 1))
+		_modal = _dialogue(lines, charo)
+		_modal.finished.connect(func() -> void:
+			_modal = null
+			Progress.stats["charo_met"] = 1
+			Progress.save_progress()
+			charo.leave()
+			get_tree().create_timer(0.7, false).timeout.connect(then)))
+
+
+func _dialogue(lines: Array[String], charo: CharoNpc) -> CharoDialogue:
+	var d := CharoDialogue.new()
+	add_child(d)
+	d.build(lines)
+	charo.talk(99.0)
+	d.finished.connect(func() -> void: charo.talk(0.0))
+	return d
+
+
+## Al acabar algunos sueños, Charo abre su kiosco / At the end of some dreams Charo opens her kiosk
+func _charo_shop(then: Callable) -> void:
+	var charo := _spawn_charo(true)
+	get_tree().create_timer(1.0, false).timeout.connect(func() -> void:
+		charo.talk(1.0)
+		var shop := CharoShop.new()
+		_modal = shop
+		add_child(shop)
+		shop.build()
+		shop.bought.connect(_on_ware)
+		shop.closed.connect(func() -> void:
+			_modal = null
+			GameState.saved_hp = player.hp
+			charo.leave()
+			get_tree().create_timer(0.7, false).timeout.connect(_resolve_level_ups.bind(then))))
+
+
+func _on_ware(id: String) -> void:
+	var before := player.max_hp
+	player.refresh_stats()
+	if player.max_hp > before:
+		player.hp += player.max_hp - before
+	if id == "milk":
+		player.heal(player.max_hp * 0.4)
+	hud.set_hp(player.hp, player.max_hp)
+	hud.set_reality()
+	hud.set_xp()
+
+
+## Gana Realidad Fragmentada (solo desde el Acto 2) / Gains Fragmented Reality (only from Act 2)
+func gain_reality(n: int, pos: Vector2) -> void:
+	if not GameState.reality_on() or n <= 0:
+		return
+	GameState.add_reality(n)
+	hud.set_reality()
+	Audio.play("reality", -5.0, 0.06)
+	fx.text(pos + Vector2(0, -30), "+%d" % n, RealityIcon.COLOR, 24)
+	fx.ring(pos, 18.0, RealityIcon.COLOR, 0.5, 2.0)
+
+
+# --- Chimenea del salón / Living-room fireplace ----------------------------------------
+
+func _update_hearth(delta: float) -> void:
+	if not room is LivingRoom:
+		return
+	var lr := room as LivingRoom
+	if not lr.can_sacrifice():
+		return
+	var inside := Bedroom.rect_world(LivingRoom.HEARTH_ZONE).has_point(player.position)
+	if not inside:
+		_hearth_lock = false
+	if inside and not _hearth_lock:
+		lr.fire_charge = minf(1.0, lr.fire_charge + delta / 1.2)
+		if lr.fire_charge >= 1.0:
+			_open_sacrifice()
+	else:
+		lr.fire_charge = maxf(0.0, lr.fire_charge - delta * 2.0)
+
+
+func _open_sacrifice() -> void:
+	var lr := room as LivingRoom
+	lr.fire_charge = 0.0
+	_hearth_lock = true
+	get_tree().paused = true
+	var sc := SacrificeScreen.new()
+	_modal = sc
+	add_child(sc)
+	sc.build()
+	sc.chosen.connect(func(giver: String) -> void:
+		_modal = null
+		get_tree().paused = false
+		GameState.sacrifice(giver)
+		player.refresh_stats()
+		hud.set_hp(player.hp, player.max_hp)
+		if GameState.selected_character == "shield" and GameState.level("svinho") <= 0:
+			hud.set_special_mode(false)
+		lr.flare()
+		hud.show_fire(false)
+		Audio.play("sacrifice", -2.0)
+		Audio.set_loop("fire", false)
+		shake(6.0)
+		var at := Bedroom.to_world(LivingRoom.FIREBOX.get_center())
+		fx.dissipate(at, Color("b98aff"))
+		fx.ring(at, 40.0, Color("b98aff"), 0.8, 3.0)
+		gain_reality(GameState.REALITY_SACRIFICE, at))
+	sc.cancelled.connect(func() -> void:
+		_modal = null
+		get_tree().paused = false)
 
 
 ## El jefe del acto: los muebles despiertan de uno en uno / The act boss: the furniture wakes up one at a time
@@ -296,6 +461,7 @@ func _physics_process(delta: float) -> void:
 		return
 	GameState.run_time += delta
 	_update_event(delta)
+	_update_hearth(delta)
 	if not _wave.get("boss", false):
 		_time_left -= delta
 		hud.set_time(_time_left)
@@ -321,7 +487,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_god_key(KEY_F)
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed("pause") and running and _overlay == null and _level_screen == null:
+	if event.is_action_pressed("pause") and running and _overlay == null and _level_screen == null and _modal == null:
 		get_viewport().set_input_as_handled()
 		_open_pause()
 
@@ -427,16 +593,18 @@ func arena_rect() -> Rect2:
 ## Si un enemigo empujado cae por un agujero, devuelve hacia dónde cae; si no, Vector2.INF.
 ## If a shoved enemy falls into a hole, returns where it falls to; otherwise Vector2.INF.
 func hole_at(p: Vector2, margin: float, push: Vector2) -> Vector2:
+	var holes := room.holes_list()
 	for i in room.hole_count():
-		var hr := Bedroom.rect_world(Bedroom.HOLES[i].grow(-10)).grow(margin * 0.6)
+		var hr := Bedroom.rect_world(holes[i].grow(-10)).grow(margin * 0.6)
 		if hr.has_point(p):
-			return Bedroom.rect_world(Bedroom.HOLES[i]).get_center()
+			return Bedroom.rect_world(holes[i]).get_center()
 	# Boquetes de la pared: hay que ir hacia arriba contra el fondo
 	# Wall holes: it has to be moving up against the back
 	var top := arena_rect().position.y + margin * 0.5
 	if p.y <= top + 6.0 and push.y < -60.0:
+		var wall_holes := room.wall_holes_list()
 		for i in room.wall_hole_count():
-			var wr := Bedroom.rect_world(Bedroom.WALL_HOLES[i])
+			var wr := Bedroom.rect_world(wall_holes[i])
 			if p.x > wr.position.x + 6.0 and p.x < wr.end.x - 6.0:
 				return Vector2(wr.get_center().x, wr.end.y - wr.size.y * 0.3)
 	return Vector2.INF
@@ -468,8 +636,13 @@ func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
 			var d_left := p.x - g.position.x
 			var d_right := g.end.x - p.x
 			var d_bottom := g.end.y - p.y
-			var m := minf(d_left, minf(d_right, d_bottom))
-			if m == d_bottom:
+			# Por arriba solo si el mueble está en medio del suelo (el sofá del salón)
+			# Out through the top only if the piece stands in the middle of the floor (the living-room sofa)
+			var d_top := p.y - g.position.y if g.position.y > r.position.y else INF
+			var m := minf(minf(d_left, d_top), minf(d_right, d_bottom))
+			if m == d_top:
+				p.y = g.position.y
+			elif m == d_bottom:
 				p.y = g.end.y
 			elif m == d_left:
 				p.x = g.position.x
@@ -495,6 +668,7 @@ func on_enemy_killed(e: Node) -> void:
 	if elite:
 		Progress.kill("elite")
 		Progress.add_stat("elites")
+		gain_reality(GameState.REALITY_ELITE, e.global_position)
 	if e.get("bestiary_id") == "golden_foox":
 		Progress.add_stat("golden")
 	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult()))
@@ -712,6 +886,7 @@ func _startle() -> void:
 
 
 func _show_victory() -> void:
+	var act := GameState.act()
 	var m := int(GameState.run_time) / 60
 	var sec := int(GameState.run_time) % 60
 	var lines := [
@@ -719,7 +894,7 @@ func _show_victory() -> void:
 		tr("SUM_KILLS") % GameState.run_kills,
 		tr("SUM_DIFFICULTY") % tr("DIFF_" + GameState.difficulty.to_upper()),
 	]
-	_show_end("ACT1_CLEAR_TITLE", "ACT1_CLEAR_SUB", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]], lines)
+	_show_end("ACT%d_CLEAR_TITLE" % act, "ACT%d_CLEAR_SUB" % act, [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]], lines)
 	_overlay.add_side(PauseSummary.make(player))
 
 
@@ -737,7 +912,26 @@ func _on_wave_cleared() -> void:
 	# Los trozos que quedan vuelan hacia Kroker / Leftover shards fly to Kroker
 	for s in get_tree().get_nodes_in_group("shards"):
 		s.set("_magnet", true)
-	get_tree().create_timer(1.5, false).timeout.connect(_resolve_level_ups.bind(_flash_to_astral))
+	get_tree().create_timer(1.5, false).timeout.connect(_resolve_level_ups.bind(_after_dream))
+
+
+## Después de un sueño: a veces el kiosco de Charo; luego el plano astral o el final del acto
+## After a dream: sometimes Charo's kiosk; then the astral plane or the end of the act
+func _after_dream() -> void:
+	var next := _end_act2 if _wave.get("act_end", false) else _flash_to_astral
+	if _wave.get("shop", false):
+		_charo_shop(next)
+	else:
+		next.call()
+
+
+## Final provisional del Acto 2 (su jefe vendrá más adelante) / Provisional end of Act 2 (its boss comes later)
+func _end_act2() -> void:
+	Audio.fade_music(-30.0, 1.5)
+	Audio.play("act_clear", -1.0)
+	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
+		Progress.flag("no_hit")
+	get_tree().create_timer(1.6, false).timeout.connect(_wake_scene.bind(true))
 
 
 ## Un destello leve y Kroker pasa al plano astral / A soft flash takes Kroker to the astral plane
@@ -768,11 +962,19 @@ func _on_act_cleared() -> void:
 		if not e is BossPiece:
 			e.die(false)
 	Progress.clear_act(GameState.selected_character, GameState.difficulty)
+	Progress.add_stat("dreams")
 	# Sin un rasguño (no vale con la invulnerabilidad del modo Dios) / Not a scratch (god mode invulnerability doesn't count)
 	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
 		Progress.flag("no_hit")
-	GameState.dream_depth = 1
-	get_tree().create_timer(1.6, false).timeout.connect(_wake_scene.bind(true))
+	# El sueño sigue: tras el plano astral, Kroker cae en el salón (Acto 2)
+	# The dream goes on: after the astral plane, Kroker falls into the living room (Act 2)
+	GameState.saved_hp = player.hp
+	Progress.save_progress()
+	hud.hide_boss()
+	hud.banner("ACT1_CLEAR_TITLE", "ACT1_CLEAR_DEEPER")
+	for s in get_tree().get_nodes_in_group("shards"):
+		s.set("_magnet", true)
+	get_tree().create_timer(3.4, false).timeout.connect(_resolve_level_ups.bind(_flash_to_astral))
 
 
 # --- Pantallas / Screens ----------------------------------------------------

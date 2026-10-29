@@ -125,23 +125,51 @@ func _ready() -> void:
 ## Cuántos agujeros hay en el suelo según lo corrupto que está el sueño
 ## How many floor holes there are depending on how corrupted the dream is
 func hole_count() -> int:
-	return clampi(weird, 0, HOLES.size())
+	return clampi(weird, 0, holes_list().size())
 
 
 func wall_hole_count() -> int:
-	return clampi(weird, 0, WALL_HOLES.size())
+	return clampi(weird, 0, wall_holes_list().size())
 
 
-## Todo lo que no se puede atravesar: muebles y agujeros / Everything you can't walk through: furniture and holes
-func blockers() -> Array[Rect2]:
+## Cada escenario tiene sus muebles y sus agujeros (el salón los cambia)
+## Each stage has its own furniture and holes (the living room swaps them)
+func obstacles_list() -> Array[Rect2]:
 	var out: Array[Rect2] = OBSTACLES.duplicate()
 	if gone.has("bed"):
 		out.erase(OBSTACLES[0])
 	if gone.has("chest"):
 		out.erase(OBSTACLES[2])
-	for i in hole_count():
-		out.append(HOLES[i].grow(-10))
 	return out
+
+
+func holes_list() -> Array[Rect2]:
+	return HOLES
+
+
+func wall_holes_list() -> Array[Rect2]:
+	return WALL_HOLES
+
+
+## Todo lo que no se puede atravesar: muebles y agujeros / Everything you can't walk through: furniture and holes
+func blockers() -> Array[Rect2]:
+	var out := obstacles_list()
+	var holes := holes_list()
+	for i in hole_count():
+		out.append(holes[i].grow(-10))
+	return out
+
+
+## Zonas donde pueden salir grietas: pared, tres muebles y suelo
+## Areas where cracks can appear: wall, three pieces of furniture and floor
+func crack_zones() -> Array[Rect2]:
+	return [
+		Rect2(20, 20, 1880, 260),            # pared / wall
+		Rect2(BED.position.x, BED.position.y + 90, BED.size.x, BED.size.y - 100),
+		Rect2(DESK.position.x, DESK.position.y, DESK.size.x, DESK.size.y),
+		Rect2(SHELF.position.x, SHELF.position.y, SHELF.size.x, SHELF.size.y),
+		Rect2(60, 340, 1800, 680),           # suelo / floor
+	]
 
 
 ## Grietas: líneas quebradas que crecen desde un punto. Salen más en cada sueño.
@@ -151,14 +179,7 @@ func _make_cracks() -> void:
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 91
-	# Zonas donde pueden salir / Areas where they can appear
-	var zones: Array[Rect2] = [
-		Rect2(20, 20, 1880, 260),            # pared / wall
-		Rect2(BED.position.x, BED.position.y + 90, BED.size.x, BED.size.y - 100),
-		Rect2(DESK.position.x, DESK.position.y, DESK.size.x, DESK.size.y),
-		Rect2(SHELF.position.x, SHELF.position.y, SHELF.size.x, SHELF.size.y),
-		Rect2(60, 340, 1800, 680),           # suelo / floor
-	]
+	var zones := crack_zones()
 	var per_zone := [4, 1, 1, 1, 3]
 	for z in zones.size():
 		for i in per_zone[z] * weird:
@@ -238,8 +259,9 @@ func _draw_wall() -> void:
 
 ## Boquetes en la pared que dan al vacío estrellado / Holes in the wall onto the starry void
 func _draw_wall_holes() -> void:
+	var list := wall_holes_list()
 	for i in wall_hole_count():
-		var h := WALL_HOLES[i]
+		var h := list[i]
 		var pts := PackedVector2Array()
 		var inner := PackedVector2Array()
 		var n := 18
@@ -271,8 +293,9 @@ func _draw_wall_holes() -> void:
 ## Sombra del boquete sobre el suelo, para que se lea como una salida
 ## The hole's shadow on the floor, so it reads as an opening
 func _draw_wall_hole_floor() -> void:
+	var list := wall_holes_list()
 	for i in wall_hole_count():
-		var h := WALL_HOLES[i]
+		var h := list[i]
 		var c := Vector2(h.get_center().x, WALL_BOTTOM + 22)
 		draw_colored_polygon(_ellipse(c, Vector2(h.size.x * 0.55, 20)), Color("07061a", 0.75))
 		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(h.size.x * 0.6, 26), Vector2(h.size.x * 1.2, 52)), false, Color("5b4bc4", 0.25))
@@ -605,8 +628,9 @@ func _draw_zzz() -> void:
 # --- Corrupción del sueño / Dream corruption ---------------------------------
 
 func _draw_holes() -> void:
+	var list := holes_list()
 	for i in hole_count():
-		var h := HOLES[i]
+		var h := list[i]
 		var c := h.get_center()
 		var rr := h.size / 2.0
 		# Borde roto: la forma tiembla un poco / Broken rim: the shape wobbles slightly

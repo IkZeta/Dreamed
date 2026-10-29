@@ -47,8 +47,18 @@ const WAVES := [
 	{"duration": 40.0, "spawn_every": 2.6, "group": [1, 3], "max_alive": 8, "mix": {"foox": 2, "thug": 1, "sling": 1}, "new": "sling"},
 	{"duration": 45.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 9, "mix": {"foox": 2, "thug": 1, "sling": 1, "skeleton": 2}, "new": "skeleton"},
 	{"boss": true, "spawn_every": 3.5, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}},
+	# --- Acto 2: el salón. "fire" = la chimenea está encendida; "shop" = Charo abre el kiosco al
+	# acabar; "act_end" = de momento, aquí termina el acto (el jefe del salón vendrá después).
+	# --- Act 2: the living room. "fire" = the fireplace is lit; "shop" = Charo opens her kiosk
+	# at the end; "act_end" = for now the act ends here (the living-room boss comes later).
+	{"duration": 40.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 10, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}, "fire": true},
+	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2}, "shop": true},
+	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2}, "fire": true},
+	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3}, "shop": true, "act_end": true},
 ]
 const BOSS_DEPTH := 5
+## Primer sueño de cada acto / First dream of each act
+const ACT2_START := 6
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
@@ -99,6 +109,15 @@ var run_hits := 0
 var saved_hp := -1.0
 ## Total ganado en cada estadística / Total gained in each stat
 var stat_bonus := {}
+## Realidad Fragmentada: la moneda de Charo (dura lo que dura la partida). Solo sale de los
+## élites, los jefes, los enemigos tirados por los agujeros y los sacrificios en la chimenea.
+## Fragmented Reality: Charo's currency (lasts for the run). It only comes from elites,
+## bosses, enemies thrown down holes and sacrifices in the fireplace.
+var reality := 0
+const REALITY_ELITE := 2
+const REALITY_BOSS := 5
+const REALITY_FALL := 1
+const REALITY_SACRIFICE := 4
 
 
 ## --- Modo Dios (para probar) / God mode (for testing) ----------------------------
@@ -117,6 +136,9 @@ func start_run() -> void:
 		dream_depth = clampi(god_depth, 1, WAVES.size())
 		upgrades = god_upgrades.duplicate()
 		stat_bonus = god_stats.duplicate()
+		# Para probar el kiosco de Charo / To try out Charo's kiosk
+		if dream_depth >= ACT2_START:
+			reality = 30
 
 
 ## Empieza una partida nueva / Starts a new run
@@ -131,6 +153,7 @@ func reset_run() -> void:
 	run_kills = 0
 	run_hits = 0
 	stat_bonus = {}
+	reality = 0
 	_rng.randomize()
 
 
@@ -149,13 +172,32 @@ const BASE_LEVEL_STATS := {
 const HEAL_BETWEEN_DREAMS := 0.05
 
 
-## Multiplicadores de la pesadilla / Nightmare multipliers
+## Acto del sueño actual (1 = la habitación, 2 = el salón) / Act of the current dream (1 = bedroom, 2 = living room)
+func act_of(depth: int) -> int:
+	return 1 if depth < ACT2_START else 2
+
+
+func act() -> int:
+	return act_of(dream_depth)
+
+
+## La Realidad Fragmentada solo existe desde que Charo la presenta en el Acto 2
+## Fragmented Reality only exists once Charo introduces it in Act 2
+func reality_on() -> bool:
+	return act() >= 2
+
+
+func add_reality(n: int) -> void:
+	reality = maxi(0, reality + n)
+
+
+## Multiplicadores de la pesadilla y del Acto 2 / Nightmare and Act 2 multipliers
 func enemy_hp_mult() -> float:
-	return 1.6 if difficulty == "nightmare" else 1.0
+	return (1.6 if difficulty == "nightmare" else 1.0) * (1.35 if act() >= 2 else 1.0)
 
 
 func enemy_dmg_mult() -> float:
-	return 1.5 if difficulty == "nightmare" else 1.0
+	return (1.5 if difficulty == "nightmare" else 1.0) * (1.2 if act() >= 2 else 1.0)
 
 
 func shard_mult() -> float:
@@ -339,6 +381,69 @@ func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
 		var v := up_value(giver, key, lvl, weapon)
 		vals[key] = str(int(v)) if is_equal_approx(v, roundf(v)) else str(snappedf(v, 0.1))
 	return tr(upgrade_key(giver, weapon, "DESC")).format(vals)
+
+
+## --- Kiosco de Charo / Charo's kiosk ------------------------------------------------
+const WARES := {
+	"milk": 3,       # recupera un 40 % de la vida / restores 40% health
+	"candy": 4,      # +8 de suerte / +8 luck
+	"gum": 5,        # estadística rara al azar / random rare stat
+	"glasses": 5,    # +15 % de alcance / +15% range
+	"newspaper": 6,  # sube de nivel una mejora / levels up an upgrade
+	"battery": 7,    # una subida de nivel / one level-up
+}
+
+
+## Mejoras que aún pueden subir de nivel / Upgrades that can still level up
+func upgradable() -> Array[String]:
+	var out: Array[String] = []
+	for g: String in upgrades:
+		if level(g) > 0 and level(g) < MAX_UPGRADE_LEVEL:
+			out.append(g)
+	return out
+
+
+## Tres artículos distintos para el kiosco / Three different wares for the kiosk
+func roll_wares() -> Array[String]:
+	var pool: Array[String] = []
+	for w: String in WARES:
+		if w == "newspaper" and upgradable().is_empty():
+			continue
+		pool.append(w)
+	var out: Array[String] = []
+	for i in 3:
+		if pool.is_empty():
+			break
+		out.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+	return out
+
+
+## Aplica un artículo comprado (lo que toca la vida lo hace la partida) / Applies a bought ware (health is handled by the run)
+func apply_ware(id: String) -> void:
+	match id:
+		"candy":
+			stat_bonus["luck"] = float(stat_bonus.get("luck", 0.0)) + 8.0
+		"glasses":
+			stat_bonus["range"] = float(stat_bonus.get("range", 0.0)) + 15.0
+		"gum":
+			var stat_id: String = STATS[_rng.randi_range(0, STATS.size() - 1)]
+			apply_stat({"stat": stat_id, "rarity": 2, "value": float(STAT_STEPS[stat_id][2])})
+		"newspaper":
+			var list := upgradable()
+			if not list.is_empty():
+				add_upgrade(list[_rng.randi_range(0, list.size() - 1)])
+		"battery":
+			pending_ups += 1
+
+
+## Sacrificar en la chimenea: la mejora pierde un nivel / Sacrificing in the fireplace: the upgrade loses a level
+func sacrifice(giver: String) -> void:
+	var hp_before := up_value("doc", "hp")
+	upgrades[giver] = level(giver) - 1
+	if level(giver) <= 0:
+		upgrades.erase(giver)
+	if giver == "doc" and saved_hp >= 0.0:
+		saved_hp -= hp_before - up_value("doc", "hp")
 
 
 func get_character(id: String) -> Dictionary:

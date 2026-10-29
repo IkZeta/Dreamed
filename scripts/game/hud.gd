@@ -20,6 +20,9 @@ var _event: Label
 var _xp_bar: ProgressBar
 var _lvl: Label
 var _depth := 1
+var _reality_row: HBoxContainer
+var _reality: Label
+var _fire: Label
 
 
 func _ready() -> void:
@@ -63,6 +66,17 @@ func _ready() -> void:
 	_xp_bar.add_theme_stylebox_override("background", UITheme.bar(Color(UITheme.LINE, 0.5), 2.0))
 	xp_row.add_child(_xp_bar)
 	set_xp()
+	# Realidad Fragmentada (desde el Acto 2) / Fragmented Reality (from Act 2)
+	_reality_row = HBoxContainer.new()
+	_reality_row.add_theme_constant_override("separation", 8)
+	hp_box.add_child(_reality_row)
+	var r_icon := RealityIcon.new()
+	r_icon.custom_minimum_size = Vector2(30, 30)
+	_reality_row.add_child(r_icon)
+	_reality = UITheme.label("", 24, RealityIcon.COLOR, "display")
+	_reality.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_reality_row.add_child(_reality)
+	set_reality()
 
 	# Aviso del modo Dios (arriba en el centro) / God mode notice (top centre)
 	var god_box := VBoxContainer.new()
@@ -103,6 +117,10 @@ func _ready() -> void:
 	_event.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_event.visible = false
 	center.add_child(_event)
+	_fire = UITheme.label("EVENT_FIRE", 14, Color("ffb06a"), "caps")
+	_fire.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_fire.visible = false
+	center.add_child(_fire)
 
 	# Ayuda de controles / Controls hint
 	_hint = UITheme.label("RUN_CONTROLS", 18, Color(UITheme.ASH, 0.9), "light")
@@ -155,7 +173,7 @@ func set_special_mode(throwing: bool) -> void:
 		_special = UITheme.label("", 16, UITheme.GOLD, "caps")
 		get_child(0).add_child(_special)
 		_special.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		_special.position = Vector2(56, 162)
+		_special.position = Vector2(56, 206)
 	_special.text = "RUN_SPECIAL_THROW" if throwing else "RUN_SPECIAL_DEFEND"
 
 
@@ -181,6 +199,11 @@ func show_boss(name_key: String) -> void:
 	_hint.visible = false
 
 
+func hide_boss() -> void:
+	if _boss_bar:
+		_boss_bar.get_parent().visible = false
+
+
 func set_boss_part(name_key: String) -> void:
 	if _boss_name:
 		_boss_name.text = tr("BOSS_NAME") + "  ·  " + tr(name_key)
@@ -202,6 +225,34 @@ func show_event(id: String) -> void:
 	_event.visible = id != ""
 	if id != "":
 		_event.text = "EVENT_" + id.to_upper()
+
+
+## La chimenea del salón está encendida / The living-room fireplace is lit
+func show_fire(on: bool) -> void:
+	_fire.visible = on
+
+
+func set_reality() -> void:
+	_reality_row.visible = GameState.reality_on()
+	var old := _reality.text
+	_reality.text = str(GameState.reality)
+	if old != "" and old != _reality.text:
+		_reality_row.pivot_offset = Vector2(0, 15)
+		var tw := create_tween()
+		tw.tween_property(_reality_row, "scale", Vector2(1.25, 1.25), 0.08)
+		tw.tween_property(_reality_row, "scale", Vector2.ONE, 0.2)
+
+
+## Rótulo grande en el centro (p. ej. el final de un acto) / Big centred caption (e.g. the end of an act)
+func banner(key: String, sub_key := "") -> void:
+	_intro_title.text = tr(key)
+	_intro_sub.text = sub_key
+	_intro_sub.visible = sub_key != ""
+	_intro.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(_intro, "modulate:a", 1.0, 0.5)
+	tw.tween_interval(1.8)
+	tw.tween_property(_intro, "modulate:a", 0.0, 0.7)
 
 
 func set_god() -> void:

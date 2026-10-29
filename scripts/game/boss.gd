@@ -134,6 +134,7 @@ func die(counted: bool) -> void:
 	_dying = 0.0
 	_atk = {}
 	run.drop_shards(global_position, roundi(12 * GameState.shard_mult()))
+	run.gain_reality(GameState.REALITY_BOSS, global_position)
 	Progress.kill(bestiary_id)
 	GameState.run_kills += 1
 	Progress.add_stat("kills")

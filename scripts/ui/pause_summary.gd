@@ -37,6 +37,8 @@ func _build(player: Player) -> void:
 		["STAT_NAME_LIFESTEAL", "%s %%" % _num(s.stat("lifesteal"))],
 		["STAT_NAME_LUCK", _num(s.stat("luck"))],
 	]
+	if s.reality_on():
+		rows.append(["REALITY_NAME", "%d ◆" % s.reality])
 	for r in rows:
 		var name_l := UITheme.label(r[0], 24, UITheme.ASH, "body")
 		grid.add_child(name_l)

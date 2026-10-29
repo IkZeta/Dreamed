@@ -257,7 +257,7 @@ def save(name: str, x: np.ndarray, peak: float = 0.6, room: float = 0.18, size: 
     x = np.tanh(x / m * 1.2) / np.tanh(1.2)
     fade = min(len(x) // 4, int(SR * 0.006))
     x[:fade] *= np.linspace(0, 1, fade)[:, None]
-    if not name.startswith("music") and name != "vacuum":
+    if not name.startswith("music") and name not in ("vacuum", "fire"):
         x[-fade:] *= np.linspace(1, 0, fade)[:, None]
     x = x / (np.max(np.abs(x)) or 1.0) * peak
     OUT.mkdir(parents=True, exist_ok=True)
@@ -338,6 +338,37 @@ def dream_theme() -> np.ndarray:
             place(buf, pluck(midi(n), 3.0, 0.2, 0.45), off + bi * bar_len + b * beat, 0.1)
 
     return loop_render(build, bar_len * bars, 0.45, 1.6)
+
+
+def living_theme() -> np.ndarray:
+    """Acto 2, el salón: vals lento de caja de música en La menor, con el tic-tac de un reloj de pared.
+    Act 2, the living room: slow music-box waltz in A minor, with a wall clock ticking."""
+    beat = 60.0 / 84
+    bar_len = beat * 3
+    chords = [[45, 57, 60, 64], [41, 57, 60, 65], [43, 55, 59, 62], [40, 56, 59, 64],
+              [45, 57, 60, 64], [38, 57, 62, 65], [40, 56, 59, 62], [45, 57, 60, 64]]
+    melody = [(0, 0, 76, 2), (0, 2, 74, 1), (1, 0, 72, 3), (2, 0, 71, 1), (2, 1, 72, 1), (2, 2, 74, 1), (3, 0, 71, 3),
+              (4, 0, 76, 2), (4, 2, 79, 1), (5, 0, 77, 2), (5, 2, 74, 1), (6, 0, 71, 2), (6, 2, 68, 1), (7, 0, 69, 3)]
+    bars = 8
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 1.6, 0.07, 1.4, 2.0, 950), s, human=False)
+            # Vals: grave en el 1 y acorde suave en el 2 y el 3 / Waltz: bass on 1, soft chord on 2 and 3
+            place(buf, pluck(midi(ch[0] - 12), 3.0, 0.28, 0.15, 0.998), s)
+            for b in (1, 2):
+                for k, n in enumerate(ch[1:]):
+                    place(buf, pluck(midi(n), 1.2, 0.045, 0.3), s + b * beat + k * 0.012, -0.3 + k * 0.3)
+            # Tic-tac del reloj de pared / Wall clock tick-tock
+            for b in range(3):
+                place(buf, bar(1900 if b % 2 == 0 else 1500, 0.08, 0.035, "wood", 0.9), s + b * beat, 0.5, human=False)
+        for bi, b, n, _ in melody:
+            place(buf, bar(midi(n), 2.2, 0.16, "kalimba", 0.35), off + bi * bar_len + b * beat, -0.1)
+            place(buf, bar(midi(n + 12), 1.2, 0.04, "kalimba", 0.5), off + bi * bar_len + b * beat + 0.01, 0.2, human=False)
+
+    return loop_render(build, bar_len * bars, 0.4, 1.5)
 
 
 def astral_theme() -> np.ndarray:
@@ -615,6 +646,57 @@ def giver_doc():
     return x
 
 
+# --- Acto 2: Charo, la chimenea y la Realidad Fragmentada / Act 2: Charo, the fireplace and Fragmented Reality
+
+def giver_charo():
+    # Cálido y de barrio: acordeón suave (pad) y una campanilla de tienda / Warm and homely: soft accordion pad and a shop bell
+    x = np.zeros((int(SR * 2.6), 2))
+    place(x, saw_pad([midi(n) for n in (57, 60, 64)], 1.6, 0.08, 0.08, 0.9, 1800), 0.0, human=False)
+    for i, (n, at) in enumerate([(69, 0.0), (72, 0.18), (76, 0.36), (74, 0.62), (72, 0.8)]):
+        place(x, bar(midi(n), 1.2, 0.2, "kalimba", 0.35), at, -0.3 + i * 0.15)
+    place(x, bar(midi(93), 1.4, 0.08, "kalimba", 0.2), 1.05, 0.4, human=False)
+    return x
+
+
+def sfx_reality():
+    # Cristal que se recompone: dos notas vidriosas que suben / Glass mending itself: two glassy rising notes
+    x = np.zeros((int(SR * 1.2), 2))
+    place(x, bar(midi(83), 0.8, 0.22, "kalimba", 0.6), 0.0, -0.2, human=False)
+    place(x, bar(midi(90), 0.9, 0.18, "kalimba", 0.6), 0.06, 0.2, human=False)
+    return mix(x, lp(sweep_noise(0.25, 2500, 5000, 3.0, 0.05), 6000))
+
+
+def sfx_fire():
+    """Crepitar suave de chimenea, en bucle de 3 s / Soft fireplace crackle, 3 s loop."""
+    dur = 3.0
+    n = int(dur * SR)
+    roar = lp(noise(dur + 0.3), 500)[: n] * 0.5
+    pops = np.zeros(n)
+    rng = np.random.default_rng(7)
+    for at in rng.uniform(0, dur - 0.05, 26):
+        i = int(at * SR)
+        k = int(SR * rng.uniform(0.004, 0.012))
+        pops[i: i + k] += rng.uniform(0.2, 0.6) * np.hanning(k) * rng.choice([-1, 1], k)
+    x = roar + bp(pops, 900, 4000) * 2.5
+    k = int(0.15 * SR)
+    x[:k] = x[:k] * np.linspace(0, 1, k) + x[-k:] * np.linspace(1, 0, k)
+    return stereo(x[:-k])
+
+
+def sfx_sacrifice():
+    # La mejora arde: soplo que sube y un acorde grave que se apaga / The upgrade burns: rising whoosh and a fading low chord
+    x = np.zeros((int(SR * 2.4), 2))
+    place(x, saw_pad([midi(n) for n in (45, 52, 57)], 1.8, 0.1, 0.05, 1.6, 900), 0.1, human=False)
+    for i, n in enumerate([69, 64, 60]):
+        place(x, pluck(midi(n), 1.4, 0.2, 0.4), 0.3 + i * 0.12, 0.3 - i * 0.3, human=False)
+    return mix(x, sweep_noise(0.8, 200, 1600, 1.8, 0.35))
+
+
+def sfx_puff():
+    # Aparece o se va Charo: una nubecita / Charo appears or leaves: a little puff
+    return mix(lp(sweep_noise(0.35, 1200, 400, 2.0, 0.35), 3000), np.pad(bar(midi(84), 0.6, 0.12, "kalimba", 0.3), (int(SR * 0.05), 0)))
+
+
 if __name__ == "__main__":
     import sys
     only = set(sys.argv[1:])   # p. ej. "giver_svinho giver_doc" para rehacer solo esos / e.g. to remake only those
@@ -623,6 +705,8 @@ if __name__ == "__main__":
         save("music_dream1", dream_theme(), 0.55, room=0)
         save("music_astral", astral_theme(), 0.55, room=0)
         save("music_boss", boss_theme(), 0.55, room=0)
+    if not only or "music_living" in only:
+        save("music_living", living_theme(), 0.55, room=0)
     for name, fn, peak, room in [
         ("ui_hover", sfx_hover, 0.25, 0.12), ("ui_click", sfx_click, 0.35, 0.12), ("swing", sfx_swing, 0.45, 0.1),
         ("pillow", sfx_pillow, 0.55, 0.12), ("zap", sfx_zap, 0.45, 0.25), ("vacuum", sfx_vacuum, 0.3, 0.0),
@@ -636,6 +720,8 @@ if __name__ == "__main__":
         ("throw", sfx_throw, 0.4, 0.1), ("act_clear", sfx_act_clear, 0.5, 0.4),
         ("giver_svinho", giver_svinho, 0.45, 0.3), ("giver_stolk", giver_stolk, 0.5, 0.3),
         ("giver_silly", giver_silly, 0.35, 0.25), ("giver_doc", giver_doc, 0.4, 0.35),
+        ("giver_charo", giver_charo, 0.4, 0.3), ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
+        ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2),
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)

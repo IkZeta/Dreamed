@@ -200,6 +200,8 @@ func _start_fall(to: Vector2) -> void:
 	Audio.play("throw", -6.0, 0.15)
 	_death_sound()
 	run.on_enemy_killed(self)
+	# Tirar enemigos por los agujeros da Realidad Fragmentada / Throwing enemies down holes gives Fragmented Reality
+	run.gain_reality(GameState.REALITY_FALL, _fall_from)
 
 
 func _update_fall(delta: float) -> void:

@@ -19,6 +19,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float) -> void
 		"stolk": _stolk(t)
 		"silly": _silly(t)
 		"doc": _doc(t)
+		"charo": _charo(t)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -34,6 +35,14 @@ static func _svinho(t: float) -> void:
 	_ci.draw_set_transform_matrix(_xf * Transform2D(t * 3.0, ball))
 	Sprites.draw(_ci, "npc_ball")
 	_ci.draw_set_transform_matrix(_xf)
+
+
+## La Kioskera Charo; sus gafas brillan de vez en cuando / Kiosk lady Charo; her glasses glint now and then
+static func _charo(t: float) -> void:
+	Sprites.draw(_ci, "npc_charo")
+	var glint := fposmod(t, 4.0)
+	if glint < 0.25:
+		_ci.draw_rect(Rect2(86 + glint * 40.0, 75, 3, 3), Color(1, 1, 1, 0.8))
 
 
 static func _stolk(t: float) -> void:
