@@ -12,7 +12,8 @@ const GLITCH_A := Color("ff5fd2")
 const GLITCH_B := Color("5ff2ff")
 
 enum State { SPAWNING, ALIVE, DYING }
-const ELITE_COLOR := {"split": Color("ffd36a"), "puddle": Color("8fe0ff"), "haste": Color("ff8fd0"), "": Color("ffd36a")}
+const ELITE_RED := Color("ff2230")
+const ELITE_SHADER := preload("res://assets/shaders/elite.gdshader")
 
 var run: Node  # Run
 var max_hp := 16.0
@@ -72,6 +73,10 @@ func _ready() -> void:
 		max_hp *= 3.0
 		shards *= 4
 		scale = Vector2.ONE * 1.3
+		# Aspecto demoníaco: contorno rojo y cuerpo carmesí / Demonic look: red outline and crimson body
+		var m := ShaderMaterial.new()
+		m.shader = ELITE_SHADER
+		material = m
 		if elite_power == "":
 			elite_power = ["split", "puddle", "haste"][randi() % 3]
 		if elite_power == "haste":
@@ -291,17 +296,21 @@ func _draw() -> void:
 	var a := _fade
 	var bob := sin(_t * 2.6 + _phase) * 3.0
 	if elite:
-		# Aura dorada que late / Pulsing golden aura
-		var pulse := 0.8 + 0.2 * sin(_t * 4.0)
-		var r := (radius + 26.0) * pulse
-		draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-r, -aim_height - r), Vector2(r, r) * 2.0), false, Color(ELITE_COLOR[elite_power], 0.45 * a))
-		draw_arc(Vector2(0, 2), radius + 6.0, 0, TAU, 24, Color(ELITE_COLOR[elite_power], 0.8 * a), 2.0)
+		# Sombra roja que late bajo el élite / Pulsing red shadow under the elite
+		var pulse := 0.85 + 0.15 * sin(_t * 5.0)
+		var r := (radius + 22.0) * pulse
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.4))
+		draw_circle(Vector2.ZERO, r, Color(0.35, 0.0, 0.05, 0.45 * a))
+		draw_arc(Vector2.ZERO, r, 0, TAU, 28, Color(ELITE_RED, 0.8 * a), 3.0)
+		draw_set_transform(Vector2.ZERO)
 	if glitch_t > 0.0:
 		var j := Vector2(randf_range(-6, 6), randf_range(-2, 2))
 		_draw_body(Vector2(-5, bob) + j, Color(GLITCH_A, 0.5), a * 0.6)
 		_draw_body(Vector2(5, bob) - j, Color(GLITCH_B, 0.5), a * 0.6)
 	_draw_body(Vector2(0, bob), Color.WHITE, a)
 	draw_set_transform(Vector2.ZERO)
+	if elite:
+		_draw_horns(head_top() + Vector2(0, bob), a)
 	if glitch_t > 0.0:
 		for i in 3:
 			var y := randf_range(-aim_height * 2.5, 6)
@@ -310,6 +319,21 @@ func _draw() -> void:
 		for i in 3:
 			var ang := _t * 4.0 + i * TAU / 3.0
 			DreamBackground.draw_star(self, Vector2(cos(ang) * 18.0, -aim_height * 3.0 + sin(ang) * 5.0), 2.0, Color(UITheme.GOLD, a))
+
+
+## Dónde está lo alto de la cabeza (para los cuernos del élite) / Where the top of the head is (for elite horns)
+func head_top() -> Vector2:
+	return Vector2(0, -aim_height * 2.2)
+
+
+## Cuernos de demonio con brillo rojo / Demon horns with a red glow
+func _draw_horns(top: Vector2, a: float) -> void:
+	for side in [-1.0, 1.0]:
+		var base := top + Vector2(side * 9.0 * _facing, 4.0)
+		var tip := base + Vector2(side * 9.0, -16.0)
+		var pts := PackedVector2Array([base + Vector2(-4, 0), base + Vector2(4, 0), tip])
+		draw_colored_polygon(pts, Color(0.2, 0.02, 0.06, a))
+		draw_polyline(pts + PackedVector2Array([pts[0]]), Color(ELITE_RED, a), 2.0)
 
 
 ## Dibuja el cuerpo. "tint" es blanco normalmente y rosa/cian en las copias del glitch.

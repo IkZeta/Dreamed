@@ -5,7 +5,7 @@ extends Foox
 ## Golden Foox (event): harmless, runs away from Kroker and drops lots of star shards if
 ## you catch it. It fades away after a while.
 
-const LIFETIME := 14.0
+const LIFETIME := 7.0   # se esfuma a los 7 s si no lo pillas / vanishes after 7 s if not caught
 const GOLD := Color(1.0, 0.82, 0.35)
 
 

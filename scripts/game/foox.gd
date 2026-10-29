@@ -58,3 +58,7 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	# Ojo que brilla / Glowing eye
 	draw_rect(Rect2(22, -28, 6, 2), Color(EYES, a))
 	draw_circle(Vector2(26, -26), 5.0, Color(EYES, 0.15 * a))
+
+
+func head_top() -> Vector2:
+	return Vector2(20 * _facing, -46)

@@ -58,3 +58,7 @@ func _ellipse(c: Vector2, r: Vector2, n := 20) -> PackedVector2Array:
 		var ang := TAU * i / n
 		pts.append(c + Vector2(cos(ang) * r.x, sin(ang) * r.y))
 	return pts
+
+
+func head_top() -> Vector2:
+	return Vector2(0, -150)
