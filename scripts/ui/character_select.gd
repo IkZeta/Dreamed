@@ -8,6 +8,8 @@ const RUN_SCENE := "res://scenes/run.tscn"
 var _cards: Array[Button] = []
 var _portraits := {}
 var _start: Button
+var _god: Button
+var _picked := ""
 
 
 func _ready() -> void:
@@ -69,6 +71,15 @@ func _build() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = SIZE_EXPAND_FILL
 	footer.add_child(spacer)
+	# Modo Dios para probar / God mode for testing
+	_god = Button.new()
+	_god.custom_minimum_size = Vector2(300, 64)
+	_god.pressed.connect(_open_god)
+	footer.add_child(_god)
+	_update_god_button()
+	var gap2 := Control.new()
+	gap2.custom_minimum_size.x = 20
+	footer.add_child(gap2)
 	_start = Button.new()
 	_start.text = "BTN_START"
 	_start.disabled = true
@@ -162,7 +173,22 @@ func _pair(key: String, value_key: String, color: Color) -> Control:
 	return row
 
 
+func _open_god() -> void:
+	var panel := GodPanel.new()
+	panel.weapon = _picked
+	panel.closed.connect(func() -> void:
+		_update_god_button()
+		_god.grab_focus())
+	add_child(panel)
+
+
+func _update_god_button() -> void:
+	_god.text = "GOD_BUTTON_ON" if GameState.god_mode else "GOD_BUTTON"
+	_god.add_theme_color_override("font_color", UITheme.GOLD if GameState.god_mode else UITheme.ASH)
+
+
 func _select(id: String) -> void:
+	_picked = id
 	GameState.selected_character = id
 	for key: String in _portraits:
 		_portraits[key].selected = key == id
@@ -171,7 +197,7 @@ func _select(id: String) -> void:
 
 func _on_start() -> void:
 	if not _start.disabled:
-		GameState.reset_run()
+		GameState.start_run()
 		_go(RUN_SCENE)
 
 

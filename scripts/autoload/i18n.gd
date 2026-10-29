@@ -145,6 +145,23 @@ const STRINGS := {
 	"STAT_DESC_LUCK": {"es": "Salen mejoras más raras y vuelven más a menudo los personajes que ya te ayudaron.", "en": "Rarer upgrades appear, and characters who already helped you return more often."},
 	"ENEMY_FELL": {"es": "¡Al vacío!", "en": "Into the void!"},
 
+	# --- Modo Dios / God mode ---
+	"GOD_BUTTON": {"es": "Modo Dios", "en": "God mode"},
+	"GOD_BUTTON_ON": {"es": "Modo Dios: activado", "en": "God mode: on"},
+	"GOD_TITLE": {"es": "Modo Dios", "en": "God mode"},
+	"GOD_SUB": {"es": "Para probar cosas. Se aplica al empezar a soñar.", "en": "For trying things out. Applied when you start dreaming."},
+	"GOD_ENABLE": {"es": "Activar el modo Dios", "en": "Enable god mode"},
+	"GOD_DREAM": {"es": "Empezar en el sueño", "en": "Start in dream"},
+	"GOD_BOSS": {"es": "%d · Jefe", "en": "%d · Boss"},
+	"GOD_UPGRADES": {"es": "Mejoras del plano astral", "en": "Astral plane upgrades"},
+	"GOD_STATS": {"es": "Estadísticas de nivel", "en": "Level stats"},
+	"GOD_RESET": {"es": "Quitar todo", "en": "Clear all"},
+	"GOD_CLOSE": {"es": "Hecho", "en": "Done"},
+	"GOD_PICK_WEAPON": {"es": "Elige un arma para ver el nombre de cada mejora", "en": "Pick a weapon to see each upgrade's name"},
+	"GOD_HUD_INVULN": {"es": "Modo Dios · Invulnerable", "en": "God mode · Invulnerable"},
+	"GOD_HUD_VULN": {"es": "Modo Dios · Vulnerable", "en": "God mode · Vulnerable"},
+	"GOD_HUD_KEYS": {"es": "F invulnerable · N acabar sueño · K borrar enemigos · L subir nivel", "en": "F invulnerable · N end dream · K clear enemies · L level up"},
+
 	# --- Plano astral / Astral plane ---
 	"ASTRAL_TITLE": {"es": "Plano astral", "en": "Astral plane"},
 	"ASTRAL_SUBTITLE": {"es": "Entre un sueño y otro, alguien te espera. Elige un don.", "en": "Between one dream and the next, someone is waiting. Choose a gift."},

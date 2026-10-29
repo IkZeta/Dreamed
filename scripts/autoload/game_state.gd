@@ -91,6 +91,24 @@ var pending_ups := 0
 var stat_bonus := {}
 
 
+## --- Modo Dios (para probar) / God mode (for testing) ----------------------------
+var god_mode := false
+var god_invuln := true          # con la F se cambia en partida / toggled in game with F
+var god_depth := 1              # sueño en el que empezar / dream to start in
+var god_upgrades := {}          # personaje → nivel / giver → level
+var god_stats := {}             # estadística → total / stat → total
+
+
+## Empieza una partida desde la selección o al repetir: con el modo Dios aplica sus ajustes
+## Starts a run from the select screen or on retry: in god mode it applies its settings
+func start_run() -> void:
+	reset_run()
+	if god_mode:
+		dream_depth = clampi(god_depth, 1, WAVES.size())
+		upgrades = god_upgrades.duplicate()
+		stat_bonus = god_stats.duplicate()
+
+
 ## Empieza una partida nueva / Starts a new run
 func reset_run() -> void:
 	dream_depth = 1

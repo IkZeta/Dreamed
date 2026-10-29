@@ -130,6 +130,8 @@ func set_facing(f: float) -> void:
 func take_damage(amount: float) -> void:
 	if not alive or _invuln > 0.0 or not run.running:
 		return
+	if GameState.god_mode and GameState.god_invuln:
+		return  # modo Dios / god mode
 	# La defensa resta daño, pero siempre se recibe al menos 1.
 	# Defense subtracts damage, but at least 1 always gets through.
 	var dmg := maxf(1.0, amount - armor)

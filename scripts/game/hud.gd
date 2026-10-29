@@ -15,6 +15,7 @@ var _intro_new: Label
 var _boss_bar: ProgressBar
 var _boss_name: Label
 var _special: Label
+var _god: Label
 var _xp_bar: ProgressBar
 var _lvl: Label
 var _depth := 1
@@ -61,6 +62,22 @@ func _ready() -> void:
 	_xp_bar.add_theme_stylebox_override("background", UITheme.bar(Color(UITheme.LINE, 0.5), 2.0))
 	xp_row.add_child(_xp_bar)
 	set_xp()
+
+	# Aviso del modo Dios (arriba en el centro) / God mode notice (top centre)
+	var god_box := VBoxContainer.new()
+	god_box.add_theme_constant_override("separation", 2)
+	root.add_child(god_box)
+	god_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	god_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	god_box.offset_top = 40
+	_god = UITheme.label("", 16, UITheme.GOLD, "caps")
+	_god.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	god_box.add_child(_god)
+	var keys := UITheme.label("GOD_HUD_KEYS", 14, Color(UITheme.ASH, 0.8), "light")
+	keys.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	god_box.add_child(keys)
+	god_box.visible = GameState.god_mode
+	set_god()
 
 	# Sueño y tiempo (arriba en el centro) / Dream and timer (top center)
 	# Arriba a la derecha, para no tapar la ventana / Top right, clear of the window
@@ -173,6 +190,11 @@ func set_hp(hp: float, max_hp: float) -> void:
 	_hp_bar.max_value = max_hp
 	_hp_bar.value = hp
 	_hp_text.text = "%d / %d" % [ceili(hp), roundi(max_hp)]
+
+
+func set_god() -> void:
+	_god.text = "GOD_HUD_INVULN" if GameState.god_invuln else "GOD_HUD_VULN"
+	_god.add_theme_color_override("font_color", UITheme.GOLD if GameState.god_invuln else UITheme.EMBER)
 
 
 func set_xp() -> void:

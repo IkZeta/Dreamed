@@ -242,9 +242,38 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if GameState.god_mode and running and _level_screen == null and _overlay == null \
+			and event is InputEventKey and event.pressed and not event.echo:
+		if _god_key(event.physical_keycode):
+			get_viewport().set_input_as_handled()
+			return
 	if event.is_action_pressed("pause") and running and _overlay == null and _level_screen == null:
 		get_viewport().set_input_as_handled()
 		_open_pause()
+
+
+## Teclas del modo Dios / God mode keys
+func _god_key(key: Key) -> bool:
+	match key:
+		KEY_F:
+			GameState.god_invuln = not GameState.god_invuln
+			hud.set_god()
+			Audio.play("chime", -8.0)
+		KEY_N:
+			if is_instance_valid(boss):
+				if boss.is_targetable():
+					boss.hit(1000000.0)
+			else:
+				_on_wave_cleared()
+		KEY_K:
+			for e: Node in enemies.get_children():
+				if not e is BossPiece:
+					e.die(false)
+		KEY_L:
+			collect_shards(GameState.xp_needed() - GameState.xp)
+		_:
+			return false
+	return true
 
 
 # --- Oleada / Wave ----------------------------------------------------------
@@ -527,7 +556,7 @@ func _open_settings() -> void:
 
 
 func _restart() -> void:
-	GameState.reset_run()
+	GameState.start_run()
 	GameState.change_scene("res://scenes/run.tscn")
 
 
