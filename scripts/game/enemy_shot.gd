@@ -27,7 +27,7 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 	var r: Rect2 = run.arena_rect()
-	if life <= 0.0 or not r.grow(40).has_point(global_position) or not run.running:
+	if life <= 0.0 or not r.grow(180).has_point(global_position) or not run.running:
 		run.fx.dissipate(global_position, Color("cfc6e8"))
 		queue_free()
 		return

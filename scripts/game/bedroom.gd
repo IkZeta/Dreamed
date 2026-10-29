@@ -77,6 +77,9 @@ var weapon_taken := false
 ## Lo raro que está la habitación: 0 en el Sueño 1 y sube en cada sueño
 ## How strange the room is: 0 in Dream 1, rising with each dream
 var weird := 0
+## Muebles que se han levantado (jefe): no se dibujan ni bloquean el paso
+## Furniture that has got up (boss): not drawn and no longer blocking the way
+var gone: Array[String] = []
 ## Grietas generadas al empezar (paredes, muebles y suelo) / Cracks generated at start (walls, furniture, floor)
 var _cracks: Array[PackedVector2Array] = []
 var _flakes: Array[Dictionary] = []
@@ -120,6 +123,10 @@ func hole_count() -> int:
 ## Todo lo que no se puede atravesar: muebles y agujeros / Everything you can't walk through: furniture and holes
 func blockers() -> Array[Rect2]:
 	var out: Array[Rect2] = OBSTACLES.duplicate()
+	if gone.has("bed"):
+		out.erase(OBSTACLES[0])
+	if gone.has("chest"):
+		out.erase(OBSTACLES[2])
 	for i in hole_count():
 		out.append(HOLES[i].grow(-10))
 	return out
@@ -173,7 +180,8 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	_draw_wall()
 	_draw_window()
-	_draw_shelf()
+	if not gone.has("shelf"):
+		_draw_shelf()
 	_draw_wall_decor()
 	_draw_floor()
 	_draw_moonbeam()
@@ -183,12 +191,14 @@ func _draw() -> void:
 	draw_texture_rect(DreamBackground.soft_texture(), Rect2(220, 230, 440, 300), false, Color("ffd2a0", 0.16))
 	_draw_bedside_rug()
 	_draw_floor_toys()
-	_draw_toy_chest()
+	if not gone.has("chest"):
+		_draw_toy_chest()
 	_draw_desk()
 	_draw_chair()
 	_draw_nightstand()
 	_draw_props()
-	_draw_bed()
+	if not gone.has("bed"):
+		_draw_bed()
 	_draw_corruption()
 	_draw_zzz()
 	_draw_motes()

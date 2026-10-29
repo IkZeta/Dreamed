@@ -160,6 +160,11 @@ func is_targetable() -> bool:
 	return state != State.DYING
 
 
+## Cuánto más cerca llegan las armas a un enemigo grande / How much closer weapons reach on a big enemy
+func reach_bonus() -> float:
+	return 0.0
+
+
 func aim_point() -> Vector2:
 	return global_position + Vector2(0, -aim_height)
 

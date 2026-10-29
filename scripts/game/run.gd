@@ -25,7 +25,8 @@ var _camera: Camera2D
 var _shake := 0.0
 var _overlay: DreamOverlay
 var _spawned_new := 0
-var boss: Boss
+var boss: BossPiece
+var _boss_step := 0
 
 
 func _ready() -> void:
@@ -114,17 +115,44 @@ func _drop_in(depth: int) -> void:
 			_spawn_boss())
 
 
-## El jefe del acto: los muebles despiertan / The act boss: the furniture wakes up
+## El jefe del acto: los muebles despiertan de uno en uno / The act boss: the furniture wakes up one at a time
 func _spawn_boss() -> void:
 	Audio.play_music("music_boss", 1.0)
-	boss = Boss.new()
-	boss.setup(self)
-	enemies.add_child(boss)
 	hud.show_boss("BOSS_NAME")
-	hud.set_boss_part(Boss.PARTS[boss.active]["name"])
+	_boss_step = 0
+	_next_boss_piece()
+
+
+func _next_boss_piece() -> void:
+	if _boss_step >= BossPiece.ORDER.size():
+		_on_act_cleared()
+		return
+	var kind: String = BossPiece.ORDER[_boss_step]
+	_boss_step += 1
+	room.gone.append(kind)
+	boss = BossPiece.new()
+	boss.setup_piece(self, kind)
+	enemies.add_child(boss)
+	hud.set_boss_part(BossPiece.PARTS[kind]["name"])
 	hud.set_boss_hp(boss.hp, boss.max_hp)
-	boss.defeated.connect(_on_act_cleared)
-	_spawn_timer = 6.0
+	boss.defeated.connect(_on_piece_defeated)
+
+
+func _on_piece_defeated() -> void:
+	if not running:
+		return
+	hud.set_boss_hp(0.0, 1.0)
+	if _boss_step >= BossPiece.ORDER.size():
+		_on_act_cleared()
+		return
+	# Respiro entre muebles; los enemigos que soltó el baúl se disipan
+	# A breather between pieces; enemies let out by the chest fade away
+	for e: Node in enemies.get_children():
+		if not e is BossPiece:
+			e.die(false)
+	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
+		if running:
+			_next_boss_piece())
 
 
 ## Intro: Kroker duerme, se revuelve, se incorpora, se estira, se pone las gafas,
@@ -209,6 +237,8 @@ func _physics_process(delta: float) -> void:
 		if _time_left <= 0.0:
 			_on_wave_cleared()
 			return
+	else:
+		return  # en el jefe solo salen enemigos del baúl / in the boss fight only the chest spawns enemies
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
 		_spawn_timer = _wave["spawn_every"]
@@ -226,7 +256,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _spawn_group() -> void:
 	var alive := 0
 	for e in enemies.get_children():
-		if not e is Boss:
+		if not e is BossPiece:
 			alive += 1
 	var group: Array = _wave["group"]
 	var count := mini(randi_range(group[0], group[1]), int(_wave["max_alive"]) - alive)
@@ -263,6 +293,11 @@ func _spawn_point() -> Vector2:
 		if p.distance_to(player.position) > 360.0 and not _blocked(p, 40.0) and not _near_boss(p):
 			return p
 	return Vector2(area.end.x - 40, area.end.y - 40)
+
+
+## Aviso en el suelo y el enemigo aparece poco después / Floor warning, then the enemy appears shortly after
+func spawn_enemy_soon(kind: String, pos: Vector2, delay: float) -> void:
+	get_tree().create_timer(delay, false).timeout.connect(_spawn_enemy.bind(kind, pos))
 
 
 func _spawn_enemy(kind: String, pos: Vector2) -> void:
@@ -377,7 +412,7 @@ func _on_act_cleared() -> void:
 	Audio.fade_music(-30.0, 1.5)
 	Audio.play("act_clear", -1.0)
 	for e: Node in enemies.get_children():
-		if e != boss:
+		if not e is BossPiece:
 			e.die(false)
 	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
 		GameState.dream_depth = 1

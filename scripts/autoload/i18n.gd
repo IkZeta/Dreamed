@@ -101,7 +101,7 @@ const STRINGS := {
 	"NEW_ENEMY_skeleton": {"es": "Esqueleto: si cae, rompe sus huesos o volverá a levantarse", "en": "Skeleton: when it falls, smash its bones or it will get back up"},
 	"BOSS_NAME": {"es": "La habitación despierta", "en": "The bedroom awakens"},
 	"BOSS_PART_BED": {"es": "La cama", "en": "The bed"},
-	"BOSS_PART_DESK": {"es": "El escritorio", "en": "The desk"},
+	"BOSS_PART_CHEST": {"es": "El baúl de juguetes", "en": "The toy chest"},
 	"BOSS_PART_SHELF": {"es": "La estantería", "en": "The bookshelf"},
 	"ACT1_CLEAR_TITLE": {"es": "Fin del Acto 1", "en": "End of Act 1"},
 	"ACT1_CLEAR_SUB": {"es": "La habitación vuelve a dormir. Próximamente, Acto 2: el salón.", "en": "The bedroom falls back asleep. Coming soon, Act 2: the living room."},

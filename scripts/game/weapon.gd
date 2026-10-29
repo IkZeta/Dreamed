@@ -49,7 +49,11 @@ func nearest(max_range: float, from := Vector2.INF, exclude: Array = []) -> Node
 
 
 func _body(e: Node2D) -> Vector2:
-	return e.aim_point()
+	var p: Vector2 = e.aim_point()
+	var r: float = e.reach_bonus()
+	if r > 0.0:
+		p += (origin() - p).limit_length(r)
+	return p
 
 
 func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO) -> void:
