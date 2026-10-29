@@ -18,7 +18,7 @@ const CHARACTERS := [
 	{
 		"id": "book", "name": "CHAR_BOOK_NAME", "tag": "CHAR_BOOK_TAG", "weapon": "CHAR_BOOK_WEAPON",
 		"bonus": "CHAR_BOOK_BONUS", "outfit": "CHAR_BOOK_OUTFIT", "desc": "CHAR_BOOK_DESC",
-		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 1, "STAT_SPEED": 3, "STAT_RANGE": 5},
+		"stats": {"STAT_ATTACK": 2, "STAT_DEFENSE": 1, "STAT_SPEED": 3, "STAT_RANGE": 5},
 	},
 	{
 		"id": "vacuum", "name": "CHAR_VACUUM_NAME", "tag": "CHAR_VACUUM_TAG", "weapon": "CHAR_VACUUM_WEAPON",
@@ -120,9 +120,9 @@ func reset_run() -> void:
 	_rng.randomize()
 
 
-## Estadística de nivel con lo que trae cada arma de serie (el libro empieza con −3 de suerte)
-## Level stat plus what each weapon starts with (the book starts with −3 luck)
-const BASE_LEVEL_STATS := {"book": {"luck": -3.0}}
+## Estadística de nivel con lo que trae cada arma de serie (el libro empieza con −10 de suerte)
+## Level stat plus what each weapon starts with (the book starts with −10 luck)
+const BASE_LEVEL_STATS := {"book": {"luck": -10.0}}
 
 
 func stat(id: String) -> float:

@@ -65,7 +65,7 @@ const STRINGS := {
 	"CHAR_BOOK_NAME": {"es": "El Cuentacuentos", "en": "The Storyteller"},
 	"CHAR_BOOK_TAG": {"es": "A distancia", "en": "Ranged"},
 	"CHAR_BOOK_WEAPON": {"es": "Libro", "en": "Book"},
-	"CHAR_BOOK_BONUS": {"es": "Lanza de 1 a 3 rayos · −3 de suerte", "en": "Casts 1 to 3 bolts · −3 luck"},
+	"CHAR_BOOK_BONUS": {"es": "Lanza de 1 a 3 rayos · −10 de suerte", "en": "Casts 1 to 3 bolts · −10 luck"},
 	"CHAR_BOOK_OUTFIT": {"es": "Pijama de estrellas", "en": "Starry pajamas"},
 	"CHAR_BOOK_DESC": {"es": "Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo.", "en": "Calls 1 to 3 bolts down from the sky; each one strikes an enemy."},
 
