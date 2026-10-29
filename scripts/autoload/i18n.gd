@@ -176,7 +176,7 @@ const STRINGS := {
 	"BEST_FOOX_NAME": {"es": "Foox", "en": "Foox"},
 	"BEST_FOOX_DESC": {"es": "Zorro fantasma hecho de niebla. Lento y frágil; casi no hace daño.", "en": "A ghost fox made of mist. Slow and fragile; it barely hurts."},
 	"BEST_THUG_NAME": {"es": "Matón", "en": "Thug"},
-	"BEST_THUG_DESC": {"es": "La pesadilla de un abusón del colegio. Mucha vida y golpes fuertes, pero lento y difícil de empujar.", "en": "The nightmare of a school bully. Lots of health and heavy hits, but slow and hard to push."},
+	"BEST_THUG_DESC": {"es": "Los amigos de Stolk son enormes, debo evitarlos.", "en": "Stolk's friends are huge, I'd better avoid them."},
 	"BEST_SLING_NAME": {"es": "Tirachinas", "en": "Slingshot"},
 	"BEST_SLING_DESC": {"es": "Se queda lejos y dispara piedras. Antes de tirar marca la trayectoria: apártate de la franja.", "en": "Keeps its distance and shoots stones. It marks the path before firing: step out of the strip."},
 	"BEST_SKELETON_NAME": {"es": "Esqueleto", "en": "Skeleton"},

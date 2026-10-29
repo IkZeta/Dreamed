@@ -48,7 +48,7 @@ func _ready() -> void:
 	info.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(info)
 	_preview_holder = Control.new()
-	_preview_holder.custom_minimum_size = Vector2(0, 360)
+	_preview_holder.custom_minimum_size = Vector2(0, 470)
 	info.add_child(_preview_holder)
 	_name = UITheme.label("", 48, UITheme.GOLD, "display")
 	_name.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
@@ -170,10 +170,19 @@ class BestiaryPreview extends Control:
 		e._fade = 1.0
 		add_child(e)
 		e.set_physics_process(false)
-		e.scale = Vector2.ONE * (1.3 if id == "elite" else 1.0) * 0.9
+		e.scale = Vector2.ONE * (1.3 if id == "elite" else 1.0) * _fit()
 		if hidden_shape:
 			e.modulate = Color(0, 0, 0, 0.75)
 		_enemy = e
+
+	## Alto de cada dibujo (con cuernos y aura) / Height of each drawing (with horns and aura)
+	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0,
+		"boss_bed": 200.0, "boss_shelf": 190.0, "boss_chest": 130.0}
+
+	## Escala para que quepa entero en el hueco / Scale so it fits whole in the space
+	func _fit() -> float:
+		var h: float = HEIGHTS.get(id, 120.0) * (1.3 if id == "elite" else 1.0)
+		return minf(1.6, size.y * 0.74 / h)
 
 	func _process(delta: float) -> void:
 		_t += delta
@@ -188,17 +197,18 @@ class BestiaryPreview extends Control:
 			return
 		if _enemy:
 			_enemy.set("_t", _t)
-			_enemy.position = Vector2(size.x / 2.0, size.y * 0.82)
+			_enemy.position = Vector2(size.x / 2.0, size.y * 0.84)
+			_enemy.scale = Vector2.ONE * (1.3 if id == "elite" else 1.0) * _fit()
 			_enemy.queue_redraw()
 		queue_redraw()
 
 	func _draw() -> void:
-		var c := Vector2(size.x / 2.0, size.y * 0.82)
+		var c := Vector2(size.x / 2.0, size.y * 0.84)
 		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(90, 120), Vector2(180, 160)), false, Color(UITheme.MIST, 0.15))
 		if id.begins_with("boss_"):
 			var sprite := {"boss_bed": "boss_bed", "boss_shelf": "boss_shelf", "boss_chest": "boss_chest_box"}[id] as String
 			var mod := Color(0, 0, 0, 0.75) if hidden_shape else Color.WHITE
-			draw_set_transform(c, 0.0, Vector2.ONE * 0.62)
+			draw_set_transform(c, 0.0, Vector2.ONE * _fit())
 			Sprites.draw(self, sprite, mod)
 			if id == "boss_chest":
 				Sprites.draw(self, "boss_chest_lid", mod, Vector2(0, -66))
