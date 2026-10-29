@@ -18,6 +18,8 @@ signal defeated
 const ORDER: Array[String] = ["bed", "shelf", "chest"]
 const HP_PER_PIECE := 225.0   # 5 matones de 45 / 5 thugs of 45
 const WAKE_TIME := 1.8
+const QUAKE_RADIUS := 105.0   # daño al caer la cama / damage where the bed lands
+const WAVE_REACH := 290.0     # hasta dónde llega la onda del sismo / how far the quake wave travels
 const METAL := Color("8f8fb8")
 const METAL_DARK := Color("4f4f78")
 const EYE := Color("ff8fa8")
@@ -228,7 +230,7 @@ func _begin_attack() -> void:
 
 ## Barra de carga del próximo ataque / Charge bar for the next attack
 func charge() -> float:
-	var full := {"bed": 2.8, "shelf": 1.9, "chest": 3.6}[kind] as float
+	var full := {"bed": 2.8, "shelf": 1.9, "chest": 2.8}[kind] as float
 	if not _atk.is_empty():
 		return 1.0
 	return 1.0 - clampf(_atk_cd / full, 0.0, 1.0)
@@ -266,7 +268,7 @@ func _update_attack(delta: float) -> void:
 		"close":
 			if t >= dur:
 				_atk = {}
-				_atk_cd = 3.6
+				_atk_cd = 2.8
 
 
 ## La cama cae: sismo con daño en área y una onda que se expande / The bed lands: area quake and an expanding wave
@@ -275,7 +277,7 @@ func _land() -> void:
 	run.shake(16.0)
 	run.fx.dissipate(global_position, Color("cfc6e8"))
 	var player: Player = run.player
-	if player.global_position.distance_to(global_position) < 150.0:
+	if player.global_position.distance_to(global_position) < QUAKE_RADIUS:
 		player.take_damage(5.0)
 	_waves.append({"r": 40.0, "hit": false})
 
@@ -289,10 +291,10 @@ func _update_waves(delta: float) -> void:
 		# Una onda achatada (perspectiva del suelo) / A flattened wave (floor perspective)
 		var d := player.global_position - global_position
 		var dist := Vector2(d.x, d.y / 0.45).length()
-		if not w["hit"] and absf(dist - r) < 26.0 and r > 150.0:
+		if not w["hit"] and absf(dist - r) < 26.0 and r > QUAKE_RADIUS:
 			w["hit"] = true
 			player.take_damage(3.0)
-		if r > 420.0:
+		if r > WAVE_REACH:
 			_waves.remove_at(i)
 
 
@@ -319,7 +321,7 @@ func _release_enemies() -> void:
 		if not e is BossPiece and e.is_targetable():
 			alive += 1
 	var kinds := ["foox", "foox", "thug", "sling", "skeleton"]
-	for i in mini(2, 6 - alive):
+	for i in mini(randi_range(3, 4), 12 - alive):
 		var p: Vector2 = run.clamp_to_arena(global_position + Vector2.from_angle(randf() * TAU) * randf_range(80, 130), 24.0)
 		run.fx.telegraph(p + Vector2(0, -16), 0.5)
 		run.spawn_enemy_soon(kinds[randi() % kinds.size()], p, 0.5)
@@ -368,17 +370,17 @@ func _draw_warning() -> void:
 			k = 0.5 + 0.5 * k
 		else:
 			k *= 0.5
-		draw_colored_polygon(_ellipse(lt, Vector2(150, 66)), Color(EYE, 0.08 + 0.18 * k))
+		draw_colored_polygon(_ellipse(lt, Vector2(QUAKE_RADIUS, QUAKE_RADIUS * 0.44)), Color(EYE, 0.08 + 0.18 * k))
 		draw_set_transform(lt, 0.0, Vector2(1.0, 0.44))
-		draw_arc(Vector2.ZERO, 150.0, 0, TAU, 48, Color(EYE, 0.7), 2.5, true)
-		draw_arc(Vector2.ZERO, 150.0 * (1.0 - k) + 8.0, 0, TAU, 40, Color(EYE, 0.9), 2.0, true)
+		draw_arc(Vector2.ZERO, QUAKE_RADIUS, 0, TAU, 48, Color(EYE, 0.7), 2.5, true)
+		draw_arc(Vector2.ZERO, QUAKE_RADIUS * (1.0 - k) + 8.0, 0, TAU, 40, Color(EYE, 0.9), 2.0, true)
 		draw_set_transform(Vector2.ZERO)
 
 
 func _draw_waves() -> void:
 	for w in _waves:
 		var r := float(w["r"])
-		var a := clampf(1.0 - r / 420.0, 0.0, 1.0)
+		var a := clampf(1.0 - r / WAVE_REACH, 0.0, 1.0)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.45))
 		draw_arc(Vector2.ZERO, r, 0, TAU, 64, Color(EYE, 0.7 * a), 10.0, true)
 		draw_arc(Vector2.ZERO, r - 14.0, 0, TAU, 64, Color("cfc6e8", 0.4 * a), 4.0, true)

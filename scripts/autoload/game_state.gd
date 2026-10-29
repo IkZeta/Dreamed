@@ -46,7 +46,7 @@ const WAVES := [
 	{"duration": 35.0, "spawn_every": 2.8, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1}, "new": "thug"},
 	{"duration": 40.0, "spawn_every": 2.6, "group": [1, 3], "max_alive": 8, "mix": {"foox": 2, "thug": 1, "sling": 1}, "new": "sling"},
 	{"duration": 45.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 9, "mix": {"foox": 2, "thug": 1, "sling": 1, "skeleton": 2}, "new": "skeleton"},
-	{"boss": true, "spawn_every": 6.0, "group": [1, 2], "max_alive": 3, "mix": {"foox": 2, "skeleton": 1}},
+	{"boss": true, "spawn_every": 3.5, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}},
 ]
 const BOSS_DEPTH := 5
 
@@ -108,7 +108,7 @@ func stat(id: String) -> float:
 
 ## Trozos que hacen falta para el siguiente nivel / Shards needed for the next level
 func xp_needed() -> int:
-	return 6 + 4 * (plevel - 1)
+	return 12 + 10 * (plevel - 1)
 
 
 ## Suma trozos de estrella; devuelve cuántos niveles se han subido

@@ -147,11 +147,7 @@ func _on_piece_defeated() -> void:
 	if _boss_step >= BossPiece.ORDER.size():
 		_on_act_cleared()
 		return
-	# Respiro entre muebles; los enemigos que soltó el baúl se disipan
-	# A breather between pieces; enemies let out by the chest fade away
-	for e: Node in enemies.get_children():
-		if not e is BossPiece:
-			e.die(false)
+	# Respiro entre muebles (los enemigos siguen saliendo) / A breather between pieces (enemies keep coming)
 	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
 		if running:
 			_next_boss_piece())
@@ -239,8 +235,6 @@ func _physics_process(delta: float) -> void:
 		if _time_left <= 0.0:
 			_on_wave_cleared()
 			return
-	else:
-		return  # en el jefe solo salen enemigos del baúl / in the boss fight only the chest spawns enemies
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
 		_spawn_timer = _wave["spawn_every"]
