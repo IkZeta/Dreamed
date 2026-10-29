@@ -1,11 +1,11 @@
 class_name Pickup
 extends Node2D
-## Objeto que aparece en el suelo y Kroker recoge al pasar por encima:
+## Objeto que a veces suelta un enemigo y Kroker recoge al pasar por encima:
 ##  - "milk": vaso de leche, cura un 30 % de la vida máxima.
 ##  - "pillow": almohada, para el siguiente golpe.
 ##  - "clock": despertador, congela a todos los enemigos 3 segundos.
 ## Desaparece al cabo de 12 segundos (parpadea los últimos 3).
-## A floor item Kroker picks up by walking over it:
+## An item an enemy sometimes drops; Kroker picks it up by walking over it:
 ##  - "milk": glass of milk, heals 30% of max health.
 ##  - "pillow": pillow, blocks the next hit.
 ##  - "clock": alarm clock, freezes every enemy for 3 seconds.

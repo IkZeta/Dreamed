@@ -37,7 +37,6 @@ var event := ""
 var _tilt := Vector2.ZERO
 var _tilt_t := 0.0
 var _golden_t := -1.0
-var _pickup_t := 18.0
 
 
 func _ready() -> void:
@@ -265,11 +264,6 @@ func _physics_process(delta: float) -> void:
 		return
 	GameState.run_time += delta
 	_update_event(delta)
-	# Objetos que aparecen de vez en cuando / Items that show up now and then
-	_pickup_t -= delta
-	if _pickup_t <= 0.0:
-		_pickup_t = randf_range(22.0, 32.0)
-		spawn_pickup(_spawn_point())
 	if not _wave.get("boss", false):
 		_time_left -= delta
 		hud.set_time(_time_left)
@@ -454,13 +448,21 @@ func on_enemy_killed(e: Node) -> void:
 	if elite:
 		Progress.kill("elite")
 	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult()))
-	# Los élites siempre sueltan un objeto; el resto, a veces / Elites always drop an item; others sometimes
-	if elite or randf() < 0.03:
+	# Los objetos solo salen de los enemigos y es raro; la suerte los hace más probables
+	# Items only drop from enemies and rarely; luck makes them likelier
+	if randf() < item_drop_chance(elite):
 		spawn_pickup(clamp_to_arena(e.global_position + Vector2(randf_range(-30, 30), 10), 20.0))
 	# Élite que se divide: salen dos Foox / Splitting elite: two Foox come out
 	if elite and e.get("elite_power") == "split" and running:
 		for k in 2:
 			_spawn_enemy("foox", clamp_to_arena(e.global_position + Vector2(-30 + k * 60, 0), 22.0))
+
+
+## Probabilidad de soltar un objeto: 2,5 % (35 % los élites), +2 % relativo por punto de suerte
+## Chance to drop an item: 2.5% (35% for elites), +2% relative per luck point
+func item_drop_chance(elite: bool) -> float:
+	var luck_k := maxf(0.2, 1.0 + GameState.stat("luck") / 50.0)
+	return clampf((0.35 if elite else 0.025) * luck_k, 0.0, 0.9)
 
 
 func spawn_pickup(pos: Vector2, kind := "") -> void:

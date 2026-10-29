@@ -148,7 +148,7 @@ const STRINGS := {
 	"STAT_DESC_RANGE": {"es": "Tu arma llega más lejos.", "en": "Your weapon reaches further."},
 	"STAT_DESC_REGEN": {"es": "Recuperas vida poco a poco.", "en": "You slowly recover health."},
 	"STAT_DESC_LIFESTEAL": {"es": "A veces te curas al golpear.", "en": "Sometimes you heal when you hit."},
-	"STAT_DESC_LUCK": {"es": "Salen mejoras más raras y vuelven más a menudo los personajes que ya te ayudaron.", "en": "Rarer upgrades appear, and characters who already helped you return more often."},
+	"STAT_DESC_LUCK": {"es": "Mejoras más raras, más objetos de los enemigos y vuelven más los personajes que ya te ayudaron.", "en": "Rarer upgrades, more items from enemies, and characters who already helped you return more often."},
 	"ENEMY_FELL": {"es": "¡Al vacío!", "en": "Into the void!"},
 
 	# --- Modo Dios / God mode ---
@@ -184,7 +184,7 @@ const STRINGS := {
 	"BEST_GOLDEN_FOOX_NAME": {"es": "Foox dorado", "en": "Golden Foox"},
 	"BEST_GOLDEN_FOOX_DESC": {"es": "Aparece en algunos sueños, huye y no hace daño. Si lo pillas suelta muchos trozos de estrella.", "en": "Shows up in some dreams, runs away and is harmless. Catch it and it drops lots of star shards."},
 	"BEST_ELITE_NAME": {"es": "Élite", "en": "Elite"},
-	"BEST_ELITE_DESC": {"es": "Un enemigo más grande y brillante, con el triple de vida. Puede dividirse, dejar charcos que frenan o ir muy rápido. Suelta más trozos y siempre un objeto.", "en": "A bigger, glowing enemy with triple health. It may split, leave slowing puddles or move very fast. Drops more shards and always an item."},
+	"BEST_ELITE_DESC": {"es": "Un enemigo más grande y brillante, con el triple de vida. Puede dividirse, dejar charcos que frenan o ir muy rápido. Suelta más trozos y a menudo un objeto.", "en": "A bigger, glowing enemy with triple health. It may split, leave slowing puddles or move very fast. Drops more shards and often an item."},
 	"BEST_BOSS_BED_NAME": {"es": "La cama", "en": "The bed"},
 	"BEST_BOSS_BED_DESC": {"es": "Camina sobre patas mecánicas y salta hacia ti. Al caer provoca un sismo: sal del círculo.", "en": "Walks on mechanical legs and jumps at you. Landing causes a quake: get out of the circle."},
 	"BEST_BOSS_SHELF_NAME": {"es": "La estantería", "en": "The bookshelf"},
