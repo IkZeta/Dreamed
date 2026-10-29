@@ -72,7 +72,7 @@ func _act(delta: float) -> void:
 	_hack_cd -= delta * k
 	if not _hacked and _hack_cd <= 0.0 and _aim <= 0.0 and to_player.length() < HACK_RANGE:
 		_hack_t = 0.01
-		Audio.play("glitch", -10.0, 0.1)
+		Audio.play("hack", -8.0, 0.1)
 		return
 	# Dash avisado / Telegraphed dash
 	_dash_t -= delta * k
@@ -85,7 +85,7 @@ func _act(delta: float) -> void:
 		_dash_t = DASH_EVERY + randf_range(-0.5, 0.6)
 		_aim = 0.0
 		_dashing = DASH_TIME
-		Audio.play("swing", -8.0, 0.1)
+		Audio.play("dash", -6.0, 0.1)
 
 
 ## Mientras va de dash hace más daño / It hits harder while dashing
@@ -104,6 +104,7 @@ func _apply_hack() -> void:
 	GameState.hacks[get_instance_id()] = {"stat": id, "value": HACK_STATS[id]}
 	run.player.refresh_stats()
 	run.hud.set_hp(run.player.hp, run.player.max_hp)
+	run.hud.set_hacks()
 	Audio.play("glitch", -2.0)
 	run.fx.text(run.player.global_position + Vector2(0, -120), tr("HACKED").format({"stat": tr("STAT_NAME_" + id.to_upper())}), NEON2, 24)
 	run.fx.ring(run.player.global_position + Vector2(0, -40), 30.0, NEON, 0.5, 2.6)
@@ -117,6 +118,8 @@ func _clear_hack() -> void:
 	if run and is_instance_valid(run.player):
 		run.player.refresh_stats()
 		run.hud.set_hp(run.player.hp, run.player.max_hp)
+		if is_instance_valid(run.hud):
+			run.hud.set_hacks()
 		if run.running:
 			run.fx.text(run.player.global_position + Vector2(0, -120), tr("HACK_CLEARED"), NEON, 20)
 

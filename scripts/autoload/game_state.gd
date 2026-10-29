@@ -40,11 +40,13 @@ const WEAPON_BONUS := {
 ## Definición de cada sueño del Acto 1 (la habitación). "mix" es el peso de cada enemigo al
 ## aparecer. Cada piso trae un enemigo nuevo más peligroso; el 5 es el jefe.
 ## Definition of each dream in Act 1 (the bedroom). "mix" is each enemy's spawn weight.
+## "shop_met": Charo abre aquí el kiosco, pero solo si ya la conoces del salón.
+## "shop_met": Charo opens her kiosk here, but only once you've met her in the living room.
 ## Every floor brings a new, more dangerous enemy; floor 5 is the boss.
 const WAVES := [
 	{"duration": 30.0, "spawn_every": 3.0, "group": [1, 2], "max_alive": 5, "mix": {"foox": 1}},
 	{"duration": 35.0, "spawn_every": 2.8, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1}, "new": "thug"},
-	{"duration": 40.0, "spawn_every": 2.6, "group": [1, 3], "max_alive": 8, "mix": {"foox": 2, "thug": 1, "sling": 1}, "new": "sling"},
+	{"duration": 40.0, "spawn_every": 2.6, "group": [1, 3], "max_alive": 8, "mix": {"foox": 2, "thug": 1, "sling": 1}, "new": "sling", "shop_met": true},
 	{"duration": 45.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 9, "mix": {"foox": 2, "thug": 1, "sling": 1, "skeleton": 2}, "new": "skeleton"},
 	{"boss": true, "spawn_every": 3.5, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}},
 	# --- Acto 2: el salón. "fire" = la chimenea está encendida; "shop" = Charo abre el kiosco al
@@ -145,12 +147,15 @@ var god_invuln := true          # con la F se cambia en partida / toggled in gam
 var god_depth := 1              # sueño en el que empezar / dream to start in
 var god_upgrades := {}          # personaje → nivel / giver → level
 var god_stats := {}             # estadística → total / stat → total
+var god_second := ""            # segunda arma de prueba ("" = ninguna) / test second weapon ("" = none)
+var god_upgrades2 := {}         # mejoras de la segunda arma / second weapon's upgrades
 
 
 ## Empieza una partida desde la selección o al repetir: con el modo Dios aplica sus ajustes
 ## Starts a run from the select screen or on retry: in god mode it applies its settings
 func start_run() -> void:
 	reset_run()
+	clear_saved_run()
 	if god_mode:
 		dream_depth = clampi(god_depth, 1, WAVES.size())
 		upgrades = god_upgrades.duplicate()
@@ -158,9 +163,58 @@ func start_run() -> void:
 		# Para probar el kiosco de Charo / To try out Charo's kiosk
 		if dream_depth >= ACT2_START:
 			reality = 30
-		# En el Acto 3 hace falta una segunda arma / Act 3 needs a second weapon
-		if dream_depth >= ACT3_START:
+		# Segunda arma elegida en el panel; en el Acto 3 hace falta una / Second weapon from the panel; Act 3 needs one
+		if god_second in other_weapons():
+			second_weapon = god_second
+			upgrades2 = god_upgrades2.duplicate()
+		elif dream_depth >= ACT3_START:
 			second_weapon = other_weapons()[0]
+
+
+## --- Continuar partida / Continue a run ---------------------------------------------
+## Al empezar cada sueño se guarda cómo estaba todo; "Continuar" vuelve a ese momento.
+## At the start of every dream the state is saved; "Continue" goes back to that moment.
+const RUN_SAVE := "user://run.cfg"
+const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality"]
+
+
+func save_run() -> void:
+	if god_mode:
+		return   # las partidas de prueba no se guardan / test runs aren't saved
+	var cfg := ConfigFile.new()
+	for f in RUN_FIELDS:
+		cfg.set_value("run", f, get(f))
+	cfg.save(RUN_SAVE)
+
+
+func has_saved_run() -> bool:
+	return FileAccess.file_exists(RUN_SAVE)
+
+
+## Sueño en el que se quedó la partida guardada / Dream the saved run stopped at
+func saved_run_info() -> Dictionary:
+	var cfg := ConfigFile.new()
+	if cfg.load(RUN_SAVE) != OK:
+		return {}
+	return {"depth": cfg.get_value("run", "dream_depth", 1), "weapon": cfg.get_value("run", "selected_character", "bat")}
+
+
+func load_run() -> bool:
+	var cfg := ConfigFile.new()
+	if cfg.load(RUN_SAVE) != OK:
+		return false
+	reset_run()
+	god_mode = false
+	for f in RUN_FIELDS:
+		if cfg.has_section_key("run", f):
+			set(f, cfg.get_value("run", f))
+	return true
+
+
+func clear_saved_run() -> void:
+	if FileAccess.file_exists(RUN_SAVE):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(RUN_SAVE))
 
 
 ## Empieza una partida nueva / Starts a new run

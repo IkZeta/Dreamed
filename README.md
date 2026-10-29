@@ -21,6 +21,7 @@ Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada 
 3. Sobrevive a cada sueño hasta que se acabe el tiempo. Tu arma ataca sola.
 4. Recoge los **trozos de estrella** que sueltan los enemigos para subir de nivel.
 5. Al acabar cada sueño, en el **plano astral**, elige uno de los dos dones que te ofrecen.
+6. La partida se guarda al empezar cada sueño. Si sales, **Continuar** en el menú principal te devuelve al principio de ese sueño.
 
 ### Controles
 
@@ -90,7 +91,7 @@ Con menos de la mitad de vida se enfada: ataca más a menudo y lanza más cosas.
 
 El resto del salón:
 
-- **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**.
+- **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**. Una vez la conoces, también aparece tras el sueño 3 del Acto 1.
 - **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes.
 - **La chimenea:** en algunos sueños está encendida. Quédate delante y podrás echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada.
 
@@ -161,8 +162,9 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 ## Más
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
+- **Personajes:** menú con Kroker y sus pijamas, los personajes del plano astral, Mr. Ad y Charo. Cada uno se desbloquea al conocerlo.
 - **Bestiario:** está en el menú principal y cada entrada está escrita con la voz de Kroker.
-- **Logros:** hay 13. Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 18 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea y ahorrar 100 de Realidad Fragmentada). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;
@@ -174,7 +176,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 
 ### Modo Dios (para probar)
 
-Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–13); desde el 11 se lleva una segunda arma de prueba con las mejoras y las estadísticas que quieras. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
+Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–13), elegir una segunda arma y poner las mejoras de cada arma y las estadísticas que quieras. Desde el sueño 11, si no eliges segunda arma, se pone una de prueba. Las partidas en Modo Dios no se guardan. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
 
 Teclas durante la partida:
 
@@ -232,6 +234,19 @@ godot --headless --path . --import                # que Godot importe lo nuevo
 ```
 
 En los `.wav` nuevos hay que poner `compress/mode=0` en su `.import`, y en los que hacen bucle, también `edit/loop_mode=2`.
+
+### Bot de equilibrio
+
+`tools/balance_bot.gd` juega partidas enteras con cada pijama, acelerado y sin ventana, y guarda un informe con cómo acaba cada sueño: vida, nivel, Realidad Fragmentada y dónde muere. No es un jugador experto, así que sirve para **comparar** pijamas y cambios, no para medir la dificultad exacta.
+
+1. Añade `B="*res://tools/balance_bot.gd"` en `[autoload]` de `project.godot` (sin subirlo).
+2. Ejecuta:
+
+```bash
+godot --headless --path . --audio-driver Dummy -- --bot-runs=2   # 2 partidas por pijama
+```
+
+El informe queda en `user://balance_report.json`.
 
 ---
 

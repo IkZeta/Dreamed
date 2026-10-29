@@ -1023,6 +1023,8 @@ DRAWING_SLOTS = {
     "moon": (472, 176, -3),      # junto a la mesilla / by the nightstand
     "golden": (1834, 150, 4),    # esquina derecha / right corner
     "star": (1446, 132, -5),     # entre la estantería y el póster / between shelf and poster
+    "chef": (1178, 80, 3),       # entre la ventana y la estantería / between window and shelf
+    "coin": (350, 62, -4),       # sobre la cama, junto a la guirnalda / above the bed, by the garland
 }
 
 
@@ -1041,6 +1043,11 @@ def drawings():
         + "<path d='%s' fill='#e85d75'/>" % star_d(18, -10, 4) + "<path d='%s' fill='#f6c86a'/>" % star_d(20, 10, 3),
         "golden": crayon("M-20,6 Q-6,-6 12,-2 L16,-12 L19,-3 L24,-12 L25,0 Q32,4 26,8 Q8,14 -20,6 Z", "#f0b93a", 3.6)
         + "<path d='%s' fill='#f6d993'/>" % star_d(-24, -12, 5) + "<path d='%s' fill='#f6d993'/>" % star_d(30, -14, 4),
+        "chef": crayon("M-16,2 Q-24,-10 -14,-18 Q-8,-28 0,-22 Q8,-28 14,-18 Q24,-10 16,2 Z", "#cfc8ec", 3.4)
+        + crayon("M-14,2 L14,2 L14,8 L-14,8 Z", "#cfc8ec", 3) + crayon("M-10,18 Q-4,13 0,17 Q4,13 10,18", "#2b2945", 3)
+        + "<circle cx='-6' cy='12' r='2.2' fill='#2b2945'/><circle cx='6' cy='12' r='2.2' fill='#2b2945'/>",
+        "coin": crayon("M0,-20 L14,0 L0,20 L-14,0 Z", "#8a6ff0", 3.4) + crayon("M0,-20 L2,0 L14,0 M2,0 L0,20", "#b8a6ff", 2.4)
+        + "<path d='%s' fill='#f6c86a'/>" % star_d(22, -14, 4),
         "star": "<path d='%s' fill='none' stroke='#f0b93a' stroke-width='3.6' stroke-linejoin='round'/>" % star_d(0, 0, 20)
         + crayon("M-28,-18 L-22,-12 M28,18 L22,12 M-28,18 L-22,13", "#e3a6c4", 3),
     }

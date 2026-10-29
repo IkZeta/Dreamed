@@ -10,6 +10,9 @@ extends Node2D
 const MAIN_MENU := "res://scenes/main_menu.tscn"
 const SETTINGS_SCENE := preload("res://scenes/settings_menu.tscn")
 
+## Se emite al acabar cada sueño (lo usa el bot de equilibrio) / Emitted when each dream ends (used by the balance bot)
+signal dream_finished
+
 var running := false
 var player: Player
 var enemies: Node2D
@@ -51,11 +54,15 @@ var _hearth_lock := false
 func _ready() -> void:
 	var depth := GameState.dream_depth
 	_wave = GameState.wave_for(depth)
+	# Se guarda al empezar cada sueño (para "Continuar") / Saved at the start of every dream (for "Continue")
+	GameState.save_run()
 	var act := GameState.act_of(depth)
 	Audio.play_music(["", "music_dream1", "music_living", "music_dream1"][act], 2.5)
 	# Llegar al salón por primera vez desbloquea a Mr. Ad / Reaching the living room for the first time unlocks Mr. Ad
 	if act >= 2:
 		Progress.flag("mr_ad")
+	if act >= 3:
+		Progress.flag("two_weapons")
 	_time_left = float(_wave.get("duration", 0.0))
 
 	# Pantalla pequeña donde vive el mundo / Small screen where the world lives
@@ -250,6 +257,7 @@ func _charo_shop(then: Callable) -> void:
 
 
 func _on_ware(id: String) -> void:
+	Progress.add_stat("bought")
 	var before := player.max_hp
 	player.refresh_stats()
 	if player.max_hp > before:
@@ -269,6 +277,7 @@ func gain_reality(n: int, pos: Vector2) -> void:
 	if randf() * 100.0 < GameState.ad_extra_chance():
 		n += 1
 	GameState.add_reality(n)
+	Progress.best_stat("best_reality", GameState.reality)
 	hud.set_reality()
 	# Las mejoras de Mr. Ad dependen de lo ahorrado / Mr. Ad's upgrades depend on the savings
 	player.refresh_stats()
@@ -310,6 +319,7 @@ func _open_sacrifice() -> void:
 		_modal = null
 		get_tree().paused = false
 		GameState.sacrifice(giver, weapon)
+		Progress.add_stat("sacrifices")
 		player.refresh_stats()
 		hud.set_hp(player.hp, player.max_hp)
 		if weapon == "shield" and giver == "svinho" and GameState.level("svinho", "shield") <= 0:
@@ -377,6 +387,7 @@ func _add_boss(b: Enemy) -> void:
 
 ## Jefe del Acto 2: El Chef sale de la tele / Act 2 boss: The Chef comes out of the TV
 func _spawn_chef() -> void:
+	Audio.play_music("music_chef", 1.0)
 	hud.show_boss("BOSS_CHEF_NAME")
 	var chef := Chef.new()
 	chef.setup(self)
@@ -394,6 +405,7 @@ func _on_chef_defeated() -> void:
 	for e: Node in enemies.get_children():
 		if not e.is_boss():
 			e.die(false)
+	dream_finished.emit()
 	Progress.clear_act(GameState.selected_character, GameState.difficulty, 2)
 	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
 		Progress.flag("no_hit")
@@ -766,7 +778,12 @@ func on_enemy_killed(e: Node) -> void:
 		gain_reality(GameState.REALITY_ELITE, e.global_position)
 	if e.get("bestiary_id") == "golden_foox":
 		Progress.add_stat("golden")
-	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult()))
+	# En las peleas contra jefes, los enemigos de alrededor sueltan un tercio de estrellas (para no
+	# subir diez niveles en una pelea larga); los élites, todas
+	# In boss fights the surrounding enemies drop a third of the stars (so a long fight doesn't
+	# grant ten levels); elites still drop them all
+	var shard_k := 0.34 if _wave.get("boss", false) and not elite and not e.is_boss() else 1.0
+	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult() * shard_k))
 	# Los objetos solo salen de los enemigos y es raro; la suerte los hace más probables
 	# Items only drop from enemies and rarely; luck makes them likelier
 	if randf() < item_drop_chance(elite) * float(e.get("drop_mult")):
@@ -906,6 +923,7 @@ func on_player_hit(_dmg: float) -> void:
 
 func on_player_died() -> void:
 	running = false
+	GameState.clear_saved_run()
 	GameState.saved_hp = -1.0
 	Progress.save_progress()
 	Audio.stop_loops()
@@ -994,6 +1012,7 @@ func _show_victory() -> void:
 
 
 func _on_wave_cleared() -> void:
+	dream_finished.emit()
 	Progress.add_stat("dreams")
 	running = false
 	GameState.saved_hp = player.hp
@@ -1014,7 +1033,8 @@ func _on_wave_cleared() -> void:
 ## After a dream: sometimes Charo's kiosk; then the astral plane or the end of the act
 func _after_dream() -> void:
 	var next := _end_run_victory if _wave.get("act_end", false) else _flash_to_astral
-	if _wave.get("shop", false):
+	# En el Acto 1 solo si ya conoces a Charo / In Act 1 only if you've already met Charo
+	if _wave.get("shop", false) or (_wave.get("shop_met", false) and Progress.stats.has("charo_met")):
 		_charo_shop(next)
 	else:
 		next.call()
@@ -1022,6 +1042,7 @@ func _after_dream() -> void:
 
 ## Final provisional del Acto 2 (su jefe vendrá más adelante) / Provisional end of Act 2 (its boss comes later)
 func _end_run_victory() -> void:
+	GameState.clear_saved_run()
 	Progress.clear_act(GameState.selected_character, GameState.difficulty, GameState.act())
 	Audio.fade_music(-30.0, 1.5)
 	Audio.play("act_clear", -1.0)
@@ -1050,6 +1071,7 @@ func _flash_to_astral() -> void:
 
 ## El jefe ha caído: fin del Acto 1 / The boss has fallen: end of Act 1
 func _on_act_cleared() -> void:
+	dream_finished.emit()
 	running = false
 	Audio.stop_loops()
 	Audio.fade_music(-30.0, 1.5)

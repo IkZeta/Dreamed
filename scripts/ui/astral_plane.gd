@@ -24,6 +24,10 @@ func _ready() -> void:
 	theme = UITheme.build()
 	Audio.play_music("music_astral", 1.5)
 	_offer = GameState.pick_offer()
+	# Quedan conocidos para el menú de personajes / They count as met for the characters menu
+	for g in _offer:
+		Progress.stats["met_" + g] = 1
+	Progress.save_progress()
 	_build()
 	# Sale del destello blanco del final del sueño / Fades out of the end-of-dream flash
 	var flash := ColorRect.new()
@@ -227,7 +231,11 @@ func _talk_scene(giver: String) -> void:
 	col.add_child(UITheme.label("GIVER_%s_ROLE" % giver.to_upper(), 24, UITheme.ASH, "caps"))
 	col.add_child(UITheme.rule(Color(aura, 0.5)))
 	var weapon: String = _target.get(giver, GameState.selected_character)
-	var gift := UITheme.label(tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver, weapon)}), 24, UITheme.GOLD, "caps")
+	var gift_text := tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver, weapon)})
+	# Con dos armas se dice para cuál es / With two weapons, say which one it's for
+	if GameState.weapons().size() > 1:
+		gift_text += " · " + tr("WEAPON_SHORT_" + weapon.to_upper())
+	var gift := UITheme.label(gift_text, 24, UITheme.GOLD, "caps")
 	gift.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	col.add_child(gift)
 

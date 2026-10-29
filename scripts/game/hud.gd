@@ -23,6 +23,8 @@ var _depth := 1
 var _reality_row: HBoxContainer
 var _reality: Label
 var _fire: Label
+var _hacks: VBoxContainer
+var _hp_box: VBoxContainer
 
 
 func _ready() -> void:
@@ -35,6 +37,7 @@ func _ready() -> void:
 
 	# Vida (arriba a la izquierda) / Health (top left)
 	var hp_box := VBoxContainer.new()
+	_hp_box = hp_box
 	hp_box.add_theme_constant_override("separation", 8)
 	root.add_child(hp_box)
 	hp_box.position = Vector2(56, 44)
@@ -77,6 +80,10 @@ func _ready() -> void:
 	_reality.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	_reality_row.add_child(_reality)
 	set_reality()
+	# Estadísticas hackeadas por un Cyberpunk / Stats hacked by a Cyberpunk
+	_hacks = VBoxContainer.new()
+	_hacks.add_theme_constant_override("separation", 2)
+	hp_box.add_child(_hacks)
 
 	# Aviso del modo Dios (arriba en el centro) / God mode notice (top centre)
 	var god_box := VBoxContainer.new()
@@ -171,9 +178,9 @@ func start(depth: int) -> void:
 func set_special_mode(throwing: bool) -> void:
 	if _special == null:
 		_special = UITheme.label("", 16, UITheme.GOLD, "caps")
-		get_child(0).add_child(_special)
-		_special.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		_special.position = Vector2(56, 206)
+		# Debajo de la vida y la moneda, encima de los hackeos / Under health and currency, above the hacks
+		_hp_box.add_child(_special)
+		_hp_box.move_child(_special, _hacks.get_index())
 	_special.text = "RUN_SPECIAL_THROW" if throwing else "RUN_SPECIAL_DEFEND"
 
 
@@ -241,6 +248,21 @@ func set_reality() -> void:
 		var tw := create_tween()
 		tw.tween_property(_reality_row, "scale", Vector2(1.25, 1.25), 0.08)
 		tw.tween_property(_reality_row, "scale", Vector2.ONE, 0.2)
+
+
+## Avisos de hackeo: uno por Cyberpunk que te tiene hackeado / Hack notices: one per Cyberpunk that has hacked you
+func set_hacks() -> void:
+	for c in _hacks.get_children():
+		c.queue_free()
+	for h: Dictionary in GameState.hacks.values():
+		var l := UITheme.label(tr("HUD_HACKED").format({"stat": tr("STAT_NAME_" + String(h["stat"]).to_upper())}), 14, Color("ff5fd2"), "caps")
+		l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		_hacks.add_child(l)
+		# Parpadeo de glitch al aparecer / Glitchy blink when it appears
+		var tw := l.create_tween()
+		for i in 3:
+			tw.tween_property(l, "modulate:a", 0.2, 0.06)
+			tw.tween_property(l, "modulate:a", 1.0, 0.06)
 
 
 ## Rótulo grande en el centro (p. ej. el final de un acto) / Big centred caption (e.g. the end of an act)

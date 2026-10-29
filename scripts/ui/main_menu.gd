@@ -6,11 +6,13 @@ const CHARACTER_SELECT := "res://scenes/character_select.tscn"
 
 const BESTIARY_SCENE := preload("res://scripts/ui/bestiary.gd")
 const ACHIEVEMENTS_SCENE := preload("res://scripts/ui/achievements.gd")
+const CHARACTERS_SCENE := preload("res://scripts/ui/characters_menu.gd")
 
 var _play: Button
 var _settings: Button
 var _bestiary: Button
 var _achievements: Button
+var _characters: Button
 var _quitting := false
 
 
@@ -65,13 +67,23 @@ func _build() -> void:
 	gap2.custom_minimum_size.y = 34
 	col.add_child(gap2)
 
-	_play = _entry(col, "MENU_PLAY", _on_play)
+	# Continuar la partida guardada / Continue the saved run
+	if GameState.has_saved_run():
+		var info := GameState.saved_run_info()
+		var cont := _entry(col, "", _on_continue)
+		cont.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+		cont.text = tr("MENU_CONTINUE") % int(info.get("depth", 1))
+		_play = cont
+		_entry(col, "MENU_PLAY", _on_play)
+	else:
+		_play = _entry(col, "MENU_PLAY", _on_play)
+	_characters = _entry(col, "MENU_CHARACTERS", _on_characters)
 	_bestiary = _entry(col, "MENU_BESTIARY", _on_bestiary)
 	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	_entry(col, "MENU_QUIT", _on_quit)
 
-	var version := UITheme.label("V 1.3", 16, Color(UITheme.ASH, 0.6), "caps")
+	var version := UITheme.label("V 1.4", 16, Color(UITheme.ASH, 0.6), "caps")
 	version.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	add_child(version)
 	version.set_anchors_and_offsets_preset(PRESET_BOTTOM_LEFT, PRESET_MODE_MINSIZE, 40)
@@ -112,6 +124,20 @@ func _on_play() -> void:
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.4)
 	tw.tween_callback(GameState.change_scene.bind(CHARACTER_SELECT))
+
+
+func _on_continue() -> void:
+	if not GameState.load_run():
+		return
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 0.0, 0.4)
+	tw.tween_callback(GameState.change_scene.bind("res://scenes/run.tscn"))
+
+
+func _on_characters() -> void:
+	var c := CHARACTERS_SCENE.new()
+	add_child(c)
+	c.closed.connect(func() -> void: _characters.grab_focus())
 
 
 func _on_bestiary() -> void:

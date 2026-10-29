@@ -86,6 +86,14 @@ func nearest(max_range: float, from := Vector2.INF, exclude: Array = []) -> Node
 		if not e.is_targetable() or exclude.has(e):
 			continue
 		var d := from.distance_to(_body(e))
+		# Los jefes tienen prioridad si están a una distancia parecida (si no, las armas se
+		# entretienen con los enemigos de alrededor y la pelea se eterniza)
+		# Bosses take priority when at a similar distance (otherwise weapons get distracted
+		# by the surrounding enemies and the fight drags on forever)
+		if e.is_boss():
+			if d > max_range:
+				continue
+			d *= 0.6
 		if d < best_d:
 			best_d = d
 			best = e

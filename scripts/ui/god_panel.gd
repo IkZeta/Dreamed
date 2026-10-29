@@ -10,6 +10,8 @@ signal closed
 ## Arma elegida en la selección ("" si aún no hay) / Weapon picked on the select screen ("" if none yet)
 var weapon := ""
 var _refreshers: Array[Callable] = []
+## A qué arma se ponen las mejoras: 0 = la del pijama, 1 = la segunda / Which weapon gets the upgrades: 0 = pajama's, 1 = second
+var _target := 0
 var _first: Control
 
 
@@ -68,11 +70,21 @@ func _ready() -> void:
 		return tr("GOD_BOSS") % d if GameState.wave_for(d).get("boss", false) else tr("RUN_DREAM") % d,
 		func(dir: int) -> void: GameState.god_depth = clampi(GameState.god_depth + dir, 1, GameState.WAVES.size())))
 
+	# Segunda arma (la del otro tipo) / Second weapon (the other kind)
+	left.add_child(_stepper("GOD_SECOND", func() -> String:
+		return "—" if GameState.god_second == "" else tr("WEAPON_SHORT_" + GameState.god_second.to_upper()),
+		_second_step))
+
 	# Mejoras / Upgrades
 	left.add_child(_section("GOD_UPGRADES"))
 	if weapon == "":
 		var hint := UITheme.label("GOD_PICK_WEAPON", 15, UITheme.ASH, "italic")
 		left.add_child(hint)
+	left.add_child(_stepper("GOD_UPGRADES_FOR", func() -> String:
+		var w := _target_weapon()
+		return "—" if w == "" else tr("WEAPON_SHORT_" + w.to_upper()),
+		func(_dir: int) -> void:
+			_target = 1 - _target if GameState.god_second != "" else 0))
 	for g in GameState.GIVERS:
 		left.add_child(_stepper("GIVER_%s_NAME" % g.to_upper(), _giver_text.bind(g), _giver_step.bind(g)))
 
@@ -91,6 +103,9 @@ func _ready() -> void:
 	reset.pressed.connect(func() -> void:
 		GameState.god_depth = 1
 		GameState.god_upgrades = {}
+		GameState.god_upgrades2 = {}
+		GameState.god_second = ""
+		_target = 0
 		GameState.god_stats = {}
 		_refresh())
 	buttons.add_child(reset)
@@ -117,22 +132,48 @@ func close() -> void:
 	queue_free()
 
 
+## Armas que se pueden poner de segunda con el pijama elegido / Weapons allowed as second with the picked pajama
+func _second_options() -> Array[String]:
+	if weapon == "":
+		return []
+	return GameState.RANGED.duplicate() if weapon in GameState.MELEE else GameState.MELEE.duplicate()
+
+
+func _second_step(dir: int) -> void:
+	var opts: Array[String] = [""]
+	opts.append_array(_second_options())
+	var i := opts.find(GameState.god_second)
+	GameState.god_second = opts[posmod(maxi(i, 0) + dir, opts.size())]
+	if GameState.god_second == "":
+		_target = 0
+
+
+func _target_weapon() -> String:
+	return GameState.god_second if _target == 1 and GameState.god_second != "" else weapon
+
+
+func _god_ups() -> Dictionary:
+	return GameState.god_upgrades2 if _target == 1 and GameState.god_second != "" else GameState.god_upgrades
+
+
 func _giver_text(g: String) -> String:
-	var lvl := int(GameState.god_upgrades.get(g, 0))
+	var lvl := int(_god_ups().get(g, 0))
 	if lvl <= 0:
 		return "—"
 	var txt := tr("UP_LEVEL") % lvl
-	if weapon != "":
-		txt += " · " + tr(GameState.upgrade_key(g, weapon, "NAME"))
+	var w := _target_weapon()
+	if w != "":
+		txt += " · " + tr(GameState.upgrade_key(g, w, "NAME"))
 	return txt
 
 
 func _giver_step(dir: int, g: String) -> void:
-	var lvl := clampi(int(GameState.god_upgrades.get(g, 0)) + dir, 0, GameState.MAX_UPGRADE_LEVEL)
+	var ups := _god_ups()
+	var lvl := clampi(int(ups.get(g, 0)) + dir, 0, GameState.MAX_UPGRADE_LEVEL)
 	if lvl == 0:
-		GameState.god_upgrades.erase(g)
+		ups.erase(g)
 	else:
-		GameState.god_upgrades[g] = lvl
+		ups[g] = lvl
 
 
 func _stat_text(s: String) -> String:

@@ -414,6 +414,40 @@ def boss_theme() -> np.ndarray:
     return loop_render(build, bar_len * bars, 0.3)
 
 
+def chef_theme() -> np.ndarray:
+    """El Chef: una cocina con prisa. Ostinato de marimba en Re menor, bajo pulsado, tic-tac de
+    tabla de cortar y una melodía juguetona de kalimba. Rápido pero suave.
+    The Chef: a kitchen in a hurry. D-minor marimba ostinato, plucked bass, a chopping-board
+    tick and a playful kalimba tune. Fast but soft."""
+    beat = 60.0 / 112
+    bar_len = beat * 4
+    roots = [38, 38, 41, 36, 38, 38, 34, 33]
+    melody = [(0, 0, 74), (0, 1.5, 72), (0, 2, 69), (1, 0, 70), (1, 2, 69), (1, 3, 65),
+              (2, 0, 72), (2, 1.5, 70), (2, 2, 69), (3, 0, 67), (3, 2, 64), (4, 0, 74), (4, 1.5, 77),
+              (4, 2, 76), (5, 0, 74), (5, 2, 72), (6, 0, 70), (6, 1.5, 69), (6, 2, 67), (7, 0, 69)]
+    bars = 8
+
+    def build(buf, off):
+        for i in range(bars):
+            r = roots[i]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(r + 12), midi(r + 15), midi(r + 19)], bar_len + 1.0, 0.07, 0.4, 1.0, 1000), s, human=False)
+            for b in range(4):
+                place(buf, pluck(midi(r - 12), beat * 0.9, 0.24, 0.3, 0.99), s + b * beat)
+                place(buf, thump(70, 0.25, 0.25, 9.0), s + b * beat)
+            # Ostinato de marimba en corcheas / Eighth-note marimba ostinato
+            for k in range(8):
+                n = r + 24 + [0, 7, 3, 7, 0, 7, 5, 7][k]
+                place(buf, bar(midi(n), 0.5, 0.07, "marimba", 0.55), s + k * beat / 2, -0.4 + 0.1 * k)
+            # Tabla de cortar: tic-tac de madera / Chopping board: wooden tick
+            for k in range(8):
+                place(buf, bar(2100 if k % 2 == 0 else 1700, 0.06, 0.03, "wood", 0.9), s + k * beat / 2 + beat / 4, 0.6, human=False)
+        for bi, b, n in melody:
+            place(buf, bar(midi(n), 1.2, 0.14, "kalimba", 0.4), off + bi * bar_len + b * beat, 0.1)
+
+    return loop_render(build, bar_len * bars, 0.28)
+
+
 # --- Efectos / Sound effects -------------------------------------------------
 
 def sfx_hover():
@@ -707,6 +741,36 @@ def giver_ad():
     return x
 
 
+def sfx_pan_clang():
+    # Sartenazo: golpe sordo y un "dong" metálico amortiguado / Pan smash: a dull thud and a muffled metallic "dong"
+    x = np.zeros((int(SR * 1.4), 2))
+    place(x, thump(65, 0.45, 0.7, 7.0), 0.0, 0.0, human=False)
+    place(x, bar(330, 1.1, 0.22, "kalimba", 0.6), 0.0, 0.1, human=False)
+    place(x, bar(523, 0.9, 0.1, "kalimba", 0.6), 0.005, -0.1, human=False)
+    return x
+
+
+def sfx_knife():
+    # Cuchillos al aire: silbido corto y un "tin" agudo / Knives flying: a short swish and a high "ting"
+    return mix(lp(sweep_noise(0.2, 900, 3000, 2.2, 0.35), 5000), np.pad(bar(midi(95), 0.5, 0.08, "kalimba", 0.8), (int(SR * 0.04), 0)))
+
+
+def sfx_hack():
+    # Hackeo: pitidos de módem que suben / Hack: rising modem bleeps
+    x = np.zeros((int(SR * 1.0), 2))
+    for i, n in enumerate([72, 79, 76, 84, 81, 88]):
+        place(x, bar(midi(n), 0.18, 0.1, "kalimba", 0.9), i * 0.06, -0.5 + i * 0.2, human=False)
+    return mix(x, lp(sweep_noise(0.4, 600, 2600, 3.0, 0.08), 4500))
+
+
+def sfx_dash():
+    # Dash del Cyberpunk: soplo rápido con un zumbido digital / Cyberpunk dash: quick whoosh with a digital buzz
+    n = int(SR * 0.3)
+    t = np.arange(n) / SR
+    buzz = 0.06 * np.sign(np.sin(2 * np.pi * (220 + 600 * t) * t)) * np.exp(-t * 9)
+    return mix(lp(sweep_noise(0.3, 400, 2000, 1.8, 0.4), 4500), stereo(lp(buzz, 2500)))
+
+
 def sfx_plate_break():
     # Plato que se rompe, pero suave: tintineo de porcelana amortiguado / A plate breaking, but soft: muffled porcelain clink
     x = np.zeros((int(SR * 1.2), 2))
@@ -725,6 +789,8 @@ if __name__ == "__main__":
         save("music_boss", boss_theme(), 0.55, room=0)
     if not only or "music_living" in only:
         save("music_living", living_theme(), 0.55, room=0)
+    if not only or "music_chef" in only:
+        save("music_chef", chef_theme(), 0.55, room=0)
     for name, fn, peak, room in [
         ("ui_hover", sfx_hover, 0.25, 0.12), ("ui_click", sfx_click, 0.35, 0.12), ("swing", sfx_swing, 0.45, 0.1),
         ("pillow", sfx_pillow, 0.55, 0.12), ("zap", sfx_zap, 0.45, 0.25), ("vacuum", sfx_vacuum, 0.3, 0.0),
@@ -740,6 +806,8 @@ if __name__ == "__main__":
         ("giver_silly", giver_silly, 0.35, 0.25), ("giver_doc", giver_doc, 0.4, 0.35),
         ("giver_charo", giver_charo, 0.4, 0.3), ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
         ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2), ("giver_ad", giver_ad, 0.4, 0.3),
+        ("pan_clang", sfx_pan_clang, 0.45, 0.2), ("knife", sfx_knife, 0.3, 0.15), ("hack", sfx_hack, 0.3, 0.2),
+        ("dash", sfx_dash, 0.35, 0.1),
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)

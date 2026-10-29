@@ -250,7 +250,7 @@ func _hand_from() -> Vector2:
 
 
 func _pan_strike() -> void:
-	Audio.play("kick", -2.0)
+	Audio.play("pan_clang", -2.0, 0.05)
 	run.shake(8.0)
 	var hit_at := global_position + Vector2(_facing * 70.0, -10)
 	run.fx.ring(hit_at, 50.0, UITheme.BONE, 0.35, 3.0)
@@ -264,7 +264,7 @@ func _pan_strike() -> void:
 
 
 func _throw_knives() -> void:
-	Audio.play("throw", -4.0)
+	Audio.play("knife", -3.0, 0.08)
 	for dir: Vector2 in _atk["dirs"]:
 		var s := ChefShot.new()
 		s.run = run

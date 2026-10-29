@@ -37,6 +37,11 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "max_gift", "flag": true, "goal": 1},
 	{"id": "bestiary", "check": "bestiary", "goal": 1, "drawing": "star"},
 	{"id": "mr_ad", "flag": true, "goal": 1},
+	{"id": "chef", "check": "act2", "goal": 1, "drawing": "chef"},
+	{"id": "two_weapons", "flag": true, "goal": 1},
+	{"id": "shopper", "stat": "bought", "goal": 10},
+	{"id": "pyro", "stat": "sacrifices", "goal": 5},
+	{"id": "saver", "stat": "best_reality", "goal": 100, "drawing": "coin"},
 ]
 
 ## Aviso de logro en pantalla / On-screen achievement notice
@@ -124,6 +129,11 @@ func achievement_progress(a: Dictionary) -> Array:
 	match a.get("check", ""):
 		"act1":
 			return [1 if any_cleared() else 0, 1]
+		"act2":
+			for w: String in cleared:
+				if has_cleared(w, "normal", 2) or has_cleared(w, "nightmare", 2):
+					return [1, 1]
+			return [0, 1]
 		"nightmare":
 			for w: String in cleared:
 				if has_cleared(w, "nightmare"):
