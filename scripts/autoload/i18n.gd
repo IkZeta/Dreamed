@@ -184,7 +184,7 @@ const STRINGS := {
 	"BEST_GOLDEN_FOOX_NAME": {"es": "Foox dorado", "en": "Golden Foox"},
 	"BEST_GOLDEN_FOOX_DESC": {"es": "Aparece en algunos sueños, huye y no hace daño. Si lo pillas antes de 7 segundos suelta muchos trozos de estrella.", "en": "Shows up in some dreams, runs away and is harmless. Catch it within 7 seconds and it drops lots of star shards."},
 	"BEST_ELITE_NAME": {"es": "Élite", "en": "Elite"},
-	"BEST_ELITE_DESC": {"es": "Un enemigo demoníaco, más grande, con cuernos, contorno rojo y el triple de vida. Puede dividirse, dejar charcos que frenan o ir muy rápido. Suelta más trozos y a menudo un objeto.", "en": "A demonic enemy, bigger, with horns, a red outline and triple health. It may split, leave slowing puddles or move very fast. Drops more shards and often an item."},
+	"BEST_ELITE_DESC": {"es": "Un enemigo demoníaco, más grande, con cuernos, contorno de color y el triple de vida. Su color dice qué hace: naranja se divide, azul deja charcos que frenan y morado va muy rápido. Suelta más trozos y a menudo un objeto.", "en": "A demonic enemy, bigger, with horns, a coloured outline and triple health. Its colour tells what it does: orange splits, blue leaves slowing puddles and purple moves very fast. Drops more shards and often an item."},
 	"BEST_BOSS_BED_NAME": {"es": "La cama", "en": "The bed"},
 	"BEST_BOSS_BED_DESC": {"es": "Camina sobre patas mecánicas y salta hacia ti. Al caer provoca un sismo: sal del círculo.", "en": "Walks on mechanical legs and jumps at you. Landing causes a quake: get out of the circle."},
 	"BEST_BOSS_SHELF_NAME": {"es": "La estantería", "en": "The bookshelf"},

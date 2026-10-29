@@ -20,7 +20,7 @@ const EYES := Color("ffcf7a")
 var _shot_t := 1.5
 var _aiming := 0.0   # 0..1 mientras tensa la goma / while drawing the band
 var _aim_dir := Vector2.ZERO   # dirección fijada al empezar a apuntar / direction locked when aiming starts
-const SHOT_SPEED := 420.0
+const SHOT_SPEED := 540.0
 
 
 func _init() -> void:

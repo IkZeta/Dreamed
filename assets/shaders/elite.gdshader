@@ -4,6 +4,7 @@
 shader_type canvas_item;
 
 uniform vec4 outline_color : source_color = vec4(1.0, 0.13, 0.16, 1.0);
+uniform vec3 tint_color = vec3(0.95, 0.3, 0.35);
 uniform float tint : hint_range(0.0, 1.0) = 0.45;
 
 void fragment() {
@@ -18,7 +19,7 @@ void fragment() {
 		if (edge && px.x < 0.5) {
 			col = vec4(outline_color.rgb, outline_color.a * COLOR.a);
 		} else {
-			col.rgb = mix(col.rgb, col.rgb * vec3(0.95, 0.3, 0.35), tint);
+			col.rgb = mix(col.rgb, col.rgb * tint_color, tint);
 		}
 	}
 	COLOR = col;
