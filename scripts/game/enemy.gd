@@ -183,6 +183,11 @@ func _move(delta: float) -> void:
 	position = clamped
 
 
+## Jefes: no cuentan para el límite de enemigos ni se borran con la K / Bosses: don't count for the enemy cap and survive the K key
+func is_boss() -> bool:
+	return false
+
+
 ## Los jefes no se pueden tirar por los agujeros / Bosses can't be thrown down holes
 func can_fall() -> bool:
 	return true

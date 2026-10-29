@@ -24,6 +24,9 @@ var hop := 0.0               # altura de un salto en píxeles / jump height in p
 var shield_charges := 0      # golpes que para la almohada recogida / hits the picked-up pillow blocks
 var slow_t := 0.0            # frenado por un charco / slowed by a puddle
 var push := Vector2.ZERO     # empuje del suelo inclinado / push from a tilted floor
+var bleed_t := 0.0           # sangrado de los cuchillos del Chef / bleeding from the Chef's knives
+var _bleed_tick := 0.0
+var root_t := 0.0            # aturdido por el sartenazo: no se puede mover / dazed by the pan: can't move
 var _land := 0.0             # rebote al aterrizar / landing squash
 
 var _walk := 0.0
@@ -103,6 +106,10 @@ func _physics_process(delta: float) -> void:
 	modulate.a = 1.0 if alive else 0.35
 	if alive and run.running:
 		var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		root_t = maxf(0.0, root_t - delta)
+		if root_t > 0.0:
+			input = Vector2.ZERO
+		_update_bleed(delta)
 		slow_t = maxf(0.0, slow_t - delta)
 		var spd := speed * (0.6 if slow_t > 0.0 else 1.0)
 		_vel = _vel.lerp(input * spd + push, minf(1.0, delta * 14.0))
@@ -164,6 +171,39 @@ func take_damage(amount: float) -> void:
 		run.on_player_died()
 
 
+## Sangra: pierde 1 de vida cada 0,8 s (sin parpadeo de invulnerabilidad)
+## Bleeding: loses 1 health every 0.8 s (without invulnerability blinking)
+func start_bleed(seconds: float) -> void:
+	if bleed_t <= 0.0:
+		_bleed_tick = 0.8
+	bleed_t = maxf(bleed_t, seconds)
+
+
+func _update_bleed(delta: float) -> void:
+	if bleed_t <= 0.0:
+		return
+	bleed_t -= delta
+	_bleed_tick -= delta
+	if _bleed_tick > 0.0:
+		return
+	_bleed_tick = 0.8
+	if GameState.god_mode and GameState.god_invuln:
+		return
+	hp = maxf(0.0, hp - 1.0)
+	_flash = 0.5
+	run.fx.text(global_position + Vector2(randf_range(-14, 14), -80), "-1", Color("e8455a"), 20)
+	run.fx.dissipate(global_position + Vector2(randf_range(-10, 10), -40), Color("c8304a"))
+	run.hud.set_hp(hp, max_hp)
+	if hp <= 0.0:
+		alive = false
+		run.on_player_died()
+
+
+## Golpe que deja a Kroker clavado en el sitio / A hit that leaves Kroker stuck in place
+func root(seconds: float) -> void:
+	root_t = maxf(root_t, seconds)
+
+
 func _draw() -> void:
 	# Parpadea mientras es invulnerable / Blinks while invulnerable
 	var visible_now := _invuln <= 0.0 or fmod(_t, 0.12) < 0.07 or not alive
@@ -178,7 +218,38 @@ func _draw() -> void:
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean})
 	if alive and run.running and weapon:
 		_draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor())
+	_draw_hearth_ring()
 	_draw_shield_bubble()
+	_draw_states()
+
+
+## Anillo naranja sobre la cabeza mientras carga el sacrificio en la chimenea
+## Orange ring over his head while the fireplace sacrifice charges
+func _draw_hearth_ring() -> void:
+	var lr := run.room as LivingRoom
+	if lr == null or lr.fire_charge <= 0.0:
+		return
+	var c := Vector2(0, -170)
+	draw_circle(c, 15.0, Color(0.05, 0.03, 0.18, 0.5))
+	draw_arc(c, 11.0, 0, TAU, 28, Color("ffb06a", 0.2), 4.0, true)
+	draw_arc(c, 11.0, -PI / 2.0, -PI / 2.0 + TAU * lr.fire_charge, 28, Color("ffb06a"), 4.0, true)
+	# Llamita dentro / A little flame inside
+	draw_colored_polygon(PackedVector2Array([c + Vector2(-4, 5), c + Vector2(0, -7 - sin(_t * 12.0) * 1.5), c + Vector2(4, 5)]), Color("ffd07a"))
+
+
+## Estrellitas de mareo, gotas de sangre y glitch del hackeo / Dizzy stars, blood drops and hack glitch
+func _draw_states() -> void:
+	if root_t > 0.0:
+		for i in 3:
+			var ang := _t * 7.0 + i * TAU / 3.0
+			DreamBackground.draw_star(self, Vector2(cos(ang) * 18.0, -158 + sin(ang) * 5.0), 3.0, UITheme.GOLD)
+	if bleed_t > 0.0:
+		for i in 3:
+			var y := -60.0 + fposmod(_t * 60.0 + i * 20.0, 50.0)
+			draw_rect(Rect2(-10 + i * 9, y, 3, 4), Color("e8455a", 0.8))
+	if not GameState.hacks.is_empty() and fmod(_t, 0.6) < 0.12:
+		draw_rect(Rect2(-22, randf_range(-140, -20), 44, 3), Color("ff5fd2", 0.7))
+		draw_rect(Rect2(-18, randf_range(-140, -20), 36, 2), Color("5ff2ff", 0.7))
 
 
 ## Anillos de carga junto al arma: se rellenan en círculo y se apagan cuando están llenos.

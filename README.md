@@ -48,7 +48,7 @@ Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma.
 | **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −10 de suerte y 5 % de robo de salud |
 | **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña | +25 % de velocidad y 5 % de robo de salud |
 
-Cada pijama tiene un **post-it** con los actos que has superado con él, al estilo de *The Binding of Isaac*. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
+Cada pijama tiene un **post-it** con los actos que has superado con él (Acto I y Acto II; estrella en normal, luna en pesadilla), al estilo de *The Binding of Isaac*. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
 
 ---
 
@@ -68,20 +68,35 @@ Kroker se despierta, se pone las gafas y coge su arma. En cada sueño la habitac
 | 4 | **Esqueleto**: se desmonta y, si no rompes sus huesos, se vuelve a levantar |
 | 5 | **Jefe: la habitación despierta**. Primero la cama, que salta y provoca un sismo; luego la estantería, que lanza libros; y por último el baúl, que huye y suelta enemigos |
 
-### Acto 2: el salón (sueños 6–9)
+### Acto 2: el salón (sueños 6–10)
 
 ![El salón](docs/screenshots/salon.jpg)
 
 Tras vencer al jefe, el sueño se hunde un poco más y Kroker cae en el salón de casa: chimenea de piedra, sillón de la abuela, una tele antigua con nieve y un sofá que tapa a quien pasa por detrás.
 
-- **Nidos y mosquitos:** el nido no se mueve, pero suelta mosquitos mientras no lo rompas. Los mosquitos son diminutos y frágiles, pero muy rápidos y salen a montones.
+| Sueño | Novedad |
+|---|---|
+| 6 | **Nidos y mosquitos**: el nido no se mueve, pero suelta mosquitos mientras no lo rompas. Los mosquitos son diminutos y frágiles, pero muy rápidos y salen a montones |
+| 8 | **Cyberpunk**: se lanza a base de dashes que marca antes en el suelo y, si se te queda cerca, te **hackea**: te baja una estadística al azar hasta que lo derrotas |
+| 10 | **Jefe: El Chef**, un Kroker adulto cocinero que sale de la tele |
+
+**El Chef** tiene tres ataques, todos avisados antes:
+
+- **Cuchillos** en abanico: si te da uno, sangras durante un rato.
+- **Sartenazo** de cerca: si te da, te quedas clavado medio segundo.
+- **Platos** lanzados en arco a puntos marcados: al romperse dejan trozos en el suelo que hacen daño al pisarlos.
+
+Con menos de la mitad de vida se enfada: ataca más a menudo y lanza más cosas.
+
+El resto del salón:
+
 - **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**.
 - **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve...
 - **La chimenea:** en algunos sueños está encendida. Quédate delante y podrás echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada.
 
 ![El kiosco de Charo](docs/screenshots/kiosco.jpg)
 
-> El jefe del salón y el Acto 3 están en camino. Por ahora, el Acto 2 termina en el sueño 9.
+> El Acto 3 está en camino. Por ahora, la partida termina al vencer a El Chef.
 
 ### Eventos
 
@@ -154,7 +169,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 
 ### Modo Dios (para probar)
 
-Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–9) con las mejoras y las estadísticas que quieras. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
+Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–10) con las mejoras y las estadísticas que quieras. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
 
 Teclas durante la partida:
 
@@ -222,7 +237,7 @@ En los `.wav` nuevos hay que poner `compress/mode=0` en su `.import`, y en los q
 - **Kroker:** a boy with glasses who falls asleep. Every wave is a dream inside the previous one, each stranger than the last.
 - **Weapons:** pick one of four pajamas, each with its own auto-attacking weapon: bat, pillow shield, storybook (lightning from the sky) or vacuum.
 - **Act 1, the bedroom:** Foox, thugs, slingshots and skeletons, then a living-furniture boss.
-- **Act 2, the living room:** mosquito nests, a fireplace where you can sacrifice upgrades, and *Karen the kiosk lady*, who trades in **Fragmented Reality**.
+- **Act 2, the living room:** mosquito nests, hacking Cyberpunks, a fireplace where you can sacrifice upgrades, *Karen the kiosk lady*, who trades in **Fragmented Reality**, and **The Chef**: a grown-up Kroker who climbs out of the TV throwing knives (bleeding), plates (shards on the floor) and swinging a frying pan (it roots you).
 - **Upgrades:** between dreams, on the astral plane, Svinho, Stolk, Silly and Doc each offer a different kind of upgrade. Star shards level Kroker up with stat boosts from common to legendary.
 - **Extras:** Nightmare difficulty, a bestiary, 12 achievements, accessibility options, full gamepad support and a God mode for testing.
 - **Running it:** open `project.godot` and press **F5**. All sprites, sounds and the font are generated by the scripts in `tools/`.

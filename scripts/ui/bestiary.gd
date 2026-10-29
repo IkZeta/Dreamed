@@ -41,7 +41,7 @@ func _ready() -> void:
 	root.add_child(row)
 	_list = VBoxContainer.new()
 	_list.add_theme_constant_override("separation", 6)
-	_list.custom_minimum_size.x = 420
+	_list.custom_minimum_size.x = 560
 	row.add_child(_list)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 12)
@@ -68,15 +68,23 @@ func _ready() -> void:
 	_count.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	info.add_child(_count)
 
+	# Dos columnas para que quepan todas las entradas / Two columns so every entry fits
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 6)
+	_list.add_child(grid)
 	for id in Progress.BESTIARY:
 		var b := Button.new()
 		b.text = tr("BEST_%s_NAME" % id.to_upper()) if Progress.has_seen(id) else "???"
 		b.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.custom_minimum_size = Vector2(0, 62)
+		b.custom_minimum_size = Vector2(0, 58)
+		b.size_flags_horizontal = SIZE_EXPAND_FILL
+		b.clip_text = true
 		b.focus_entered.connect(_show.bind(id))
 		b.mouse_entered.connect(b.grab_focus)
-		_list.add_child(b)
+		grid.add_child(b)
 		_buttons[id] = b
 		if _first == null:
 			_first = b
@@ -153,7 +161,7 @@ class BestiaryPreview extends Control:
 
 	func _ready() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
-		if id.begins_with("boss_"):
+		if id.begins_with("boss_") and id != "boss_chef":
 			return
 		var e: Enemy
 		match id:
@@ -162,6 +170,8 @@ class BestiaryPreview extends Control:
 			"skeleton": e = Skeleton.new()
 			"nest": e = Nest.new()
 			"mosquito": e = Mosquito.new()
+			"cyber": e = Cyberpunk.new()
+			"boss_chef": e = Chef.new()
 			"golden_foox": e = GoldenFoox.new()
 			_: e = Foox.new()
 		if id == "elite":
@@ -178,7 +188,7 @@ class BestiaryPreview extends Control:
 		_enemy = e
 
 	## Alto de cada dibujo (con cuernos y aura) / Height of each drawing (with horns and aura)
-	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0,
+	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "boss_chef": 290.0,
 		"boss_bed": 200.0, "boss_shelf": 190.0, "boss_chest": 130.0}
 
 	## Escala para que quepa entero en el hueco / Scale so it fits whole in the space
@@ -207,7 +217,7 @@ class BestiaryPreview extends Control:
 	func _draw() -> void:
 		var c := Vector2(size.x / 2.0, size.y * 0.84)
 		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(90, 120), Vector2(180, 160)), false, Color(UITheme.MIST, 0.15))
-		if id.begins_with("boss_"):
+		if id.begins_with("boss_") and id != "boss_chef":
 			var sprite := {"boss_bed": "boss_bed", "boss_shelf": "boss_shelf", "boss_chest": "boss_chest_box"}[id] as String
 			var mod := Color(0, 0, 0, 0.75) if hidden_shape else Color.WHITE
 			draw_set_transform(c, 0.0, Vector2.ONE * _fit())

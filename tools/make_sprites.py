@@ -1380,6 +1380,100 @@ def act2_enemies():
     add("nest_body", -42, -50, 84, 60, b, colors=14)
 
 
+def dot_painter(points, color):
+    """Pinta píxeles sueltos (ojos) / Paints single pixels (eyes)."""
+    def paint(img, to_px):
+        pix = img.load()
+        w, h = img.size
+        for (X, Y) in points:
+            x, y = to_px(X, Y)
+            x, y = int(x), int(y)
+            for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)) if len(points) and color[3] == 254 else ((0, 0),):
+                if 0 <= x + dx < w and 0 <= y + dy < h:
+                    pix[x + dx, y + dy] = color[:3] + (255,)
+    return paint
+
+
+def cyberpunk():
+    """El Cyberpunk: chaqueta negra con luces de neón, cresta rosa y visor.
+    The Cyberpunk: black jacket with neon lights, pink mohawk and a visor."""
+    jacket, jdark, neon, neon2, skin = "#262140", "#17142c", "#5ff2ff", "#ff5fd2", "#c9b3d9"
+    body = shaded("M-20,-86 Q0,-90 20,-86 L24,-40 Q0,-36 -24,-40 Z", jacket, shade=0.5, rim=0.5, rim_color="#8fe8ff")
+    body += "<path d='M-20,-84 L-14,-42 M20,-84 L14,-42' stroke='%s' stroke-width='2.2' opacity='0.9'/>" % neon
+    body += "<path d='M-8,-72 L8,-72 M-8,-64 L8,-64' stroke='%s' stroke-width='2' opacity='0.9'/>" % neon2
+    body += shaded("M-24,-46 Q0,-42 24,-46 L24,-38 Q0,-34 -24,-38 Z", jdark, shade=0.3, rim=0.3, sw=0.8)
+    add("cyber_body", -28, -92, 56, 58, body)
+    head = shaded(ellipse_d(0, -102, 15, 16), mix(skin, "#3a2a50", 0.35), shade=0.55, rim=0.3, sw=0.9)
+    head += shaded("M-4,-118 L-2,-134 L2,-130 L4,-138 L7,-128 L9,-134 L8,-116 Z", neon2, shade=0.3, rim=0.5, sw=0.8)
+    head += shaded("M-15,-108 L16,-108 L17,-99 L-15,-99 Z", "#101830", shade=0.2, rim=0.6, rim_color=neon, sw=0.8)
+    head += "<rect x='-12' y='-106' width='26' height='3' fill='%s' opacity='0.9'/>" % neon
+    head += "<path d='M10,-94 L14,-92' stroke='%s' stroke-width='1.6'/>" % neon2
+    add("cyber_head", -20, -140, 40, 58, head)
+    leg = shaded("M-6,-42 L6,-42 L5,-8 Q0,-6 -5,-8 Z", jdark, shade=0.5, rim=0.3, sw=0.8,
+                 extra="<rect x='-6' y='-26' width='12' height='2.4' fill='%s' opacity='0.8'/>" % neon)
+    leg += shaded("M-7,-9 L8,-9 L9,-2 L-7,-2 Z", "#e9e6f2", shade=0.3, rim=0.3, sw=0.7)
+    add("cyber_leg", -10, -45, 20, 45, leg)
+    arm = shaded("M-5,0 L5,0 L4,30 L-4,30 Z", jacket, shade=0.4, rim=0.4, sw=0.8,
+                 extra="<rect x='-5' y='18' width='10' height='3' fill='%s'/>" % neon)
+    arm += shaded(ellipse_d(0, 34, 5, 5), mix(skin, "#3a2a50", 0.35), shade=0.3, rim=0.3, sw=0.7)
+    add("cyber_arm", -8, -3, 16, 44, arm)
+
+
+def chef():
+    """El Chef: Kroker de mayor, cocinero. Gafas, pelo negro, bigote, gorro alto y delantal.
+    The Chef: grown-up Kroker as a cook. Glasses, black hair, moustache, tall hat and apron."""
+    white, shadew, apron, skin, hair = "#f4f1fa", "#b8b0d8", "#5b67c4", "#f1cfbb", "#16141f"
+    # Piernas / Legs
+    leg = shaded("M-11,-64 L11,-64 L10,-10 Q0,-7 -10,-10 Z", "#2b2945", shade=0.45, rim=0.3,
+                 extra="<path d='M-10,-50 L10,-50 M-10,-38 L10,-38' stroke='#3a3866' stroke-width='2'/>")
+    leg += shaded("M-12,-12 L14,-12 L16,-1 L-12,-1 Z", "#121020", shade=0.3, rim=0.4, sw=0.8)
+    add("chef_leg", -16, -67, 34, 68, leg)
+    # Torso: chaqueta cruzada de cocinero y delantal / Torso: double-breasted chef jacket and apron
+    body = shaded("M-34,-158 Q0,-166 34,-158 Q46,-150 44,-134 L40,-60 Q0,-54 -40,-60 L-44,-134 Q-46,-150 -34,-158 Z", white, shade=0.45, rim=0.3, deep="#6c64a8")
+    for y in (-140, -122, -104):
+        for x in (-12, 12):
+            body += "<circle cx='%d' cy='%d' r='3' fill='#2b2945'/>" % (x, y)
+    body += "<path d='M-26,-158 L0,-142 L26,-158' fill='none' stroke='%s' stroke-width='2.4'/>" % shadew
+    body += shaded("M-30,-112 L30,-112 L34,-56 Q0,-50 -34,-56 Z", apron, shade=0.4, rim=0.3,
+                   extra="<path d='M-30,-112 L30,-112' stroke='#3e4892' stroke-width='3'/><rect x='-12' y='-92' width='24' height='16' fill='#4a55b0'/>")
+    body += "<path d='M-6,-162 Q0,-152 6,-162' fill='none' stroke='#e85d75' stroke-width='4'/>"
+    add("chef_body", -50, -168, 100, 118, body)
+    # Cabeza con gorro, gafas y bigote / Head with hat, glasses and moustache
+    head = shaded(ellipse_d(0, -190, 26, 28), skin, shade=0.45, rim=0.4)
+    head += shaded("M-27,-196 Q-28,-216 -12,-220 L12,-220 Q28,-216 27,-196 Q22,-206 14,-204 L-14,-204 Q-22,-206 -27,-196 Z", hair, shade=0.4, rim=0.5, rim_color="#8a7aa8", sw=0.8)
+    head += "<path d='M-26,-196 L-26,-184 M26,-196 L26,-184' stroke='%s' stroke-width='4'/>" % hair
+    for cx in (-10, 10):
+        head += "<circle cx='%d' cy='-190' r='8' fill='#dfe6ff' fill-opacity='0.3' stroke='#2b2945' stroke-width='2.6'/>" % cx
+    head += "<path d='M-2,-190 L2,-190' stroke='#2b2945' stroke-width='2.6'/>"
+    head += "<path d='M-14,-174 Q-6,-180 0,-175 Q6,-180 14,-174 Q8,-170 0,-172 Q-8,-170 -14,-174 Z' fill='%s'/>" % hair
+    head += "<path d='M-8,-166 Q0,-162 8,-166' fill='none' stroke='#a3687a' stroke-width='2'/>"
+    # Gorro alto / Tall chef's hat
+    hat = shaded("M-22,-222 L22,-222 L24,-208 L-24,-208 Z", white, shade=0.3, rim=0.3, sw=0.9)
+    hat += shaded("M-22,-222 Q-38,-236 -30,-256 Q-20,-276 0,-268 Q20,-278 30,-256 Q38,-236 22,-222 Z", white, shade=0.45, rim=0.4, deep="#8a84b8")
+    head = hat + head
+    add("chef_head", -40, -282, 80, 124, head, colors=20, post=dot_painter([(-10, -190), (10, -190)], (42, 30, 40, 254)))
+    # Brazo con la mano / Arm with the hand
+    arm = shaded("M-8,0 L8,0 L7,50 L-7,50 Z", white, shade=0.45, rim=0.3, deep="#6c64a8")
+    arm += shaded(ellipse_d(0, 56, 8, 8), skin, shade=0.35, rim=0.3, sw=0.8)
+    add("chef_arm", -12, -4, 24, 70, arm)
+    # Sartén (mango hacia la mano en el origen) / Frying pan (handle towards the hand at the origin)
+    pan = shaded("M-3,0 L3,0 L3,-34 L-3,-34 Z", "#6a4430", shade=0.3, rim=0.3, sw=0.8)
+    pan += shaded(ellipse_d(0, -56, 24, 24), "#3a3a52", shade=0.5, rim=0.6, rim_color="#cfd6f6")
+    pan += "<path d='%s' fill='#1e1e30'/>" % ellipse_d(0, -56, 17, 17)
+    add("chef_pan", -28, -84, 56, 88, pan, colors=10)
+    # Cuchillo (apunta a la derecha) / Knife (points right)
+    knife = shaded("M-14,-3 L-2,-3 L-2,3 L-14,3 Z", "#4a2e22", shade=0.3, rim=0.3, sw=0.7)
+    knife += shaded("M-2,-4 L14,-1 L16,0 L14,1 L-2,4 Z", "#dfe6ff", shade=0.4, rim=0.7, rim_color="#ffffff", sw=0.7)
+    add("shot_knife", -17, -6, 35, 12, knife, colors=8)
+    plate = shaded(ellipse_d(0, 0, 18, 8), "#f4f1fa", shade=0.4, rim=0.6, deep="#8a84b8")
+    plate += "<path d='%s' fill='none' stroke='#5b67c4' stroke-width='1.6'/>" % ellipse_d(0, 0, 12, 5)
+    add("shot_plate", -21, -10, 42, 20, plate, colors=8)
+    shards_ = ""
+    for (x, y, r) in ((-22, -2, 20), (6, -6, -30), (20, 4, 50), (-6, 8, 10), (-30, 8, -60), (28, -8, 80)):
+        shards_ += "<g transform='translate(%d,%d) rotate(%d)'>%s</g>" % (x, y, r, shaded("M-6,-3 L6,-4 L2,4 Z", "#f4f1fa", shade=0.3, rim=0.6, sw=0.7))
+    add("plate_shards", -40, -16, 80, 32, shards_, colors=8)
+
+
 def act2_npcs():
     charo_body(False)
     charo_body(True)
@@ -1406,6 +1500,8 @@ def build():
     living_room()
     act2_npcs()
     act2_enemies()
+    cyberpunk()
+    chef()
     drawings()
     pickups()
     thug()

@@ -1,9 +1,9 @@
 class_name PostIt
 extends Control
 ## Post-it en la carta de cada pijama con los actos superados (como en The Binding of Isaac):
-## una estrella por el Acto 1 en normal y una luna por el Acto 1 en pesadilla.
+## una fila por acto, con una estrella si se superó en normal y una luna si fue en pesadilla.
 ## Post-it on each pajama card with the acts cleared (like in The Binding of Isaac):
-## a star for Act 1 on normal and a moon for Act 1 on nightmare.
+## one row per act, with a star if cleared on normal and a moon if on nightmare.
 
 var weapon := "bat"
 
@@ -24,15 +24,16 @@ func _draw() -> void:
 	draw_rect(Rect2(-26, -25, 50, 48), Color("f6e27a"))
 	draw_rect(Rect2(-26, 17, 50, 6), Color("e3c95a"))
 	draw_rect(Rect2(-10, -29, 20, 8), Color(1, 1, 1, 0.55))
-	# Número del acto / Act number
+	# Una fila por acto: número, estrella (normal) y luna (pesadilla)
+	# One row per act: number, star (normal) and moon (nightmare)
 	var f := UITheme.font("body")
-	draw_string(f, Vector2(-21, -9), "I", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("6b5a2a"))
-	draw_line(Vector2(-22, -5), Vector2(20, -5), Color("c8ad48"), 1.0)
-	# Marcas / Marks
-	var normal := Progress.has_cleared(weapon, "normal")
-	var night := Progress.has_cleared(weapon, "nightmare")
-	_star(Vector2(-10, 7), 7.0, Color("e8a33a") if normal else Color(0.42, 0.36, 0.18, 0.25))
-	_moon(Vector2(10, 7), 6.5, Color("6a55c8") if night else Color(0.42, 0.36, 0.18, 0.25))
+	var off := Color(0.42, 0.36, 0.18, 0.25)
+	for act in [1, 2]:
+		var y := -9.0 if act == 1 else 10.0
+		draw_string(f, Vector2(-23, y + 5), "I" if act == 1 else "II", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("6b5a2a"))
+		_star(Vector2(1, y), 6.0, Color("e8a33a") if Progress.has_cleared(weapon, "normal", act) else off)
+		_moon(Vector2(15, y), 5.5, Color("6a55c8") if Progress.has_cleared(weapon, "nightmare", act) else off)
+	draw_line(Vector2(-22, 0.5), Vector2(20, 0.5), Color("c8ad48"), 1.0)
 	draw_set_transform(Vector2.ZERO)
 
 

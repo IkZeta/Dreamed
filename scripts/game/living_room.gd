@@ -54,6 +54,8 @@ var fire_used := false
 ## Carga del sacrificio (0 → 1) al quedarse delante del fuego / Sacrifice charge (0 → 1) while standing by the fire
 var fire_charge := 0.0
 var _flare := 0.0
+## La tele se vuelve loca mientras sale El Chef / The TV goes wild while The Chef comes out
+var tv_burst := 0.0
 var _window_stars_l: Array[Dictionary] = []
 
 
@@ -101,6 +103,7 @@ func can_sacrifice() -> bool:
 func _process(delta: float) -> void:
 	super(delta)
 	_flare = maxf(0.0, _flare - delta * 0.6)
+	tv_burst = maxf(0.0, tv_burst - delta * 0.8)
 
 
 func _draw() -> void:
@@ -232,7 +235,10 @@ func _draw_tv_screen() -> void:
 		draw_rect(Rect2(p, Vector2(4, 4)), Color(UITheme.BONE, rng.randf_range(0.15, 0.5)))
 	var band := fposmod(_t * 30.0, r.size.y)
 	draw_rect(Rect2(r.position.x, r.position.y + band, r.size.x, 8), Color(1, 1, 1, 0.12))
-	if weird >= 2 and fposmod(_t, 7.0) < 2.0:
+	if tv_burst > 0.0:
+		draw_rect(r, Color("ff5fd2", 0.35 * tv_burst))
+		draw_texture_rect(DreamBackground.soft_texture(), r.grow(160), false, Color("ffd0f0", 0.4 * tv_burst))
+	elif weird >= 2 and fposmod(_t, 7.0) < 2.0:
 		var c := r.get_center()
 		draw_colored_polygon(_ellipse(c + Vector2(0, 10), Vector2(26, 18)), Color("bcd0ff", 0.8))
 		draw_colored_polygon(PackedVector2Array([c + Vector2(-20, 0), c + Vector2(-14, -26), c + Vector2(-4, -4)]), Color("bcd0ff", 0.8))

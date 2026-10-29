@@ -29,8 +29,9 @@ var _camera: Camera2D
 var _shake := 0.0
 var _overlay: DreamOverlay
 var _spawned_new := 0
-var boss: BossPiece
-var bosses: Array[BossPiece] = []
+var boss: Enemy
+var bosses: Array[Enemy] = []
+var _boss_total := 0.0
 var _boss_step := 0
 var _level_screen: LevelUpScreen
 ## Evento de este sueño: "", "dark", "tilt" o "golden" / This dream's event
@@ -317,6 +318,9 @@ func _open_sacrifice() -> void:
 ## El jefe del acto: los muebles despiertan de uno en uno / The act boss: the furniture wakes up one at a time
 func _spawn_boss() -> void:
 	Audio.play_music("music_boss", 1.0)
+	if _wave.get("boss_kind", "") == "chef":
+		_spawn_chef()
+		return
 	hud.show_boss("BOSS_NAME")
 	_boss_step = 0
 	if GameState.difficulty == "nightmare":
@@ -343,24 +347,51 @@ func _add_boss_piece(kind: String, slow := 1.0) -> void:
 	if not running:
 		return
 	room.gone.append(kind)
-	boss = BossPiece.new()
-	boss.attack_slow = slow
-	boss.setup_piece(self, kind)
-	enemies.add_child(boss)
-	bosses.append(boss)
-	boss.defeated.connect(_on_piece_defeated)
+	var piece := BossPiece.new()
+	piece.attack_slow = slow
+	piece.setup_piece(self, kind)
+	enemies.add_child(piece)
+	_add_boss(piece)
+	piece.defeated.connect(_on_piece_defeated)
+
+
+func _add_boss(b: Enemy) -> void:
+	boss = b
+	bosses.append(b)
+	_boss_total += b.max_hp
 	update_boss_hp()
+
+
+## Jefe del Acto 2: El Chef sale de la tele / Act 2 boss: The Chef comes out of the TV
+func _spawn_chef() -> void:
+	hud.show_boss("BOSS_CHEF_NAME")
+	var chef := Chef.new()
+	chef.setup(self)
+	enemies.add_child(chef)
+	_add_boss(chef)
+	chef.defeated.connect(_on_chef_defeated)
+
+
+func _on_chef_defeated() -> void:
+	if not running:
+		return
+	update_boss_hp()
+	running = false
+	Audio.stop_loops()
+	for e: Node in enemies.get_children():
+		if not e.is_boss():
+			e.die(false)
+	Progress.clear_act(GameState.selected_character, GameState.difficulty, 2)
+	_end_act2()
 
 
 ## Barra del jefe: la vida que les queda a los muebles despiertos / Boss bar: health left on the awake pieces
 func update_boss_hp() -> void:
 	var hp := 0.0
-	var total := 0.0
 	for b in bosses:
-		if is_instance_valid(b) and b._dying < 0.0:
+		if is_instance_valid(b) and float(b.get("_dying")) < 0.0:
 			hp += maxf(b.hp, 0.0)
-		total += BossPiece.HP_PER_PIECE * GameState.enemy_hp_mult()
-	hud.set_boss_hp(hp, maxf(total, 1.0))
+	hud.set_boss_hp(hp, maxf(_boss_total, 1.0))
 
 
 func _on_piece_defeated() -> void:
@@ -370,7 +401,7 @@ func _on_piece_defeated() -> void:
 	if _boss_step >= BossPiece.ORDER.size():
 		# Se acaba cuando no queda ningún mueble en pie / It ends when no piece is left standing
 		for b in bosses:
-			if is_instance_valid(b) and b._dying < 0.0:
+			if is_instance_valid(b) and float(b.get("_dying")) < 0.0:
 				return
 		if bosses.size() >= BossPiece.ORDER.size():
 			_on_act_cleared()
@@ -509,7 +540,7 @@ func _god_key(key: Key) -> bool:
 				_on_wave_cleared()
 		KEY_K:
 			for e: Node in enemies.get_children():
-				if not e is BossPiece:
+				if not e.is_boss():
 					e.die(false)
 		KEY_L:
 			collect_shards(GameState.xp_needed() - GameState.xp)
@@ -524,7 +555,7 @@ func _spawn_group() -> void:
 	var alive := 0
 	for e in enemies.get_children():
 		# Los mosquitos de los nidos no cuentan / Nest mosquitoes don't count
-		if not e is BossPiece and not e is Mosquito:
+		if not e.is_boss() and not e is Mosquito:
 			alive += 1
 	var group: Array = _wave["group"]
 	var count := mini(randi_range(group[0], group[1]), int(_wave["max_alive"]) - alive)
@@ -591,6 +622,7 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"skeleton": e = Skeleton.new()
 		"nest": e = Nest.new()
 		"mosquito": e = Mosquito.new()
+		"cyber": e = Cyberpunk.new()
 		_: e = Foox.new()
 	e.setup(self)
 	e.position = pos
@@ -754,7 +786,7 @@ func _update_event(delta: float) -> void:
 			_tilt = _tilt.lerp(dir * 75.0, minf(1.0, delta * 0.8))
 			player.push = _tilt
 			for e: Node in enemies.get_children():
-				if e is Enemy and not e is BossPiece:
+				if e is Enemy and not e.is_boss():
 					e.external_pull += _tilt * 0.8
 			_camera.rotation = lerpf(_camera.rotation, _tilt.x / 75.0 * 0.025, minf(1.0, delta * 2.0))
 		"golden":
@@ -864,7 +896,7 @@ func _wake_scene(won: bool) -> void:
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
 func _build_real_room(won: bool) -> void:
 	for n: Node in world.get_children():
-		if n is Darkness or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile:
+		if n is Darkness or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
 			n.queue_free()
 	for e: Node in enemies.get_children():
 		e.queue_free()
@@ -974,7 +1006,7 @@ func _on_act_cleared() -> void:
 	Audio.fade_music(-30.0, 1.5)
 	Audio.play("act_clear", -1.0)
 	for e: Node in enemies.get_children():
-		if not e is BossPiece:
+		if not e.is_boss():
 			e.die(false)
 	Progress.clear_act(GameState.selected_character, GameState.difficulty)
 	Progress.add_stat("dreams")

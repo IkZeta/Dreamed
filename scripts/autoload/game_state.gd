@@ -48,13 +48,15 @@ const WAVES := [
 	{"duration": 45.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 9, "mix": {"foox": 2, "thug": 1, "sling": 1, "skeleton": 2}, "new": "skeleton"},
 	{"boss": true, "spawn_every": 3.5, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}},
 	# --- Acto 2: el salón. "fire" = la chimenea está encendida; "shop" = Charo abre el kiosco al
-	# acabar; "act_end" = de momento, aquí termina el acto (el jefe del salón vendrá después).
+	# acabar. El 8 trae al Cyberpunk y el 10 es el jefe, El Chef.
 	# --- Act 2: the living room. "fire" = the fireplace is lit; "shop" = Charo opens her kiosk
-	# at the end; "act_end" = for now the act ends here (the living-room boss comes later).
+	# at the end. Dream 8 brings the Cyberpunk and dream 10 is the boss, The Chef.
 	{"duration": 40.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 10, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "nest": 1}, "new": "nest", "fire": true},
 	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2, "nest": 1}, "shop": true},
-	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1}, "fire": true},
-	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1}, "shop": true, "act_end": true},
+	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 2}, "new": "cyber", "fire": true},
+	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 2}, "shop": true},
+	# Sueño 10: El Chef sale de la tele / Dream 10: The Chef comes out of the TV
+	{"boss": true, "boss_kind": "chef", "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 1}},
 ]
 const BOSS_DEPTH := 5
 ## Primer sueño de cada acto / First dream of each act
@@ -114,6 +116,9 @@ var stat_bonus := {}
 ## Fragmented Reality: Charo's currency (lasts for the run). It only comes from elites,
 ## bosses, enemies thrown down holes and sacrifices in the fireplace.
 var reality := 0
+## Hackeos del Cyberpunk: id del enemigo → {stat, value}. Duran hasta que muere el que te hackeó.
+## Cyberpunk hacks: enemy id → {stat, value}. They last until whoever hacked you dies.
+var hacks := {}
 const REALITY_ELITE := 2
 const REALITY_BOSS := 5
 const REALITY_FALL := 1
@@ -154,6 +159,7 @@ func reset_run() -> void:
 	run_hits = 0
 	stat_bonus = {}
 	reality = 0
+	hacks = {}
 	_rng.randomize()
 
 
@@ -206,7 +212,11 @@ func shard_mult() -> float:
 
 func stat(id: String) -> float:
 	var base: Dictionary = BASE_LEVEL_STATS.get(selected_character, {})
-	return float(stat_bonus.get(id, 0.0)) + float(base.get(id, 0.0))
+	var hacked := 0.0
+	for h: Dictionary in hacks.values():
+		if h["stat"] == id:
+			hacked += float(h["value"])
+	return float(stat_bonus.get(id, 0.0)) + float(base.get(id, 0.0)) + hacked
 
 
 ## Trozos que hacen falta para el siguiente nivel / Shards needed for the next level
@@ -259,7 +269,8 @@ func roll_level_choices() -> Array[Dictionary]:
 
 func apply_stat(choice: Dictionary) -> void:
 	var id: String = choice["stat"]
-	stat_bonus[id] = stat(id) + float(choice["value"])
+	# Solo lo ganado (sin contar lo de serie ni los hackeos) / Only what was gained (not the base or hacks)
+	stat_bonus[id] = float(stat_bonus.get(id, 0.0)) + float(choice["value"])
 
 
 ## Texto de la subida, p. ej. "+8 %" / Boost text, e.g. "+8%"

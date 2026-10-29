@@ -110,6 +110,10 @@ func can_fall() -> bool:
 	return false
 
 
+func is_boss() -> bool:
+	return true
+
+
 func start_bounce(_damage: float, _chain: int, _ignore: Array = []) -> void:
 	pass
 

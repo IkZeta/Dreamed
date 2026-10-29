@@ -7,7 +7,7 @@ extends Node
 const PATH := "user://progress.cfg"
 
 ## Entradas del bestiario en orden / Bestiary entries in order
-const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest"]
+const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "cyber", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef"]
 const DIFFICULTIES: Array[String] = ["normal", "nightmare"]
 
 ## id → veces derrotado (si aparece aquí, ya se ha visto) / id → times defeated (present = seen)
@@ -63,16 +63,22 @@ func has_seen(id: String) -> bool:
 	return kills.has(id)
 
 
-func clear_act(weapon: String, difficulty: String) -> void:
+## Acto superado con un pijama. El Acto 1 se guarda como "normal"/"nightmare" y el 2 como "normal_act2"...
+## Act cleared with a pajama. Act 1 is stored as "normal"/"nightmare", Act 2 as "normal_act2"...
+func clear_act(weapon: String, difficulty: String, act := 1) -> void:
 	if not cleared.has(weapon):
 		cleared[weapon] = {}
-	cleared[weapon][difficulty] = true
+	cleared[weapon][_act_key(difficulty, act)] = true
 	check_achievements()
 	save_progress()
 
 
-func has_cleared(weapon: String, difficulty: String) -> bool:
-	return bool(cleared.get(weapon, {}).get(difficulty, false))
+func has_cleared(weapon: String, difficulty: String, act := 1) -> bool:
+	return bool(cleared.get(weapon, {}).get(_act_key(difficulty, act), false))
+
+
+func _act_key(difficulty: String, act: int) -> String:
+	return difficulty if act <= 1 else "%s_act%d" % [difficulty, act]
 
 
 ## ¿Se ha superado el Acto 1 con cualquier arma? (desbloquea la pesadilla)
