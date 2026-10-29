@@ -27,6 +27,7 @@ var _overlay: DreamOverlay
 var _spawned_new := 0
 var boss: BossPiece
 var _boss_step := 0
+var _level_screen: LevelUpScreen
 
 
 func _ready() -> void:
@@ -111,6 +112,7 @@ func _drop_in(depth: int) -> void:
 		hud.visible = true
 		hud.start(depth)
 		running = true
+		_resolve_level_ups(Callable())
 		if _wave.get("boss", false):
 			_spawn_boss())
 
@@ -246,7 +248,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause") and running and _overlay == null:
+	if event.is_action_pressed("pause") and running and _overlay == null and _level_screen == null:
 		get_viewport().set_input_as_handled()
 		_open_pause()
 
@@ -320,6 +322,24 @@ func arena_rect() -> Rect2:
 	return Bedroom.rect_world(Bedroom.WALKABLE)
 
 
+## Si un enemigo empujado cae por un agujero, devuelve hacia dónde cae; si no, Vector2.INF.
+## If a shoved enemy falls into a hole, returns where it falls to; otherwise Vector2.INF.
+func hole_at(p: Vector2, margin: float, push: Vector2) -> Vector2:
+	for i in room.hole_count():
+		var hr := Bedroom.rect_world(Bedroom.HOLES[i].grow(-10)).grow(margin * 0.6)
+		if hr.has_point(p):
+			return Bedroom.rect_world(Bedroom.HOLES[i]).get_center()
+	# Boquetes de la pared: hay que ir hacia arriba contra el fondo
+	# Wall holes: it has to be moving up against the back
+	var top := arena_rect().position.y + margin * 0.5
+	if p.y <= top + 6.0 and push.y < -60.0:
+		for i in room.wall_hole_count():
+			var wr := Bedroom.rect_world(Bedroom.WALL_HOLES[i])
+			if p.x > wr.position.x + 6.0 and p.x < wr.end.x - 6.0:
+				return Vector2(wr.get_center().x, wr.end.y - wr.size.y * 0.3)
+	return Vector2.INF
+
+
 func _near_boss(p: Vector2) -> bool:
 	return is_instance_valid(boss) and p.distance_to(boss.aim_point()) < 160.0
 
@@ -359,8 +379,57 @@ func shake(amount: float) -> void:
 
 # --- Eventos / Events -------------------------------------------------------
 
-func on_enemy_killed(_e: Node) -> void:
+func on_enemy_killed(e: Node) -> void:
 	_kills += 1
+	drop_shards(e.global_position, int(e.get("shards")))
+
+
+# --- Trozos de estrella y niveles / Star shards and levels ---------------------
+
+func drop_shards(pos: Vector2, n: int) -> void:
+	for i in n:
+		var s := StarShard.new()
+		s.run = self
+		s.position = clamp_to_arena(pos + Vector2(randf_range(-8, 8), randf_range(-6, 6)), 10.0)
+		s.add_to_group("shards")
+		add_child(s)
+
+
+func collect_shards(n: int) -> void:
+	var ups := GameState.add_xp(n)
+	hud.set_xp()
+	Audio.play("pickup", -17.0, 0.2)
+	if ups > 0:
+		GameState.pending_ups += ups
+		fx.ring(player.global_position + Vector2(0, -60), 40.0, UITheme.GOLD, 0.7, 2.6)
+		fx.dissipate(player.global_position + Vector2(0, -60), UITheme.GOLD)
+		if running and _level_screen == null:
+			_resolve_level_ups(Callable())
+
+
+## Muestra las subidas de nivel pendientes una a una y luego sigue con "then"
+## Shows pending level-ups one by one, then carries on with "then"
+func _resolve_level_ups(then: Callable) -> void:
+	if GameState.pending_ups <= 0 or not player.alive:
+		if then.is_valid():
+			then.call()
+		return
+	get_tree().paused = true
+	_level_screen = LevelUpScreen.new()
+	add_child(_level_screen)
+	_level_screen.build(GameState.roll_level_choices(), GameState.plevel - GameState.pending_ups + 1)
+	_level_screen.chosen.connect(func(choice: Dictionary) -> void:
+		GameState.apply_stat(choice)
+		GameState.pending_ups -= 1
+		player.refresh_stats()
+		hud.set_hp(player.hp, player.max_hp)
+		_level_screen = null
+		if GameState.pending_ups > 0:
+			_resolve_level_ups.call_deferred(then)
+		else:
+			get_tree().paused = false
+			if then.is_valid():
+				then.call())
 
 
 func on_player_hit(_dmg: float) -> void:
@@ -388,7 +457,14 @@ func _on_wave_cleared() -> void:
 	hud.set_time(0.0)
 	for e: Node in enemies.get_children():
 		e.die(false)
-	# Un destello leve y Kroker pasa al plano astral / A soft flash takes Kroker to the astral plane
+	# Los trozos que quedan vuelan hacia Kroker / Leftover shards fly to Kroker
+	for s in get_tree().get_nodes_in_group("shards"):
+		s.set("_magnet", true)
+	get_tree().create_timer(1.5, false).timeout.connect(_resolve_level_ups.bind(_flash_to_astral))
+
+
+## Un destello leve y Kroker pasa al plano astral / A soft flash takes Kroker to the astral plane
+func _flash_to_astral() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 30
 	add_child(layer)
@@ -399,7 +475,7 @@ func _on_wave_cleared() -> void:
 	layer.add_child(flash)
 	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var tw := create_tween()
-	tw.tween_interval(1.6)
+	tw.tween_interval(0.3)
 	tw.tween_callback(Audio.play.bind("astral", -2.0))
 	tw.tween_property(flash, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_plane.tscn"))

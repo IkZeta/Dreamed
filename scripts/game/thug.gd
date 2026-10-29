@@ -12,6 +12,7 @@ const EYES := Color("ffcf7a")
 
 
 func _init() -> void:
+	shards = 3
 	max_hp = 45.0
 	hp = max_hp
 	contact_damage = 4.0

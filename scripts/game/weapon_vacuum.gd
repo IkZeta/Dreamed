@@ -39,7 +39,7 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	_spit_cd = maxf(0.0, _spit_cd - delta)
-	var target := nearest(RANGE * _boost)
+	var target := nearest(RANGE * _boost * range_mult())
 	if target == null:
 		Audio.set_loop("vacuum", false)
 		queue_redraw()
@@ -61,14 +61,14 @@ func _physics_process(delta: float) -> void:
 		if not e.is_targetable() or e.bounce_t > 0.0:
 			continue
 		var to_e := _body(e) - _nozzle_base()
-		if to_e.length() > RANGE * _boost or absf(_dir.angle_to(to_e)) > CONE:
+		if to_e.length() > RANGE * _boost * range_mult() or absf(_dir.angle_to(to_e)) > CONE:
 			continue
 		if lv("svinho") > 0 and to_e.length() < 90.0 and _spit_cd <= 0.0:
 			_spit(e)
 			continue
 		e.external_pull += -to_e.normalized() * PULL * _boost
 		if do_tick:
-			deal(e, DPS * TICK * _boost)
+			deal(e, DPS * TICK * _boost * speed_mult(), Vector2.ZERO, 0.3)
 			if lv("silly") > 0:
 				e.glitch(0.0, 0.0, uv("silly", "secs"), 1.0 + uv("silly", "pct") / 100.0)
 	queue_redraw()
@@ -92,6 +92,12 @@ func charge_bars() -> Array:
 	return [[1.0 - clampf(_spit_cd / maxf(uv("svinho", "cd"), 0.01), 0.0, 1.0), UITheme.GOLD]]
 
 
+## El anillo del chut sale en la propia boquilla / The volley ring sits on the nozzle itself
+func charge_anchor() -> Vector2:
+	var hand := Vector2(16.5 * player._facing, -55.0)
+	return hand + player.aim.normalized() * 44.0 + Vector2(0, -14)
+
+
 func _nozzle_base() -> Vector2:
 	return player.global_position + Vector2(0, -62)
 
@@ -107,12 +113,12 @@ func _draw() -> void:
 	var pts := PackedVector2Array([c])
 	for i in 13:
 		var ang := a - CONE + 2.0 * CONE * i / 12.0
-		pts.append(c + Vector2(cos(ang), sin(ang)) * RANGE * _boost)
+		pts.append(c + Vector2(cos(ang), sin(ang)) * RANGE * _boost * range_mult())
 	draw_colored_polygon(pts, Color(col, 0.07))
 	for i in 7:
 		var k := fposmod(_t * 1.4 + i / 7.0, 1.0)  # 0 lejos → 1 cerca
-		var r := lerpf(RANGE * _boost, 40.0, k)
+		var r := lerpf(RANGE * _boost * range_mult(), 40.0, k)
 		var off := sin(i * 2.3) * CONE * 0.8
 		var p := c + Vector2.from_angle(a + off) * r
-		var tail := c + Vector2.from_angle(a + off) * minf(RANGE * _boost, r + 36.0)
+		var tail := c + Vector2.from_angle(a + off) * minf(RANGE * _boost * range_mult(), r + 36.0)
 		draw_line(tail, p, Color(col, 0.55 * sin(k * PI)), 1.6, true)

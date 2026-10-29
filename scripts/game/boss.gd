@@ -100,6 +100,10 @@ func aim_point() -> Vector2:
 	return global_position + Vector2(0, -aim_height - _hop)
 
 
+func can_fall() -> bool:
+	return false
+
+
 func start_bounce(_damage: float, _chain: int, _ignore: Array = []) -> void:
 	pass
 
@@ -123,6 +127,7 @@ func die(counted: bool) -> void:
 		return
 	_dying = 0.0
 	_atk = {}
+	run.drop_shards(global_position, 12)
 	Audio.play("crack", -1.0)
 	Audio.play("stomp", -4.0)
 	run.shake(14.0)

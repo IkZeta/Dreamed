@@ -22,6 +22,7 @@ var _aiming := 0.0   # 0..1 mientras tensa la goma / while drawing the band
 
 
 func _init() -> void:
+	shards = 2
 	max_hp = 18.0
 	hp = max_hp
 	contact_damage = 2.0

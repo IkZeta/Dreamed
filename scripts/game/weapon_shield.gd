@@ -47,10 +47,15 @@ func charge_bars() -> Array:
 	return bars
 
 
+## El anillo sale junto a la almohada (mano izquierda) / The ring sits by the pillow (left hand)
+func charge_anchor() -> Vector2:
+	return Vector2(-40.0 * player._facing, -84.0)
+
+
 func attack() -> bool:
 	if throw_mode:
 		return _throw()
-	var target := nearest(RANGE)
+	var target := nearest(RANGE * range_mult())
 	if target == null:
 		return false
 	var dir := (_body(target) - origin()).normalized()
@@ -60,7 +65,7 @@ func attack() -> bool:
 		if not e.is_targetable():
 			continue
 		var to_e := _body(e) - origin()
-		if to_e.length() <= RANGE + 20.0 and absf(dir.angle_to(to_e)) <= CONE:
+		if to_e.length() <= RANGE * range_mult() + 20.0 and absf(dir.angle_to(to_e)) <= CONE:
 			deal(e, damage, to_e.normalized() * knock)
 			if lv("silly") > 0 and randf() * 100.0 < uv("silly", "chance"):
 				e.glitch(0.0, uv("silly", "secs"))
@@ -75,7 +80,7 @@ func attack() -> bool:
 func _throw() -> bool:
 	if is_instance_valid(_projectile):
 		return false
-	var target := nearest(THROW_RANGE)
+	var target := nearest(THROW_RANGE * range_mult())
 	if target == null:
 		return false
 	var p := PillowProjectile.new()

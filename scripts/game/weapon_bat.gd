@@ -18,7 +18,7 @@ func _init() -> void:
 
 
 func attack() -> bool:
-	var target := nearest(RANGE)
+	var target := nearest(RANGE * range_mult())
 	if target == null:
 		return false
 	var dir := (_body(target) - origin()).normalized()

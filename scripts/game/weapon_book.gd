@@ -25,7 +25,7 @@ func _ready() -> void:
 
 
 func attack() -> bool:
-	var target := nearest(RANGE)
+	var target := nearest(RANGE * range_mult())
 	if target == null:
 		return false
 	player.cast_anim = 1.0
@@ -34,7 +34,7 @@ func attack() -> bool:
 	var from := player.global_position + Vector2(40 * signf(player._facing), -88)
 	var dmg := DAMAGE
 	var chains := CHAINS + int(uv("svinho", "extra"))
-	var jump := JUMP_RANGE
+	var jump := JUMP_RANGE * range_mult()
 	while target != null and hit.size() < chains:
 		var to := _body(target)
 		run.fx.bolt(_jagged(from, to), Color("e8d9a8"))
@@ -67,3 +67,8 @@ func _jagged(a: Vector2, b: Vector2) -> PackedVector2Array:
 		pts.append(a.lerp(b, float(i) / n) + normal * randf_range(-12, 12))
 	pts.append(b)
 	return pts
+
+
+## El anillo sale junto al libro / The ring sits by the book
+func charge_anchor() -> Vector2:
+	return Vector2(46.0 * player._facing, -90.0)

@@ -63,12 +63,104 @@ var dream_depth := 1  # oleada actual / current wave
 var upgrades := {}
 var _rng := RandomNumberGenerator.new()
 
+## --- Nivel de Kroker / Kroker's level ---------------------------------------------
+## Los enemigos sueltan trozos de estrella; al llenar la barra, Kroker sube de nivel y
+## elige una de 3 mejoras de estadística. Cuanto mejor es la rareza, mayor la subida.
+## Enemies drop star shards; when the bar fills Kroker levels up and picks one of 3 stat
+## upgrades. The better the rarity, the bigger the boost.
+const STATS: Array[String] = ["attack", "defense", "speed", "attack_speed", "range", "regen", "lifesteal", "luck"]
+const RARITIES: Array[String] = ["common", "uncommon", "rare", "epic", "legendary"]
+const RARITY_WEIGHT: Array[float] = [60.0, 25.0, 10.0, 4.0, 1.0]
+## Subida de cada estadística en cada rareza (común → legendaria)
+## Boost of each stat at each rarity (common → legendary)
+const STAT_STEPS := {
+	"attack": [5, 8, 12, 18, 26],               # +% daño / +% damage
+	"defense": [0.5, 1, 1.5, 2.5, 4],           # +defensa (resta daño) / +defense (subtracts damage)
+	"speed": [4, 6, 9, 13, 18],                 # +% velocidad / +% speed
+	"attack_speed": [5, 8, 12, 17, 25],         # +% velocidad de ataque / +% attack speed
+	"range": [6, 10, 15, 21, 30],               # +% alcance / +% range
+	"regen": [0.5, 0.8, 1.2, 1.8, 2.5],         # vida cada 5 s / health every 5 s
+	"lifesteal": [2, 4, 6, 9, 13],              # % de curar 1 al golpear / % to heal 1 on hit
+	"luck": [5, 8, 12, 18, 25],                 # suerte / luck
+}
+var xp := 0
+var plevel := 1
+## Subidas de nivel aún sin elegir / Level-ups not yet chosen
+var pending_ups := 0
+## Total ganado en cada estadística / Total gained in each stat
+var stat_bonus := {}
+
 
 ## Empieza una partida nueva / Starts a new run
 func reset_run() -> void:
 	dream_depth = 1
 	upgrades = {}
+	xp = 0
+	plevel = 1
+	pending_ups = 0
+	stat_bonus = {}
 	_rng.randomize()
+
+
+func stat(id: String) -> float:
+	return float(stat_bonus.get(id, 0.0))
+
+
+## Trozos que hacen falta para el siguiente nivel / Shards needed for the next level
+func xp_needed() -> int:
+	return 6 + 4 * (plevel - 1)
+
+
+## Suma trozos de estrella; devuelve cuántos niveles se han subido
+## Adds star shards; returns how many levels were gained
+func add_xp(n: int) -> int:
+	xp += n
+	var ups := 0
+	while xp >= xp_needed():
+		xp -= xp_needed()
+		plevel += 1
+		ups += 1
+	return ups
+
+
+## La suerte hace más probables las rarezas altas / Luck makes the higher rarities likelier
+func roll_rarity() -> int:
+	var luck := stat("luck") / 100.0
+	var weights: Array[float] = []
+	var total := 0.0
+	for i in RARITIES.size():
+		var w := RARITY_WEIGHT[i] * pow(1.0 + luck * 2.0, i)
+		weights.append(w)
+		total += w
+	var roll := _rng.randf() * total
+	for i in weights.size():
+		roll -= weights[i]
+		if roll <= 0.0:
+			return i
+	return 0
+
+
+## Tres estadísticas distintas, cada una con su rareza: [{stat, rarity, value}, ...]
+## Three different stats, each with its rarity: [{stat, rarity, value}, ...]
+func roll_level_choices() -> Array[Dictionary]:
+	var pool := STATS.duplicate()
+	var out: Array[Dictionary] = []
+	for i in 3:
+		var stat_id: String = pool.pop_at(_rng.randi_range(0, pool.size() - 1))
+		var r := roll_rarity()
+		out.append({"stat": stat_id, "rarity": r, "value": float(STAT_STEPS[stat_id][r])})
+	return out
+
+
+func apply_stat(choice: Dictionary) -> void:
+	var id: String = choice["stat"]
+	stat_bonus[id] = stat(id) + float(choice["value"])
+
+
+## Texto de la subida, p. ej. "+8 %" / Boost text, e.g. "+8%"
+func stat_value_text(id: String, value: float) -> String:
+	var num := str(int(value)) if is_equal_approx(value, roundf(value)) else str(snappedf(value, 0.1))
+	return tr("STATV_" + id.to_upper()).format({"v": num})
 
 
 func wave_for(depth: int) -> Dictionary:
@@ -90,12 +182,29 @@ func pick_offer() -> Array[String]:
 	for g in GIVERS:
 		if level(g) < MAX_UPGRADE_LEVEL:
 			pool.append(g)
-	for i in range(pool.size() - 1, 0, -1):
-		var j := _rng.randi_range(0, i)
-		var tmp := pool[i]
-		pool[i] = pool[j]
-		pool[j] = tmp
-	return pool.slice(0, 2)
+	# Con suerte es más fácil que vuelva alguien que ya te ha dado un don, para subirlo de nivel
+	# With luck, someone who already gave you a gift is likelier to return, to level it up
+	var out: Array[String] = []
+	for n in 2:
+		if pool.is_empty():
+			break
+		var total := 0.0
+		for g in pool:
+			total += _giver_weight(g)
+		var roll := _rng.randf() * total
+		var pick := pool[pool.size() - 1]
+		for g in pool:
+			roll -= _giver_weight(g)
+			if roll <= 0.0:
+				pick = g
+				break
+		out.append(pick)
+		pool.erase(pick)
+	return out
+
+
+func _giver_weight(g: String) -> float:
+	return 1.0 + (stat("luck") / 20.0 if level(g) > 0 else 0.0)
 
 
 ## Clave de traducción del nombre o la descripción de una mejora / Translation key of an upgrade's name or description
@@ -181,6 +290,10 @@ func stats_for(id: String) -> Dictionary:
 	s["max_hp"] = float(s["max_hp"]) + up_value("doc", "hp", -1, id)
 	if id == "vacuum":
 		s["speed"] = float(s["speed"]) * (1.0 - up_value("doc", "pct", -1, id) / 100.0)
+	# Estadísticas ganadas al subir de nivel / Stats gained by levelling up
+	s["damage_mult"] = float(s["damage_mult"]) + stat("attack") / 100.0
+	s["armor"] = float(s["armor"]) + stat("defense")
+	s["speed"] = float(s["speed"]) * (1.0 + stat("speed") / 100.0)
 	return s
 
 

@@ -12,7 +12,7 @@ var _timer := 0.4
 func _physics_process(delta: float) -> void:
 	if not run.running or not player.alive:
 		return
-	_timer -= delta
+	_timer -= delta * speed_mult()
 	if _timer <= 0.0 and attack():
 		_timer = cooldown
 
@@ -21,6 +21,21 @@ func _physics_process(delta: float) -> void:
 ## Charge bars drawn under Kroker: [[fraction 0..1, colour], ...]
 func charge_bars() -> Array:
 	return [[1.0 - clampf(_timer / maxf(cooldown, 0.01), 0.0, 1.0), UITheme.BONE]]
+
+
+## Dónde se dibuja el anillo de carga, relativo a Kroker (ya girado según hacia dónde mira).
+## Where the charge ring is drawn, relative to Kroker (already flipped by facing).
+func charge_anchor() -> Vector2:
+	return Vector2(34.0 * player._facing, -66.0)
+
+
+## Estadísticas de nivel de Kroker que afectan al arma / Kroker's level stats that affect the weapon
+func range_mult() -> float:
+	return 1.0 + GameState.stat("range") / 100.0
+
+
+func speed_mult() -> float:
+	return 1.0 + GameState.stat("attack_speed") / 100.0
 
 
 ## Devuelve true si atacó. / Returns true if it attacked.
@@ -56,8 +71,12 @@ func _body(e: Node2D) -> Vector2:
 	return p
 
 
-func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO) -> void:
+func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0) -> void:
 	e.hit(base_damage * player.damage_mult, impulse)
+	# Robo de salud: probabilidad de curar 1 / Life steal: chance to heal 1
+	var ls := GameState.stat("lifesteal") * steal_k
+	if ls > 0.0 and randf() * 100.0 < ls:
+		player.heal(1.0)
 
 
 ## Nivel de la mejora de un personaje del plano astral / Level of an astral giver's upgrade

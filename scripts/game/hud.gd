@@ -15,6 +15,8 @@ var _intro_new: Label
 var _boss_bar: ProgressBar
 var _boss_name: Label
 var _special: Label
+var _xp_bar: ProgressBar
+var _lvl: Label
 var _depth := 1
 
 
@@ -43,6 +45,22 @@ func _ready() -> void:
 	_hp_text = UITheme.label("", 20, UITheme.BONE, "light")
 	_hp_text.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	hp_box.add_child(_hp_text)
+	# Nivel y trozos de estrella / Level and star shards
+	var xp_row := HBoxContainer.new()
+	xp_row.add_theme_constant_override("separation", 12)
+	hp_box.add_child(xp_row)
+	_lvl = UITheme.label("", 13, UITheme.GOLD, "caps")
+	_lvl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_lvl.custom_minimum_size.x = 52
+	xp_row.add_child(_lvl)
+	_xp_bar = ProgressBar.new()
+	_xp_bar.show_percentage = false
+	_xp_bar.custom_minimum_size = Vector2(256, 4)
+	_xp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_xp_bar.add_theme_stylebox_override("fill", UITheme.bar(UITheme.GOLD, 2.0))
+	_xp_bar.add_theme_stylebox_override("background", UITheme.bar(Color(UITheme.LINE, 0.5), 2.0))
+	xp_row.add_child(_xp_bar)
+	set_xp()
 
 	# Sueño y tiempo (arriba en el centro) / Dream and timer (top center)
 	# Arriba a la derecha, para no tapar la ventana / Top right, clear of the window
@@ -114,7 +132,7 @@ func set_special_mode(throwing: bool) -> void:
 		_special = UITheme.label("", 16, UITheme.GOLD, "caps")
 		get_child(0).add_child(_special)
 		_special.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		_special.position = Vector2(56, 130)
+		_special.position = Vector2(56, 162)
 	_special.text = "RUN_SPECIAL_THROW" if throwing else "RUN_SPECIAL_DEFEND"
 
 
@@ -157,6 +175,12 @@ func set_hp(hp: float, max_hp: float) -> void:
 	_hp_text.text = "%d / %d" % [ceili(hp), roundi(max_hp)]
 
 
+func set_xp() -> void:
+	_xp_bar.max_value = GameState.xp_needed()
+	_xp_bar.value = GameState.xp
+	_lvl.text = tr("HUD_LEVEL") % GameState.plevel
+
+
 func set_time(seconds: float) -> void:
 	var s := ceili(maxf(0.0, seconds))
 	_timer.text = "%d:%02d" % [s / 60, s % 60]
@@ -166,6 +190,8 @@ func set_time(seconds: float) -> void:
 func _refresh_texts() -> void:
 	_dream.text = tr("RUN_DREAM") % _depth
 	_intro_title.text = tr("RUN_DREAM") % _depth
+	if _lvl:
+		_lvl.text = tr("HUD_LEVEL") % GameState.plevel
 
 
 func _notification(what: int) -> void:

@@ -17,6 +17,7 @@ var _rise := 1.0   # 0 = montón, 1 = de pie / 0 = pile, 1 = standing
 
 
 func _init() -> void:
+	shards = 3
 	max_hp = 6.0
 	hp = max_hp
 	contact_damage = 6.0

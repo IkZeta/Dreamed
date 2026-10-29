@@ -32,18 +32,19 @@ var _invuln := 0.0
 var _flash := 0.0
 var _facing := 1.0
 var _t := 0.0
+var _regen_acc := 0.0
+var _heal_text := 0.0
+## Transparencia de cada anillo de carga (se apaga al llenarse, como la stamina de Zelda)
+## Opacity of each charge ring (fades out once full, like Zelda's stamina wheel)
+var _ring_a: Array[float] = []
 var weapon: Weapon
 
 
 func setup(p_run: Node, p_outfit: String) -> void:
 	run = p_run
 	outfit = p_outfit
-	var s := GameState.stats_for(outfit)
-	max_hp = s["max_hp"]
+	refresh_stats()
 	hp = max_hp
-	speed = s["speed"]
-	damage_mult = s["damage_mult"]
-	armor = s["armor"]
 	match outfit:
 		"shield": weapon = WeaponShield.new()
 		"book": weapon = WeaponBook.new()
@@ -54,8 +55,37 @@ func setup(p_run: Node, p_outfit: String) -> void:
 	add_child(weapon)
 
 
+## Vuelve a leer las estadísticas (al subir de nivel) / Re-reads the stats (after a level-up)
+func refresh_stats() -> void:
+	var s := GameState.stats_for(outfit)
+	max_hp = s["max_hp"]
+	hp = minf(hp, max_hp)
+	speed = s["speed"]
+	damage_mult = s["damage_mult"]
+	armor = s["armor"]
+
+
+func heal(amount: float) -> void:
+	if not alive or hp >= max_hp:
+		return
+	hp = minf(max_hp, hp + amount)
+	run.hud.set_hp(hp, max_hp)
+	# Sin llenar la pantalla de números / Without flooding the screen with numbers
+	if _heal_text <= 0.0:
+		_heal_text = 0.6
+		run.fx.text(global_position + Vector2(0, -120), "+%s" % str(snappedf(amount, 0.1)).trim_suffix(".0"), Color("9be38a"), 20)
+
+
 func _physics_process(delta: float) -> void:
 	_t += delta
+	_heal_text = maxf(0.0, _heal_text - delta)
+	# Recuperación de salud: "regen" de vida cada 5 s / Health regeneration: "regen" health every 5 s
+	var regen := GameState.stat("regen")
+	if regen > 0.0 and alive and run.running:
+		_regen_acc += regen / 5.0 * delta
+		if _regen_acc >= 0.5:
+			heal(_regen_acc)
+			_regen_acc = 0.0
 	_invuln = maxf(0.0, _invuln - delta)
 	_flash = maxf(0.0, _flash - delta * 4.0)
 	attack_anim = maxf(0.0, attack_anim - delta * 4.0)
@@ -127,15 +157,26 @@ func _draw() -> void:
 		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean})
 	if alive and run.running and weapon:
-		_draw_charge_bars(weapon.charge_bars())
+		_draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor())
 
 
-## Barras de carga bajo los pies / Charge bars under the feet
-func _draw_charge_bars(bars: Array) -> void:
-	var w := 64.0
+## Anillos de carga junto al arma: se rellenan en círculo y se apagan cuando están llenos.
+## Charge rings by the weapon: they fill in a circle and fade out once full.
+func _draw_charge_rings(bars: Array, anchor: Vector2) -> void:
+	_ring_a.resize(bars.size())
+	var dt := get_process_delta_time()
 	for i in bars.size():
-		var k: float = bars[i][0]
+		var k: float = clampf(bars[i][0], 0.0, 1.0)
 		var col: Color = bars[i][1]
-		var r := Rect2(-w / 2.0, 12.0 + i * 9.0, w, 5.0)
-		draw_rect(r.grow(1.5), Color(0.05, 0.03, 0.18, 0.55))
-		draw_rect(Rect2(r.position, Vector2(w * k, r.size.y)), Color(col, 0.95 if k >= 1.0 else 0.6))
+		_ring_a[i] = move_toward(_ring_a[i], 0.0 if k >= 1.0 else 1.0, dt * (2.5 if k >= 1.0 else 8.0))
+		var a: float = _ring_a[i]
+		if a <= 0.01:
+			continue
+		var c := anchor + Vector2(0, -26.0 * i)
+		var r := 10.0
+		draw_circle(c, r + 3.5, Color(0.05, 0.03, 0.18, 0.45 * a))
+		draw_arc(c, r, 0, TAU, 28, Color(col, 0.18 * a), 4.0, true)
+		if k > 0.0:
+			draw_arc(c, r, -PI / 2.0, -PI / 2.0 + TAU * k, maxi(4, int(28 * k)), Color(col, 0.95 * a), 4.0, true)
+		if k >= 1.0:
+			draw_circle(c, r * 0.45, Color(col, 0.7 * a))

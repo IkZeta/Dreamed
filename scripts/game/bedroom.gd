@@ -46,6 +46,14 @@ const HOLES: Array[Rect2] = [
 	Rect2(600, 690, 130, 56),
 ]
 
+## Boquetes que se abren en la pared del fondo, a ras de suelo: se puede tirar a los
+## enemigos por ellos. Holes that open in the back wall at floor level: enemies can be
+## shoved through them.
+const WALL_HOLES: Array[Rect2] = [
+	Rect2(646, 172, 124, 128),
+	Rect2(1128, 150, 98, 150),
+]
+
 ## Dónde está cada arma antes de cogerla y desde dónde la coge Kroker.
 ## Where each weapon rests before he takes it, and where Kroker stands to pick it up.
 const PICKUP := {
@@ -120,6 +128,10 @@ func hole_count() -> int:
 	return clampi(weird, 0, HOLES.size())
 
 
+func wall_hole_count() -> int:
+	return clampi(weird, 0, WALL_HOLES.size())
+
+
 ## Todo lo que no se puede atravesar: muebles y agujeros / Everything you can't walk through: furniture and holes
 func blockers() -> Array[Rect2]:
 	var out: Array[Rect2] = OBSTACLES.duplicate()
@@ -180,6 +192,8 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	_draw_wall()
 	_draw_window()
+	# Los boquetes rompen también las cortinas / The holes tear through the curtains too
+	_draw_wall_holes()
 	if not gone.has("shelf"):
 		_draw_shelf()
 	_draw_wall_decor()
@@ -187,6 +201,7 @@ func _draw() -> void:
 	_draw_moonbeam()
 	_draw_rug()
 	_draw_holes()
+	_draw_wall_hole_floor()
 	# Charco de luz cálida de la lamparita / Warm pool of light from the night-light
 	draw_texture_rect(DreamBackground.soft_texture(), Rect2(220, 230, 440, 300), false, Color("ffd2a0", 0.16))
 	_draw_bedside_rug()
@@ -229,6 +244,48 @@ func _draw_wall() -> void:
 	# Rodapié / Skirting board
 	draw_rect(Rect2(0, WALL_BOTTOM - 14, 1920, 18), Color("cfc8ec"))
 	draw_rect(Rect2(0, WALL_BOTTOM - 14, 1920, 3), Color(1, 1, 1, 0.5))
+
+
+## Boquetes en la pared que dan al vacío estrellado / Holes in the wall onto the starry void
+func _draw_wall_holes() -> void:
+	for i in wall_hole_count():
+		var h := WALL_HOLES[i]
+		var pts := PackedVector2Array()
+		var inner := PackedVector2Array()
+		var n := 18
+		# Arco roto por arriba y abierto por abajo, hasta el suelo / Broken arch on top, open at the bottom down to the floor
+		for k in n + 1:
+			var a := PI + PI * k / n
+			var jag := 1.0 + 0.1 * sin(k * 2.7 + i * 3.0) + 0.06 * sin(k * 5.3 + i)
+			var p := Vector2(h.get_center().x + cos(a) * h.size.x / 2.0 * jag, h.end.y - h.size.y * 0.35 + sin(a) * h.size.y * 0.65 * jag)
+			pts.append(p + (p - Vector2(h.get_center().x, h.end.y)).normalized() * 8.0)
+			inner.append(p)
+		pts.append(Vector2(h.end.x + 10, h.end.y + 24))
+		pts.append(Vector2(h.position.x - 10, h.end.y + 24))
+		inner.append(Vector2(h.end.x, h.end.y + 20))
+		inner.append(Vector2(h.position.x, h.end.y + 20))
+		draw_colored_polygon(pts, Color("3a3378"))
+		draw_colored_polygon(inner, Color("07061a"))
+		draw_texture_rect(DreamBackground.soft_texture(), h.grow(-10), false, Color("5b4bc4", 0.4))
+		for k in 9:
+			var sp := h.position + Vector2(fposmod(k * 37.0 + i * 13.0, h.size.x), fposmod(k * 53.0 + i * 29.0, h.size.y))
+			if sp.y > h.position.y + h.size.y * 0.2:
+				draw_circle(sp, 1.5, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + k)))
+		# Ladrillos y listones sueltos en el borde / Loose bricks and laths on the rim
+		for k in 4:
+			var a := PI + PI * (k + 0.5) / 4.0
+			var p := Vector2(h.get_center().x + cos(a) * h.size.x * 0.55, h.end.y - h.size.y * 0.35 + sin(a) * h.size.y * 0.7)
+			draw_line(p, p + Vector2.from_angle(a) * 16.0, Color("cfc8ec", 0.7), 3.0)
+
+
+## Sombra del boquete sobre el suelo, para que se lea como una salida
+## The hole's shadow on the floor, so it reads as an opening
+func _draw_wall_hole_floor() -> void:
+	for i in wall_hole_count():
+		var h := WALL_HOLES[i]
+		var c := Vector2(h.get_center().x, WALL_BOTTOM + 22)
+		draw_colored_polygon(_ellipse(c, Vector2(h.size.x * 0.55, 20)), Color("07061a", 0.75))
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(h.size.x * 0.6, 26), Vector2(h.size.x * 1.2, 52)), false, Color("5b4bc4", 0.25))
 
 
 func _draw_window() -> void:
@@ -720,7 +777,8 @@ func _draw_bunny(p: Vector2) -> void:
 func _draw_props() -> void:
 	# Bate apoyado en la pared / Bat leaning against the wall
 	if not (outfit == "bat" and weapon_taken):
-		draw_set_transform(Vector2(700, 300), 0.2, Vector2.ONE)
+		# Si la pared se ha roto ahí, se apoya junto a la estantería / If the wall broke there, it leans by the shelf
+		draw_set_transform(Vector2(700, 300) if wall_hole_count() == 0 else Vector2(1436, 300), 0.2, Vector2.ONE)
 		draw_colored_polygon(PackedVector2Array([Vector2(-3, 0), Vector2(3, 0), Vector2(7, -96), Vector2(0, -106), Vector2(-7, -96)]), Color("c99a68"))
 		draw_rect(Rect2(-4, -16, 8, 16), Color("3a3355"))
 		draw_set_transform(Vector2.ZERO)

@@ -21,6 +21,7 @@ var radius := 22.0
 var speed := 95.0
 var mass := 1.0            # más masa = menos empuje / more mass = less knockback
 var aim_height := 18.0     # a qué altura apuntan las armas / where weapons aim
+var shards := 1            # trozos de estrella que suelta / star shards it drops
 var state := State.SPAWNING
 var knock := Vector2.ZERO
 var external_pull := Vector2.ZERO  # lo usa la aspiradora / used by the vacuum
@@ -34,6 +35,10 @@ var bounce_t := 0.0
 var bounce_damage := 0.0
 var bounce_chain := 0
 var _bounced: Array = []
+
+var _fall_t := -1.0          # cayendo por un agujero / falling down a hole
+var _fall_from := Vector2.ZERO
+var _fall_to := Vector2.ZERO
 
 var _t := 0.0
 var _phase := 0.0
@@ -68,6 +73,9 @@ func _physics_process(delta: float) -> void:
 			if _fade >= 1.0:
 				state = State.ALIVE
 		State.DYING:
+			if _fall_t >= 0.0:
+				_update_fall(delta)
+				return
 			_fade -= delta / 0.35
 			if _fade <= 0.0:
 				queue_free()
@@ -115,6 +123,12 @@ func _move(delta: float) -> void:
 			vel += d / dist * (min_d - dist) * 6.0
 	vel += knock + external_pull
 	position += vel * delta
+	# Empujado hacia un agujero: se cae y desaparece / Shoved into a hole: it falls in and is gone
+	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0):
+		var to: Vector2 = run.hole_at(position, radius, knock + vel)
+		if to != Vector2.INF:
+			_start_fall(to)
+			return
 	knock = knock.move_toward(Vector2.ZERO, (500.0 if bounce_t > 0.0 else 1400.0) * delta)
 	external_pull = Vector2.ZERO
 	if absf(vel.x) > 5.0:
@@ -126,6 +140,38 @@ func _move(delta: float) -> void:
 			knock = knock.bounce(n) * 0.85
 		Audio.play("ricochet", -14.0, 0.1)
 	position = clamped
+
+
+## Los jefes no se pueden tirar por los agujeros / Bosses can't be thrown down holes
+func can_fall() -> bool:
+	return true
+
+
+func _start_fall(to: Vector2) -> void:
+	_fall_from = run.clamp_to_arena(position, radius)
+	position = _fall_from
+	_fall_to = to
+	_fall_t = 0.0
+	state = State.DYING
+	_fade = 1.0
+	knock = Vector2.ZERO
+	run.fx.text(global_position + Vector2(0, -aim_height - 40), tr("ENEMY_FELL"), UITheme.GOLD, 20)
+	Audio.play("throw", -6.0, 0.15)
+	_death_sound()
+	run.on_enemy_killed(self)
+
+
+func _update_fall(delta: float) -> void:
+	_fall_t += delta / 0.55
+	var k := minf(_fall_t, 1.0)
+	position = _fall_from.lerp(_fall_to, minf(1.0, k * 1.6))
+	rotation = k * 2.5 * _facing
+	scale = Vector2.ONE * (1.0 - k * 0.85)
+	_fade = 1.0 - k
+	if k >= 1.0:
+		run.fx.ring(_fall_to, 16.0, Color("8d7ff0"), 0.4, 2.0)
+		queue_free()
+	queue_redraw()
 
 
 func _ricochet() -> void:
