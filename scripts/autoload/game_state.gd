@@ -87,6 +87,9 @@ var xp := 0
 var plevel := 1
 ## Subidas de nivel aún sin elegir / Level-ups not yet chosen
 var pending_ups := 0
+## Vida con la que acabó el último sueño (−1 = empezar con la vida llena)
+## Health at the end of the last dream (−1 = start at full health)
+var saved_hp := -1.0
 ## Total ganado en cada estadística / Total gained in each stat
 var stat_bonus := {}
 
@@ -116,13 +119,24 @@ func reset_run() -> void:
 	xp = 0
 	plevel = 1
 	pending_ups = 0
+	saved_hp = -1.0
 	stat_bonus = {}
 	_rng.randomize()
 
 
-## Estadística de nivel con lo que trae cada arma de serie (el libro empieza con −10 de suerte)
-## Level stat plus what each weapon starts with (the book starts with −10 luck)
-const BASE_LEVEL_STATS := {"book": {"luck": -10.0}}
+## Estadísticas de nivel que trae cada arma de serie: el bate y la almohada regeneran vida;
+## el libro y la aspiradora roban vida (y el libro empieza con −10 de suerte)
+## Level stats each weapon starts with: bat and pillow regenerate health; book and vacuum
+## steal health (and the book starts with −10 luck)
+const BASE_LEVEL_STATS := {
+	"bat": {"regen": 3.0},
+	"shield": {"regen": 3.0},
+	"book": {"luck": -10.0, "lifesteal": 5.0},
+	"vacuum": {"lifesteal": 5.0},
+}
+## Entre un sueño y otro solo se recupera un 5 % de la vida máxima
+## Between one dream and the next only 5% of max health comes back
+const HEAL_BETWEEN_DREAMS := 0.05
 
 
 func stat(id: String) -> float:
@@ -197,7 +211,11 @@ func level(giver: String) -> int:
 
 
 func add_upgrade(giver: String) -> void:
+	var hp_before := up_value("doc", "hp")
 	upgrades[giver] = mini(MAX_UPGRADE_LEVEL, level(giver) + 1)
+	# La vida máxima que da Doc llega llena / The max health Doc gives arrives full
+	if giver == "doc" and saved_hp >= 0.0:
+		saved_hp += up_value("doc", "hp") - hp_before
 
 
 ## Elige dos personajes distintos que aún puedan subir de nivel / Picks two different givers that can still level up
@@ -252,18 +270,18 @@ const UPGRADE_VALUES := {
 		"vacuum": {"cd": [9.0, 6.0, 3.5], "chain": [0, 1, 2], "dmg": [6, 9, 12]},
 	},
 	"stolk": {
-		"bat": {"pct": [15, 30, 50]},                     # +daño / +damage
-		"shield": {"pct": [25, 50, 80], "push": [10, 20, 35]},
-		"book": {"pct": [8, 16, 25]},                     # −recarga / −cooldown
-		"vacuum": {"pct": [10, 20, 35]},                  # +alcance, fuerza y daño / +reach, pull and damage
+		"bat": {"pct": [30, 60, 100]},                    # +daño / +damage
+		"shield": {"pct": [60, 120, 200], "push": [25, 50, 80]},
+		"book": {"pct": [15, 28, 40]},                    # −recarga / −cooldown
+		"vacuum": {"pct": [25, 50, 80]},                  # +alcance, fuerza y daño / +reach, pull and damage
 	},
 	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
 	## Doc: more max health in exchange for weakening another weapon stat
 	"doc": {
-		"bat": {"hp": [5, 8, 12], "pct": [8, 12, 16]},       # −daño / −damage
-		"shield": {"hp": [5, 8, 12], "pct": [10, 15, 20]},   # −empuje / −shove
-		"book": {"hp": [5, 8, 12], "pct": [8, 12, 16]},      # +recarga / +cooldown
-		"vacuum": {"hp": [5, 8, 12], "pct": [6, 9, 12]},     # −velocidad / −speed
+		"bat": {"hp": [10, 18, 28], "pct": [8, 12, 16]},       # −daño / −damage
+		"shield": {"hp": [10, 18, 28], "pct": [10, 15, 20]},   # −empuje / −shove
+		"book": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
+		"vacuum": {"hp": [10, 18, 28], "pct": [6, 9, 12]},     # −velocidad / −speed
 	},
 	"silly": {
 		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze

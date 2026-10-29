@@ -44,7 +44,12 @@ func setup(p_run: Node, p_outfit: String) -> void:
 	run = p_run
 	outfit = p_outfit
 	refresh_stats()
-	hp = max_hp
+	# La vida se arrastra de un sueño a otro y solo se recupera un poco
+	# Health carries over between dreams and only a little comes back
+	if GameState.saved_hp >= 0.0:
+		hp = minf(max_hp, GameState.saved_hp + max_hp * GameState.HEAL_BETWEEN_DREAMS)
+	else:
+		hp = max_hp
 	match outfit:
 		"shield": weapon = WeaponShield.new()
 		"book": weapon = WeaponBook.new()

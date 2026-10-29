@@ -498,6 +498,7 @@ func on_player_died() -> void:
 
 func _on_wave_cleared() -> void:
 	running = false
+	GameState.saved_hp = player.hp
 	Audio.stop_loops()
 	Audio.fade_music(-20.0, 1.0)
 	Audio.play("win", -2.0)
