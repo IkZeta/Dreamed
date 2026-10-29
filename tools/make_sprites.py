@@ -1474,6 +1474,59 @@ def chef():
     add("plate_shards", -40, -16, 80, 32, shards_, colors=8)
 
 
+def mr_ad():
+    """Mr. Ad: un humanoide cubierto de carteles y anuncios de marcas inventadas de chocolatinas y comida basura.
+    Mr. Ad: a humanoid covered in banners and ads for made-up chocolate bar and junk food brands."""
+    def txt(x, y, t, size, col, rot=0):
+        return ("<text x='%g' y='%g' font-family='Arial Black,Arial' font-weight='900' font-size='%g' fill='%s' "
+                "text-anchor='middle' transform='rotate(%g %g %g)'>%s</text>" % (x, y, size, col, rot, x, y, t))
+    b = ""
+    # Mástil con banderín a la espalda / Pole with a pennant on his back
+    b += "<path d='M138,40 L138,150' stroke='#cfc8ec' stroke-width='4'/>"
+    b += shaded("M138,40 L186,52 L138,66 Z", "#ff4f8a", shade=0.3, rim=0.4, sw=0.8, extra=txt(156, 58, "2x1", 11, "#fff6c9"))
+    # Piernas con calcetines de rayas y pegatinas / Legs with striped socks and stickers
+    for x in (80, 104):
+        b += shaded("M%g,206 L%g,206 L%g,276 L%g,276 Z" % (x, x + 18, x + 18, x), "#f4f1fa", shade=0.4, rim=0.3,
+                    extra="".join("<rect x='%g' y='%g' width='18' height='5' fill='%s'/>" % (x, y, c) for y, c in ((222, "#e8455a"), (236, "#3fa8ff"), (250, "#e8455a"))))
+        b += shaded(ellipse_d(x + 9, 282, 14, 6), "#f6c24a", shade=0.3, rim=0.4)
+    # Brazos envueltos en tiras de publicidad / Arms wrapped in advert strips
+    for (pts, col, word) in (("M52,108 L68,104 L74,182 L56,184 Z", "#3fc1c9", "YUM!"), ("M148,108 L132,104 L126,182 L144,184 Z", "#f6c24a", "SODAX")):
+        b += shaded(pts, col, shade=0.4, rim=0.4, sw=0.9)
+    b += txt(64, 146, "YUM!", 10, "#1a1a3a", -86) + txt(137, 146, "SODAX", 10, "#1a1a3a", 86)
+    b += shaded(ellipse_d(64, 190, 8, 8), "#e8c4a8", shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(136, 190, 8, 8), "#c2a092", shade=0.3, rim=0.2, sw=0.8)
+    # Cartel-sándwich: el cuerpo entero es un anuncio / Sandwich board: the whole body is an ad
+    b += shaded("M66,98 L134,98 L140,212 L60,212 Z", "#e8455a", shade=0.45, rim=0.4, sw=1.2)
+    b += "<rect x='70' y='104' width='60' height='22' fill='#fff6c9'/>" + txt(100, 121, "CHOCO", 15, "#7a2e1a") 
+    b += txt(100, 140, "LOCO", 16, "#fff6c9")
+    # Chocolatina dibujada / Drawn chocolate bar
+    b += shaded("M78,150 L122,150 L122,176 L78,176 Z", "#6a3a22", shade=0.3, rim=0.3, sw=0.8,
+                extra="<path d='M92,150 L92,176 M107,150 L107,176 M78,163 L122,163' stroke='#4a2414' stroke-width='2'/>")
+    b += shaded("M74,170 L126,170 L126,186 L74,186 Z", "#f6c24a", shade=0.3, rim=0.4, sw=0.8)
+    b += txt(100, 204, "¡NUEVO!", 11, "#fff6c9")
+    # Pegatinas sueltas / Loose stickers
+    b += shaded(ellipse_d(132, 112, 10, 10), "#9be38a", shade=0.2, rim=0.4, sw=0.7, extra=txt(132, 116, "%", 11, "#1a3a1a"))
+    b += "<g transform='rotate(-14 70 196)'>" + shaded(rect_d(56, 190, 28, 12), "#3fa8ff", shade=0.2, rim=0.3, sw=0.6) + txt(70, 199, "MEGA", 8, "#fff") + "</g>"
+    # Cabeza: bolsa de papel de patatas con agujeros para los ojos y gorra con logo
+    # Head: a crisps paper bag with eye holes and a cap with a logo
+    b += shaded("M76,40 L124,40 L128,96 L72,96 Z", "#f6c24a", shade=0.45, rim=0.4, sw=1.1)
+    b += "<path d='M76,96 L80,90 L84,96 L88,90 L92,96 L96,90 L100,96 L104,90 L108,96 L112,90 L116,96 L120,90 L124,96 L128,96' fill='none' stroke='#c9902a' stroke-width='2'/>"
+    b += txt(100, 86, "PAPAS", 11, "#c9475a")
+    b += shaded("M72,42 Q100,20 128,42 L128,48 L72,48 Z", "#3fa8ff", shade=0.3, rim=0.4, sw=0.9) + shaded("M118,46 L146,50 L142,56 L118,52 Z", "#2a7fd0", shade=0.3, rim=0.3, sw=0.8)
+    b += txt(100, 44, "BURGUIX", 8, "#fff6c9")
+    for ex in (89, 111):
+        b += "<path d='%s' fill='#1a1020'/>" % ellipse_d(ex, 62, 6, 5)
+    b += "<path d='M88,74 Q100,82 112,74' fill='none' stroke='#7a2e1a' stroke-width='2.4'/>"
+    def eyes(img, to_px):
+        pix = img.load()
+        w, h = img.size
+        for ex in (89, 111):
+            x, y = to_px(ex, 62)
+            x, y = int(x), int(y)
+            if 0 <= x < w and 0 <= y < h:
+                pix[x, y] = (255, 255, 255, 255)
+    add("npc_ad", 46, 16, 144, 276, b, px=PX_NPC, colors=32, post=eyes)
+
+
 def act2_npcs():
     charo_body(False)
     charo_body(True)
@@ -1502,6 +1555,7 @@ def build():
     act2_enemies()
     cyberpunk()
     chef()
+    mr_ad()
     drawings()
     pickups()
     thug()

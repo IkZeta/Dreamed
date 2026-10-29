@@ -5,7 +5,7 @@ extends CanvasLayer
 ## The living-room fireplace: pick one of your upgrades to throw into the fire. It loses a
 ## level and you gain Fragmented Reality. Works while the game is paused.
 
-signal chosen(giver: String)
+signal chosen(giver: String, weapon: String)
 signal cancelled
 
 var _ready_t := 0.4
@@ -44,24 +44,24 @@ func build() -> void:
 	col.add_child(gap)
 
 	var first: Button = null
-	var weapon := GameState.selected_character
-	for g in GameState.GIVERS:
-		var lvl := GameState.level(g)
-		if lvl <= 0:
-			continue
-		var b := Button.new()
-		b.custom_minimum_size = Vector2(900, 72)
-		b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		b.text = tr("SAC_ROW").format({
-			"giver": tr("GIVER_%s_NAME" % g.to_upper()),
-			"up": tr(GameState.upgrade_key(g, weapon, "NAME")),
-			"from": lvl, "to": lvl - 1, "n": GameState.REALITY_SACRIFICE,
-		})
-		b.pressed.connect(_pick.bind(g))
-		b.mouse_entered.connect(b.grab_focus)
-		col.add_child(b)
-		if first == null:
-			first = b
+	for weapon in GameState.weapons():
+		for g in GameState.GIVERS:
+			var lvl := GameState.level(g, weapon)
+			if lvl <= 0:
+				continue
+			var b := Button.new()
+			b.custom_minimum_size = Vector2(900, 72)
+			b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+			b.text = tr("SAC_ROW").format({
+				"giver": tr("GIVER_%s_NAME" % g.to_upper()),
+				"up": tr(GameState.upgrade_key(g, weapon, "NAME")),
+				"from": lvl, "to": lvl - 1, "n": GameState.REALITY_SACRIFICE,
+			})
+			b.pressed.connect(_pick.bind(g, weapon))
+			b.mouse_entered.connect(b.grab_focus)
+			col.add_child(b)
+			if first == null:
+				first = b
 	if first == null:
 		var none := UITheme.label("SAC_NONE", 24, UITheme.BONE, "italic")
 		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -89,11 +89,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cancel()
 
 
-func _pick(giver: String) -> void:
+func _pick(giver: String, weapon: String) -> void:
 	if _done or _ready_t > 0.0:
 		return
 	_done = true
-	chosen.emit(giver)
+	chosen.emit(giver, weapon)
 	queue_free()
 
 

@@ -43,7 +43,10 @@ var _heal_text := 0.0
 ## Transparencia de cada anillo de carga (se apaga al llenarse, como la stamina de Zelda)
 ## Opacity of each charge ring (fades out once full, like Zelda's stamina wheel)
 var _ring_a: Array[float] = []
+var _ring_b: Array[float] = []
 var weapon: Weapon
+## Segunda arma (Acto 3): flota junto a Kroker y ataca sola / Second weapon (Act 3): floats beside Kroker and attacks on its own
+var weapon2: Weapon
 
 
 func setup(p_run: Node, p_outfit: String) -> void:
@@ -56,14 +59,25 @@ func setup(p_run: Node, p_outfit: String) -> void:
 		hp = minf(max_hp, GameState.saved_hp + max_hp * GameState.HEAL_BETWEEN_DREAMS)
 	else:
 		hp = max_hp
-	match outfit:
-		"shield": weapon = WeaponShield.new()
-		"book": weapon = WeaponBook.new()
-		"vacuum": weapon = WeaponVacuum.new()
-		_: weapon = WeaponBat.new()
-	weapon.run = run
-	weapon.player = self
-	add_child(weapon)
+	weapon = _make_weapon(outfit, true)
+	var second := GameState.second_weapon
+	if second != "" and second != outfit:
+		weapon2 = _make_weapon(second, false)
+
+
+func _make_weapon(id: String, primary: bool) -> Weapon:
+	var w: Weapon
+	match id:
+		"shield": w = WeaponShield.new()
+		"book": w = WeaponBook.new()
+		"vacuum": w = WeaponVacuum.new()
+		_: w = WeaponBat.new()
+	w.id = id
+	w.primary = primary
+	w.run = run
+	w.player = self
+	add_child(w)
+	return w
 
 
 ## Vuelve a leer las estadísticas (al subir de nivel) / Re-reads the stats (after a level-up)
@@ -216,8 +230,12 @@ func _draw() -> void:
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
 		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean})
+	if weapon2:
+		_draw_floating_weapon()
 	if alive and run.running and weapon:
-		_draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor())
+		_ring_a = _draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor(), _ring_a)
+	if alive and run.running and weapon2:
+		_ring_b = _draw_charge_rings(weapon2.charge_bars(), weapon2.charge_anchor(), _ring_b)
 	_draw_hearth_ring()
 	_draw_shield_bubble()
 	_draw_states()
@@ -264,14 +282,14 @@ func _draw_shield_bubble() -> void:
 	draw_arc(c, 46.0 * pulse, 0, TAU, 32, Color("8fe0ff", 0.7), 3.0)
 
 
-func _draw_charge_rings(bars: Array, anchor: Vector2) -> void:
-	_ring_a.resize(bars.size())
+func _draw_charge_rings(bars: Array, anchor: Vector2, ring_a: Array[float]) -> Array[float]:
+	ring_a.resize(bars.size())
 	var dt := get_process_delta_time()
 	for i in bars.size():
 		var k: float = clampf(bars[i][0], 0.0, 1.0)
 		var col: Color = bars[i][1]
-		_ring_a[i] = move_toward(_ring_a[i], 0.0 if k >= 1.0 else 1.0, dt * (2.5 if k >= 1.0 else 8.0))
-		var a: float = _ring_a[i]
+		ring_a[i] = move_toward(ring_a[i], 0.0 if k >= 1.0 else 1.0, dt * (2.5 if k >= 1.0 else 8.0))
+		var a: float = ring_a[i]
 		if a <= 0.01:
 			continue
 		var c := anchor + Vector2(0, -26.0 * i)
@@ -282,3 +300,35 @@ func _draw_charge_rings(bars: Array, anchor: Vector2) -> void:
 			draw_arc(c, r, -PI / 2.0, -PI / 2.0 + TAU * k, maxi(4, int(28 * k)), Color(col, 0.95 * a), 4.0, true)
 		if k >= 1.0:
 			draw_circle(c, r * 0.45, Color(col, 0.7 * a))
+	return ring_a
+
+
+## La segunda arma flota detrás del hombro de Kroker, con un aura suave
+## The second weapon floats behind Kroker's shoulder, with a soft aura
+func _draw_floating_weapon() -> void:
+	var w := weapon2
+	if w is WeaponShield and (w as WeaponShield).hidden_pillow:
+		return
+	var c := w.float_offset()
+	var col: Color = KrokerArt.ACCENT.get(w.id, UITheme.GOLD)
+	draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(46, 46), Vector2(92, 92)), false, Color(col, 0.25))
+	var s := ART_SCALE
+	match w.id:
+		"bat":
+			draw_set_transform(c + Vector2(0, 26), (0.5 - w.anim * 2.2) * _facing, Vector2(s, s))
+			Sprites.draw(self, "weapon_bat")
+		"shield":
+			draw_set_transform(c, sin(_t * 1.5) * 0.15, Vector2(s, s) * (1.0 + w.anim * 0.3))
+			Sprites.draw(self, "weapon_pillow")
+		"book":
+			draw_set_transform(c, sin(_t * 1.2) * 0.1, Vector2(s, s))
+			Sprites.draw(self, "weapon_book")
+			if w.anim > 0.0:
+				draw_circle(Vector2.ZERO, 20.0 * w.anim, Color(col, 0.5 * w.anim))
+		"vacuum":
+			var dir: Vector2 = (w as WeaponVacuum).aim_dir()
+			draw_set_transform(c - Vector2(150, 253) * s, 0.0, Vector2(s, s))
+			Sprites.draw(self, "weapon_tank")
+			draw_set_transform(c + dir * 14.0, dir.angle(), Vector2(s, s))
+			Sprites.draw(self, "weapon_nozzle")
+	draw_set_transform(Vector2.ZERO)

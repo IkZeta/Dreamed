@@ -52,7 +52,10 @@ func _ready() -> void:
 	var depth := GameState.dream_depth
 	_wave = GameState.wave_for(depth)
 	var act := GameState.act_of(depth)
-	Audio.play_music("music_living" if act >= 2 else "music_dream1", 2.5)
+	Audio.play_music(["", "music_dream1", "music_living", "music_dream1"][act], 2.5)
+	# Llegar al salón por primera vez desbloquea a Mr. Ad / Reaching the living room for the first time unlocks Mr. Ad
+	if act >= 2:
+		Progress.flag("mr_ad")
 	_time_left = float(_wave.get("duration", 0.0))
 
 	# Pantalla pequeña donde vive el mundo / Small screen where the world lives
@@ -83,7 +86,11 @@ func _ready() -> void:
 	back.add_child(sky)
 	sky.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	if act >= 2:
+	if act >= 3:
+		# Acto 3 (provisional) / Act 3 (placeholder)
+		room = Act3Room.new()
+		room.weird = depth - GameState.ACT3_START + 1
+	elif act >= 2:
 		# Acto 2: el salón, más raro desde el primer sueño / Act 2: the living room, stranger from the first dream
 		var lr := LivingRoom.new()
 		lr.weird = depth - GameState.ACT2_START + 1
@@ -136,7 +143,7 @@ func _ready() -> void:
 	hud.visible = false
 	hud.set_hp(player.hp, player.max_hp)
 	hud.set_time(_time_left)
-	if GameState.selected_character == "shield" and GameState.level("svinho") > 0:
+	if "shield" in GameState.weapons() and GameState.level("svinho", "shield") > 0:
 		hud.set_special_mode(false)
 	_roll_event(depth)
 	if depth == 1:
@@ -258,8 +265,14 @@ func _on_ware(id: String) -> void:
 func gain_reality(n: int, pos: Vector2) -> void:
 	if not GameState.reality_on() or n <= 0:
 		return
+	# Mr. Ad: a veces cae 1 más / Mr. Ad: sometimes 1 more drops in
+	if randf() * 100.0 < GameState.ad_extra_chance():
+		n += 1
 	GameState.add_reality(n)
 	hud.set_reality()
+	# Las mejoras de Mr. Ad dependen de lo ahorrado / Mr. Ad's upgrades depend on the savings
+	player.refresh_stats()
+	hud.set_hp(player.hp, player.max_hp)
 	Audio.play("reality", -5.0, 0.06)
 	fx.text(pos + Vector2(0, -30), "+%d" % n, RealityIcon.COLOR, 24)
 	fx.ring(pos, 18.0, RealityIcon.COLOR, 0.5, 2.0)
@@ -293,13 +306,13 @@ func _open_sacrifice() -> void:
 	_modal = sc
 	add_child(sc)
 	sc.build()
-	sc.chosen.connect(func(giver: String) -> void:
+	sc.chosen.connect(func(giver: String, weapon: String) -> void:
 		_modal = null
 		get_tree().paused = false
-		GameState.sacrifice(giver)
+		GameState.sacrifice(giver, weapon)
 		player.refresh_stats()
 		hud.set_hp(player.hp, player.max_hp)
-		if GameState.selected_character == "shield" and GameState.level("svinho") <= 0:
+		if weapon == "shield" and giver == "svinho" and GameState.level("svinho", "shield") <= 0:
 			hud.set_special_mode(false)
 		lr.flare()
 		hud.show_fire(false)
@@ -382,7 +395,37 @@ func _on_chef_defeated() -> void:
 		if not e.is_boss():
 			e.die(false)
 	Progress.clear_act(GameState.selected_character, GameState.difficulty, 2)
-	_end_act2()
+	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
+		Progress.flag("no_hit")
+	Progress.add_stat("dreams")
+	Audio.fade_music(-30.0, 1.5)
+	Audio.play("act_clear", -1.0)
+	# El sueño sigue: Kroker elige una segunda arma y cae en el Acto 3
+	# The dream goes on: Kroker picks a second weapon and falls into Act 3
+	GameState.saved_hp = player.hp
+	Progress.save_progress()
+	hud.hide_boss()
+	hud.banner("ACT2_CLEAR_TITLE", "ACT1_CLEAR_DEEPER")
+	for sh in get_tree().get_nodes_in_group("shards"):
+		sh.set("_magnet", true)
+	get_tree().create_timer(3.4, false).timeout.connect(_choose_second_weapon.bind(_resolve_level_ups.bind(_flash_to_astral)))
+
+
+## Pantalla para elegir la segunda arma (la del otro tipo) / Screen to pick the second weapon (the other kind)
+func _choose_second_weapon(then: Callable) -> void:
+	if GameState.second_weapon != "":
+		then.call()
+		return
+	get_tree().paused = true
+	var sc := WeaponChoiceScreen.new()
+	_modal = sc
+	add_child(sc)
+	sc.build()
+	sc.chosen.connect(func(id: String) -> void:
+		_modal = null
+		get_tree().paused = false
+		GameState.second_weapon = id
+		then.call())
 
 
 ## Barra del jefe: la vida que les queda a los muebles despiertos / Boss bar: health left on the awake pieces
@@ -572,7 +615,9 @@ func _pick_kind() -> String:
 	var new_kind: String = _wave.get("new", "")
 	if new_kind != "" and _spawned_new < 2:
 		_spawned_new += 1
-		if new_kind != "nest" or _count_alive(Nest) < 3:
+		if new_kind == "cyber" and _spawned_new > 1:
+			pass   # solo sale uno seguro / only one is guaranteed
+		elif new_kind != "nest" or _count_alive(Nest) < 3:
 			return new_kind
 	var mix: Dictionary = _wave["mix"]
 	var total := 0.0
@@ -584,6 +629,9 @@ func _pick_kind() -> String:
 		if roll <= 0.0:
 			# Como mucho 3 nidos a la vez / At most 3 nests at a time
 			if k == "nest" and _count_alive(Nest) >= 3:
+				return "foox"
+			# Como mucho 2 Cyberpunks a la vez: muchos son un caos / At most 2 Cyberpunks at once: many is chaos
+			if k == "cyber" and _count_alive(Cyberpunk) >= 2:
 				return "foox"
 			return k
 	return "foox"
@@ -965,7 +1013,7 @@ func _on_wave_cleared() -> void:
 ## Después de un sueño: a veces el kiosco de Charo; luego el plano astral o el final del acto
 ## After a dream: sometimes Charo's kiosk; then the astral plane or the end of the act
 func _after_dream() -> void:
-	var next := _end_act2 if _wave.get("act_end", false) else _flash_to_astral
+	var next := _end_run_victory if _wave.get("act_end", false) else _flash_to_astral
 	if _wave.get("shop", false):
 		_charo_shop(next)
 	else:
@@ -973,7 +1021,8 @@ func _after_dream() -> void:
 
 
 ## Final provisional del Acto 2 (su jefe vendrá más adelante) / Provisional end of Act 2 (its boss comes later)
-func _end_act2() -> void:
+func _end_run_victory() -> void:
+	Progress.clear_act(GameState.selected_character, GameState.difficulty, GameState.act())
 	Audio.fade_music(-30.0, 1.5)
 	Audio.play("act_clear", -1.0)
 	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):

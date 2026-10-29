@@ -30,7 +30,7 @@ func attack() -> bool:
 	deal(target, damage, dir * knock)
 	if lv("silly") > 0 and randf() * 100.0 < uv("silly", "chance"):
 		target.glitch(uv("silly", "secs"))
-	player.attack_anim = 1.0
+	swung()
 	Audio.play("swing", -6.0, 0.1)
 	run.fx.swing(origin(), 78.0, dir.angle(), 0.9, UITheme.BONE, 5.0)
 	return true

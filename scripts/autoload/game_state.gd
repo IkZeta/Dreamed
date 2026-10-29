@@ -53,18 +53,28 @@ const WAVES := [
 	# at the end. Dream 8 brings the Cyberpunk and dream 10 is the boss, The Chef.
 	{"duration": 40.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 10, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "nest": 1}, "new": "nest", "fire": true},
 	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2, "nest": 1}, "shop": true},
-	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 2}, "new": "cyber", "fire": true},
-	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 2}, "shop": true},
+	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5}, "new": "cyber", "fire": true},
+	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.5}, "shop": true},
 	# Sueño 10: El Chef sale de la tele / Dream 10: The Chef comes out of the TV
-	{"boss": true, "boss_kind": "chef", "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 1}},
+	{"boss": true, "boss_kind": "chef", "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 0.3}},
+	# --- Acto 3 (PROVISIONAL): escenario de pruebas para jugar con las dos armas.
+	# --- Act 3 (PLACEHOLDER): a test stage to play with both weapons.
+	{"duration": 45.0, "spawn_every": 2.0, "group": [2, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5}},
+	{"duration": 50.0, "spawn_every": 1.9, "group": [3, 4], "max_alive": 14, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6}, "shop": true},
+	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 3, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.7}, "act_end": true},
 ]
 const BOSS_DEPTH := 5
 ## Primer sueño de cada acto / First dream of each act
 const ACT2_START := 6
+const ACT3_START := 11
+## Armas cuerpo a cuerpo y a distancia: la segunda arma tiene que ser del otro tipo
+## Melee and ranged weapons: the second weapon must be of the other kind
+const MELEE: Array[String] = ["bat", "shield"]
+const RANGED: Array[String] = ["book", "vacuum"]
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
-const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc"]
+const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad"]
 const MAX_UPGRADE_LEVEL := 3
 const STOLK_HP_COST := 5.0   # vida máxima que cuesta cada nivel de Stolk / max health each Stolk level costs
 
@@ -73,6 +83,10 @@ var dream_depth := 1  # oleada actual / current wave
 ## Mejoras compradas en esta partida: "svinho" / "stolk" / "silly" → nivel
 ## Upgrades taken this run: "svinho" / "stolk" / "silly" → level
 var upgrades := {}
+## Segunda arma (se elige al vencer a El Chef) y sus mejoras, aparte de las de la primera
+## Second weapon (chosen after beating The Chef) and its upgrades, separate from the first's
+var second_weapon := ""
+var upgrades2 := {}
 var _rng := RandomNumberGenerator.new()
 
 ## --- Nivel de Kroker / Kroker's level ---------------------------------------------
@@ -144,12 +158,17 @@ func start_run() -> void:
 		# Para probar el kiosco de Charo / To try out Charo's kiosk
 		if dream_depth >= ACT2_START:
 			reality = 30
+		# En el Acto 3 hace falta una segunda arma / Act 3 needs a second weapon
+		if dream_depth >= ACT3_START:
+			second_weapon = other_weapons()[0]
 
 
 ## Empieza una partida nueva / Starts a new run
 func reset_run() -> void:
 	dream_depth = 1
 	upgrades = {}
+	second_weapon = ""
+	upgrades2 = {}
 	xp = 0
 	plevel = 1
 	pending_ups = 0
@@ -180,6 +199,8 @@ const HEAL_BETWEEN_DREAMS := 0.05
 
 ## Acto del sueño actual (1 = la habitación, 2 = el salón) / Act of the current dream (1 = bedroom, 2 = living room)
 func act_of(depth: int) -> int:
+	if depth >= ACT3_START:
+		return 3
 	return 1 if depth < ACT2_START else 2
 
 
@@ -189,8 +210,9 @@ func act() -> int:
 
 ## La Realidad Fragmentada solo existe desde que Charo la presenta en el Acto 2
 ## Fragmented Reality only exists once Charo introduces it in Act 2
+## (después de conocer a Charo, también en el Acto 1 / after meeting Charo, also in Act 1)
 func reality_on() -> bool:
-	return act() >= 2
+	return act() >= 2 or Progress.stats.has("charo_met")
 
 
 func add_reality(n: int) -> void:
@@ -199,11 +221,11 @@ func add_reality(n: int) -> void:
 
 ## Multiplicadores de la pesadilla y del Acto 2 / Nightmare and Act 2 multipliers
 func enemy_hp_mult() -> float:
-	return (1.6 if difficulty == "nightmare" else 1.0) * (1.35 if act() >= 2 else 1.0)
+	return (1.6 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.35, 1.7][act()]
 
 
 func enemy_dmg_mult() -> float:
-	return (1.5 if difficulty == "nightmare" else 1.0) * (1.2 if act() >= 2 else 1.0)
+	return (1.5 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.2, 1.4][act()]
 
 
 func shard_mult() -> float:
@@ -216,7 +238,34 @@ func stat(id: String) -> float:
 	for h: Dictionary in hacks.values():
 		if h["stat"] == id:
 			hacked += float(h["value"])
-	return float(stat_bonus.get(id, 0.0)) + float(base.get(id, 0.0)) + hacked
+	return float(stat_bonus.get(id, 0.0)) + float(base.get(id, 0.0)) + hacked + ad_bonus(id)
+
+
+## --- Mr. Ad: cuanta más Realidad Fragmentada ahorrada, más estadística ----------------
+## --- Mr. Ad: the more Fragmented Reality saved, the higher the stat ------------------------
+## Qué estadística sube Mr. Ad con cada arma / Which stat Mr. Ad raises with each weapon
+const AD_STAT := {"bat": "attack", "shield": "defense", "book": "attack_speed", "vacuum": "speed"}
+const AD_MAX_TIERS := 10   # cuenta hasta 100 de Realidad Fragmentada / counts up to 100 Fragmented Reality
+
+
+func ad_bonus(id: String) -> float:
+	var total := 0.0
+	var tiers := mini(reality / 10, AD_MAX_TIERS)
+	if tiers <= 0:
+		return 0.0
+	for w in weapons():
+		if AD_STAT[w] == id:
+			total += up_value("ad", "per10", -1, w) * tiers
+	return total
+
+
+## Probabilidad (en %) de ganar 1 más cada vez que se gana Realidad Fragmentada
+## Chance (in %) of gaining 1 extra whenever Fragmented Reality is gained
+func ad_extra_chance() -> float:
+	var total := 0.0
+	for w in weapons():
+		total += up_value("ad", "extra", -1, w)
+	return total
 
 
 ## Trozos que hacen falta para el siguiente nivel / Shards needed for the next level
@@ -284,26 +333,65 @@ func wave_for(depth: int) -> Dictionary:
 
 
 ## Nivel de la mejora de un personaje (0 si no la tienes) / Level of a giver's upgrade (0 if not taken)
-func level(giver: String) -> int:
-	return int(upgrades.get(giver, 0))
+## Armas que lleva Kroker: la del pijama y, desde el Acto 3, la segunda
+## Weapons Kroker carries: the pajama's one and, from Act 3, the second one
+func weapons() -> Array[String]:
+	var out: Array[String] = [selected_character]
+	if second_weapon != "" and second_weapon != selected_character:
+		out.append(second_weapon)
+	return out
 
 
-func add_upgrade(giver: String) -> void:
-	var hp_before := up_value("doc", "hp")
-	upgrades[giver] = mini(MAX_UPGRADE_LEVEL, level(giver) + 1)
-	if level(giver) >= MAX_UPGRADE_LEVEL:
+## Armas que se pueden coger como segunda: las del otro tipo / Weapons that can be taken second: the other kind
+func other_weapons() -> Array[String]:
+	return RANGED.duplicate() if selected_character in MELEE else MELEE.duplicate()
+
+
+func _ups(weapon: String) -> Dictionary:
+	return upgrades2 if weapon != "" and weapon == second_weapon and weapon != selected_character else upgrades
+
+
+func level(giver: String, weapon := "") -> int:
+	return int(_ups(weapon).get(giver, 0))
+
+
+## Nivel más alto de un personaje entre las dos armas / A giver's highest level across both weapons
+func best_level(giver: String) -> int:
+	var best := 0
+	for w in weapons():
+		best = maxi(best, level(giver, w))
+	return best
+
+
+## Vida máxima total que da Doc con las dos armas / Total max health Doc gives across both weapons
+func doc_hp() -> float:
+	var total := 0.0
+	for w in weapons():
+		total += up_value("doc", "hp", -1, w)
+	return total
+
+
+func add_upgrade(giver: String, weapon := "") -> void:
+	var hp_before := doc_hp()
+	var ups := _ups(weapon)
+	ups[giver] = mini(MAX_UPGRADE_LEVEL, int(ups.get(giver, 0)) + 1)
+	if int(ups[giver]) >= MAX_UPGRADE_LEVEL:
 		Progress.flag("max_gift")
 	# La vida máxima que da Doc llega llena / The max health Doc gives arrives full
 	if giver == "doc" and saved_hp >= 0.0:
-		saved_hp += up_value("doc", "hp") - hp_before
+		saved_hp += doc_hp() - hp_before
 
 
 ## Elige dos personajes distintos que aún puedan subir de nivel / Picks two different givers that can still level up
 func pick_offer() -> Array[String]:
 	var pool: Array[String] = []
 	for g in GIVERS:
-		if level(g) < MAX_UPGRADE_LEVEL:
-			pool.append(g)
+		if not giver_unlocked(g):
+			continue
+		for w in weapons():
+			if level(g, w) < MAX_UPGRADE_LEVEL:
+				pool.append(g)
+				break
 	# Con suerte es más fácil que vuelva alguien que ya te ha dado un don, para subirlo de nivel
 	# With luck, someone who already gave you a gift is likelier to return, to level it up
 	var out: Array[String] = []
@@ -326,7 +414,12 @@ func pick_offer() -> Array[String]:
 
 
 func _giver_weight(g: String) -> float:
-	return 1.0 + (stat("luck") / 20.0 if level(g) > 0 else 0.0)
+	return 1.0 + (stat("luck") / 20.0 if best_level(g) > 0 else 0.0)
+
+
+## Mr. Ad aparece desde que se llega al Acto 2 por primera vez / Mr. Ad shows up once Act 2 has been reached
+func giver_unlocked(g: String) -> bool:
+	return g != "ad" or Progress.has_achieved("mr_ad")
 
 
 ## Clave de traducción del nombre o la descripción de una mejora / Translation key of an upgrade's name or description
@@ -363,6 +456,14 @@ const UPGRADE_VALUES := {
 		"book": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
 		"vacuum": {"hp": [10, 18, 28], "pct": [6, 9, 12]},     # −velocidad / −speed
 	},
+	## Mr. Ad: "extra" = % de ganar 1 más de Realidad Fragmentada; "per10" = estadística por cada 10 ahorradas
+	## Mr. Ad: "extra" = % chance of 1 extra Fragmented Reality; "per10" = stat per 10 saved
+	"ad": {
+		"bat": {"extra": [20, 35, 50], "per10": [3, 5, 8]},           # +% ataque / +% attack
+		"shield": {"extra": [20, 35, 50], "per10": [0.4, 0.7, 1.0]},  # +defensa / +defense
+		"book": {"extra": [20, 35, 50], "per10": [3, 5, 8]},          # +% velocidad de ataque / +% attack speed
+		"vacuum": {"extra": [20, 35, 50], "per10": [2, 4, 6]},        # +% velocidad / +% speed
+	},
 	"silly": {
 		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
 		"shield": {"chance": [30, 50, 75], "secs": [0.8, 1.4, 2.0]},  # cámara lenta / slow motion
@@ -378,7 +479,7 @@ func up_value(giver: String, key: String, lvl := -1, weapon := "") -> float:
 	if weapon == "":
 		weapon = selected_character
 	if lvl < 0:
-		lvl = level(giver)
+		lvl = level(giver, weapon)
 	if lvl <= 0:
 		return 0.0
 	var values: Array = UPGRADE_VALUES[giver][weapon][key]
@@ -406,11 +507,13 @@ const WARES := {
 
 
 ## Mejoras que aún pueden subir de nivel / Upgrades that can still level up
-func upgradable() -> Array[String]:
-	var out: Array[String] = []
-	for g: String in upgrades:
-		if level(g) > 0 and level(g) < MAX_UPGRADE_LEVEL:
-			out.append(g)
+## Mejoras que aún pueden subir de nivel: [[personaje, arma], ...] / Upgrades that can still level up: [[giver, weapon], ...]
+func upgradable() -> Array:
+	var out := []
+	for w in weapons():
+		for g: String in _ups(w):
+			if level(g, w) > 0 and level(g, w) < MAX_UPGRADE_LEVEL:
+				out.append([g, w])
 	return out
 
 
@@ -442,19 +545,21 @@ func apply_ware(id: String) -> void:
 		"newspaper":
 			var list := upgradable()
 			if not list.is_empty():
-				add_upgrade(list[_rng.randi_range(0, list.size() - 1)])
+				var pick: Array = list[_rng.randi_range(0, list.size() - 1)]
+				add_upgrade(pick[0], pick[1])
 		"battery":
 			pending_ups += 1
 
 
 ## Sacrificar en la chimenea: la mejora pierde un nivel / Sacrificing in the fireplace: the upgrade loses a level
-func sacrifice(giver: String) -> void:
-	var hp_before := up_value("doc", "hp")
-	upgrades[giver] = level(giver) - 1
-	if level(giver) <= 0:
-		upgrades.erase(giver)
+func sacrifice(giver: String, weapon := "") -> void:
+	var hp_before := doc_hp()
+	var ups := _ups(weapon)
+	ups[giver] = int(ups.get(giver, 0)) - 1
+	if int(ups[giver]) <= 0:
+		ups.erase(giver)
 	if giver == "doc" and saved_hp >= 0.0:
-		saved_hp -= hp_before - up_value("doc", "hp")
+		saved_hp -= hp_before - doc_hp()
 
 
 func get_character(id: String) -> Dictionary:
@@ -470,11 +575,15 @@ func stats_for(id: String) -> Dictionary:
 	for k: String in bonus:
 		s[k] = float(s[k]) + float(bonus[k])
 	# Stolk: cada nivel quita vida máxima / Stolk: each level costs max health
-	s["max_hp"] = maxf(5.0, float(s["max_hp"]) - STOLK_HP_COST * level("stolk"))
+	# (con dos armas cuentan los niveles de las dos / with two weapons both weapons' levels count)
+	var stolk := 0
+	for w in weapons():
+		stolk += level("stolk", w)
+	s["max_hp"] = maxf(5.0, float(s["max_hp"]) - STOLK_HP_COST * stolk)
 	# Doc: suma vida máxima; con la aspiradora cuesta velocidad / Doc: adds max health; with the vacuum it costs speed
-	s["max_hp"] = float(s["max_hp"]) + up_value("doc", "hp", -1, id)
-	if id == "vacuum":
-		s["speed"] = float(s["speed"]) * (1.0 - up_value("doc", "pct", -1, id) / 100.0)
+	s["max_hp"] = float(s["max_hp"]) + doc_hp()
+	if "vacuum" in weapons():
+		s["speed"] = float(s["speed"]) * (1.0 - up_value("doc", "pct", -1, "vacuum") / 100.0)
 	# Estadísticas ganadas al subir de nivel / Stats gained by levelling up
 	s["damage_mult"] = float(s["damage_mult"]) + stat("attack") / 100.0
 	s["armor"] = float(s["armor"]) + stat("defense")

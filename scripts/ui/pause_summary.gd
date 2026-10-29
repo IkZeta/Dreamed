@@ -52,22 +52,25 @@ func _build(player: Player) -> void:
 
 	# Mejoras / Upgrades
 	v.add_child(UITheme.label("PAUSE_UPGRADES", 24, UITheme.GOLD, "caps"))
-	var weapon := s.selected_character
 	var any := false
-	for g in s.GIVERS:
-		var lvl := s.level(g)
-		if lvl <= 0:
-			continue
-		any = true
-		var head := UITheme.label("%s  ·  %s  ·  %s" % [tr("GIVER_%s_NAME" % g.to_upper()), tr("UP_LEVEL") % lvl,
-			tr(s.upgrade_key(g, weapon, "NAME"))], 24, UITheme.BONE, "body")
-		head.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		v.add_child(head)
-		var desc := UITheme.label(s.upgrade_desc(g, weapon, lvl), 24, UITheme.ASH, "italic")
-		desc.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.custom_minimum_size.x = 760
-		v.add_child(desc)
+	for weapon in s.weapons():
+		for g in s.GIVERS:
+			var lvl := s.level(g, weapon)
+			if lvl <= 0:
+				continue
+			any = true
+			var parts := [tr("GIVER_%s_NAME" % g.to_upper()), tr("UP_LEVEL") % lvl, tr(s.upgrade_key(g, weapon, "NAME"))]
+			# Con dos armas se dice a cuál va cada mejora / With two weapons, say which one each upgrade is for
+			if s.weapons().size() > 1:
+				parts.append(tr("WEAPON_SHORT_" + weapon.to_upper()))
+			var head := UITheme.label("  ·  ".join(PackedStringArray(parts)), 24, UITheme.BONE, "body")
+			head.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+			v.add_child(head)
+			var desc := UITheme.label(s.upgrade_desc(g, weapon, lvl), 24, UITheme.ASH, "italic")
+			desc.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+			desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			desc.custom_minimum_size.x = 760
+			v.add_child(desc)
 	if not any:
 		var none := UITheme.label("PAUSE_NO_UPGRADES", 24, UITheme.ASH, "italic")
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

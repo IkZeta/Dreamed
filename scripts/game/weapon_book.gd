@@ -49,7 +49,7 @@ func attack() -> bool:
 	var first := nearest(RANGE * range_mult())
 	if first == null:
 		return false
-	player.cast_anim = 1.0
+	swung(true)
 	# Objetivos: primero el más cercano y luego otros distintos al alcance
 	# Targets: the nearest first, then other different ones in range
 	var n := roll_bolts()

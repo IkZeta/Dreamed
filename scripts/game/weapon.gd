@@ -5,11 +5,18 @@ extends Node2D
 
 var run: Node     # Run
 var player: Player
+## Qué arma es y si es la del pijama (true) o la segunda, que flota junto a Kroker (false)
+## Which weapon this is and whether it's the pajama's (true) or the second one, floating beside Kroker (false)
+var id := "bat"
+var primary := true
+## Animación propia de la segunda arma (la primera usa las de Kroker) / The second weapon's own animation (the first uses Kroker's)
+var anim := 0.0
 var cooldown := 1.0
 var _timer := 0.4
 
 
 func _physics_process(delta: float) -> void:
+	anim = maxf(0.0, anim - delta * 3.0)
 	if not run.running or not player.alive:
 		return
 	_timer -= delta * speed_mult()
@@ -26,7 +33,26 @@ func charge_bars() -> Array:
 ## Dónde se dibuja el anillo de carga, relativo a Kroker (ya girado según hacia dónde mira).
 ## Where the charge ring is drawn, relative to Kroker (already flipped by facing).
 func charge_anchor() -> Vector2:
+	if not primary:
+		return float_offset() + Vector2(0, -34)
 	return Vector2(26.0 * player._facing, -42.0)
+
+
+## Dónde flota la segunda arma, relativo a Kroker: detrás del hombro, subiendo y bajando
+## Where the second weapon floats, relative to Kroker: behind his shoulder, bobbing
+func float_offset() -> Vector2:
+	return Vector2(-46.0 * player._facing, -112.0 + sin(player._t * 2.2) * 5.0) + Vector2(14.0 * player._facing, 8.0) * anim
+
+
+## Marca que el arma ha atacado (anima a Kroker o a la propia arma flotante)
+## Marks that the weapon attacked (animates Kroker or the floating weapon itself)
+func swung(cast := false) -> void:
+	if not primary:
+		anim = 1.0
+	elif cast:
+		player.cast_anim = 1.0
+	else:
+		player.attack_anim = 1.0
 
 
 ## Estadísticas de nivel de Kroker que afectan al arma / Kroker's level stats that affect the weapon
@@ -43,8 +69,11 @@ func attack() -> bool:
 	return false
 
 
-## Centro del cuerpo de Kroker (no los pies). / Kroker's body center (not his feet).
+## Centro del cuerpo de Kroker (no los pies); la segunda arma ataca desde donde flota.
+## Kroker's body centre (not his feet); the second weapon attacks from where it floats.
 func origin() -> Vector2:
+	if not primary:
+		return player.global_position + float_offset()
 	return player.global_position + Vector2(0, -44)
 
 
@@ -81,10 +110,10 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0
 
 ## Nivel de la mejora de un personaje del plano astral / Level of an astral giver's upgrade
 func lv(giver: String) -> int:
-	return GameState.level(giver)
+	return GameState.level(giver, id)
 
 
 ## Valor de una mejora al nivel actual (tabla en GameState.UPGRADE_VALUES)
 ## An upgrade's value at the current level (table in GameState.UPGRADE_VALUES)
 func uv(giver: String, key: String) -> float:
-	return GameState.up_value(giver, key)
+	return GameState.up_value(giver, key, -1, id)

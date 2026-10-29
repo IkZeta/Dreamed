@@ -20,6 +20,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float) -> void
 		"silly": _silly(t)
 		"doc": _doc(t)
 		"charo": _charo(t)
+		"ad": _ad(t)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -35,6 +36,17 @@ static func _svinho(t: float) -> void:
 	_ci.draw_set_transform_matrix(_xf * Transform2D(t * 3.0, ball))
 	Sprites.draw(_ci, "npc_ball")
 	_ci.draw_set_transform_matrix(_xf)
+
+
+## Mr. Ad: sus carteles parpadean como neones / Mr. Ad: his signs blink like neon
+static func _ad(t: float) -> void:
+	Sprites.draw(_ci, "npc_ad")
+	var blink := fmod(t, 1.2) < 0.6
+	_ci.draw_rect(Rect2(68, 102, 64, 26), Color("fff6c9", 0.25 if blink else 0.0))
+	# Estrellitas de «¡oferta!» girando / Spinning "special offer!" sparkles
+	for i in 3:
+		var a := t * 2.0 + i * TAU / 3.0
+		DreamBackground.draw_star(_ci, Vector2(100, 150) + Vector2(cos(a) * 62.0, sin(a) * 20.0), 3.0, Color("f6c24a", 0.8))
 
 
 ## La Kioskera Charo; sus gafas brillan de vez en cuando / Kiosk lady Charo; her glasses glint now and then

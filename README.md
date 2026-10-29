@@ -77,7 +77,7 @@ Tras vencer al jefe, el sueño se hunde un poco más y Kroker cae en el salón d
 | Sueño | Novedad |
 |---|---|
 | 6 | **Nidos y mosquitos**: el nido no se mueve, pero suelta mosquitos mientras no lo rompas. Los mosquitos son diminutos y frágiles, pero muy rápidos y salen a montones |
-| 8 | **Cyberpunk**: se lanza a base de dashes que marca antes en el suelo y, si se te queda cerca, te **hackea**: te baja una estadística al azar hasta que lo derrotas |
+| 8 | **Cyberpunk** (raro, como mucho 2 a la vez): se lanza a base de dashes que marca antes en el suelo y, si se te queda cerca, te **hackea**: te baja una estadística al azar hasta que lo derrotas |
 | 10 | **Jefe: El Chef**, un Kroker adulto cocinero que sale de la tele |
 
 **El Chef** tiene tres ataques, todos avisados antes:
@@ -91,12 +91,16 @@ Con menos de la mitad de vida se enfada: ataca más a menudo y lanza más cosas.
 El resto del salón:
 
 - **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**.
-- **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve...
+- **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes.
 - **La chimenea:** en algunos sueños está encendida. Quédate delante y podrás echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada.
 
 ![El kiosco de Charo](docs/screenshots/kiosco.jpg)
 
-> El Acto 3 está en camino. Por ahora, la partida termina al vencer a El Chef.
+### Segunda arma y Acto 3 (provisional, sueños 11–13)
+
+Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate o almohada), eliges una a distancia (libro o aspiradora), y al revés. La segunda arma flota junto a Kroker, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
+
+El Acto 3 es por ahora un escenario **en obras**, pensado para probar las dos armas. La partida termina al acabar el sueño 13.
 
 ### Eventos
 
@@ -122,7 +126,7 @@ Son enemigos demoníacos, con cuernos, más grandes y con el triple de vida. El 
 
 ### Plano astral
 
-Entre un sueño y otro aparecen dos de estos cuatro personajes. Cada uno da un tipo de mejora que cambia según tu arma y que sube hasta el nivel 3. Al elegir, te quedas a solas con él y te habla.
+Entre un sueño y otro aparecen dos de estos personajes. Cada uno da un tipo de mejora que cambia según tu arma y que sube hasta el nivel 3. Al elegir, te quedas a solas con él y te habla.
 
 | Personaje | Quién es | Tipo de mejora |
 |---|---|---|
@@ -130,6 +134,7 @@ Entre un sueño y otro aparecen dos de estos cuatro personajes. Cada uno da un t
 | **Stolk** | El matón del colegio | Mucho más poder a cambio de vida máxima |
 | **Silly** | Una hacker | Glitches: congelar, ralentizar o dejar vulnerables a los enemigos |
 | **Doc** | Un doctor | Más vida máxima a cambio de empeorar otra estadística |
+| **Mr. Ad** | Un humanoide cubierto de anuncios de chocolatinas y comida basura | Más Realidad Fragmentada y una estadística que sube cuanta más tengas ahorrada. Se desbloquea al llegar por primera vez al Acto 2 (con un logro) y desde entonces puede salir desde el principio |
 
 ![Plano astral](docs/screenshots/plano-astral.jpg)
 
@@ -157,7 +162,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
 - **Bestiario:** está en el menú principal y cada entrada está escrita con la voz de Kroker.
-- **Logros:** hay 12. Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 13. Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;
@@ -169,7 +174,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 
 ### Modo Dios (para probar)
 
-Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–10) con las mejoras y las estadísticas que quieras. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
+Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–13); desde el 11 se lleva una segunda arma de prueba con las mejoras y las estadísticas que quieras. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
 
 Teclas durante la partida:
 
@@ -238,6 +243,7 @@ En los `.wav` nuevos hay que poner `compress/mode=0` en su `.import`, y en los q
 - **Weapons:** pick one of four pajamas, each with its own auto-attacking weapon: bat, pillow shield, storybook (lightning from the sky) or vacuum.
 - **Act 1, the bedroom:** Foox, thugs, slingshots and skeletons, then a living-furniture boss.
 - **Act 2, the living room:** mosquito nests, hacking Cyberpunks, a fireplace where you can sacrifice upgrades, *Karen the kiosk lady*, who trades in **Fragmented Reality**, and **The Chef**: a grown-up Kroker who climbs out of the TV throwing knives (bleeding), plates (shards on the floor) and swinging a frying pan (it roots you).
-- **Upgrades:** between dreams, on the astral plane, Svinho, Stolk, Silly and Doc each offer a different kind of upgrade. Star shards level Kroker up with stat boosts from common to legendary.
+- **Second weapon:** after The Chef you pick a second weapon of the other kind (melee or ranged). It floats beside Kroker and has its own upgrades; Act 3 is a placeholder stage to try it out.
+- **Upgrades:** between dreams, on the astral plane, Svinho, Stolk, Silly, Doc and Mr. Ad (unlocked in Act 2, all about Fragmented Reality) each offer a different kind of upgrade. Star shards level Kroker up with stat boosts from common to legendary.
 - **Extras:** Nightmare difficulty, a bestiary, 12 achievements, accessibility options, full gamepad support and a God mode for testing.
 - **Running it:** open `project.godot` and press **F5**. All sprites, sounds and the font are generated by the scripts in `tools/`.

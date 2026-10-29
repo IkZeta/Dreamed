@@ -697,6 +697,16 @@ def sfx_puff():
     return mix(lp(sweep_noise(0.35, 1200, 400, 2.0, 0.35), 3000), np.pad(bar(midi(84), 0.6, 0.12, "kalimba", 0.3), (int(SR * 0.05), 0)))
 
 
+def giver_ad():
+    # Sintonía de anuncio: arpegio alegre y una campanita de caja registradora / Advert jingle: cheerful arpeggio and a till bell
+    x = np.zeros((int(SR * 2.4), 2))
+    for i, (n, at) in enumerate([(72, 0.0), (76, 0.12), (79, 0.24), (84, 0.36), (79, 0.6), (84, 0.72)]):
+        place(x, bar(midi(n), 0.9, 0.22, "kalimba", 0.45), at, -0.4 + i * 0.16, human=False)
+    place(x, bar(midi(96), 1.2, 0.1, "kalimba", 0.3), 1.0, 0.4, human=False)
+    place(x, bar(midi(100), 1.2, 0.08, "kalimba", 0.3), 1.06, 0.5, human=False)
+    return x
+
+
 def sfx_plate_break():
     # Plato que se rompe, pero suave: tintineo de porcelana amortiguado / A plate breaking, but soft: muffled porcelain clink
     x = np.zeros((int(SR * 1.2), 2))
@@ -729,7 +739,7 @@ if __name__ == "__main__":
         ("giver_svinho", giver_svinho, 0.45, 0.3), ("giver_stolk", giver_stolk, 0.5, 0.3),
         ("giver_silly", giver_silly, 0.35, 0.25), ("giver_doc", giver_doc, 0.4, 0.35),
         ("giver_charo", giver_charo, 0.4, 0.3), ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
-        ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2),
+        ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2), ("giver_ad", giver_ad, 0.4, 0.3),
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)

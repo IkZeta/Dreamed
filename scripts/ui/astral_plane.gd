@@ -11,6 +11,8 @@ var _buttons: Array[Button] = []
 var _figures: Array[Control] = []
 var _chosen := false
 var _content: Control
+## Con dos armas, para cuál es el don de cada personaje / With two weapons, which one each giver's gift goes to
+var _target := {}
 ## Pantalla de charla con el personaje elegido / Talk screen with the chosen character
 var _talk_text: RichTextLabel
 var _talk_prompt: Label
@@ -113,20 +115,55 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	v.add_child(line)
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.5)))
 
-	var lvl := GameState.level(giver)
+	# Con dos armas, pestañas para elegir a cuál va el don / With two weapons, tabs to pick which one gets the gift
+	var weapons := GameState.weapons()
+	_target[giver] = weapon
+	for w in weapons:
+		if GameState.level(giver, w) < GameState.MAX_UPGRADE_LEVEL:
+			_target[giver] = w
+			break
 	var up_row := HBoxContainer.new()
-	var up_name := UITheme.label(GameState.upgrade_key(giver, weapon, "NAME"), 26, UITheme.GOLD)
+	var up_name := UITheme.label("", 26, UITheme.GOLD)
 	up_name.size_flags_horizontal = SIZE_EXPAND_FILL
 	up_row.add_child(up_name)
-	var lvl_label := UITheme.label(tr("UP_LEVEL") % (lvl + 1), 14, UITheme.ASH, "caps")
+	var lvl_label := UITheme.label("", 14, UITheme.ASH, "caps")
 	lvl_label.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	up_row.add_child(lvl_label)
-	v.add_child(up_row)
-	var desc := UITheme.label(GameState.upgrade_desc(giver, weapon, lvl + 1), 19, Color(UITheme.BONE, 0.85), "light")
+	var desc := UITheme.label("", 19, Color(UITheme.BONE, 0.85), "light")
 	desc.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.custom_minimum_size.y = 84
+	var refresh := func() -> void:
+		var w: String = _target[giver]
+		var lvl := GameState.level(giver, w)
+		up_name.text = tr(GameState.upgrade_key(giver, w, "NAME"))
+		lvl_label.text = tr("UP_LEVEL") % (lvl + 1)
+		desc.text = GameState.upgrade_desc(giver, w, lvl + 1)
+	if weapons.size() > 1:
+		var tabs := HBoxContainer.new()
+		tabs.add_theme_constant_override("separation", 8)
+		var group := ButtonGroup.new()
+		for w in weapons:
+			var t := Button.new()
+			t.toggle_mode = true
+			t.button_group = group
+			t.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+			var lvl_w := GameState.level(giver, w)
+			t.text = "%s · %s" % [tr("WEAPON_SHORT_" + w.to_upper()), tr("UP_LEVEL") % lvl_w if lvl_w > 0 else tr("ASTRAL_NEW")]
+			t.size_flags_horizontal = SIZE_EXPAND_FILL
+			t.custom_minimum_size.y = 48
+			t.disabled = lvl_w >= GameState.MAX_UPGRADE_LEVEL
+			t.button_pressed = w == _target[giver]
+			t.toggled.connect(func(on: bool) -> void:
+				if on:
+					_target[giver] = w
+					refresh.call())
+			t.mouse_entered.connect(t.grab_focus)
+			tabs.add_child(t)
+		v.add_child(tabs)
+	v.add_child(up_row)
 	v.add_child(desc)
+	refresh.call()
 	if giver == "stolk":
 		v.add_child(UITheme.label(tr("UP_STOLK_COST") % int(GameState.STOLK_HP_COST), 16, UITheme.EMBER, "caps"))
 
@@ -146,7 +183,7 @@ func _choose(giver: String) -> void:
 	if _chosen:
 		return
 	_chosen = true
-	GameState.add_upgrade(giver)
+	GameState.add_upgrade(giver, _target.get(giver, ""))
 	GameState.dream_depth += 1
 	Audio.play("giver_" + giver, -1.0)
 	Audio.play("pickup", -4.0)
@@ -189,8 +226,8 @@ func _talk_scene(giver: String) -> void:
 	col.add_child(name_l)
 	col.add_child(UITheme.label("GIVER_%s_ROLE" % giver.to_upper(), 24, UITheme.ASH, "caps"))
 	col.add_child(UITheme.rule(Color(aura, 0.5)))
-	var weapon := GameState.selected_character
-	var gift := UITheme.label(tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver)}), 24, UITheme.GOLD, "caps")
+	var weapon: String = _target.get(giver, GameState.selected_character)
+	var gift := UITheme.label(tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver, weapon)}), 24, UITheme.GOLD, "caps")
 	gift.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	col.add_child(gift)
 
@@ -270,7 +307,7 @@ func _leave() -> void:
 
 ## Personaje sobre una roca flotante / A character standing on a floating rock
 class GiverFigure extends Control:
-	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3")}
+	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a")}
 	var who := "svinho"
 	var highlight := false
 	var _t := 0.0

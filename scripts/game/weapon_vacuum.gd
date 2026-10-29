@@ -25,6 +25,7 @@ var _t := 0.0
 var _dir := Vector2.RIGHT
 var _spit_cd := 0.0
 var _boost := 1.0
+var sucking := false
 
 
 func _ready() -> void:
@@ -33,7 +34,10 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_t += delta
-	player.sucking = false
+	anim = 0.0
+	sucking = false
+	if primary:
+		player.sucking = false
 	if not run.running or not player.alive:
 		Audio.set_loop("vacuum", false)
 		queue_redraw()
@@ -48,10 +52,12 @@ func _physics_process(delta: float) -> void:
 	# Gira la boquilla con suavidad hacia el objetivo / Turns the nozzle smoothly toward the target
 	var want := (_body(target) - _nozzle_base()).normalized()
 	_dir = _dir.slerp(want, minf(1.0, delta * 10.0)).normalized()
-	player.aim = _dir
-	player.sucking = true
-	if absf(_dir.x) > 0.2:
-		player.set_facing(signf(_dir.x))
+	sucking = true
+	if primary:
+		player.aim = _dir
+		player.sucking = true
+		if absf(_dir.x) > 0.2:
+			player.set_facing(signf(_dir.x))
 
 	_tick -= delta
 	var do_tick := _tick <= 0.0
@@ -94,20 +100,29 @@ func charge_bars() -> Array:
 
 ## El anillo del chut sale en la propia boquilla / The volley ring sits on the nozzle itself
 func charge_anchor() -> Vector2:
+	if not primary:
+		return super.charge_anchor()
 	var hand := Vector2(15.0 * player._facing, -26.0)
 	return hand + player.aim.normalized() * 44.0 + Vector2(0, -14)
 
 
 func _nozzle_base() -> Vector2:
+	if not primary:
+		return origin()
 	return player.global_position + Vector2(0, -30)
 
 
+## Hacia dónde apunta la boquilla / Where the nozzle points
+func aim_dir() -> Vector2:
+	return _dir
+
+
 func _draw() -> void:
-	if not player.sucking:
+	if not sucking:
 		return
 	# Cono de succión con corrientes que viajan hacia la boquilla
 	# Suction cone with currents travelling toward the nozzle
-	var c := Vector2(0, -30)
+	var c := Vector2(0, -30) if primary else float_offset()
 	var col: Color = KrokerArt.ACCENT["vacuum"]
 	var a := _dir.angle()
 	var pts := PackedVector2Array([c])

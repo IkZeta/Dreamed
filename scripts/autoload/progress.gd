@@ -36,6 +36,7 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "level10", "stat": "best_level", "goal": 10},
 	{"id": "max_gift", "flag": true, "goal": 1},
 	{"id": "bestiary", "check": "bestiary", "goal": 1, "drawing": "star"},
+	{"id": "mr_ad", "flag": true, "goal": 1},
 ]
 
 ## Aviso de logro en pantalla / On-screen achievement notice

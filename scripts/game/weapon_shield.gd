@@ -18,6 +18,7 @@ const THROW_RANGE := 520.0
 const THROW_ARMOR_LOSS := 4.0
 
 var throw_mode := false
+var hidden_pillow := false   # la segunda arma lanzada no se dibuja flotando / the thrown second weapon isn't drawn floating
 var _projectile: Node2D
 
 
@@ -49,6 +50,8 @@ func charge_bars() -> Array:
 
 ## El anillo sale junto a la almohada (mano izquierda) / The ring sits by the pillow (left hand)
 func charge_anchor() -> Vector2:
+	if not primary:
+		return super.charge_anchor()
 	return Vector2(-32.0 * player._facing, -50.0)
 
 
@@ -69,7 +72,7 @@ func attack() -> bool:
 			deal(e, damage, to_e.normalized() * knock)
 			if lv("silly") > 0 and randf() * 100.0 < uv("silly", "chance"):
 				e.glitch(0.0, uv("silly", "secs"))
-	player.attack_anim = 1.0
+	swung()
 	Audio.play("pillow", -2.0, 0.1)
 	run.fx.swing(origin(), 70.0, dir.angle(), CONE, UITheme.BONE, 9.0)
 	run.fx.ring(origin() + dir * 40.0, 26.0, UITheme.GOLD, 0.3, 2.2)
@@ -94,8 +97,12 @@ func _throw() -> bool:
 	p.position = origin()
 	run.world.add_child(p)
 	_projectile = p
-	player.armed = false
-	p.tree_exited.connect(func() -> void: player.armed = true)
-	player.attack_anim = 1.0
+	if primary:
+		player.armed = false
+		p.tree_exited.connect(func() -> void: if is_instance_valid(player): player.armed = true)
+	else:
+		hidden_pillow = true
+		p.tree_exited.connect(func() -> void: hidden_pillow = false)
+	swung()
 	Audio.play("swing", -4.0, 0.1)
 	return true
