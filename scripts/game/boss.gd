@@ -301,7 +301,7 @@ func _update_waves(delta: float) -> void:
 func _throw_books(n: int) -> void:
 	var player: Player = run.player
 	var from := aim_point() + Vector2(0, -40)
-	var dir := (player.global_position + Vector2(0, -60) - from).normalized()
+	var dir := (player.global_position + Vector2(0, -44) - from).normalized()
 	for i in n:
 		var shot := EnemyShot.new()
 		shot.run = run
@@ -411,52 +411,25 @@ func _eyes(c: Vector2, open: float, a: float) -> void:
 			draw_circle(p, 13.0, Color(EYE, 0.14 * open * a))
 
 
-func _draw_bed(k: float, a: float, flash: Color) -> void:
+func _draw_bed(k: float, a: float, _flash_c: Color) -> void:
 	var w := 140.0
 	var h := 150.0
 	var lift := 28.0 * k    # se levanta sobre sus patas / rises on its legs
 	_legs([-w * 0.42, -w * 0.15, w * 0.15, w * 0.42], -lift - 4.0, lift + 4.0, k)
 	var base := -lift
-	# Cabecero / Headboard
-	draw_rect(Rect2(-w / 2 - 6, base - h - 26, w + 12, 40), Color(Color("aab4ea"), a))
-	draw_circle(Vector2(-w / 2 - 2, base - h - 26), 8, Color(Color("cfd6f6"), a))
-	draw_circle(Vector2(w / 2 + 2, base - h - 26), 8, Color(Color("cfd6f6"), a))
-	# Colchón, almohada y edredón / Mattress, pillow and quilt
-	draw_rect(Rect2(-w / 2, base - h, w, h), Color(Color("e6e2f6"), a))
-	draw_rect(Rect2(-w / 2 + 16, base - h + 10, w - 32, 34), Color(Color("f8f6ff"), a))
-	var quilt := Rect2(-w / 2 - 4, base - h + 56, w + 8, h - 56)
-	draw_rect(quilt, Color(Color("5b67c4"), a))
-	draw_rect(Rect2(quilt.position, Vector2(quilt.size.x, 14)), Color(Color("eeeaf8"), a))
-	for row in 2:
-		for col in 3:
-			_star(Vector2(-w / 2 + 24 + col * 46 + row * 20, base - h + 90 + row * 34), 5.0, Color(UITheme.GOLD, 0.7 * a))
-	draw_rect(Rect2(-w / 2, base - h - 26, w, h + 26), flash)
+	Sprites.draw(self, "boss_bed", _mod(a), Vector2(0, base))
 	_eyes(Vector2(0, base - h + 30), k, a)
 
 
-func _draw_shelf(k: float, a: float, flash: Color) -> void:
+func _draw_shelf(k: float, a: float, _flash_c: Color) -> void:
 	var w := 120.0
 	var h := 170.0
 	var lift := 34.0 * k
 	_legs([-w * 0.3, w * 0.3], -lift - 4.0, lift + 4.0, k)
 	var base := -lift
-	var r := Rect2(-w / 2, base - h, w, h)
-	draw_rect(r, Color(Color("4a4592"), a))
-	draw_rect(r, Color(Color("2c2a66"), a), false, 4.0)
-	var cols := [Color("e3a6c4"), Color("f6d993"), Color("8fb3e8"), Color("b6e0d6"), Color("c9b6f0")]
-	for row in 3:
-		var y := r.position.y + 54.0 * (row + 1)
-		draw_rect(Rect2(r.position.x, y, w, 5), Color(Color("2c2a66"), a))
-		var x := r.position.x + 8.0
-		var i := row * 2
-		# Los libros tiemblan cuando apunta / The books tremble while it aims
-		var tremble := 2.0 if (not _atk.is_empty() and _atk["kind"] == "aim") else 0.0
-		while x < r.end.x - 14.0:
-			var bw := 10.0 + (i % 3) * 3.0
-			var bh := 30.0 + (i % 4) * 5.0
-			draw_rect(Rect2(x + randf_range(-tremble, tremble), y - bh, bw, bh), Color(cols[i % cols.size()], a))
-			x += bw + 3.0
-			i += 1
+	# Los libros tiemblan cuando apunta / The books tremble while it aims
+	var tremble := 2.0 if (not _atk.is_empty() and _atk["kind"] == "aim") else 0.0
+	Sprites.draw(self, "boss_shelf", _mod(a), Vector2(randf_range(-tremble, tremble), base))
 	# Brazos para lanzar / Throwing arms
 	var throw_k := 0.0
 	if not _atk.is_empty() and _atk["kind"] == "aim":
@@ -468,11 +441,10 @@ func _draw_shelf(k: float, a: float, flash: Color) -> void:
 		_segment(sh, elbow, 6.0)
 		_segment(elbow, hand, 5.0)
 		draw_circle(hand, 7.0, METAL_DARK)
-	draw_rect(r, flash)
 	_eyes(Vector2(0, base - h + 26), k, a)
 
 
-func _draw_chest(k: float, a: float, flash: Color) -> void:
+func _draw_chest(k: float, a: float, _flash_c: Color) -> void:
 	var w := 120.0
 	var h := 66.0
 	var lift := 20.0 * k
@@ -488,16 +460,15 @@ func _draw_chest(k: float, a: float, flash: Color) -> void:
 		draw_colored_polygon(_ellipse(Vector2(0, base - h), Vector2(w / 2 - 6, 10 + 16 * open)), Color(Color("1b1640"), a))
 		for i in 3:
 			draw_circle(Vector2(-30 + i * 30, base - h - 4), 3.0, Color(EYE, 0.8 * open * a))
-	draw_rect(r, Color(Color("c0a0dc"), a))
-	draw_rect(Rect2(r.position.x, r.end.y - 18, w, 18), Color(Color("9e7fbf"), a))
-	draw_rect(r, Color(Color("7d5a9a"), a), false, 3.0)
-	_star(Vector2(0, base - h * 0.45), 11.0, Color(Color("f6d993"), a))
+	Sprites.draw(self, "boss_chest_box", _mod(a), Vector2(0, base))
 	# Tapa que se abre como una boca / Lid that opens like a mouth
-	var lid_y := base - h - 40.0 * open
-	draw_rect(Rect2(-w / 2 - 3, lid_y - 16, w + 6, 18), Color(Color("a87fbf"), a))
-	draw_rect(Rect2(-w / 2 - 3, lid_y - 16, w + 6, 18), Color(Color("7d5a9a"), a), false, 2.5)
-	draw_rect(r, flash)
+	Sprites.draw(self, "boss_chest_lid", _mod(a), Vector2(0, base - h - 40.0 * open))
 	_eyes(Vector2(0, base - h * 0.72), k, a)
+
+
+## Color del sprite: destello al recibir un golpe / Sprite colour: flash when hit
+func _mod(a: float) -> Color:
+	return Sprites.flash_color(_flash * 0.5, a)
 
 
 func _segment(p1: Vector2, p2: Vector2, w: float) -> void:

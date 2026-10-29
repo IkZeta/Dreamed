@@ -22,7 +22,8 @@ RECTS = os.path.join(ROOT, "scripts", "visual", "sprite_rects.gd")
 ## píxel de esa pantalla pequeña. Kroker se dibuja a 0,55 de su lienzo y los enemigos a 1.
 ## Pixel art: the game is seen at 960 x 540 (half of 1920 x 1080). One art pixel is one
 ## pixel of that small screen. Kroker is drawn at 0.55 of his canvas, enemies at 1.
-PX_KROKER = 0.55 / 2.0
+PX_KROKER = 0.5 / 2.0     # Kroker se dibuja a 0,5 / Kroker is drawn at 0.5
+PX_NPC = 0.42             # personajes del plano astral, que se ven grandes / astral characters, shown large
 PX_ENEMY = 1.0 / 2.0
 SUPER = 8          # se dibuja 8 veces más grande y luego se reduce / drawn 8x larger, then reduced
 
@@ -123,14 +124,14 @@ def add(name, x, y, w, h, body, xf=(1, 1, 0, 0), px=PX_ENEMY, colors=12, ghost=F
 
 
 ## Kroker es un niño bajito: la cabeza no cambia, pero el torso, los brazos y las piernas
-## son más cortos. Todo lo que está por encima de la cadera baja 48 unidades.
+## son mucho más cortos (proporción de niño pequeño). Todo lo que está por encima de la cadera baja 78 unidades.
 ## Kroker is a short kid: the head stays the same, but the torso, arms and legs are shorter.
-## Everything above the hips moves down 48 units.
-DROP = 48
+## Everything above the hips moves down 78 units.
+DROP = 78
 XF_HEAD = (1, 1, 0, DROP)
-XF_TORSO = (1, 0.75, 0, 98 + DROP - 0.75 * 98)
-XF_ARM = (1, 0.75, 0, 106 + DROP - 0.75 * 106)
-XF_LEG = (1, 0.68, 0, 288 - 0.68 * 288)
+XF_TORSO = (1, 0.65, 0, 98 + DROP - 0.65 * 98)
+XF_ARM = (1, 0.65, 0, 106 + DROP - 0.65 * 106)
+XF_LEG = (1, 0.52, 0, 288 - 0.52 * 288)
 
 
 def face_painter(eyes, mouth, glasses):
@@ -160,7 +161,7 @@ def face_painter(eyes, mouth, glasses):
                             put(ex + gx, ey + gy, frame)
                         else:
                             r, g, b, a = pix[ex + gx, ey + gy]
-                            put(ex + gx, ey + gy, (min(255, r + 10), min(255, g + 14), min(255, b + 26), 255))
+                            pass  # el cristal deja ver la piel / the lens shows the skin
             if eyes == "open":
                 put(ex, ey - 1, dark_c)
                 put(ex, ey, dark_c)
@@ -526,6 +527,200 @@ def skeleton():
     add("skel_pile", -28, -26, 56, 34, pile)
 
 
+# --- Jefe: muebles / Boss: furniture ----------------------------------------------
+
+def boss():
+    # Cama (coordenadas con la base en y = 0) / Bed (coordinates with the base at y = 0)
+    w, h = 140, 150
+    bed = shaded("M-76,-176 Q-76,-184 -68,-184 L68,-184 Q76,-184 76,-176 L76,-140 L-76,-140 Z", "#aab4ea", shade=0.45, rim=0.5)
+    for x in (-72, 72):
+        bed += shaded(ellipse_d(x, -178, 8, 8), "#cfd6f6", shade=0.35, rim=0.5, sw=0.8)
+    bed += shaded("M-70,-150 L70,-150 L70,0 L-70,0 Z", "#e6e2f6", shade=0.4, rim=0.4)
+    bed += shaded("M-52,-142 Q0,-148 52,-142 Q56,-125 52,-108 Q0,-102 -52,-108 Q-56,-125 -52,-142 Z", "#f8f6ff", shade=0.35, rim=0.4, sw=0.8)
+    quilt = "M-74,-94 Q0,-100 74,-94 L74,0 L-74,0 Z"
+    stars = "".join("<path d='%s' fill='#f6d993' opacity='0.85'/>" % star_d(-46 + c * 46 + r * 20, -60 + r * 34, 5.5)
+                    for r in range(2) for c in range(3))
+    bed += shaded(quilt, "#5b67c4", shade=0.5, rim=0.4, extra=stars + fold("M-40,-80 Q-30,-40 -38,-10", "#5b67c4", 3, 0.4) + fold("M30,-84 Q38,-50 30,-14", "#5b67c4", 3, 0.4))
+    bed += shaded("M-74,-94 Q0,-100 74,-94 L74,-80 Q0,-86 -74,-80 Z", "#eeeaf8", shade=0.3, rim=0.3, sw=0.8)
+    add("boss_bed", -80, -188, 160, 190, bed, colors=20)
+
+    # Estantería / Bookshelf
+    w, h = 120, 170
+    sh = shaded("M-60,-170 L60,-170 L60,0 L-60,0 Z", "#4a4592", shade=0.55, rim=0.4, sw=1.4)
+    cols = ["#e3a6c4", "#f6d993", "#8fb3e8", "#b6e0d6", "#c9b6f0"]
+    for row in range(3):
+        y = -170 + 54 * (row + 1)
+        x = -52.0
+        i = row * 2
+        while x < 46:
+            bw = 10 + (i % 3) * 3
+            bh = 30 + (i % 4) * 5
+            sh += shaded("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y - bh, x + bw, y - bh, x + bw, y, x, y), cols[i % len(cols)], shade=0.35, rim=0.35, sw=0.8)
+            sh += "<rect x='%g' y='%g' width='%g' height='2' fill='#ffffff' opacity='0.35'/>" % (x + 2, y - bh + 6, bw - 4)
+            x += bw + 3
+            i += 1
+        sh += shaded("M-60,%g L60,%g L60,%g L-60,%g Z" % (y, y, y + 6, y + 6), "#2c2a66", shade=0.2, rim=0.2, sw=0.6)
+    add("boss_shelf", -63, -173, 126, 176, sh, colors=32)
+
+    # Baúl de juguetes: caja y tapa / Toy chest: box and lid
+    box = shaded("M-60,-66 L60,-66 L60,0 L-60,0 Z", "#c0a0dc", shade=0.45, rim=0.45, sw=1.2)
+    box += shaded("M-60,-18 L60,-18 L60,0 L-60,0 Z", "#9e7fbf", shade=0.3, rim=0.2, sw=0.8)
+    box += "<path d='%s' fill='#f6d993' stroke='#c9a24e' stroke-width='1'/>" % star_d(0, -30, 11)
+    for x in (-44, 44):
+        box += shaded("M%g,-66 L%g,-66 L%g,0 L%g,0 Z" % (x - 4, x + 4, x + 4, x - 4), "#8f6aae", shade=0.3, rim=0.3, sw=0.6)
+    add("boss_chest_box", -63, -69, 126, 72, box)
+    lid = shaded("M-63,-16 Q0,-22 63,-16 L63,2 L-63,2 Z", "#a87fbf", shade=0.4, rim=0.5, sw=1.1)
+    lid += "<path d='M-60,-6 Q0,-11 60,-6' fill='none' stroke='#d7bdea' stroke-width='1.6' opacity='0.7'/>"
+    add("boss_chest_lid", -66, -24, 132, 28, lid)
+
+
+# --- Proyectiles / Projectiles --------------------------------------------------------
+
+def shots():
+    bk = shaded("M-16,-11 L16,-11 L16,11 L-16,11 Z", "#6a4fa8", shade=0.4, rim=0.4)
+    bk += shaded("M-13,-8 L13,-8 L13,8 L-13,8 Z", "#f1e6c8", shade=0.25, rim=0.2, sw=0.6)
+    bk += "<path d='M0,-11 L0,11' stroke='#6a4fa8' stroke-width='3'/>"
+    add("shot_book", -19, -14, 38, 28, bk)
+    st = shaded(ellipse_d(0, 0, 10, 9), "#8f86b0", shade=0.5, rim=0.5)
+    st += "<circle cx='-3' cy='-3' r='3' fill='#cfc6e8' opacity='0.8'/>"
+    add("shot_stone", -12, -12, 24, 24, st)
+
+
+# --- Personajes del plano astral / Astral plane characters ----------------------------
+
+def npc_face(eye_y, ink, mood):
+    """Cara pintada píxel a píxel / Face painted pixel by pixel."""
+    def paint(img, to_px):
+        pix = img.load()
+        w, h = img.size
+
+        def put(x, y, c):
+            x, y = int(round(x - 0.5)), int(round(y - 0.5))
+            if 0 <= x < w and 0 <= y < h:
+                pix[x, y] = c
+        ink_c = rgb(ink) + (255,)
+        for cx in (91, 109):
+            ex, ey = to_px(cx, eye_y)
+            put(ex, ey, ink_c)
+            put(ex, ey + 1, ink_c)
+            put(ex + 1, ey, ink_c)
+            put(ex + 1, ey + 1, ink_c)
+            put(ex, ey, (255, 255, 255, 255))
+        # Cejas / Eyebrows
+        for cx, sgn in ((91, -1), (109, 1)):
+            bx, by = to_px(cx, eye_y - 9)
+            tilt = 1 if mood == 2 else 0
+            put(bx - 1, by + (tilt if sgn < 0 else 0), ink_c)
+            put(bx, by, ink_c)
+            put(bx + 1, by + (tilt if sgn > 0 else 0), ink_c)
+            put(bx + 2 * (1 if sgn > 0 else -1) * 0 + (2 if sgn > 0 else -2), by + tilt, ink_c)
+        mx, my = to_px(100, eye_y + 14)
+        if mood == 1:
+            for dx in (-1, 0, 1):
+                put(mx + dx, my, (125, 74, 94, 255))
+            put(mx, my + 1, (125, 74, 94, 255))
+        elif mood == 2:
+            put(mx - 1, my, (138, 86, 98, 255))
+            put(mx, my, (138, 86, 98, 255))
+            put(mx + 1, my - 1, (138, 86, 98, 255))
+        else:
+            put(mx - 1, my - 1, (163, 104, 122, 255))
+            put(mx, my, (163, 104, 122, 255))
+            put(mx + 1, my - 1, (163, 104, 122, 255))
+    return paint
+
+
+def npcs():
+    # Svinho: futbolista / footballer
+    skin, shade_c = "#b97c56", "#8f5c45"
+    b = ""
+    for x in (82, 104):
+        b += shaded("M%g,196 L%g,196 L%g,236 L%g,236 Z" % (x, x + 16, x + 16, x), skin, shade=0.4, rim=0.3)
+        b += shaded("M%g,232 L%g,232 L%g,276 L%g,276 Z" % (x - 1, x + 17, x + 17, x - 1), "#f4f1ea", shade=0.35, rim=0.3,
+                    extra="<rect x='%g' y='240' width='18' height='4' fill='#2f9e5b'/>" % (x - 1))
+        b += shaded(ellipse_d(x + 9, 282, 13, 6), "#1e1f2e", shade=0.3, rim=0.4)
+    b += shaded("M74,168 L126,168 L128,204 L102,204 L100,190 L98,204 L72,204 Z", "#2b4fa8", shade=0.45, rim=0.4)
+    b += shaded("M62,104 L76,108 L72,168 L58,166 Z", skin, shade=0.4, rim=0.4)
+    b += shaded("M138,104 L124,108 L128,168 L142,166 Z", shade_c, shade=0.4, rim=0.2)
+    b += shaded(ellipse_d(65, 172, 7, 8), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(135, 172, 7, 8), shade_c, shade=0.3, rim=0.2, sw=0.8)
+    shirt = "M82,96 L118,96 L140,106 L136,130 L128,128 L128,172 L72,172 L72,128 L64,130 L60,106 Z"
+    b += shaded(shirt, "#f6d24a", shade=0.5, rim=0.4, extra="<text x='87' y='155' font-family='Arial Black,Arial' font-weight='900' font-size='26' fill='#2f9e5b'>10</text>")
+    b += "<path d='M88,97 L100,110 L112,97' fill='none' stroke='#2f9e5b' stroke-width='4' stroke-linejoin='round'/>"
+    b += shaded("M93,82 L107,82 L107,98 L93,98 Z", shade_c, shade=0.3, rim=0.1, outline=False)
+    b += shaded(ellipse_d(100, 60, 22, 26), skin, shade=0.45, rim=0.4)
+    for px_, py_ in ((82, 44), (92, 36), (104, 34), (116, 40), (122, 52), (78, 56), (98, 40), (110, 44)):
+        b += shaded(ellipse_d(px_, py_, 9, 9), "#1d1620", shade=0.4, rim=0.45, rim_color="#8a7aa8", sw=0.8)
+    add("npc_svinho", 50, 22, 100, 270, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a1d22", 1))
+    ball = shaded(ellipse_d(0, 0, 13, 13), "#f7f3ea", shade=0.45, rim=0.4)
+    ball += "<path d='M0,-5 L4.8,-1.5 L3,4 L-3,4 L-4.8,-1.5 Z' fill='#1e1f2e'/>"
+    add("npc_ball", -15, -15, 30, 30, ball, px=PX_NPC)
+
+    # Stolk: el matón / the bully
+    skin, shade_c = "#f0c4aa", "#c99a8e"
+    b = ""
+    for x in (74, 104):
+        b += shaded("M%g,186 L%g,186 L%g,276 L%g,276 Z" % (x, x + 24, x + 24, x), "#3b4a7a" if x == 74 else "#2f3c66", shade=0.45, rim=0.3)
+        b += shaded(ellipse_d(x + 12, 282, 17, 7), "#e9e6f2", shade=0.35, rim=0.3)
+    b += shaded("M78,94 L122,94 L150,108 L146,190 L54,190 L50,108 Z", "#b9474f", shade=0.55, rim=0.4,
+                extra="<rect x='54' y='178' width='92' height='12' fill='#8f343c'/>")
+    b += "<path d='%s' fill='#8f343c'/>" % ellipse_d(100, 96, 30, 10)
+    b += shaded("M52,112 L70,110 L130,140 L128,156 L60,140 Z", "#c4545c", shade=0.4, rim=0.4)
+    b += shaded("M148,112 L130,110 L70,146 L74,160 L142,140 Z", "#a83e46", shade=0.4, rim=0.3)
+    b += shaded(ellipse_d(130, 148, 9, 9), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(70, 152, 9, 9), shade_c, shade=0.3, rim=0.2, sw=0.8)
+    b += shaded("M90,80 L110,80 L110,96 L90,96 Z", shade_c, shade=0.3, rim=0.1, outline=False)
+    b += shaded(ellipse_d(100, 58, 25, 27), skin, shade=0.45, rim=0.4)
+    b += shaded("M76,52 L80,38 L94,30 L108,30 L120,38 L124,52 L116,44 L84,44 Z", "#8a6a52", shade=0.4, rim=0.4, sw=0.8)
+    b += "<g transform='translate(114,72) rotate(-23)'><rect x='-8' y='-3' width='16' height='6' rx='2' fill='#f2d4a6'/></g>"
+    add("npc_stolk", 46, 26, 108, 266, b, px=PX_NPC, colors=32, post=npc_face(58, "#3a2a30", 2))
+
+    # Silly: la hacker / the hacker
+    skin, shade_c = "#f4d2c0", "#caa8b4"
+    b = ""
+    for x in (82, 102):
+        b += shaded("M%g,186 L%g,186 L%g,276 L%g,276 Z" % (x, x + 16, x + 16, x), "#272a48", shade=0.4, rim=0.3)
+        b += shaded(ellipse_d(x + 8, 282, 12, 6), "#5ff2ff", shade=0.35, rim=0.3)
+    b += shaded("M80,96 L120,96 L144,110 L142,196 L58,196 L56,110 Z", "#2b2f5a", shade=0.55, rim=0.4)
+    b += shaded("M66,150 L134,150 L128,168 L72,168 Z", "#3c4170", shade=0.3, rim=0.3, sw=0.8)
+    b += shaded("M70,120 L130,120 L134,150 L66,150 Z", "#1a1d38", shade=0.3, rim=0.3, sw=0.8)
+    b += shaded(ellipse_d(82, 160, 7, 7), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(118, 160, 7, 7), shade_c, shade=0.3, rim=0.2, sw=0.8)
+    b += shaded("M93,82 L107,82 L107,98 L93,98 Z", shade_c, shade=0.3, rim=0.1, outline=False)
+    b += shaded(ellipse_d(100, 62, 22, 26), skin, shade=0.45, rim=0.4)
+    b += shaded("M74,80 L74,50 Q78,38 84,36 Q92,31 100,31 Q108,31 116,36 Q122,38 126,50 L126,80 L118,80 L118,56 L110,54 L100,58 L90,54 L82,58 L82,80 Z",
+                "#8a5bd6", shade=0.45, rim=0.5, rim_color="#e3d3ff")
+    b += "<path d='M82,96 A18,18 0 0 0 118,96' fill='none' stroke='#5ff2ff' stroke-width='4'/>"
+    b += shaded(ellipse_d(82, 98, 7, 7), "#3c4170", shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(118, 98, 7, 7), "#3c4170", shade=0.3, rim=0.3, sw=0.8)
+    add("npc_silly", 50, 26, 100, 266, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a2238", 3))
+
+    # Doc: el doctor / the doctor
+    skin, shade_c, coat, coat_s = "#e8c4a8", "#c2a092", "#f2f0f8", "#cfcbe2"
+    b = ""
+    for x in (80, 104):
+        b += shaded("M%g,196 L%g,196 L%g,276 L%g,276 Z" % (x, x + 18, x + 18, x), "#4a4f7a", shade=0.4, rim=0.3)
+        b += shaded(ellipse_d(x + 9, 282, 14, 6), "#2a2238", shade=0.3, rim=0.4)
+    b += shaded("M80,94 L120,94 L142,106 L146,236 L54,236 L58,106 Z", coat, shade=0.5, rim=0.3, deep="#8a84b8")
+    b += shaded("M88,96 L112,96 L106,200 L94,200 Z", "#9fc1e8", shade=0.3, rim=0.2, sw=0.8)
+    b += shaded("M97,100 L103,100 L105,150 L100,158 L95,150 Z", "#c95f6f", shade=0.3, rim=0.3, sw=0.7)
+    b += "<rect x='118' y='128' width='16' height='14' fill='none' stroke='%s' stroke-width='1.5'/>" % coat_s
+    b += "<path d='M122,128 L122,118 M127,128 L127,120' stroke-width='2.5'/><path d='M122,128 L122,118' stroke='#5b67c4' stroke-width='2.5'/><path d='M127,128 L127,120' stroke='#c95f6f' stroke-width='2.5'/>"
+    b += shaded("M58,106 L72,110 L74,176 L60,176 Z", coat, shade=0.4, rim=0.3, deep="#8a84b8")
+    b += shaded("M142,106 L128,110 L126,176 L140,176 Z", coat_s, shade=0.4, rim=0.2, deep="#8a84b8")
+    b += shaded("M52,150 L86,150 L86,194 L52,194 Z", "#b98a5a", shade=0.35, rim=0.3)
+    b += shaded("M56,156 L82,156 L82,190 L56,190 Z", "#f7f3ea", shade=0.2, rim=0.1, sw=0.6)
+    for y in (162, 170, 178):
+        b += "<path d='M59,%d L78,%d' stroke='#5a5a82' stroke-width='1' opacity='0.5'/>" % (y, y)
+    b += "<rect x='62' y='147' width='14' height='5' fill='#8f8fb8'/>"
+    b += shaded(ellipse_d(67, 182, 7, 7), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(133, 180, 7, 7), shade_c, shade=0.3, rim=0.2, sw=0.8)
+    b += "<path d='M86,110 A16,16 0 0 0 114,110' fill='none' stroke='#3c4170' stroke-width='3'/><path d='M114,110 L118,150' stroke='#3c4170' stroke-width='3'/>"
+    b += shaded(ellipse_d(118, 154, 6, 6), "#8f8fb8", shade=0.3, rim=0.4, sw=0.7)
+    b += shaded("M93,82 L107,82 L107,98 L93,98 Z", shade_c, shade=0.3, rim=0.1, outline=False)
+    b += shaded(ellipse_d(100, 60, 23, 27), skin, shade=0.45, rim=0.45)
+    b += shaded(ellipse_d(78, 62, 5, 12), "#c9c6d6", shade=0.3, rim=0.3, sw=0.7) + shaded(ellipse_d(122, 62, 5, 12), "#c9c6d6", shade=0.3, rim=0.2, sw=0.7)
+    b += shaded("M90,72 L100,69 L110,72 L106,76 L100,74 L94,76 Z", "#c9c6d6", shade=0.2, rim=0.3, sw=0.6)
+    b += "<path d='M80,44 L120,44' stroke='#3c4170' stroke-width='2.5'/>"
+    b += shaded(ellipse_d(100, 40, 8, 8), "#dfe6ff", shade=0.3, rim=0.5, sw=0.8)
+    add("npc_doc", 48, 28, 104, 264, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a2238", 1))
+
+
 # --- Render ---------------------------------------------------------------------
 
 def build():
@@ -538,6 +733,9 @@ def build():
     kroker_head()
     kroker_weapons()
     foox()
+    boss()
+    shots()
+    npcs()
     thug()
     sling()
     skeleton()

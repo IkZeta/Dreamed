@@ -33,7 +33,7 @@ func _physics_process(delta: float) -> void:
 		if _hop <= 0.0:
 			_vz = 0.0
 	var player: Node2D = run.player
-	var target: Vector2 = player.global_position + Vector2(0, -50)
+	var target: Vector2 = player.global_position + Vector2(0, -38)
 	var dist := global_position.distance_to(target)
 	if not _magnet and _t > 0.4 and player.alive and dist < MAGNET:
 		_magnet = true

@@ -21,7 +21,7 @@ func _physics_process(delta: float) -> void:
 	_spin += delta * (12.0 if kind == "book" else 6.0)
 	position += velocity * delta
 	var player: Node2D = run.player
-	if run.running and global_position.distance_to(player.global_position + Vector2(0, -56)) < radius + 24.0:
+	if run.running and global_position.distance_to(player.global_position + Vector2(0, -44)) < radius + 22.0:
 		player.take_damage(damage)
 		run.fx.ring(global_position, 14.0, UITheme.EMBER, 0.3, 2.0)
 		queue_free()
@@ -38,12 +38,6 @@ func _draw() -> void:
 	# Estela / Trail
 	for i in 4:
 		draw_circle(-velocity.normalized() * (8.0 + i * 8.0), radius * (0.7 - i * 0.15), Color(UITheme.EMBER, 0.15 - i * 0.03))
-	if kind == "book":
-		draw_set_transform(Vector2.ZERO, _spin, Vector2.ONE)
-		draw_rect(Rect2(-16, -11, 32, 22), Color("6a4fa8"))
-		draw_rect(Rect2(-13, -8, 26, 16), Color("f1e6c8"))
-		draw_line(Vector2(0, -11), Vector2(0, 11), Color("6a4fa8"), 3.0)
-		draw_set_transform(Vector2.ZERO)
-	else:
-		draw_circle(Vector2.ZERO, radius, Color("8f86b0"))
-		draw_circle(Vector2(-3, -3), radius * 0.4, Color("cfc6e8"))
+	draw_set_transform(Vector2.ZERO, _spin if kind == "book" else 0.0, Vector2.ONE)
+	Sprites.draw(self, "shot_book" if kind == "book" else "shot_stone")
+	draw_set_transform(Vector2.ZERO)

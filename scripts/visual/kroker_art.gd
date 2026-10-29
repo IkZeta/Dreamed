@@ -88,15 +88,15 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 		arm_r *= 0.5  # el arma pesa / the weapon is heavy
 	# Kroker es bajito: hombros y caderas más abajo, brazos y piernas cortos
 	# Kroker is short: shoulders and hips sit lower, arms and legs are short
-	const SH_L := Vector2(75, 154)
-	const SH_R := Vector2(125, 154)
-	var hand_l := SH_L + Vector2(-5, 61.5).rotated(arm_l)
-	var hand_r := SH_R + Vector2(5, 61.5).rotated(arm_r)
+	const SH_L := Vector2(75, 184)
+	const SH_R := Vector2(125, 184)
+	var hand_l := SH_L + Vector2(-5, 53.3).rotated(arm_l)
+	var hand_r := SH_R + Vector2(5, 53.3).rotated(arm_r)
 
 	# Piernas / Legs
-	_limb(swing, Vector2(87, 208))
+	_limb(swing, Vector2(87, 227))
 	Sprites.draw(ci, "kroker_leg_l_" + o, mod)
-	_limb(-swing, Vector2(113, 208))
+	_limb(-swing, Vector2(113, 227))
 	Sprites.draw(ci, "kroker_leg_r_" + o, mod)
 
 	# Brazos (detrás del torso) / Arms (behind the torso)
@@ -110,7 +110,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	Sprites.draw(ci, "kroker_torso_" + o, mod)
 
 	# Cabeza (se inclina un poco al estirarse) / Head (tilts back when stretching)
-	_use(Transform2D(-0.12 * stretch, Vector2(100, 140)) * Transform2D(0.0, Vector2(-100, -140)))
+	_use(Transform2D(-0.12 * stretch, Vector2(100, 170)) * Transform2D(0.0, Vector2(-100, -170)))
 	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod)
 	_use(Transform2D.IDENTITY)
 
@@ -202,7 +202,7 @@ static func _vacuum_nozzle(t: float, aim: Vector2, sucking: bool, hand: Vector2,
 	var tip := hand + dir * 52.0
 	# Manguera de la cisterna a la mano / Hose from the tank to the hand
 	var a := Vector2(150, 226)
-	var mid := Vector2(166, 214)
+	var mid := Vector2(166, 232)
 	var pts := PackedVector2Array()
 	for i in 17:
 		var s := i / 16.0

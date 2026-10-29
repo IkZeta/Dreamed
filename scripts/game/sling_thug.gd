@@ -73,7 +73,7 @@ func _fire() -> void:
 	var shot := EnemyShot.new()
 	shot.run = run
 	shot.position = from
-	shot.velocity = (run.player.global_position + Vector2(0, -60) - from).normalized() * 420.0
+	shot.velocity = (run.player.global_position + Vector2(0, -44) - from).normalized() * 420.0
 	shot.damage = SHOT_DAMAGE
 	run.world.add_child(shot)
 	Audio.play("shoot", -8.0, 0.1)

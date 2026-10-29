@@ -198,7 +198,7 @@ func start_bounce(damage: float, chain: int, ignore: Array = []) -> void:
 
 func _touch_player() -> void:
 	var player: Node2D = run.player
-	if global_position.distance_to(player.global_position + Vector2(0, -36)) < radius + 26.0:
+	if global_position.distance_to(player.global_position + Vector2(0, -28)) < radius + 22.0:
 		player.take_damage(contact_damage)
 
 

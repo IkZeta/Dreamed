@@ -49,7 +49,7 @@ func charge_bars() -> Array:
 
 ## El anillo sale junto a la almohada (mano izquierda) / The ring sits by the pillow (left hand)
 func charge_anchor() -> Vector2:
-	return Vector2(-38.0 * player._facing, -68.0)
+	return Vector2(-32.0 * player._facing, -50.0)
 
 
 func attack() -> bool:

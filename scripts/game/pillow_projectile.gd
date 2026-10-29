@@ -31,7 +31,7 @@ func _physics_process(delta: float) -> void:
 		if not _returning:
 			_next_target()
 		if _returning:
-			goal = player.global_position + Vector2(0, -62)
+			goal = player.global_position + Vector2(0, -44)
 			if global_position.distance_to(goal) < 30.0:
 				queue_free()
 				return
@@ -72,12 +72,5 @@ func _next_target() -> void:
 
 func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, _spin, Vector2(0.6, 0.6))
-	var pts := PackedVector2Array()
-	for i in 32:
-		var a := TAU * i / 32.0
-		var c := Vector2(cos(a), sin(a))
-		pts.append(Vector2(signf(c.x) * pow(absf(c.x), 0.6) * 36.0, signf(c.y) * pow(absf(c.y), 0.6) * 26.0))
-	draw_colored_polygon(pts, Color("f3effc"))
-	draw_polyline(pts + PackedVector2Array([pts[0]]), Color("cfc6ee"), 2.0, true)
-	DreamBackground.draw_star(self, Vector2.ZERO, 4.0, Color(UITheme.GOLD, 0.9))
+	Sprites.draw(self, "weapon_pillow")
 	draw_set_transform(Vector2.ZERO)

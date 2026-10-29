@@ -3,7 +3,7 @@ extends Node2D
 ## Kroker en la partida: se mueve y su arma ataca sola (estilo Brotato).
 ## Kroker in game: moves around while his weapon attacks on its own (Brotato style).
 
-const ART_SCALE := 0.55
+const ART_SCALE := 0.5
 const HIT_INVULN := 0.8
 
 var run: Node  # Run
@@ -73,7 +73,7 @@ func heal(amount: float) -> void:
 	# Sin llenar la pantalla de números / Without flooding the screen with numbers
 	if _heal_text <= 0.0:
 		_heal_text = 0.6
-		run.fx.text(global_position + Vector2(0, -120), "+%s" % str(snappedf(amount, 0.1)).trim_suffix(".0"), Color("9be38a"), 20)
+		run.fx.text(global_position + Vector2(0, -96), "+%s" % str(snappedf(amount, 0.1)).trim_suffix(".0"), Color("9be38a"), 20)
 
 
 func _physics_process(delta: float) -> void:
@@ -139,7 +139,7 @@ func take_damage(amount: float) -> void:
 	_invuln = HIT_INVULN
 	_flash = 1.0
 	hurt_lean = -0.18
-	run.fx.text(global_position + Vector2(0, -110), "-%d" % roundi(dmg), UITheme.EMBER, 26)
+	run.fx.text(global_position + Vector2(0, -88), "-%d" % roundi(dmg), UITheme.EMBER, 26)
 	run.on_player_hit(dmg)
 	if hp <= 0.0:
 		alive = false
