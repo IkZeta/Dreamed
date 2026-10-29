@@ -126,3 +126,16 @@ func _draw() -> void:
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
 		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean})
+	if alive and run.running and weapon:
+		_draw_charge_bars(weapon.charge_bars())
+
+
+## Barras de carga bajo los pies / Charge bars under the feet
+func _draw_charge_bars(bars: Array) -> void:
+	var w := 64.0
+	for i in bars.size():
+		var k: float = bars[i][0]
+		var col: Color = bars[i][1]
+		var r := Rect2(-w / 2.0, 12.0 + i * 9.0, w, 5.0)
+		draw_rect(r.grow(1.5), Color(0.05, 0.03, 0.18, 0.55))
+		draw_rect(Rect2(r.position, Vector2(w * k, r.size.y)), Color(col, 0.95 if k >= 1.0 else 0.6))

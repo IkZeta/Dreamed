@@ -21,7 +21,7 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	cooldown = 1.1 * (1.0 - uv("stolk", "pct") / 100.0)
+	cooldown = 1.1 * (1.0 - uv("stolk", "pct") / 100.0) * (1.0 + uv("doc", "pct") / 100.0)
 
 
 func attack() -> bool:

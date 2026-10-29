@@ -152,7 +152,7 @@ func _choose(giver: String) -> void:
 
 ## Personaje sobre una roca flotante / A character standing on a floating rock
 class GiverFigure extends Control:
-	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff")}
+	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3")}
 	var who := "svinho"
 	var highlight := false
 	var _t := 0.0

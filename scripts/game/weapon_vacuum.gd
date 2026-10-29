@@ -84,6 +84,14 @@ func _spit(e: Node2D) -> void:
 	Audio.play("kick", -3.0, 0.1)
 
 
+## La aspiradora no tiene recarga; solo se muestra la del chut de Svinho
+## The vacuum has no cooldown; only Svinho's volley shows a bar
+func charge_bars() -> Array:
+	if lv("svinho") <= 0:
+		return []
+	return [[1.0 - clampf(_spit_cd / maxf(uv("svinho", "cd"), 0.01), 0.0, 1.0), UITheme.GOLD]]
+
+
 func _nozzle_base() -> Vector2:
 	return player.global_position + Vector2(0, -62)
 

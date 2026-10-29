@@ -52,7 +52,7 @@ const BOSS_DEPTH := 5
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
-const GIVERS: Array[String] = ["svinho", "stolk", "silly"]
+const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc"]
 const MAX_UPGRADE_LEVEL := 3
 const STOLK_HP_COST := 5.0   # vida máxima que cuesta cada nivel de Stolk / max health each Stolk level costs
 
@@ -124,6 +124,14 @@ const UPGRADE_VALUES := {
 		"book": {"pct": [8, 16, 25]},                     # −recarga / −cooldown
 		"vacuum": {"pct": [10, 20, 35]},                  # +alcance, fuerza y daño / +reach, pull and damage
 	},
+	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
+	## Doc: more max health in exchange for weakening another weapon stat
+	"doc": {
+		"bat": {"hp": [5, 8, 12], "pct": [8, 12, 16]},       # −daño / −damage
+		"shield": {"hp": [5, 8, 12], "pct": [10, 15, 20]},   # −empuje / −shove
+		"book": {"hp": [5, 8, 12], "pct": [8, 12, 16]},      # +recarga / +cooldown
+		"vacuum": {"hp": [5, 8, 12], "pct": [6, 9, 12]},     # −velocidad / −speed
+	},
 	"silly": {
 		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
 		"shield": {"chance": [30, 50, 75], "secs": [0.8, 1.4, 2.0]},  # cámara lenta / slow motion
@@ -169,6 +177,10 @@ func stats_for(id: String) -> Dictionary:
 		s[k] = float(s[k]) + float(bonus[k])
 	# Stolk: cada nivel quita vida máxima / Stolk: each level costs max health
 	s["max_hp"] = maxf(5.0, float(s["max_hp"]) - STOLK_HP_COST * level("stolk"))
+	# Doc: suma vida máxima; con la aspiradora cuesta velocidad / Doc: adds max health; with the vacuum it costs speed
+	s["max_hp"] = float(s["max_hp"]) + up_value("doc", "hp", -1, id)
+	if id == "vacuum":
+		s["speed"] = float(s["speed"]) * (1.0 - up_value("doc", "pct", -1, id) / 100.0)
 	return s
 
 

@@ -93,10 +93,9 @@ func _ready() -> void:
 
 func start(depth: int) -> void:
 	_depth = depth
-	var keys := ["RUN_WAVE1_INTRO", "RUN_INTRO_2", "RUN_INTRO_3", "RUN_INTRO_4", "RUN_INTRO_5"]
-	_intro_sub.text = keys[depth - 1] if depth <= keys.size() else "RUN_INTRO_DEEP"
-	var new_kind: String = GameState.wave_for(depth).get("new", "")
-	_intro_new.text = ("NEW_ENEMY_" + new_kind) if new_kind != "" else ""
+	# Solo el título del sueño, sin subtítulos / Only the dream title, no subtitles
+	_intro_sub.visible = false
+	_intro_new.visible = false
 	_timer.visible = not GameState.wave_for(depth).get("boss", false)
 	_refresh_texts()
 	_intro.modulate.a = 0.0

@@ -21,6 +21,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float) -> void
 		"svinho": _svinho(t)
 		"stolk": _stolk(t)
 		"silly": _silly(t)
+		"doc": _doc(t)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -143,6 +144,58 @@ static func _silly(t: float) -> void:
 	_ci.draw_arc(Vector2(100, 96), 18, 0.2, PI - 0.2, 16, Color("5ff2ff"), 4.0, true)
 	_ci.draw_circle(Vector2(82, 98), 7, Color("3c4170"))
 	_ci.draw_circle(Vector2(118, 98), 7, Color("3c4170"))
+
+
+# --- Doc: el doctor / The doctor ---------------------------------------------
+
+static func _doc(t: float) -> void:
+	var skin := Color("e8c4a8")
+	var shade := Color("c2a092")
+	var coat := Color("f2f0f8")
+	var coat_shade := Color("cfcbe2")
+	# Pantalón y zapatos / Trousers and shoes
+	for x in [80.0, 104.0]:
+		_shape(_rect(Rect2(x, 196, 18, 80)), Color("4a4f7a"))
+		_ci.draw_colored_polygon(_ellipse(Vector2(x + 9, 282), Vector2(14, 6)), Color("2a2238"))
+	# Bata larga abierta / Long open lab coat
+	var coat_pts := PackedVector2Array([Vector2(80, 94), Vector2(120, 94), Vector2(142, 106), Vector2(146, 236), Vector2(54, 236), Vector2(58, 106)])
+	_shape(coat_pts, coat)
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(116, 96), Vector2(142, 106), Vector2(146, 236), Vector2(118, 236)]), Color(coat_shade, 0.7))
+	# Camisa y corbata / Shirt and tie
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(88, 96), Vector2(112, 96), Vector2(106, 200), Vector2(94, 200)]), Color("9fc1e8"))
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(97, 100), Vector2(103, 100), Vector2(105, 150), Vector2(100, 158), Vector2(95, 150)]), Color("c95f6f"))
+	_ci.draw_line(Vector2(88, 96), Vector2(94, 200), Color(coat_shade), 2.0)
+	_ci.draw_line(Vector2(112, 96), Vector2(106, 200), Color(coat_shade), 2.0)
+	# Bolsillo con bolígrafos / Pocket with pens
+	_ci.draw_rect(Rect2(118, 128, 16, 14), Color(coat_shade), false, 1.5)
+	_ci.draw_line(Vector2(122, 128), Vector2(122, 118), Color("5b67c4"), 2.5)
+	_ci.draw_line(Vector2(127, 128), Vector2(127, 120), Color("c95f6f"), 2.5)
+	# Brazos y una tablilla / Arms and a clipboard
+	_shape(PackedVector2Array([Vector2(58, 106), Vector2(72, 110), Vector2(74, 176), Vector2(60, 176)]), coat)
+	_shape(PackedVector2Array([Vector2(142, 106), Vector2(128, 110), Vector2(126, 176), Vector2(140, 176)]), Color(coat_shade))
+	_ci.draw_rect(Rect2(52, 150, 34, 44), Color("b98a5a"))
+	_ci.draw_rect(Rect2(56, 156, 26, 34), Color("f7f3ea"))
+	for y in [162.0, 170.0, 178.0]:
+		_ci.draw_line(Vector2(59, y), Vector2(78, y), Color(0.3, 0.3, 0.5, 0.4), 1.0)
+	_ci.draw_rect(Rect2(62, 147, 14, 5), Color("8f8fb8"))
+	_ci.draw_circle(Vector2(67, 182), 7, skin)
+	_ci.draw_circle(Vector2(133, 180), 7, shade)
+	# Fonendo al cuello / Stethoscope round the neck
+	_ci.draw_arc(Vector2(100, 104), 16, 0.3, PI - 0.3, 16, Color("3c4170"), 3.0, true)
+	_ci.draw_line(Vector2(114, 110), Vector2(118, 150), Color("3c4170"), 3.0)
+	_ci.draw_circle(Vector2(118, 154), 6, Color("8f8fb8"))
+	# Cabeza: calvo con pelo gris a los lados y bigote / Head: bald with grey sides and a moustache
+	_ci.draw_rect(Rect2(93, 82, 14, 16), shade)
+	_shape(_ellipse(Vector2(100, 60), Vector2(23, 27)), skin)
+	_ci.draw_colored_polygon(_ellipse(Vector2(78, 62), Vector2(5, 12)), Color("c9c6d6"))
+	_ci.draw_colored_polygon(_ellipse(Vector2(122, 62), Vector2(5, 12)), Color("c9c6d6"))
+	_face(skin, Color("2a2238"), 1)
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(90, 72), Vector2(100, 69), Vector2(110, 72), Vector2(106, 76), Vector2(100, 74), Vector2(94, 76)]), Color("c9c6d6"))
+	# Espejo frontal que brilla / Glowing head mirror
+	_ci.draw_line(Vector2(80, 44), Vector2(120, 44), Color("3c4170"), 2.5)
+	var glint := 0.6 + 0.4 * sin(t * 2.0)
+	_ci.draw_circle(Vector2(100, 40), 8, Color("dfe6ff"))
+	_ci.draw_circle(Vector2(100, 40), 4, Color(1, 1, 1, glint))
 
 
 # --- Utilidades / Helpers -----------------------------------------------------

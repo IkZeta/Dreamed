@@ -57,6 +57,16 @@ func _act(delta: float) -> void:
 		_fire()
 
 
+func _draw() -> void:
+	super._draw()
+	if state == State.ALIVE:
+		# Barra de recarga del tirachinas / Slingshot reload bar
+		var k := 1.0 - clampf(_shot_t / SHOT_EVERY, 0.0, 1.0)
+		var r := Rect2(-24, -aim_height * 2.4 - 8, 48, 4)
+		draw_rect(r.grow(1.0), Color(0.05, 0.03, 0.18, 0.55 * _fade))
+		draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(UITheme.EMBER, 0.8 * _fade))
+
+
 func _fire() -> void:
 	var from := global_position + Vector2(18 * _facing, -60)
 	var shot := EnemyShot.new()

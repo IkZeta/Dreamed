@@ -22,7 +22,7 @@ func attack() -> bool:
 	if target == null:
 		return false
 	var dir := (_body(target) - origin()).normalized()
-	var damage := DAMAGE * (1.0 + uv("stolk", "pct") / 100.0)
+	var damage := DAMAGE * (1.0 + uv("stolk", "pct") / 100.0) * (1.0 - uv("doc", "pct") / 100.0)
 	var knock := KNOCKBACK
 	if lv("svinho") > 0:
 		knock = 380.0 + 60.0 * lv("svinho")

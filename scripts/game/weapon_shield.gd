@@ -40,6 +40,13 @@ func toggle_mode() -> void:
 	Audio.play("chime", -8.0)
 
 
+func charge_bars() -> Array:
+	var bars := super.charge_bars()
+	if throw_mode:
+		bars[0][1] = UITheme.GOLD
+	return bars
+
+
 func attack() -> bool:
 	if throw_mode:
 		return _throw()
@@ -48,7 +55,7 @@ func attack() -> bool:
 		return false
 	var dir := (_body(target) - origin()).normalized()
 	var damage := DAMAGE * (1.0 + uv("stolk", "pct") / 100.0)
-	var knock := KNOCKBACK * (1.0 + uv("stolk", "push") / 100.0)
+	var knock := KNOCKBACK * (1.0 + uv("stolk", "push") / 100.0) * (1.0 - uv("doc", "pct") / 100.0)
 	for e: Node2D in run.enemies.get_children():
 		if not e.is_targetable():
 			continue

@@ -17,6 +17,12 @@ func _physics_process(delta: float) -> void:
 		_timer = cooldown
 
 
+## Barras de carga que se dibujan bajo Kroker: [[fracción 0..1, color], ...]
+## Charge bars drawn under Kroker: [[fraction 0..1, colour], ...]
+func charge_bars() -> Array:
+	return [[1.0 - clampf(_timer / maxf(cooldown, 0.01), 0.0, 1.0), UITheme.BONE]]
+
+
 ## Devuelve true si atacó. / Returns true if it attacked.
 func attack() -> bool:
 	return false

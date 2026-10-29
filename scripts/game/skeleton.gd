@@ -6,7 +6,7 @@ extends Enemy
 ## pile of bones that gets back up unless you finish it off in time.
 
 const REVIVE_TIME := 4.0
-const PILE_HP := 8.0
+const PILE_HP := 3.0
 const BONE := Color("e8e2d4")
 const BONE_SHADE := Color("b9b0a0")
 const EYES := Color("7ff2e0")
@@ -17,7 +17,7 @@ var _rise := 1.0   # 0 = montón, 1 = de pie / 0 = pile, 1 = standing
 
 
 func _init() -> void:
-	max_hp = 12.0
+	max_hp = 6.0
 	hp = max_hp
 	contact_damage = 6.0
 	radius = 20.0
