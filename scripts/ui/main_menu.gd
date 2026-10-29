@@ -5,10 +5,12 @@ const SETTINGS_SCENE := preload("res://scenes/settings_menu.tscn")
 const CHARACTER_SELECT := "res://scenes/character_select.tscn"
 
 const BESTIARY_SCENE := preload("res://scripts/ui/bestiary.gd")
+const ACHIEVEMENTS_SCENE := preload("res://scripts/ui/achievements.gd")
 
 var _play: Button
 var _settings: Button
 var _bestiary: Button
+var _achievements: Button
 var _quitting := false
 
 
@@ -65,10 +67,11 @@ func _build() -> void:
 
 	_play = _entry(col, "MENU_PLAY", _on_play)
 	_bestiary = _entry(col, "MENU_BESTIARY", _on_bestiary)
+	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	_entry(col, "MENU_QUIT", _on_quit)
 
-	var version := UITheme.label("V 1.2", 16, Color(UITheme.ASH, 0.6), "caps")
+	var version := UITheme.label("V 1.3", 16, Color(UITheme.ASH, 0.6), "caps")
 	version.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	add_child(version)
 	version.set_anchors_and_offsets_preset(PRESET_BOTTOM_LEFT, PRESET_MODE_MINSIZE, 40)
@@ -115,6 +118,12 @@ func _on_bestiary() -> void:
 	var b := BESTIARY_SCENE.new()
 	add_child(b)
 	b.closed.connect(func() -> void: _bestiary.grab_focus())
+
+
+func _on_achievements() -> void:
+	var a := ACHIEVEMENTS_SCENE.new()
+	add_child(a)
+	a.closed.connect(func() -> void: _achievements.grab_focus())
 
 
 func _on_settings() -> void:

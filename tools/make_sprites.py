@@ -1013,6 +1013,45 @@ def pickups():
     add("pickup_clock", -18, -38, 36, 44, b)
 
 
+# --- Dibujos infantiles de los logros / Children's drawings for achievements ---------
+# Hoja de papel algo torcida con trazos de cera; van pegados en la pared de la habitación.
+# A slightly crooked sheet of paper with crayon strokes; they're taped to the bedroom wall.
+
+DRAWING_SLOTS = {
+    "foox": (78, 150, -4),       # encima de los cubos / above the blocks
+    "bed": (256, 108, 3),        # encima de la cama / above the bed
+    "moon": (472, 176, -3),      # junto a la mesilla / by the nightstand
+    "golden": (1834, 150, 4),    # esquina derecha / right corner
+    "star": (1446, 132, -5),     # entre la estantería y el póster / between shelf and poster
+}
+
+
+def crayon(d, color, w=4.0):
+    return ("<path d='%s' fill='none' stroke='%s' stroke-width='%g' stroke-linecap='round' stroke-linejoin='round' opacity='0.95'/>" % (d, color, w))
+
+
+def drawings():
+    pics = {
+        "foox": crayon("M-20,6 Q-6,-6 12,-2 L16,-12 L19,-3 L24,-12 L25,0 Q32,4 26,8 Q8,14 -20,6 Z", "#8fb3e8", 3.4)
+        + crayon("M-20,6 Q-30,2 -32,-6", "#8fb3e8", 3.4) + "<circle cx='20' cy='2' r='2' fill='#2b2945'/>",
+        "bed": crayon("M-26,12 L-26,-12 L26,-12 L26,12", "#5b67c4", 3.4) + crayon("M-26,0 L26,0", "#5b67c4", 3.4)
+        + "<circle cx='-8' cy='-5' r='3' fill='#e85d75'/><circle cx='8' cy='-5' r='3' fill='#e85d75'/>"
+        + crayon("M-26,12 L-30,18 M26,12 L30,18 M-10,12 L-12,18 M10,12 L12,18", "#4a4f86", 3),
+        "moon": crayon("M6,-18 A18,18 0 1 0 6,18 A12,14 0 1 1 6,-18 Z", "#8a6ff0", 3.4)
+        + "<path d='%s' fill='#e85d75'/>" % star_d(18, -10, 4) + "<path d='%s' fill='#f6c86a'/>" % star_d(20, 10, 3),
+        "golden": crayon("M-20,6 Q-6,-6 12,-2 L16,-12 L19,-3 L24,-12 L25,0 Q32,4 26,8 Q8,14 -20,6 Z", "#f0b93a", 3.6)
+        + "<path d='%s' fill='#f6d993'/>" % star_d(-24, -12, 5) + "<path d='%s' fill='#f6d993'/>" % star_d(30, -14, 4),
+        "star": "<path d='%s' fill='none' stroke='#f0b93a' stroke-width='3.6' stroke-linejoin='round'/>" % star_d(0, 0, 20)
+        + crayon("M-28,-18 L-22,-12 M28,18 L22,12 M-28,18 L-22,13", "#e3a6c4", 3),
+    }
+    for name, pic in pics.items():
+        x, y, rot = DRAWING_SLOTS[name]
+        paper = shaded(rect_d(-38, -30, 76, 60), "#f7f3ea", shade=0.2, rim=0.2, sw=1)
+        tape = "<rect x='-12' y='-34' width='24' height='8' fill='#ffffff' opacity='0.6'/>"
+        b = "<g transform='translate(%g,%g) rotate(%g)'>%s%s%s</g>" % (x, y, rot, paper, pic, tape)
+        room_add("room_draw_" + name, x - 46, y - 40, 92, 80, b, colors=12)
+
+
 # --- Render ---------------------------------------------------------------------
 
 def build():
@@ -1029,6 +1068,7 @@ def build():
     shots()
     npcs()
     room()
+    drawings()
     pickups()
     thug()
     sling()

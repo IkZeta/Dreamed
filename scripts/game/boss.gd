@@ -136,6 +136,7 @@ func die(counted: bool) -> void:
 	run.drop_shards(global_position, roundi(12 * GameState.shard_mult()))
 	Progress.kill(bestiary_id)
 	GameState.run_kills += 1
+	Progress.add_stat("kills")
 	Audio.play("crack", -1.0)
 	Audio.play("stomp", -4.0)
 	run.shake(14.0)

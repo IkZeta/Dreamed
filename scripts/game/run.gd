@@ -491,8 +491,12 @@ func on_enemy_killed(e: Node) -> void:
 	GameState.run_kills += 1
 	Progress.kill(e.get("bestiary_id"))
 	var elite: bool = e.get("elite")
+	Progress.add_stat("kills")
 	if elite:
 		Progress.kill("elite")
+		Progress.add_stat("elites")
+	if e.get("bestiary_id") == "golden_foox":
+		Progress.add_stat("golden")
 	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult()))
 	# Los objetos solo salen de los enemigos y es raro; la suerte los hace más probables
 	# Items only drop from enemies and rarely; luck makes them likelier
@@ -625,6 +629,7 @@ func _resolve_level_ups(then: Callable) -> void:
 
 
 func on_player_hit(_dmg: float) -> void:
+	GameState.run_hits += 1
 	Audio.play("hurt", -2.0, 0.08)
 	hud.set_hp(player.hp, player.max_hp)
 	shake(10.0)
@@ -719,6 +724,7 @@ func _show_victory() -> void:
 
 
 func _on_wave_cleared() -> void:
+	Progress.add_stat("dreams")
 	running = false
 	GameState.saved_hp = player.hp
 	Progress.save_progress()
@@ -762,6 +768,9 @@ func _on_act_cleared() -> void:
 		if not e is BossPiece:
 			e.die(false)
 	Progress.clear_act(GameState.selected_character, GameState.difficulty)
+	# Sin un rasguño (no vale con la invulnerabilidad del modo Dios) / Not a scratch (god mode invulnerability doesn't count)
+	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
+		Progress.flag("no_hit")
 	GameState.dream_depth = 1
 	get_tree().create_timer(1.6, false).timeout.connect(_wake_scene.bind(true))
 

@@ -93,6 +93,7 @@ var difficulty := "normal"
 ## Estadísticas de la partida para la pantalla final / Run stats for the end screen
 var run_time := 0.0
 var run_kills := 0
+var run_hits := 0
 ## Vida con la que acabó el último sueño (−1 = empezar con la vida llena)
 ## Health at the end of the last dream (−1 = start at full health)
 var saved_hp := -1.0
@@ -128,6 +129,7 @@ func reset_run() -> void:
 	saved_hp = -1.0
 	run_time = 0.0
 	run_kills = 0
+	run_hits = 0
 	stat_bonus = {}
 	_rng.randomize()
 
@@ -179,6 +181,8 @@ func add_xp(n: int) -> int:
 		xp -= xp_needed()
 		plevel += 1
 		ups += 1
+	if ups > 0:
+		Progress.best_stat("best_level", plevel)
 	return ups
 
 
@@ -234,6 +238,8 @@ func level(giver: String) -> int:
 func add_upgrade(giver: String) -> void:
 	var hp_before := up_value("doc", "hp")
 	upgrades[giver] = mini(MAX_UPGRADE_LEVEL, level(giver) + 1)
+	if level(giver) >= MAX_UPGRADE_LEVEL:
+		Progress.flag("max_gift")
 	# La vida máxima que da Doc llega llena / The max health Doc gives arrives full
 	if giver == "doc" and saved_hp >= 0.0:
 		saved_hp += up_value("doc", "hp") - hp_before

@@ -471,6 +471,11 @@ func _draw_wall_decor() -> void:
 	# Dibujo infantil y póster del sistema solar / Child's drawing and solar system poster
 	Sprites.draw(self, "room_drawing")
 	Sprites.draw(self, "room_poster")
+	# Cuaderno de dibujos: uno nuevo en la pared por cada logro con dibujo
+	# Drawing book: a new one on the wall for each achievement with a drawing
+	for ach: Dictionary in Progress.ACHIEVEMENTS:
+		if ach.has("drawing") and Progress.has_achieved(ach["id"]):
+			Sprites.draw(self, "room_draw_" + String(ach["drawing"]))
 
 
 func _stick_figure(p: Vector2) -> void:
