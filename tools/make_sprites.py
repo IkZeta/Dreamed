@@ -1277,22 +1277,19 @@ def charo_body(small):
         b += shaded("M%g,240 L%g,240 L%g,278 L%g,278 Z" % (x, x + 14, x + 14, x), "#d9b8a8", shade=0.35, rim=0.3)
         b += shaded(ellipse_d(x + 7, 282, 12, 6), "#5a3a2e", shade=0.3, rim=0.4)
     # Falda / Skirt
-    b += shaded("M48,184 L152,184 Q172,214 160,250 L40,250 Q28,214 48,184 Z", "#6a3a6e", shade=0.45, rim=0.35)
+    b += shaded("M58,186 L142,186 L152,248 L48,248 Z", "#6a3a6e", shade=0.45, rim=0.35)
     # Vestido de flores y barriguita / Floral dress and round tummy
-    dots = "".join("<circle cx='%g' cy='%g' r='2.6' fill='#fbe8f0'/>" % (60 + (k * 17) % 80, 120 + (k * 23) % 76) for k in range(18))
-    b += shaded("M78,102 L122,102 Q168,108 170,140 Q170,164 150,176 Q164,198 146,214 L54,214 Q36,198 50,176 Q30,164 30,140 Q32,108 78,102 Z", "#d98aa6", shade=0.5, rim=0.4, extra=dots)
-    # Pecho generoso: curva y sombra bajo el busto / Ample bosom: curve and shade under the bust
-    b += "<path d='M44,146 Q70,166 100,150 Q130,166 156,146' fill='none' stroke='#a85a7a' stroke-width='3' opacity='0.7'/>"
-    b += "<path d='M50,124 Q74,112 96,128 M104,128 Q126,112 150,124' fill='none' stroke='#f2b8cc' stroke-width='2.4' opacity='0.8'/>"
+    dots = "".join("<circle cx='%g' cy='%g' r='2.6' fill='#fbe8f0'/>" % (70 + (k * 17) % 62, 120 + (k * 23) % 70) for k in range(14))
+    b += shaded("M80,104 L120,104 Q162,126 162,172 Q162,204 136,206 L64,206 Q38,204 38,172 Q38,126 80,104 Z", "#d98aa6", shade=0.5, rim=0.4, extra=dots)
     # Delantal del kiosco con bolsillo / Kiosk apron with a pocket
-    b += shaded("M64,154 L136,154 L144,238 L56,238 Z", "#4fa89a", shade=0.4, rim=0.4,
+    b += shaded("M68,150 L132,150 L138,234 L62,234 Z", "#4fa89a", shade=0.4, rim=0.4,
                 extra="<rect x='84' y='190' width='32' height='18' fill='#3f8a7e'/><path d='M72,150 Q100,140 128,150' fill='none' stroke='#f4ecdc' stroke-width='2'/>")
     # Rebeca abierta / Open cardigan
-    b += shaded("M78,100 L90,104 L86,206 L60,206 Q52,160 58,110 Z", "#7a6ab8", shade=0.45, rim=0.4)
-    b += shaded("M122,100 L110,104 L114,206 L140,206 Q148,160 142,110 Z", "#6a5aa8", shade=0.45, rim=0.3)
+    b += shaded("M78,102 L92,104 L82,204 L50,202 Q36,152 54,116 Z", "#7a6ab8", shade=0.45, rim=0.4)
+    b += shaded("M122,102 L108,104 L118,204 L150,202 Q164,152 146,116 Z", "#6a5aa8", shade=0.45, rim=0.3)
     # Brazos regordetes con las manos juntas / Chubby arms with hands clasped
-    b += shaded("M40,122 L54,112 L86,172 L70,184 Z", "#7a6ab8", shade=0.4, rim=0.4)
-    b += shaded("M160,122 L146,112 L114,172 L130,184 Z", "#6a5aa8", shade=0.4, rim=0.3)
+    b += shaded("M50,118 L66,112 L84,166 L68,176 Z", "#7a6ab8", shade=0.4, rim=0.4)
+    b += shaded("M150,118 L134,112 L116,166 L132,176 Z", "#6a5aa8", shade=0.4, rim=0.3)
     b += shaded(ellipse_d(92, 170, 10, 9), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(108, 170, 10, 9), shade_c, shade=0.3, rim=0.2, sw=0.8)
     # Cuello y cabeza / Neck and head
     b += shaded("M92,94 L108,94 L108,108 L92,108 Z", shade_c, shade=0.3, rim=0.1, outline=False)
@@ -1309,9 +1306,9 @@ def charo_body(small):
     b += "<path d='M99,80 L101,80' stroke='#7a2e4a' stroke-width='2.4'/>"
     b += "<path d='M83,82 Q76,100 88,106 M117,82 Q124,100 112,106' fill='none' stroke='#e0b860' stroke-width='1.2'/>"
     if small:
-        add("charo_small", 18, 34, 164, 258, b, px=PX_KROKER, colors=24, post=charo_face_small)
+        add("charo_small", 30, 34, 140, 258, b, px=PX_KROKER, colors=24, post=charo_face_small)
     else:
-        add("npc_charo", 18, 34, 164, 258, b, px=PX_NPC, colors=32, post=npc_face(80, "#3a2a30", 1))
+        add("npc_charo", 30, 34, 140, 258, b, px=PX_NPC, colors=32, post=npc_face(80, "#3a2a30", 1))
 
 
 def charo_face_small(img, to_px):
