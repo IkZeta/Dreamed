@@ -9,7 +9,9 @@ signal closed
 var _list: VBoxContainer
 var _preview_holder: Control
 var _name: Label
-var _desc: Label
+var _desc: RichTextLabel
+var _buttons := {}
+var _current := ""
 var _count: Label
 var _first: Button
 
@@ -51,9 +53,16 @@ func _ready() -> void:
 	_name = UITheme.label("", 48, UITheme.GOLD, "display")
 	_name.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	info.add_child(_name)
-	_desc = UITheme.label("", 24, UITheme.BONE, "body")
+	# Texto con colores (la entrada del élite explica cada color) / Coloured text (the elite entry explains each colour)
+	_desc = RichTextLabel.new()
+	_desc.bbcode_enabled = true
+	_desc.fit_content = true
+	_desc.scroll_active = false
 	_desc.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
-	_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_desc.add_theme_font_override("normal_font", UITheme.font("body"))
+	_desc.add_theme_font_size_override("normal_font_size", UITheme.pixel_size(24))
+	_desc.add_theme_color_override("default_color", UITheme.BONE)
+	_desc.add_theme_constant_override("line_separation", 6)
 	info.add_child(_desc)
 	_count = UITheme.label("", 24, UITheme.ASH, "caps")
 	_count.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
@@ -68,11 +77,18 @@ func _ready() -> void:
 		b.focus_entered.connect(_show.bind(id))
 		b.mouse_entered.connect(b.grab_focus)
 		_list.add_child(b)
+		_buttons[id] = b
 		if _first == null:
 			_first = b
 	var gap := Control.new()
 	gap.size_flags_vertical = SIZE_EXPAND_FILL
 	_list.add_child(gap)
+	# Desbloquear todo (para probar) / Unlock everything (for testing)
+	var unlock := Button.new()
+	unlock.text = "BESTIARY_UNLOCK_ALL"
+	unlock.custom_minimum_size = Vector2(0, 56)
+	unlock.pressed.connect(_unlock_all)
+	_list.add_child(unlock)
 	var back := Button.new()
 	back.text = "BTN_BACK"
 	back.custom_minimum_size = Vector2(0, 64)
@@ -89,7 +105,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close()
 
 
+func _unlock_all() -> void:
+	for id in Progress.BESTIARY:
+		if not Progress.has_seen(id):
+			Progress.kills[id] = 0
+	Progress.save_progress()
+	Audio.play("chime", -4.0)
+	for id: String in _buttons:
+		_buttons[id].text = tr("BEST_%s_NAME" % id.to_upper())
+	if _current != "":
+		_show(_current)
+
+
 func _show(id: String) -> void:
+	_current = id
 	for c in _preview_holder.get_children():
 		c.queue_free()
 	var seen := Progress.has_seen(id)
@@ -100,7 +129,12 @@ func _show(id: String) -> void:
 	_preview_holder.add_child(px)
 	px.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_name.text = tr("BEST_%s_NAME" % id.to_upper()) if seen else "???"
-	_desc.text = tr("BEST_%s_DESC" % id.to_upper()) if seen else tr("BESTIARY_UNSEEN")
+	var text := tr("BEST_%s_DESC" % id.to_upper()) if seen else tr("BESTIARY_UNSEEN")
+	if seen and id == "elite":
+		# Una línea por color con lo que hace / One line per colour with what it does
+		for power in ["split", "puddle", "haste"]:
+			text += "\n[color=#%s]■ %s[/color]" % [Enemy.ELITE_COLORS[power].to_html(false), tr("BEST_ELITE_" + power.to_upper())]
+	_desc.text = text
 	_count.text = (tr("BESTIARY_DEFEATED") % int(Progress.kills.get(id, 0))) if seen else ""
 
 
@@ -113,6 +147,7 @@ func _close() -> void:
 class BestiaryPreview extends Control:
 	var id := "foox"
 	var hidden_shape := false
+	var power := "split"
 	var _enemy: Node2D
 	var _t := 0.0
 
@@ -129,7 +164,7 @@ class BestiaryPreview extends Control:
 			_: e = Foox.new()
 		if id == "elite":
 			e.elite = true
-			e.elite_power = "split"
+			e.elite_power = power
 		e.preview = true
 		e.state = Enemy.State.ALIVE
 		e._fade = 1.0
@@ -142,6 +177,15 @@ class BestiaryPreview extends Control:
 
 	func _process(delta: float) -> void:
 		_t += delta
+		# El élite va cambiando de color cada 2 s / The elite changes colour every 2 s
+		if id == "elite" and _enemy and _t > 2.0:
+			_t = 0.0
+			var powers := ["split", "puddle", "haste"]
+			power = powers[(powers.find(power) + 1) % 3]
+			_enemy.queue_free()
+			_enemy = null
+			_ready()
+			return
 		if _enemy:
 			_enemy.set("_t", _t)
 			_enemy.position = Vector2(size.x / 2.0, size.y * 0.82)
