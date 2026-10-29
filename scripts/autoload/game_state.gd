@@ -87,6 +87,12 @@ var xp := 0
 var plevel := 1
 ## Subidas de nivel aún sin elegir / Level-ups not yet chosen
 var pending_ups := 0
+## Dificultad: "normal" o "nightmare" (pesadilla, se desbloquea al superar el Acto 1)
+## Difficulty: "normal" or "nightmare" (unlocked by clearing Act 1)
+var difficulty := "normal"
+## Estadísticas de la partida para la pantalla final / Run stats for the end screen
+var run_time := 0.0
+var run_kills := 0
 ## Vida con la que acabó el último sueño (−1 = empezar con la vida llena)
 ## Health at the end of the last dream (−1 = start at full health)
 var saved_hp := -1.0
@@ -120,6 +126,8 @@ func reset_run() -> void:
 	plevel = 1
 	pending_ups = 0
 	saved_hp = -1.0
+	run_time = 0.0
+	run_kills = 0
 	stat_bonus = {}
 	_rng.randomize()
 
@@ -137,6 +145,19 @@ const BASE_LEVEL_STATS := {
 ## Entre un sueño y otro solo se recupera un 5 % de la vida máxima
 ## Between one dream and the next only 5% of max health comes back
 const HEAL_BETWEEN_DREAMS := 0.05
+
+
+## Multiplicadores de la pesadilla / Nightmare multipliers
+func enemy_hp_mult() -> float:
+	return 1.6 if difficulty == "nightmare" else 1.0
+
+
+func enemy_dmg_mult() -> float:
+	return 1.5 if difficulty == "nightmare" else 1.0
+
+
+func shard_mult() -> float:
+	return 1.5 if difficulty == "nightmare" else 1.0
 
 
 func stat(id: String) -> float:

@@ -26,6 +26,9 @@ func _ready() -> void:
 	var tw := create_tween()
 	tw.tween_property(flash, "modulate:a", 0.0, 0.9).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(flash.queue_free)
+	# Cada personaje se presenta con su propio tema / Each character introduces itself with its own motif
+	for i in _offer.size():
+		get_tree().create_timer(0.5 + i * 1.1).timeout.connect(Audio.play.bind("giver_" + _offer[i], -4.0))
 	if not _buttons.is_empty():
 		_buttons[0].grab_focus()
 
@@ -138,7 +141,8 @@ func _choose(giver: String) -> void:
 	_chosen = true
 	GameState.add_upgrade(giver)
 	GameState.dream_depth += 1
-	Audio.play("pickup")
+	Audio.play("giver_" + giver, -1.0)
+	Audio.play("pickup", -4.0)
 	Audio.play("astral", -2.0)
 	var flash := ColorRect.new()
 	flash.color = Color("f7f2ff")

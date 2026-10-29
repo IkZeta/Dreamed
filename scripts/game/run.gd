@@ -32,6 +32,12 @@ var _spawned_new := 0
 var boss: BossPiece
 var _boss_step := 0
 var _level_screen: LevelUpScreen
+## Evento de este sueño: "", "dark", "tilt" o "golden" / This dream's event
+var event := ""
+var _tilt := Vector2.ZERO
+var _tilt_t := 0.0
+var _golden_t := -1.0
+var _pickup_t := 18.0
 
 
 func _ready() -> void:
@@ -108,6 +114,7 @@ func _ready() -> void:
 	hud.set_time(_time_left)
 	if GameState.selected_character == "shield" and GameState.level("svinho") > 0:
 		hud.set_special_mode(false)
+	_roll_event(depth)
 	if depth == 1:
 		_play_wake_up(depth)
 	else:
@@ -135,6 +142,7 @@ func _drop_in(depth: int) -> void:
 	tw.tween_callback(func() -> void:
 		hud.visible = true
 		hud.start(depth)
+		hud.show_event(event)
 		running = true
 		_resolve_level_ups(Callable())
 		if _wave.get("boss", false):
@@ -235,6 +243,7 @@ func _play_wake_up(depth: int) -> void:
 	tw.tween_callback(func() -> void:
 		hud.visible = true
 		hud.start(depth)
+		hud.show_event(event)
 		running = true)
 
 
@@ -250,9 +259,17 @@ func _walk_time(a: Vector2, b: Vector2) -> float:
 
 func _physics_process(delta: float) -> void:
 	_shake = maxf(0.0, _shake - delta * 30.0)
-	_camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake if Settings.screen_shake else Vector2.ZERO
+	_camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake * Settings.shake_amount
 	if not running:
+		player.push = Vector2.ZERO
 		return
+	GameState.run_time += delta
+	_update_event(delta)
+	# Objetos que aparecen de vez en cuando / Items that show up now and then
+	_pickup_t -= delta
+	if _pickup_t <= 0.0:
+		_pickup_t = randf_range(22.0, 32.0)
+		spawn_pickup(_spawn_point())
 	if not _wave.get("boss", false):
 		_time_left -= delta
 		hud.set_time(_time_left)
@@ -361,6 +378,9 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		_: e = Foox.new()
 	e.setup(self)
 	e.position = pos
+	# Élites desde el Sueño 2 / Elites from Dream 2
+	if GameState.dream_depth >= 2 and randf() < (0.12 if GameState.difficulty == "nightmare" else 0.07):
+		e.elite = true
 	enemies.add_child(e)
 
 
@@ -428,7 +448,84 @@ func shake(amount: float) -> void:
 
 func on_enemy_killed(e: Node) -> void:
 	_kills += 1
-	drop_shards(e.global_position, int(e.get("shards")))
+	GameState.run_kills += 1
+	Progress.kill(e.get("bestiary_id"))
+	var elite: bool = e.get("elite")
+	if elite:
+		Progress.kill("elite")
+	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult()))
+	# Los élites siempre sueltan un objeto; el resto, a veces / Elites always drop an item; others sometimes
+	if elite or randf() < 0.03:
+		spawn_pickup(clamp_to_arena(e.global_position + Vector2(randf_range(-30, 30), 10), 20.0))
+	# Élite que se divide: salen dos Foox / Splitting elite: two Foox come out
+	if elite and e.get("elite_power") == "split" and running:
+		for k in 2:
+			_spawn_enemy("foox", clamp_to_arena(e.global_position + Vector2(-30 + k * 60, 0), 22.0))
+
+
+func spawn_pickup(pos: Vector2, kind := "") -> void:
+	var p := Pickup.new()
+	p.run = self
+	p.kind = kind if kind != "" else Pickup.KINDS[randi() % Pickup.KINDS.size()]
+	p.position = pos
+	world.add_child(p)
+
+
+func spawn_puddle(pos: Vector2) -> void:
+	var p := Puddle.new()
+	p.run = self
+	p.position = pos
+	world.add_child(p)
+
+
+## Destello azul al congelar con el despertador / Blue flash when the clock freezes everything
+func freeze_flash() -> void:
+	Audio.play("glitch", -6.0)
+	for e: Node in enemies.get_children():
+		if e is Enemy and e.is_targetable():
+			fx.ring(e.aim_point(), 20.0, Color("8fe0ff"), 0.6, 2.0)
+
+
+# --- Eventos del sueño / Dream events ----------------------------------------------
+
+## Algunos sueños traen un evento al azar / Some dreams bring a random event
+func _roll_event(depth: int) -> void:
+	event = ""
+	if _wave.get("boss", false) or depth < 2 or randf() > 0.4:
+		return
+	event = ["dark", "tilt", "golden"][randi() % 3]
+	match event:
+		"dark":
+			var d := Darkness.new()
+			d.run = self
+			world.add_child(d)
+		"golden":
+			_golden_t = randf_range(6.0, 14.0)
+
+
+func _update_event(delta: float) -> void:
+	match event:
+		"tilt":
+			# El suelo se inclina despacio hacia un lado y luego hacia otro
+			# The floor slowly tips one way, then another
+			_tilt_t += delta
+			var dir := Vector2.from_angle(_tilt_t * 0.35 + sin(_tilt_t * 0.21) * 2.0)
+			_tilt = _tilt.lerp(dir * 75.0, minf(1.0, delta * 0.8))
+			player.push = _tilt
+			for e: Node in enemies.get_children():
+				if e is Enemy and not e is BossPiece:
+					e.external_pull += _tilt * 0.8
+			_camera.rotation = lerpf(_camera.rotation, _tilt.x / 75.0 * 0.025, minf(1.0, delta * 2.0))
+		"golden":
+			if _golden_t > 0.0:
+				_golden_t -= delta
+				if _golden_t <= 0.0:
+					var g := GoldenFoox.new()
+					g.setup(self)
+					g.position = _spawn_point()
+					enemies.add_child(g)
+					Audio.play("chime", -2.0)
+					fx.ring(g.position + Vector2(0, -20), 30.0, UITheme.GOLD, 0.8, 2.6)
 
 
 # --- Trozos de estrella y niveles / Star shards and levels ---------------------
@@ -487,18 +584,96 @@ func on_player_hit(_dmg: float) -> void:
 
 func on_player_died() -> void:
 	running = false
+	GameState.saved_hp = -1.0
+	Progress.save_progress()
 	Audio.stop_loops()
 	Audio.fade_music(-24.0, 1.0)
 	Audio.play("lose", -2.0)
 	shake(18.0)
 	fx.dissipate(player.position + Vector2(0, -40), UITheme.BONE)
-	get_tree().create_timer(1.3, false).timeout.connect(func() -> void:
-		_show_end("LOSE_TITLE", "", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]]))
+	get_tree().create_timer(0.9, false).timeout.connect(_wake_scene.bind(false))
+
+
+## Kroker se despierta en su cama de verdad: sobresaltado al morir o tranquilo al ganar.
+## Kroker wakes up in his real bed: startled when he dies, peaceful when he wins.
+func _wake_scene(won: bool) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 30
+	add_child(layer)
+	var flash := ColorRect.new()
+	flash.color = Color("f7f2ff")
+	flash.modulate.a = 0.0
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(flash)
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var tw := create_tween()
+	tw.tween_property(flash, "modulate:a", 1.0, 0.35)
+	tw.tween_callback(_build_real_room.bind(won))
+	tw.tween_property(flash, "modulate:a", 0.0, 0.8)
+	if won:
+		tw.tween_interval(2.6)
+		tw.tween_callback(_show_victory)
+	else:
+		tw.tween_callback(_startle)
+		tw.tween_interval(2.2)
+		tw.tween_callback(_show_end.bind("LOSE_TITLE", "", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]]))
+
+
+## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
+func _build_real_room(won: bool) -> void:
+	for n: Node in world.get_children():
+		if n is Darkness or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile:
+			n.queue_free()
+	for e: Node in enemies.get_children():
+		e.queue_free()
+	fx.clear()
+	hud.visible = false
+	player.visible = false
+	player.push = Vector2.ZERO
+	var idx := room.get_index()
+	room.queue_free()
+	room = Bedroom.new()
+	room.outfit = GameState.selected_character
+	room.weird = 0
+	room.bed_state = "sleeping" if won else "sitting"
+	room.sit = 0.0
+	room.glasses_on_stand = true
+	world.add_child(room)
+	world.move_child(room, idx)
+	_camera.rotation = 0.0
+	_camera.position = Bedroom.to_world(Vector2(800, 460))
+	_camera.zoom = Vector2.ONE * 0.64
+	Audio.play_music("music_menu", 1.5)
+
+
+## Se incorpora de golpe / He sits bolt upright
+func _startle() -> void:
+	Audio.play("blanket", -2.0)
+	shake(8.0)
+	var tw := create_tween()
+	tw.tween_property(room, "sit", 1.0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func() -> void:
+		var head := Bedroom.to_world(room.sitting_feet()) + Vector2(0, -115)
+		fx.text(head, "!", UITheme.EMBER, 40)
+		Audio.play("hurt", -6.0))
+
+
+func _show_victory() -> void:
+	var m := int(GameState.run_time) / 60
+	var sec := int(GameState.run_time) % 60
+	var lines := [
+		tr("SUM_TIME") % ("%d:%02d" % [m, sec]),
+		tr("SUM_KILLS") % GameState.run_kills,
+		tr("SUM_DIFFICULTY") % tr("DIFF_" + GameState.difficulty.to_upper()),
+	]
+	_show_end("ACT1_CLEAR_TITLE", "ACT1_CLEAR_SUB", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]], lines)
+	_overlay.add_side(PauseSummary.make(player))
 
 
 func _on_wave_cleared() -> void:
 	running = false
 	GameState.saved_hp = player.hp
+	Progress.save_progress()
 	Audio.stop_loops()
 	Audio.fade_music(-20.0, 1.0)
 	Audio.play("win", -2.0)
@@ -538,18 +713,18 @@ func _on_act_cleared() -> void:
 	for e: Node in enemies.get_children():
 		if not e is BossPiece:
 			e.die(false)
-	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
-		GameState.dream_depth = 1
-		_show_end("ACT1_CLEAR_TITLE", "ACT1_CLEAR_SUB", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]]))
+	Progress.clear_act(GameState.selected_character, GameState.difficulty)
+	GameState.dream_depth = 1
+	get_tree().create_timer(1.6, false).timeout.connect(_wake_scene.bind(true))
 
 
 # --- Pantallas / Screens ----------------------------------------------------
 
-func _show_end(title: String, subtitle: String, buttons: Array) -> void:
+func _show_end(title: String, subtitle: String, buttons: Array, lines: Array = []) -> void:
 	get_tree().paused = true
 	_overlay = DreamOverlay.new()
 	add_child(_overlay)
-	_overlay.build(title, subtitle, buttons)
+	_overlay.build(title, subtitle, buttons, lines)
 
 
 func _open_pause() -> void:

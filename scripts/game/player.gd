@@ -21,6 +21,9 @@ var cast_anim := 0.0         # 1 → 0 al lanzar un rayo / after casting lightni
 var armed := true            # lleva el arma en la mano / holds the weapon
 var hurt_lean := 0.0         # retroceso al recibir daño / recoil when hit
 var hop := 0.0               # altura de un salto en píxeles / jump height in pixels
+var shield_charges := 0      # golpes que para la almohada recogida / hits the picked-up pillow blocks
+var slow_t := 0.0            # frenado por un charco / slowed by a puddle
+var push := Vector2.ZERO     # empuje del suelo inclinado / push from a tilted floor
 var _land := 0.0             # rebote al aterrizar / landing squash
 
 var _walk := 0.0
@@ -100,7 +103,9 @@ func _physics_process(delta: float) -> void:
 	modulate.a = 1.0 if alive else 0.35
 	if alive and run.running:
 		var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		_vel = _vel.lerp(input * speed, minf(1.0, delta * 14.0))
+		slow_t = maxf(0.0, slow_t - delta)
+		var spd := speed * (0.6 if slow_t > 0.0 else 1.0)
+		_vel = _vel.lerp(input * spd + push, minf(1.0, delta * 14.0))
 		position = run.clamp_to_arena(position + _vel * delta, 24.0)
 		if absf(_vel.x) > 10.0:
 			_facing = signf(_vel.x)
@@ -137,6 +142,13 @@ func take_damage(amount: float) -> void:
 		return
 	if GameState.god_mode and GameState.god_invuln:
 		return  # modo Dios / god mode
+	if shield_charges > 0:
+		# La almohada recogida para el golpe / The picked-up pillow blocks the hit
+		shield_charges -= 1
+		_invuln = HIT_INVULN
+		run.fx.ring(global_position + Vector2(0, -36), 34.0, Color("8fe0ff"), 0.5, 2.0)
+		Audio.play("pillow", -4.0)
+		return
 	# La defensa resta daño, pero siempre se recibe al menos 1.
 	# Defense subtracts damage, but at least 1 always gets through.
 	var dmg := maxf(1.0, amount - armor)
@@ -165,10 +177,21 @@ func _draw() -> void:
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean})
 	if alive and run.running and weapon:
 		_draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor())
+	_draw_shield_bubble()
 
 
 ## Anillos de carga junto al arma: se rellenan en círculo y se apagan cuando están llenos.
 ## Charge rings by the weapon: they fill in a circle and fade out once full.
+## Burbuja de la almohada recogida / Bubble of the picked-up pillow
+func _draw_shield_bubble() -> void:
+	if shield_charges <= 0:
+		return
+	var c := Vector2(0, -36)
+	var pulse := 1.0 + 0.05 * sin(_t * 5.0)
+	draw_circle(c, 46.0 * pulse, Color("8fe0ff", 0.12))
+	draw_arc(c, 46.0 * pulse, 0, TAU, 32, Color("8fe0ff", 0.7), 3.0)
+
+
 func _draw_charge_rings(bars: Array, anchor: Vector2) -> void:
 	_ring_a.resize(bars.size())
 	var dt := get_process_delta_time()

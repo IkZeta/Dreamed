@@ -25,6 +25,7 @@ const SHOT_SPEED := 420.0
 
 func _init() -> void:
 	shards = 2
+	bestiary_id = "sling"
 	max_hp = 18.0
 	hp = max_hp
 	contact_damage = 2.0

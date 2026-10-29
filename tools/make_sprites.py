@@ -983,6 +983,36 @@ def room():
     room_add("room_vacuum", vx - 50, vy - 96, 80, 136, b, colors=12)
 
 
+# --- Objetos del suelo / Floor pickups ------------------------------------------------
+
+def pickups():
+    # Vaso de leche / Glass of milk
+    b = shaded("M-11,-30 L11,-30 L9,0 Q0,3 -9,0 Z", "#cfd8f6", shade=0.35, rim=0.5, deep="#6c74b0")
+    b += shaded("M-10,-22 L10,-22 L8.6,-1 Q0,1.6 -8.6,-1 Z", "#fbf8ff", shade=0.3, rim=0.3, sw=0.6)
+    b += "<path d='M-6,-27 L-5,-4' stroke='#ffffff' stroke-width='2.4' opacity='0.8' stroke-linecap='round'/>"
+    b += "<path d='M-10,-22 Q-4,-25 0,-22 Q5,-19 10,-22' fill='none' stroke='#ffffff' stroke-width='1.6'/>"
+    add("pickup_milk", -15, -34, 30, 40, b)
+    # Almohada escudo / Pillow shield
+    pts = []
+    for k in range(48):
+        a = math.tau * k / 48
+        c, s_ = math.cos(a), math.sin(a)
+        pts.append("%.2f,%.2f" % (math.copysign(abs(c) ** 0.6, c) * 18, math.copysign(abs(s_) ** 0.6, s_) * 13 - 14))
+    pil = "M" + " L".join(pts) + " Z"
+    b = shaded(pil, "#f0ebfb", shade=0.45, rim=0.4, deep="#8d82c4")
+    b += "<path d='%s' fill='#8fe0ff' stroke='#4aa8d0' stroke-width='1'/>" % star_d(0, -14, 6)
+    add("pickup_pillow", -22, -32, 44, 36, b)
+    # Despertador / Alarm clock
+    b = ""
+    for x in (-9, 9):
+        b += shaded(ellipse_d(x, -30, 5.5, 5.5), "#f6c86a", shade=0.3, rim=0.4, sw=0.8)
+    b += "<path d='M-8,-2 L-11,3 M8,-2 L11,3' stroke='#4a3f7a' stroke-width='3' stroke-linecap='round'/>"
+    b += shaded(ellipse_d(0, -15, 14, 14), "#e85d75", shade=0.45, rim=0.45)
+    b += shaded(ellipse_d(0, -15, 10, 10), "#fbf8ff", shade=0.2, rim=0.2, sw=0.6)
+    b += "<path d='M0,-15 L0,-22 M0,-15 L5,-12' stroke='#2b2945' stroke-width='2' stroke-linecap='round'/>"
+    add("pickup_clock", -18, -38, 36, 44, b)
+
+
 # --- Render ---------------------------------------------------------------------
 
 def build():
@@ -999,6 +1029,7 @@ def build():
     shots()
     npcs()
     room()
+    pickups()
     thug()
     sling()
     skeleton()

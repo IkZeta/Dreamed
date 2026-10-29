@@ -19,6 +19,9 @@ var resolution_index := 1
 var vsync := true
 var fps_index := 0
 var screen_shake := true
+var shake_amount := 1.0       # 0..1, fuerza de la sacudida / shake strength
+var colorblind := false       # avisos en amarillo en vez de rojo / warnings in yellow instead of red
+var damage_numbers := true    # números de daño sobre los enemigos / damage numbers above enemies
 
 
 func _ready() -> void:
@@ -39,6 +42,9 @@ func reset_defaults(apply := true) -> void:
 	vsync = true
 	fps_index = 0
 	screen_shake = true
+	shake_amount = 1.0
+	colorblind = false
+	damage_numbers = true
 	if apply:
 		apply_all()
 
@@ -117,6 +123,9 @@ func save_settings() -> void:
 	cfg.set_value("display", "vsync", vsync)
 	cfg.set_value("display", "fps_index", fps_index)
 	cfg.set_value("display", "screen_shake", screen_shake)
+	cfg.set_value("access", "shake_amount", shake_amount)
+	cfg.set_value("access", "colorblind", colorblind)
+	cfg.set_value("access", "damage_numbers", damage_numbers)
 	cfg.save(PATH)
 
 
@@ -133,6 +142,15 @@ func load_settings() -> void:
 	vsync = bool(cfg.get_value("display", "vsync", vsync))
 	fps_index = clampi(int(cfg.get_value("display", "fps_index", fps_index)), 0, FPS_OPTIONS.size() - 1)
 	screen_shake = bool(cfg.get_value("display", "screen_shake", screen_shake))
+	shake_amount = clampf(float(cfg.get_value("access", "shake_amount", 1.0 if screen_shake else 0.0)), 0.0, 1.0)
+	colorblind = bool(cfg.get_value("access", "colorblind", colorblind))
+	damage_numbers = bool(cfg.get_value("access", "damage_numbers", damage_numbers))
+
+
+## Color de los avisos de peligro (trayectorias, zonas de caída)
+## Colour of danger warnings (trajectories, landing zones)
+func warning_color() -> Color:
+	return Color("ffd23a") if colorblind else Color("ff6f86")
 
 
 ## Controles de movimiento: WASD, flechas y mando. / Movement: WASD, arrows and gamepad.

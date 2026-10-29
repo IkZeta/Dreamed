@@ -19,7 +19,7 @@ var _spin := 0.0
 static func draw_warning(ci: CanvasItem, from: Vector2, dir: Vector2, length: float, width: float, k: float) -> void:
 	var to := from + dir * length
 	var side := Vector2(-dir.y, dir.x) * width * 0.5
-	var col := Color("ff6f86")
+	var col := Settings.warning_color()
 	ci.draw_colored_polygon(PackedVector2Array([from + side, to + side, to - side, from - side]), Color(col, 0.10 + 0.12 * k))
 	# Lo que ya está "cargado" avanza desde el enemigo / The "charged" part grows out from the enemy
 	var fill := from + dir * length * k
@@ -48,7 +48,7 @@ func _physics_process(delta: float) -> void:
 	position += velocity * delta
 	var player: Node2D = run.player
 	if run.running and global_position.distance_to(player.global_position + Vector2(0, -44)) < radius + 22.0:
-		player.take_damage(damage)
+		player.take_damage(damage * GameState.enemy_dmg_mult())
 		run.fx.ring(global_position, 14.0, UITheme.EMBER, 0.3, 2.0)
 		queue_free()
 		return

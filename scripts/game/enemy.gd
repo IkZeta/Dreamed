@@ -12,6 +12,7 @@ const GLITCH_A := Color("ff5fd2")
 const GLITCH_B := Color("5ff2ff")
 
 enum State { SPAWNING, ALIVE, DYING }
+const ELITE_COLOR := {"split": Color("ffd36a"), "puddle": Color("8fe0ff"), "haste": Color("ff8fd0"), "": Color("ffd36a")}
 
 var run: Node  # Run
 var max_hp := 16.0
@@ -22,6 +23,13 @@ var speed := 95.0
 var mass := 1.0            # más masa = menos empuje / more mass = less knockback
 var aim_height := 18.0     # a qué altura apuntan las armas / where weapons aim
 var shards := 1            # trozos de estrella que suelta / star shards it drops
+var bestiary_id := ""      # entrada del bestiario / bestiary entry
+## Élite: más grande, brillante, con más vida y una habilidad ("split", "puddle" o "haste")
+## Elite: bigger, glowing, with more health and an ability ("split", "puddle" or "haste")
+var elite := false
+var elite_power := ""
+var _puddle_t := 0.0
+var preview := false       # solo se dibuja (bestiario) / only drawn (bestiary)
 var state := State.SPAWNING
 var knock := Vector2.ZERO
 var external_pull := Vector2.ZERO  # lo usa la aspiradora / used by the vacuum
@@ -57,6 +65,22 @@ func setup(p_run: Node, hp_mult := 1.0, speed_mult := 1.0) -> void:
 func _ready() -> void:
 	speed *= randf_range(0.92, 1.12)
 	_phase = randf() * TAU
+	# Pesadilla: más vida y más daño / Nightmare: more health and damage
+	max_hp *= GameState.enemy_hp_mult()
+	contact_damage *= GameState.enemy_dmg_mult()
+	if elite:
+		max_hp *= 3.0
+		shards *= 4
+		scale = Vector2.ONE * 1.3
+		if elite_power == "":
+			elite_power = ["split", "puddle", "haste"][randi() % 3]
+		if elite_power == "haste":
+			speed *= 1.5
+		if not preview:
+			Progress.see("elite")
+	hp = max_hp
+	if not preview:
+		Progress.see(bestiary_id)
 
 
 func _physics_process(delta: float) -> void:
@@ -82,6 +106,12 @@ func _physics_process(delta: float) -> void:
 			return
 		State.ALIVE:
 			_move(delta)
+			# Élite del charco: deja charcos que frenan / Puddle elite: leaves slowing puddles
+			if elite and elite_power == "puddle":
+				_puddle_t -= delta
+				if _puddle_t <= 0.0:
+					_puddle_t = 0.7
+					run.spawn_puddle(global_position)
 			if bounce_t > 0.0:
 				_ricochet()
 			if stun_t <= 0.0 and is_dangerous():
@@ -224,7 +254,8 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	knock += impulse / mass
 	_flash = 1.0
 	Audio.play("hit", -13.0, 0.1)
-	run.fx.text(global_position + Vector2(0, -aim_height - 34), str(roundi(amount)), GLITCH_A if vuln_t > 0.0 else UITheme.BONE)
+	if Settings.damage_numbers:
+		run.fx.text(global_position + Vector2(0, -aim_height - 34), str(roundi(amount)), GLITCH_A if vuln_t > 0.0 else UITheme.BONE)
 	if hp <= 0.0:
 		die(true)
 
@@ -259,6 +290,12 @@ func _death_sound() -> void:
 func _draw() -> void:
 	var a := _fade
 	var bob := sin(_t * 2.6 + _phase) * 3.0
+	if elite:
+		# Aura dorada que late / Pulsing golden aura
+		var pulse := 0.8 + 0.2 * sin(_t * 4.0)
+		var r := (radius + 26.0) * pulse
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-r, -aim_height - r), Vector2(r, r) * 2.0), false, Color(ELITE_COLOR[elite_power], 0.45 * a))
+		draw_arc(Vector2(0, 2), radius + 6.0, 0, TAU, 24, Color(ELITE_COLOR[elite_power], 0.8 * a), 2.0)
 	if glitch_t > 0.0:
 		var j := Vector2(randf_range(-6, 6), randf_range(-2, 2))
 		_draw_body(Vector2(-5, bob) + j, Color(GLITCH_A, 0.5), a * 0.6)

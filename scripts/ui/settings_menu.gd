@@ -7,7 +7,7 @@ extends Control
 
 signal closed
 
-const TABS: Array[String] = ["TAB_SOUND", "TAB_LANGUAGE", "TAB_DISPLAY"]
+const TABS: Array[String] = ["TAB_SOUND", "TAB_LANGUAGE", "TAB_DISPLAY", "TAB_ACCESS"]
 
 var _tab_buttons: Array[Button] = []
 var _pages_holder: VBoxContainer
@@ -99,7 +99,8 @@ func _show_tab(index: int) -> void:
 	match index:
 		0: page = _build_sound()
 		1: page = _build_language()
-		_: page = _build_display()
+		2: page = _build_display()
+		_: page = _build_access()
 	_pages_holder.add_child(page)
 
 
@@ -203,15 +204,46 @@ func _build_display() -> Control:
 		Settings.vsync = on
 		Settings.apply_display())
 
-	var shake := CheckButton.new()
-	shake.button_pressed = Settings.screen_shake
-	shake.toggled.connect(func(on: bool) -> void: Settings.screen_shake = on)
-
 	page.add_child(_row("DISPLAY_MODE", mode))
 	page.add_child(_row("DISPLAY_RESOLUTION", resolution))
 	page.add_child(_row("DISPLAY_VSYNC", vsync))
 	page.add_child(_row("DISPLAY_FPS", fps))
-	page.add_child(_row("DISPLAY_SHAKE", shake))
+	return page
+
+
+# --- Pestaña Accesibilidad / Accessibility tab --------------------------------
+
+func _build_access() -> Control:
+	var page := _page()
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 20)
+	var slider := HSlider.new()
+	slider.min_value = 0
+	slider.max_value = 100
+	slider.step = 5
+	slider.value = Settings.shake_amount * 100.0
+	slider.custom_minimum_size = Vector2(380, 40)
+	slider.size_flags_vertical = SIZE_SHRINK_CENTER
+	var value := UITheme.label("%d%%" % slider.value, 22, UITheme.GOLD, "light")
+	value.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	value.custom_minimum_size.x = 80
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	slider.value_changed.connect(func(v: float) -> void:
+		value.text = "%d%%" % v
+		Settings.shake_amount = v / 100.0
+		Settings.screen_shake = v > 0.0)
+	box.add_child(slider)
+	box.add_child(value)
+	page.add_child(_row("DISPLAY_SHAKE", box))
+	var cb := CheckButton.new()
+	cb.button_pressed = Settings.colorblind
+	cb.toggled.connect(func(on: bool) -> void: Settings.colorblind = on)
+	page.add_child(_row("ACCESS_COLORBLIND", cb))
+	var dn := CheckButton.new()
+	dn.button_pressed = Settings.damage_numbers
+	dn.toggled.connect(func(on: bool) -> void: Settings.damage_numbers = on)
+	page.add_child(_row("ACCESS_DAMAGE_NUMBERS", dn))
+	page.add_child(UITheme.label("ACCESS_HINT", 22, UITheme.ASH, "italic"))
 	return page
 
 

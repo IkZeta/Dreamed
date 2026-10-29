@@ -4,8 +4,11 @@ extends Control
 const SETTINGS_SCENE := preload("res://scenes/settings_menu.tscn")
 const CHARACTER_SELECT := "res://scenes/character_select.tscn"
 
+const BESTIARY_SCENE := preload("res://scripts/ui/bestiary.gd")
+
 var _play: Button
 var _settings: Button
+var _bestiary: Button
 var _quitting := false
 
 
@@ -61,10 +64,11 @@ func _build() -> void:
 	col.add_child(gap2)
 
 	_play = _entry(col, "MENU_PLAY", _on_play)
+	_bestiary = _entry(col, "MENU_BESTIARY", _on_bestiary)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	_entry(col, "MENU_QUIT", _on_quit)
 
-	var version := UITheme.label("V 0.7", 16, Color(UITheme.ASH, 0.6), "caps")
+	var version := UITheme.label("V 1.2", 16, Color(UITheme.ASH, 0.6), "caps")
 	version.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	add_child(version)
 	version.set_anchors_and_offsets_preset(PRESET_BOTTOM_LEFT, PRESET_MODE_MINSIZE, 40)
@@ -105,6 +109,12 @@ func _on_play() -> void:
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.4)
 	tw.tween_callback(GameState.change_scene.bind(CHARACTER_SELECT))
+
+
+func _on_bestiary() -> void:
+	var b := BESTIARY_SCENE.new()
+	add_child(b)
+	b.closed.connect(func() -> void: _bestiary.grab_focus())
 
 
 func _on_settings() -> void:

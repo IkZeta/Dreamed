@@ -54,6 +54,7 @@ func _init() -> void:
 
 func setup_piece(p_run: Node, p_kind: String) -> void:
 	kind = p_kind
+	bestiary_id = "boss_" + kind
 	setup(p_run)
 	match kind:
 		"bed":
@@ -129,7 +130,9 @@ func die(counted: bool) -> void:
 		return
 	_dying = 0.0
 	_atk = {}
-	run.drop_shards(global_position, 12)
+	run.drop_shards(global_position, roundi(12 * GameState.shard_mult()))
+	Progress.kill(bestiary_id)
+	GameState.run_kills += 1
 	Audio.play("crack", -1.0)
 	Audio.play("stomp", -4.0)
 	run.shake(14.0)
@@ -280,7 +283,7 @@ func _land() -> void:
 	run.fx.dissipate(global_position, Color("cfc6e8"))
 	var player: Player = run.player
 	if player.global_position.distance_to(global_position) < QUAKE_RADIUS:
-		player.take_damage(5.0)
+		player.take_damage(5.0 * GameState.enemy_dmg_mult())
 	_waves.append({"r": 40.0, "hit": false})
 
 
@@ -295,7 +298,7 @@ func _update_waves(delta: float) -> void:
 		var dist := Vector2(d.x, d.y / 0.45).length()
 		if not w["hit"] and absf(dist - r) < 26.0 and r > QUAKE_RADIUS:
 			w["hit"] = true
-			player.take_damage(3.0)
+			player.take_damage(3.0 * GameState.enemy_dmg_mult())
 		if r > WAVE_REACH:
 			_waves.remove_at(i)
 
@@ -379,10 +382,10 @@ func _draw_warning() -> void:
 			k = 0.5 + 0.5 * k
 		else:
 			k *= 0.5
-		draw_colored_polygon(_ellipse(lt, Vector2(QUAKE_RADIUS, QUAKE_RADIUS * 0.44)), Color(EYE, 0.08 + 0.18 * k))
+		draw_colored_polygon(_ellipse(lt, Vector2(QUAKE_RADIUS, QUAKE_RADIUS * 0.44)), Color(Settings.warning_color(), 0.08 + 0.18 * k))
 		draw_set_transform(lt, 0.0, Vector2(1.0, 0.44))
-		draw_arc(Vector2.ZERO, QUAKE_RADIUS, 0, TAU, 48, Color(EYE, 0.7), 2.5, true)
-		draw_arc(Vector2.ZERO, QUAKE_RADIUS * (1.0 - k) + 8.0, 0, TAU, 40, Color(EYE, 0.9), 2.0, true)
+		draw_arc(Vector2.ZERO, QUAKE_RADIUS, 0, TAU, 48, Color(Settings.warning_color(), 0.7), 4.0, true)
+		draw_arc(Vector2.ZERO, QUAKE_RADIUS * (1.0 - k) + 8.0, 0, TAU, 40, Color(Settings.warning_color(), 0.9), 3.0, true)
 		draw_set_transform(Vector2.ZERO)
 
 

@@ -168,6 +168,53 @@ const STRINGS := {
 	"GOD_HUD_VULN": {"es": "Modo Dios · Vulnerable", "en": "God mode · Vulnerable"},
 	"GOD_HUD_KEYS": {"es": "F invulnerable · N acabar sueño · K borrar enemigos · L subir nivel", "en": "F invulnerable · N end dream · K clear enemies · L level up"},
 
+	# --- Bestiario / Bestiary ---
+	"MENU_BESTIARY": {"es": "Bestiario", "en": "Bestiary"},
+	"BESTIARY_TITLE": {"es": "Bestiario", "en": "Bestiary"},
+	"BESTIARY_UNSEEN": {"es": "Todavía no lo has visto en tus sueños.", "en": "You haven't seen it in your dreams yet."},
+	"BESTIARY_DEFEATED": {"es": "Derrotados: %d", "en": "Defeated: %d"},
+	"BEST_FOOX_NAME": {"es": "Foox", "en": "Foox"},
+	"BEST_FOOX_DESC": {"es": "Zorro fantasma hecho de niebla. Lento y frágil; casi no hace daño.", "en": "A ghost fox made of mist. Slow and fragile; it barely hurts."},
+	"BEST_THUG_NAME": {"es": "Matón", "en": "Thug"},
+	"BEST_THUG_DESC": {"es": "La pesadilla de un abusón del colegio. Mucha vida y golpes fuertes, pero lento y difícil de empujar.", "en": "The nightmare of a school bully. Lots of health and heavy hits, but slow and hard to push."},
+	"BEST_SLING_NAME": {"es": "Tirachinas", "en": "Slingshot"},
+	"BEST_SLING_DESC": {"es": "Se queda lejos y dispara piedras. Antes de tirar marca la trayectoria: apártate de la franja.", "en": "Keeps its distance and shoots stones. It marks the path before firing: step out of the strip."},
+	"BEST_SKELETON_NAME": {"es": "Esqueleto", "en": "Skeleton"},
+	"BEST_SKELETON_DESC": {"es": "Poca vida y mucho daño. Al caer deja un montón de huesos: rómpelo o volverá a levantarse.", "en": "Little health, lots of damage. When it falls it leaves a pile of bones: smash it or it gets back up."},
+	"BEST_GOLDEN_FOOX_NAME": {"es": "Foox dorado", "en": "Golden Foox"},
+	"BEST_GOLDEN_FOOX_DESC": {"es": "Aparece en algunos sueños, huye y no hace daño. Si lo pillas suelta muchos trozos de estrella.", "en": "Shows up in some dreams, runs away and is harmless. Catch it and it drops lots of star shards."},
+	"BEST_ELITE_NAME": {"es": "Élite", "en": "Elite"},
+	"BEST_ELITE_DESC": {"es": "Un enemigo más grande y brillante, con el triple de vida. Puede dividirse, dejar charcos que frenan o ir muy rápido. Suelta más trozos y siempre un objeto.", "en": "A bigger, glowing enemy with triple health. It may split, leave slowing puddles or move very fast. Drops more shards and always an item."},
+	"BEST_BOSS_BED_NAME": {"es": "La cama", "en": "The bed"},
+	"BEST_BOSS_BED_DESC": {"es": "Camina sobre patas mecánicas y salta hacia ti. Al caer provoca un sismo: sal del círculo.", "en": "Walks on mechanical legs and jumps at you. Landing causes a quake: get out of the circle."},
+	"BEST_BOSS_SHELF_NAME": {"es": "La estantería", "en": "The bookshelf"},
+	"BEST_BOSS_SHELF_DESC": {"es": "Se mantiene a distancia y lanza abanicos de libros. Mira las franjas antes de que salgan.", "en": "Keeps its distance and throws fans of books. Watch the strips before they fly."},
+	"BEST_BOSS_CHEST_NAME": {"es": "El baúl de juguetes", "en": "The toy chest"},
+	"BEST_BOSS_CHEST_DESC": {"es": "No hace daño, pero huye y abre la tapa para soltar enemigos. Persíguelo.", "en": "Harmless, but it runs away and opens its lid to let enemies out. Chase it."},
+
+	# --- Eventos y objetos / Events and items ---
+	"EVENT_DARK": {"es": "Apagón", "en": "Blackout"},
+	"EVENT_TILT": {"es": "El suelo se inclina", "en": "The floor tilts"},
+	"EVENT_GOLDEN": {"es": "Un Foox dorado ronda", "en": "A golden Foox lurks"},
+	"PICKUP_MILK": {"es": "¡Leche!", "en": "Milk!"},
+	"PICKUP_PILLOW": {"es": "¡Almohada!", "en": "Pillow!"},
+	"PICKUP_CLOCK": {"es": "¡Despertador!", "en": "Alarm clock!"},
+
+	# --- Dificultad y resumen / Difficulty and summary ---
+	"DIFF_NORMAL": {"es": "Normal", "en": "Normal"},
+	"DIFF_NIGHTMARE": {"es": "Pesadilla", "en": "Nightmare"},
+	"DIFF_BUTTON_NORMAL": {"es": "Dificultad: normal", "en": "Difficulty: normal"},
+	"DIFF_BUTTON_NIGHTMARE": {"es": "Dificultad: pesadilla", "en": "Difficulty: nightmare"},
+	"SUM_TIME": {"es": "Tiempo: %s", "en": "Time: %s"},
+	"SUM_KILLS": {"es": "Enemigos derrotados: %d", "en": "Enemies defeated: %d"},
+	"SUM_DIFFICULTY": {"es": "Dificultad: %s", "en": "Difficulty: %s"},
+
+	# --- Accesibilidad / Accessibility ---
+	"TAB_ACCESS": {"es": "Accesibilidad", "en": "Accessibility"},
+	"ACCESS_COLORBLIND": {"es": "Avisos para daltónicos (amarillo)", "en": "Colourblind warnings (yellow)"},
+	"ACCESS_DAMAGE_NUMBERS": {"es": "Números de daño", "en": "Damage numbers"},
+	"ACCESS_HINT": {"es": "Los cambios se guardan al salir de ajustes.", "en": "Changes are saved when you leave settings."},
+
 	# --- Plano astral / Astral plane ---
 	"ASTRAL_TITLE": {"es": "Plano astral", "en": "Astral plane"},
 	"ASTRAL_SUBTITLE": {"es": "Entre un sueño y otro, alguien te espera. Elige un don.", "en": "Between one dream and the next, someone is waiting. Choose a gift."},

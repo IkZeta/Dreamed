@@ -9,6 +9,7 @@ var _cards: Array[Button] = []
 var _portraits := {}
 var _start: Button
 var _god: Button
+var _diff: Button
 var _picked := ""
 
 
@@ -81,6 +82,21 @@ func _build() -> void:
 	var gap2 := Control.new()
 	gap2.custom_minimum_size.x = 20
 	footer.add_child(gap2)
+	# Dificultad: la pesadilla se desbloquea al superar el Acto 1
+	# Difficulty: nightmare unlocks after clearing Act 1
+	if Progress.any_cleared():
+		_diff = Button.new()
+		_diff.custom_minimum_size = Vector2(300, 64)
+		_diff.pressed.connect(func() -> void:
+			GameState.difficulty = "normal" if GameState.difficulty == "nightmare" else "nightmare"
+			_update_diff())
+		footer.add_child(_diff)
+		_update_diff()
+		var gap3 := Control.new()
+		gap3.custom_minimum_size.x = 20
+		footer.add_child(gap3)
+	else:
+		GameState.difficulty = "normal"
 	_start = Button.new()
 	_start.text = "BTN_START"
 	_start.disabled = true
@@ -94,6 +110,14 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	card.toggle_mode = true
 	card.button_group = group
 	card.custom_minimum_size = Vector2(404, 690)
+	# Post-it con los actos superados, como en The Binding of Isaac
+	# Post-it with the acts cleared, like in The Binding of Isaac
+	var note := PixelView.wrap(PostIt.new(data["id"]), 2)
+	note.custom_minimum_size = Vector2(120, 120)
+	note.size = Vector2(120, 120)
+	note.position = Vector2(404 - 118, -14)
+	note.z_index = 2
+	card.add_child(note)
 	card.toggled.connect(func(on: bool) -> void: if on: _select(data["id"]))
 	card.mouse_entered.connect(card.grab_focus)
 
@@ -173,6 +197,11 @@ func _pair(key: String, value_key: String, color: Color) -> Control:
 	v.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(v)
 	return row
+
+
+func _update_diff() -> void:
+	_diff.text = "DIFF_BUTTON_" + GameState.difficulty.to_upper()
+	_diff.add_theme_color_override("font_color", UITheme.EMBER if GameState.difficulty == "nightmare" else UITheme.ASH)
 
 
 func _open_god() -> void:

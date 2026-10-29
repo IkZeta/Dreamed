@@ -46,6 +46,10 @@ func dissipate(center: Vector2, color := UITheme.BONE) -> void:
 			"color": color, "life": randf_range(0.5, 0.9), "max": 0.9, "r": randf_range(1.5, 3.5)})
 
 
+func clear() -> void:
+	_items.clear()
+
+
 func _process(delta: float) -> void:
 	for i in range(_items.size() - 1, -1, -1):
 		var it := _items[i]

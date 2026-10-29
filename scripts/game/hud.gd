@@ -16,6 +16,7 @@ var _boss_bar: ProgressBar
 var _boss_name: Label
 var _special: Label
 var _god: Label
+var _event: Label
 var _xp_bar: ProgressBar
 var _lvl: Label
 var _depth := 1
@@ -97,6 +98,11 @@ func _ready() -> void:
 	_timer.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	_timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	center.add_child(_timer)
+	# Evento del sueño (apagón, suelo inclinado, Foox dorado) / Dream event
+	_event = UITheme.label("", 14, UITheme.ROSE, "caps")
+	_event.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_event.visible = false
+	center.add_child(_event)
 
 	# Ayuda de controles / Controls hint
 	_hint = UITheme.label("RUN_CONTROLS", 18, Color(UITheme.ASH, 0.9), "light")
@@ -190,6 +196,12 @@ func set_hp(hp: float, max_hp: float) -> void:
 	_hp_bar.max_value = max_hp
 	_hp_bar.value = hp
 	_hp_text.text = "%d / %d" % [ceili(hp), roundi(max_hp)]
+
+
+func show_event(id: String) -> void:
+	_event.visible = id != ""
+	if id != "":
+		_event.text = "EVENT_" + id.to_upper()
 
 
 func set_god() -> void:

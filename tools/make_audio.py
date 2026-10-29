@@ -574,11 +574,55 @@ def sfx_act_clear():
     return x
 
 
+# --- Personajes del plano astral: un tema corto para cada uno ------------------------
+# --- Astral plane characters: a short motif for each one ------------------------------
+
+def giver_svinho():
+    # Samba alegre: cuerda pulsada sincopada y un golpe de bombo / Cheerful samba: syncopated pluck and a kick
+    x = np.zeros((int(SR * 2.4), 2))
+    for i, (n, at) in enumerate([(67, 0.0), (71, 0.15), (74, 0.3), (71, 0.52), (76, 0.67), (74, 0.9)]):
+        place(x, pluck(midi(n), 1.4, 0.3, 0.6), at, -0.4 + i * 0.16)
+    for at in (0.0, 0.52):
+        place(x, thump(70, 0.3, 0.35, 8), at, 0.0, human=False)
+    return x
+
+
+def giver_stolk():
+    # Grave y chulesco: marimba baja y un golpe sordo / Low and cocky: deep marimba and a dull thud
+    x = np.zeros((int(SR * 2.4), 2))
+    for i, (n, at) in enumerate([(43, 0.0), (43, 0.25), (46, 0.5), (41, 0.85)]):
+        place(x, bar(midi(n), 1.6, 0.42, "marimba", 0.5), at, -0.2 + i * 0.12)
+    place(x, thump(55, 0.5, 0.5, 5), 0.85, 0.0, human=False)
+    return x
+
+
+def giver_silly():
+    # Pitidos glitch de ordenador con un eco que tartamudea / Glitchy computer bleeps with a stuttering echo
+    x = np.zeros((int(SR * 2.0), 2))
+    for i, n in enumerate([67, 74, 71, 79, 76]):
+        at = i * 0.09 + (0.04 if i % 2 else 0.0)
+        place(x, bar(midi(n), 0.35, 0.22, "kalimba", 0.8), at, -0.7 + i * 0.35, human=False)
+        place(x, bar(midi(n + 12), 0.2, 0.08, "kalimba", 0.9), at + 0.5, 0.7 - i * 0.35, human=False)
+    return mix(x, lp(sweep_noise(0.4, 2000, 600, 3.0, 0.15), 4500))
+
+
+def giver_doc():
+    # Tranquilo, como un estetoscopio: kalimba suave y un pad cálido / Calm, like a stethoscope: soft kalimba and a warm pad
+    x = np.zeros((int(SR * 2.8), 2))
+    for i, n in enumerate([72, 76, 79, 84]):
+        place(x, bar(midi(n), 1.8, 0.22, "kalimba", 0.3), i * 0.22, -0.3 + i * 0.2)
+    place(x, saw_pad([midi(n) for n in (48, 55, 60, 64)], 2.6, 0.08, 0.4, 1.4, 1200), 0.0, human=False)
+    return x
+
+
 if __name__ == "__main__":
-    save("music_menu", menu_theme(), 0.55, room=0)
-    save("music_dream1", dream_theme(), 0.55, room=0)
-    save("music_astral", astral_theme(), 0.55, room=0)
-    save("music_boss", boss_theme(), 0.55, room=0)
+    import sys
+    only = set(sys.argv[1:])   # p. ej. "giver_svinho giver_doc" para rehacer solo esos / e.g. to remake only those
+    if not only:
+        save("music_menu", menu_theme(), 0.55, room=0)
+        save("music_dream1", dream_theme(), 0.55, room=0)
+        save("music_astral", astral_theme(), 0.55, room=0)
+        save("music_boss", boss_theme(), 0.55, room=0)
     for name, fn, peak, room in [
         ("ui_hover", sfx_hover, 0.25, 0.12), ("ui_click", sfx_click, 0.35, 0.12), ("swing", sfx_swing, 0.45, 0.1),
         ("pillow", sfx_pillow, 0.55, 0.12), ("zap", sfx_zap, 0.45, 0.25), ("vacuum", sfx_vacuum, 0.3, 0.0),
@@ -590,5 +634,8 @@ if __name__ == "__main__":
         ("crack", sfx_crack, 0.5, 0.25), ("shoot", sfx_shoot, 0.4, 0.12), ("bone", sfx_bone, 0.4, 0.15),
         ("revive", sfx_revive, 0.45, 0.3), ("stomp", sfx_stomp, 0.6, 0.25), ("boss_wake", sfx_boss_wake, 0.55, 0.35),
         ("throw", sfx_throw, 0.4, 0.1), ("act_clear", sfx_act_clear, 0.5, 0.4),
+        ("giver_svinho", giver_svinho, 0.45, 0.3), ("giver_stolk", giver_stolk, 0.5, 0.3),
+        ("giver_silly", giver_silly, 0.35, 0.25), ("giver_doc", giver_doc, 0.4, 0.35),
     ]:
-        save(name, fn(), peak, room)
+        if not only or name in only:
+            save(name, fn(), peak, room)
