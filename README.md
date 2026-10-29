@@ -103,6 +103,10 @@ Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pi
 
 El Acto 3 es por ahora un escenario **en obras**, pensado para probar las dos armas. La partida termina al acabar el sueño 13.
 
+### Jefes con tiempo límite
+
+Los jefes tienen cuenta atrás: 2:30 los muebles del Acto 1 y 2:00 El Chef. Si aguantas hasta el final, el jefe se retira y pasas igualmente. Si lo derrotas antes, te llevas **un nivel de regalo**.
+
 ### Eventos
 
 Desde el sueño 2, algunos sueños traen un evento al azar:

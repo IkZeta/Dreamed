@@ -396,7 +396,40 @@ func _spawn_chef() -> void:
 	chef.defeated.connect(_on_chef_defeated)
 
 
+## Se acabó el tiempo del jefe: se retira y Kroker pasa igualmente (ha aguantado)
+## The boss's time is up: it retreats and Kroker passes anyway (he survived)
+func _boss_time_up() -> void:
+	if not running:
+		return
+	for b in bosses:
+		if is_instance_valid(b) and float(b.get("_dying")) < 0.0:
+			fx.dissipate(b.aim_point(), UITheme.BONE)
+			fx.ring(b.global_position, 60.0, UITheme.BONE, 0.6, 3.0)
+			b.die(false)
+			# El mueble vuelve a su sitio, dormido otra vez / The furniture goes back to its place, asleep again
+			if b is BossPiece:
+				room.gone.erase((b as BossPiece).kind)
+	shake(8.0)
+	if _wave.get("boss_kind", "") == "chef":
+		_chef_end(false)
+	else:
+		_on_act_cleared(false)
+
+
+## Recompensa por derrotar al jefe antes de tiempo: un nivel de regalo
+## Reward for beating the boss before the time runs out: a bonus level
+func _boss_bonus() -> void:
+	GameState.pending_ups += 1
+	fx.text(player.global_position + Vector2(0, -130), tr("BOSS_BONUS_LEVEL"), UITheme.GOLD, 30)
+	fx.ring(player.global_position + Vector2(0, -60), 50.0, UITheme.GOLD, 0.8, 3.0)
+	Audio.play("chime", -2.0)
+
+
 func _on_chef_defeated() -> void:
+	_chef_end(true)
+
+
+func _chef_end(killed: bool) -> void:
 	if not running:
 		return
 	update_boss_hp()
@@ -417,7 +450,9 @@ func _on_chef_defeated() -> void:
 	GameState.saved_hp = player.hp
 	Progress.save_progress()
 	hud.hide_boss()
-	hud.banner("ACT2_CLEAR_TITLE", "ACT1_CLEAR_DEEPER")
+	hud.banner("ACT2_CLEAR_TITLE", "BOSS_KILLED_SUB" if killed else "BOSS_SURVIVED_SUB")
+	if killed:
+		_boss_bonus()
 	for sh in get_tree().get_nodes_in_group("shards"):
 		sh.set("_magnet", true)
 	get_tree().create_timer(3.4, false).timeout.connect(_choose_second_weapon.bind(_resolve_level_ups.bind(_flash_to_astral)))
@@ -548,11 +583,14 @@ func _physics_process(delta: float) -> void:
 	GameState.run_time += delta
 	_update_event(delta)
 	_update_hearth(delta)
-	if not _wave.get("boss", false):
+	if float(_wave.get("duration", 0.0)) > 0.0:
 		_time_left -= delta
 		hud.set_time(_time_left)
 		if _time_left <= 0.0:
-			_on_wave_cleared()
+			if _wave.get("boss", false):
+				_boss_time_up()
+			else:
+				_on_wave_cleared()
 			return
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
@@ -1070,7 +1108,9 @@ func _flash_to_astral() -> void:
 
 
 ## El jefe ha caído: fin del Acto 1 / The boss has fallen: end of Act 1
-func _on_act_cleared() -> void:
+func _on_act_cleared(killed := true) -> void:
+	if not running:
+		return
 	dream_finished.emit()
 	running = false
 	Audio.stop_loops()
@@ -1089,7 +1129,9 @@ func _on_act_cleared() -> void:
 	GameState.saved_hp = player.hp
 	Progress.save_progress()
 	hud.hide_boss()
-	hud.banner("ACT1_CLEAR_TITLE", "ACT1_CLEAR_DEEPER")
+	hud.banner("ACT1_CLEAR_TITLE", "BOSS_KILLED_SUB" if killed else "BOSS_SURVIVED_SUB")
+	if killed:
+		_boss_bonus()
 	for s in get_tree().get_nodes_in_group("shards"):
 		s.set("_magnet", true)
 	get_tree().create_timer(3.4, false).timeout.connect(_resolve_level_ups.bind(_flash_to_astral))

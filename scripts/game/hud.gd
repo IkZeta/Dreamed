@@ -162,7 +162,8 @@ func start(depth: int) -> void:
 	# Solo el título del sueño, sin subtítulos / Only the dream title, no subtitles
 	_intro_sub.visible = false
 	_intro_new.visible = false
-	_timer.visible = not GameState.wave_for(depth).get("boss", false)
+	# Los jefes también tienen cuenta atrás / Bosses have a countdown too
+	_timer.visible = float(GameState.wave_for(depth).get("duration", 0.0)) > 0.0
 	_refresh_texts()
 	_intro.modulate.a = 0.0
 	var tw := create_tween()

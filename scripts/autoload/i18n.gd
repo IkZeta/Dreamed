@@ -417,6 +417,9 @@ const STRINGS := {
 	"CHARS_DOC_BIO": {"es": "Me cura y me da más aguante, aunque sus remedios siempre tienen algún efecto secundario. Me dice que abra la boca y diga «aaah».", "en": "He patches me up and makes me tougher, though his remedies always have some side effect. He tells me to open wide and say \"aaah\"."},
 	"CHARS_AD_BIO": {"es": "No sé si es una persona o un anuncio con piernas. Huele a patatas fritas y cuanta más Realidad Fragmentada ahorro, más me ayuda.", "en": "I can't tell if he's a person or an advert with legs. He smells of crisps, and the more Fragmented Reality I save, the more he helps me."},
 	"CHARS_CHARO_BIO": {"es": "La del kiosco de la esquina. Me llama «rey» y «criatura», sabe muchísimo de sueños y vende de todo, siempre que le lleve Realidad Fragmentada.", "en": "The lady from the corner kiosk. She calls me \"love\" and \"pet\", knows loads about dreams and sells everything, as long as I bring her Fragmented Reality."},
+	"BOSS_KILLED_SUB": {"es": "¡Derrotado antes de tiempo! Un nivel de regalo.", "en": "Beaten before time ran out! A bonus level."},
+	"BOSS_SURVIVED_SUB": {"es": "¡Has aguantado! El sueño se hunde un poco más...", "en": "You held out! The dream sinks a little deeper..."},
+	"BOSS_BONUS_LEVEL": {"es": "+1 nivel", "en": "+1 level"},
 }
 
 

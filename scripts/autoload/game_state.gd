@@ -48,7 +48,9 @@ const WAVES := [
 	{"duration": 35.0, "spawn_every": 2.8, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1}, "new": "thug"},
 	{"duration": 40.0, "spawn_every": 2.6, "group": [1, 3], "max_alive": 8, "mix": {"foox": 2, "thug": 1, "sling": 1}, "new": "sling", "shop_met": true},
 	{"duration": 45.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 9, "mix": {"foox": 2, "thug": 1, "sling": 1, "skeleton": 2}, "new": "skeleton"},
-	{"boss": true, "spawn_every": 3.5, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}},
+	# Los jefes tienen tiempo límite: si aguantas, pasas; si lo derrotas antes, un nivel de regalo
+	# Bosses have a time limit: survive it and you pass; beat it first and you get a bonus level
+	{"boss": true, "duration": 150.0, "spawn_every": 3.5, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}},
 	# --- Acto 2: el salón. "fire" = la chimenea está encendida; "shop" = Charo abre el kiosco al
 	# acabar. El 8 trae al Cyberpunk y el 10 es el jefe, El Chef.
 	# --- Act 2: the living room. "fire" = the fireplace is lit; "shop" = Charo opens her kiosk
@@ -58,7 +60,7 @@ const WAVES := [
 	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5}, "new": "cyber", "fire": true},
 	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.5}, "shop": true},
 	# Sueño 10: El Chef sale de la tele / Dream 10: The Chef comes out of the TV
-	{"boss": true, "boss_kind": "chef", "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 0.3}},
+	{"boss": true, "boss_kind": "chef", "duration": 120.0, "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 0.3}},
 	# --- Acto 3 (PROVISIONAL): escenario de pruebas para jugar con las dos armas.
 	# --- Act 3 (PLACEHOLDER): a test stage to play with both weapons.
 	{"duration": 45.0, "spawn_every": 2.0, "group": [2, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5}},
