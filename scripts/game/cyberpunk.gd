@@ -1,16 +1,21 @@
 class_name Cyberpunk
 extends Enemy
-## El Cyberpunk (salón, desde el Sueño 8): se acerca a base de dashes que avisa con una
-## franja en el suelo y, si te pilla cerca, te hackea: te baja una estadística al azar
-## hasta que lo matas. Cada Cyberpunk solo te hackea una vez.
-## The Cyberpunk (living room, from Dream 8): closes in with dashes it warns about with a
-## strip on the floor and, if it catches you nearby, hacks you: lowers a random stat until
-## you kill it. Each Cyberpunk only hacks you once.
+## El Cyberpunk (salón, desde el Sueño 8): se acerca andando y usa el dash (sin avisar) para
+## esquivar justo cuando tu arma está a punto de darle. Si te pilla cerca te hackea: te baja
+## una estadística al azar hasta que lo matas y, si sigue vivo 7 segundos después, el virus
+## te hace daño (y vuelve a contar). Cada Cyberpunk solo te hackea una vez.
+## The Cyberpunk (living room, from Dream 8): walks up to you and uses its dash (with no
+## warning) to dodge right when your weapon is about to hit it. If it catches you nearby it
+## hacks you: lowers a random stat until you kill it and, if it's still alive 7 seconds later,
+## the virus hurts you (and the count starts again). Each Cyberpunk only hacks you once.
 
-const DASH_EVERY := 3.4
-const DASH_AIM := 0.45
-const DASH_TIME := 0.28
-const DASH_SPEED := 1000.0
+const DODGE_CD := 2.4         # entre esquivas / between dodges
+const DASH_TIME := 0.22
+const DASH_SPEED := 900.0
+const VIRUS_TIME := 7.0       # segundos para matarlo antes de que el virus haga daño / seconds to kill it before the virus hurts
+const VIRUS_DAMAGE := 4.0
+## Alcance de cada arma de Kroker, para saber si está a tiro / Reach of each of Kroker's weapons, to know if it's in range
+const REACH := {"bat": 115.0, "shield": 100.0, "teddy": 135.0, "book": 260.0, "finger": 450.0, "vacuum": 320.0}
 const HACK_RANGE := 330.0
 const HACK_TIME := 0.9
 const NEON := Color("5ff2ff")
@@ -18,8 +23,8 @@ const NEON2 := Color("ff5fd2")
 ## Qué puede bajar el hackeo y cuánto / What the hack can lower and by how much
 const HACK_STATS := {"attack": -25.0, "attack_speed": -25.0, "speed": -20.0, "range": -25.0, "defense": -2.0, "luck": -15.0}
 
-var _dash_t := 2.0
-var _aim := 0.0              # 0..1 mientras apunta el dash / while aiming the dash
+var _dodge_cd := 1.0
+var _virus_t := 0.0          # cuenta atrás del virus tras hackearte / virus countdown after hacking you
 var _dash_dir := Vector2.ZERO
 var _dashing := 0.0
 var _hack_t := 0.0           # 0..1 mientras te hackea / while hacking you
@@ -41,7 +46,7 @@ func _init() -> void:
 func _desired_velocity() -> Vector2:
 	if _dashing > 0.0:
 		return _dash_dir * DASH_SPEED
-	if _aim > 0.0 or _hack_t > 0.0:
+	if _hack_t > 0.0:
 		return Vector2.ZERO
 	var to_player: Vector2 = run.player.global_position - global_position
 	var dir := to_player.normalized()
@@ -59,6 +64,21 @@ func _act(delta: float) -> void:
 		if _dashing <= 0.0:
 			_dash_dir = Vector2.ZERO
 		return
+	# Virus: si sigue vivo un rato después de hackearte, te hace daño / Virus: if it's still alive a while after hacking you, it hurts you
+	if _hacked and GameState.hacks.has(get_instance_id()):
+		_virus_t -= delta
+		if _virus_t <= 0.0:
+			_virus_t = VIRUS_TIME
+			run.player.take_damage(VIRUS_DAMAGE * atk_mult())
+			Audio.play("glitch", -4.0, 0.1)
+			run.fx.text(run.player.global_position + Vector2(0, -130), tr("HACK_VIRUS"), NEON2, 22)
+			run.fx.ring(run.player.global_position + Vector2(0, -40), 26.0, NEON2, 0.4, 2.4)
+	# Esquiva: dash sin aviso cuando un arma de Kroker está a punto de darle
+	# Dodge: an unannounced dash when one of Kroker's weapons is about to hit it
+	_dodge_cd -= delta * k
+	if _dodge_cd <= 0.0 and _hack_t <= 0.0 and _threatened():
+		_dodge(to_player)
+		return
 	# Hackeo: se queda quieto conectado a Kroker / Hack: stands still, linked to Kroker
 	if _hack_t > 0.0:
 		_hack_t += delta * k / HACK_TIME
@@ -70,23 +90,39 @@ func _act(delta: float) -> void:
 			_apply_hack()
 		return
 	_hack_cd -= delta * k
-	if not _hacked and _hack_cd <= 0.0 and _aim <= 0.0 and to_player.length() < HACK_RANGE:
+	if not _hacked and _hack_cd <= 0.0 and to_player.length() < HACK_RANGE:
 		_hack_t = 0.01
 		Audio.play("hack", -8.0, 0.1)
-		return
-	# Dash avisado / Telegraphed dash
-	_dash_t -= delta * k
-	if _dash_t <= DASH_AIM:
-		if _dash_dir == Vector2.ZERO:
-			_dash_dir = to_player.normalized()
-			_facing = signf(_dash_dir.x) if absf(_dash_dir.x) > 0.05 else _facing
-		_aim = 1.0 - maxf(0.0, _dash_t) / DASH_AIM
-	if _dash_t <= 0.0:
-		_dash_t = DASH_EVERY + randf_range(-0.5, 0.6)
-		_aim = 0.0
-		_dashing = DASH_TIME
-		Audio.play("dash", -6.0, 0.1)
 
+
+## ¿Va a atacarle un arma de Kroker ahora mismo? (le toca atacar, está a tiro y es su objetivo)
+## Is one of Kroker's weapons about to attack it? (it's about to fire, in range and aiming at it)
+func _threatened() -> bool:
+	var p: Player = run.player
+	for w: Weapon in [p.weapon, p.weapon2]:
+		if w == null or not is_instance_valid(w):
+			continue
+		var reach: float = REACH.get(w.id, 200.0) * w.range_mult()
+		if w.id != "vacuum" and w._timer > 0.18:
+			continue
+		if w.nearest(reach) == self:
+			return true
+	return false
+
+
+## Se aparta de lado (y un poco hacia atrás) muy rápido / Steps aside (and a little back) very fast
+func _dodge(to_player: Vector2) -> void:
+	var dir := to_player.normalized()
+	var side := dir.orthogonal() * (1.0 if randf() < 0.5 else -1.0)
+	_dash_dir = (side - dir * 0.35).normalized()
+	# Que no se salga del suelo / Don't leave the floor
+	var land: Vector2 = global_position + _dash_dir * DASH_SPEED * DASH_TIME
+	if not run.arena_rect().grow(-40).has_point(land):
+		_dash_dir = (-side - dir * 0.35).normalized()
+	_facing = signf(_dash_dir.x) if absf(_dash_dir.x) > 0.05 else _facing
+	_dashing = DASH_TIME
+	_dodge_cd = DODGE_CD + randf_range(-0.4, 0.5)
+	Audio.play("dash", -8.0, 0.1)
 
 ## Mientras va de dash hace más daño / It hits harder while dashing
 func _touch_player() -> void:
@@ -99,6 +135,7 @@ func _touch_player() -> void:
 
 func _apply_hack() -> void:
 	_hacked = true
+	_virus_t = VIRUS_TIME
 	var ids := HACK_STATS.keys()
 	var id: String = ids[randi() % ids.size()]
 	GameState.hacks[get_instance_id()] = {"stat": id, "value": HACK_STATS[id]}
@@ -140,13 +177,17 @@ func _exit_tree() -> void:
 
 func _draw() -> void:
 	if not preview and state == State.ALIVE:
-		if _aim > 0.0 and _dash_dir != Vector2.ZERO:
-			EnemyShot.draw_warning(self, Vector2(0, -6), _dash_dir, DASH_SPEED * DASH_TIME, 40.0, _aim)
 		var to: Vector2 = run.player.global_position + Vector2(0, -60) - global_position
 		if _hack_t > 0.0:
 			_glitch_line(Vector2(0, -70), to, _hack_t)
 		elif _hacked:
 			_glitch_line(Vector2(0, -70), to, 0.25)
+			# Cuenta atrás del virus sobre su cabeza / Virus countdown above its head
+			if GameState.hacks.has(get_instance_id()):
+				var c := Vector2(0, -140)
+				var f := 1.0 - _virus_t / VIRUS_TIME
+				draw_arc(c, 11.0, 0, TAU, 24, Color(0.05, 0.03, 0.12, 0.6), 5.0)
+				draw_arc(c, 11.0, -PI / 2, -PI / 2 + TAU * f, 24, Color(NEON2, 0.95), 3.5)
 	super._draw()
 
 
