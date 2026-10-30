@@ -61,6 +61,13 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if kind == "laser":
+		# Rayo láser del Ovni: trazo rojo con el centro blanco / UFO laser bolt: red streak with a white core
+		var tail := -velocity.normalized() * 44.0
+		draw_line(tail, Vector2.ZERO, Color("ff3a5a", 0.35), 14.0)
+		draw_line(tail, Vector2.ZERO, Color("ff5f7a"), 7.0)
+		draw_line(tail * 0.8, Vector2.ZERO, Color.WHITE, 3.0)
+		return
 	# Estela / Trail
 	for i in 4:
 		draw_circle(-velocity.normalized() * (8.0 + i * 8.0), radius * (0.7 - i * 0.15), Color(UITheme.EMBER, 0.15 - i * 0.03))

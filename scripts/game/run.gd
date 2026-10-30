@@ -450,6 +450,9 @@ func _spawn_boss() -> void:
 	if _wave.get("boss_kind", "") == "chef":
 		_spawn_chef()
 		return
+	if _wave.get("boss_kind", "") == "ufo":
+		_spawn_ufo()
+		return
 	hud.show_boss("BOSS_NAME")
 	_boss_step = 0
 	if GameState.difficulty == "nightmare":
@@ -518,6 +521,8 @@ func _boss_time_up() -> void:
 	shake(8.0)
 	if _wave.get("boss_kind", "") == "chef":
 		_chef_end(false)
+	elif _wave.get("boss_kind", "") == "ufo":
+		_ufo_end(false)
 	else:
 		_on_act_cleared(false)
 
@@ -529,6 +534,36 @@ func _boss_bonus() -> void:
 	fx.text(player.global_position + Vector2(0, -130), tr("BOSS_BONUS_LEVEL"), UITheme.GOLD, 30)
 	fx.ring(player.global_position + Vector2(0, -60), 50.0, UITheme.GOLD, 0.8, 3.0)
 	Audio.play("chime", -2.0)
+
+
+## Jefe del Acto 3: el Ovni baja dando tumbos por el pasillo / Act 3 boss: the UFO lurches down the hallway
+func _spawn_ufo() -> void:
+	hud.show_boss("BOSS_UFO_NAME")
+	var ufo := Ufo.new()
+	ufo.setup(self)
+	enemies.add_child(ufo)
+	_add_boss(ufo)
+	ufo.defeated.connect(_ufo_end.bind(true))
+
+
+## Fin del Acto 3 y de la partida: Kroker se despierta / End of Act 3 and of the run: Kroker wakes up
+func _ufo_end(killed: bool) -> void:
+	if not running:
+		return
+	update_boss_hp()
+	running = false
+	Audio.stop_loops()
+	for e: Node in enemies.get_children():
+		if not e.is_boss():
+			e.die(false)
+	dream_finished.emit()
+	Progress.add_stat("dreams")
+	Progress.save_progress()
+	hud.hide_boss()
+	hud.banner("ACT3_CLEAR_TITLE", "BOSS_KILLED_SUB" if killed else "BOSS_SURVIVED_SUB")
+	for s in get_tree().get_nodes_in_group("shards"):
+		s.set("_magnet", true)
+	get_tree().create_timer(3.4, false).timeout.connect(_end_run_victory)
 
 
 func _on_chef_defeated() -> void:

@@ -2070,6 +2070,37 @@ def act3_enemies():
     add("golem_arm", -16, -4, 32, 90, a, flat=True)
 
 
+def ufo():
+    """Jefe del Acto 3: el Ovni, en pixel art plano. Platillo metálico con una cúpula de cristal y un
+    marcianito dentro; las luces del borde, el rayo y el humo se dibujan en el juego.
+    Act 3 boss: the UFO, in flat pixel art. A metal saucer with a glass dome and a little alien
+    inside; the rim lights, the beam and the smoke are drawn in game."""
+    M0, M1, M2, M3 = "#4a4f6e", "#7a80a4", "#aab0cc", "#dfe3f2"
+    G0, G1, GL = "#5fb8c8", "#9fe0ea", "#e8fbff"
+    AL, AL1 = "#7fd65a", "#4f9a3a"
+    b = ""
+    # Cúpula con el marciano / Dome with the alien
+    dome = "M-50,-14 C-50,-62 50,-62 50,-14 Z"
+    b += flat(dome, G0)
+    b += flat(ellipse_d(0, -30, 13, 14), AL) + flat("M6,-42 C12,-36 13,-28 10,-20 L4,-18 C8,-26 8,-36 6,-42 Z", AL1)
+    b += flat(ellipse_d(-5, -32, 3.6, 5), "#101018") + flat(ellipse_d(5, -32, 3.6, 5), "#101018")
+    b += "<path d='M-6,-43 L-12,-56 M6,-43 L12,-56' stroke='%s' stroke-width='2.4'/>" % AL1
+    b += flat(ellipse_d(-12, -57, 3, 3), "#ff6a8a") + flat(ellipse_d(12, -57, 3, 3), "#ff6a8a")
+    b += flat("M-14,-16 L14,-16 L12,-20 L-12,-20 Z", AL1)
+    b += flat("M-36,-40 C-30,-50 -18,-55 -8,-56 L-8,-51 C-18,-50 -28,-45 -32,-37 Z", GL)
+    b += flat("M24,-48 C34,-40 40,-30 42,-18 L36,-18 C34,-28 30,-38 22,-44 Z", G1)
+    # Platillo / Saucer
+    disc = "M-118,0 C-100,-26 100,-26 118,0 C100,22 -100,22 -118,0 Z"
+    b += flat(disc, M2)
+    b += flat("M-118,0 C-100,22 100,22 118,0 C90,10 -90,10 -118,0 Z", M1)
+    b += flat("M-90,-12 C-50,-22 50,-22 90,-12 C50,-16 -50,-16 -90,-12 Z", M3)
+    b += flat("M-60,12 C-30,26 30,26 60,12 L50,24 C20,34 -20,34 -50,24 Z", M0)
+    b += flat(ellipse_d(0, 26, 26, 6), "#2b2945")
+    for x in (-80, -40, 0, 40, 80):
+        b += flat(ellipse_d(x, 2, 2.5, 2.5), M0)
+    add("ufo_body", -124, -66, 248, 104, b, flat=True)
+
+
 def dot_painter(points, color):
     """Pinta píxeles sueltos (ojos) / Paints single pixels (eyes)."""
     def paint(img, to_px):
@@ -2431,6 +2462,7 @@ def build():
     act2_npcs()
     act2_enemies()
     act3_enemies()
+    ufo()
     cyberpunk()
     chef()
     mr_ad()

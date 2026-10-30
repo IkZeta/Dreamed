@@ -37,6 +37,11 @@ const PIECE_PROPS := [
 	["hall_bucket", Vector2(560, 880), Rect2(530, 850, 60, 36)],
 ]
 
+## Destrozos del Ovni: agujeros nuevos en el suelo y quemaduras en la pared (en el lienzo)
+## UFO damage: new holes in the floor and scorch marks on the wall (on the canvas)
+const MAX_CRATERS := 10
+var craters: Array[Rect2] = []
+var scorches: Array[Vector2] = []
 var _piece := 999999          # trozo en el que está la cámara / piece the camera is in
 var _holes: Array[Rect2] = []
 var _doors: Array[Rect2] = []
@@ -90,6 +95,30 @@ func _refresh_lists(force := false) -> void:
 		var pr: Array = PIECE_PROPS[posmod(i, 2)]
 		var r: Rect2 = pr[2]
 		_props.append(Rect2(r.position + off, r.size))
+	var lo := (k - 2) * PERIOD
+	var hi := (k + 3) * PERIOD
+	for c in craters:
+		if c.end.x > lo and c.position.x < hi:
+			_holes.append(c)
+
+
+## El Ovni rompe el suelo: abre un agujero nuevo (los más viejos se cierran)
+## The UFO breaks the floor: opens a new hole (the oldest ones close up)
+func add_crater(center: Vector2, sz := Vector2(150, 64)) -> void:
+	var r := Rect2(center - sz / 2.0, sz)
+	var walk := Rect2(WALK.position + Vector2(0, 40), WALK.size - Vector2(0, 80))
+	r.position.y = clampf(r.position.y, walk.position.y, walk.end.y - sz.y)
+	craters.append(r)
+	if craters.size() > MAX_CRATERS:
+		craters.remove_at(0)
+	_refresh_lists(true)
+
+
+## El Ovni quema la pared / The UFO scorches the wall
+func add_scorch(x: float) -> void:
+	scorches.append(Vector2(x, randf_range(90, 250)))
+	if scorches.size() > 30:
+		scorches.remove_at(0)
 
 
 func hole_count() -> int:
@@ -130,6 +159,7 @@ func _draw() -> void:
 		var off := Vector2(i * PERIOD, 0)
 		_draw_piece("hall_floor", off)
 		_draw_piece("hall_wall_%d" % posmod(i, 3), off)
+	_draw_scorches(k)
 	_draw_wall_holes()
 	_draw_holes()
 	_draw_wall_hole_floor()
@@ -146,6 +176,24 @@ func _draw() -> void:
 		_draw_dream_stars()
 	draw_set_transform(Vector2.ZERO)
 	_draw_edges(k)
+
+
+## Quemaduras del Ovni en la pared: mancha negra, taquillas abolladas y chispas
+## UFO scorch marks on the wall: black blotch, dented lockers and sparks
+func _draw_scorches(k: int) -> void:
+	var lo := (k - 2) * PERIOD
+	var hi := (k + 2) * PERIOD
+	for i in scorches.size():
+		var c := scorches[i]
+		if c.x < lo or c.x > hi:
+			continue
+		draw_colored_polygon(_ellipse(c, Vector2(70, 46)), Color(0.1, 0.07, 0.05, 0.55))
+		draw_colored_polygon(_ellipse(c, Vector2(40, 26)), Color(0.05, 0.03, 0.02, 0.8))
+		for kk in 5:
+			var a := TAU * kk / 5.0 + i
+			draw_line(c, c + Vector2(cos(a) * 60.0, sin(a) * 36.0), Color(0.05, 0.03, 0.02, 0.6), 4.0)
+		if fmod(_t * 3.0 + i, 2.0) < 0.15:
+			draw_circle(c + Vector2(randf_range(-20, 20), randf_range(-10, 10)), 4.0, Color("ffd27a"))
 
 
 ## Dibuja un trozo un pelín más ancho para que no se vean costuras entre trozos

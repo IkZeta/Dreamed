@@ -169,7 +169,7 @@ class BestiaryPreview extends Control:
 
 	func _ready() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
-		if id.begins_with("boss_") and id != "boss_chef":
+		if id.begins_with("boss_") and id != "boss_chef" and id != "boss_ufo":
 			return
 		var e: Enemy
 		match id:
@@ -182,6 +182,7 @@ class BestiaryPreview extends Control:
 			"puppet": e = Puppet.new()
 			"golem": e = Golem.new()
 			"boss_chef": e = Chef.new()
+			"boss_ufo": e = Ufo.new()
 			"golden_foox": e = GoldenFoox.new()
 			_: e = Foox.new()
 		if id == "elite":
@@ -198,7 +199,7 @@ class BestiaryPreview extends Control:
 		_enemy = e
 
 	## Alto de cada dibujo (con cuernos y aura) / Height of each drawing (with horns and aura)
-	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "puppet": 210.0, "golem": 210.0, "boss_chef": 290.0,
+	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "puppet": 210.0, "golem": 210.0, "boss_chef": 290.0, "boss_ufo": 160.0,
 		"boss_bed": 200.0, "boss_shelf": 190.0, "boss_chest": 130.0}
 
 	## Escala para que quepa entero en el hueco / Scale so it fits whole in the space
@@ -227,7 +228,7 @@ class BestiaryPreview extends Control:
 	func _draw() -> void:
 		var c := Vector2(size.x / 2.0, size.y * 0.84)
 		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(90, 120), Vector2(180, 160)), false, Color(UITheme.MIST, 0.15))
-		if id.begins_with("boss_") and id != "boss_chef":
+		if id.begins_with("boss_") and id != "boss_chef" and id != "boss_ufo":
 			var sprite := {"boss_bed": "boss_bed", "boss_shelf": "boss_shelf", "boss_chest": "boss_chest_box"}[id] as String
 			var mod := Color(0, 0, 0, 0.75) if hidden_shape else Color.WHITE
 			draw_set_transform(c, 0.0, Vector2.ONE * _fit())
