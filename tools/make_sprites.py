@@ -800,23 +800,54 @@ def boss():
     bed += flat("M-60,-95 C-30,-98 0,-98 20,-97 L20,-94 C0,-95 -30,-95 -60,-92 Z", S3)
     add("boss_bed", -82, -190, 164, 192, bed, flat=True)
 
-    # Estantería / Bookshelf
-    w, h = 120, 170
-    sh = shaded("M-60,-170 L60,-170 L60,0 L-60,0 Z", "#4a4592", shade=0.55, rim=0.4, sw=1.4)
-    cols = ["#e3a6c4", "#f6d993", "#8fb3e8", "#b6e0d6", "#c9b6f0"]
-    for row in range(3):
-        y = -170 + 54 * (row + 1)
-        x = -52.0
-        i = row * 2
+    # Estantería en pixel art plano: mueble de madera con cornisa, tres baldas y libros de
+    # cuentos de alturas y colores distintos (alguno inclinado). En la balda de arriba queda un
+    # hueco oscuro en el centro: de ahí asoman los ojos, que se pintan en el juego.
+    # Bookshelf in flat pixel art: a wooden unit with a cornice, three shelves and storybooks of
+    # different heights and colours (some leaning). The top shelf has a dark gap in the middle:
+    # the eyes, painted in game, peer out from there.
+    W0, W1, W2, W3 = "#221a4c", "#3a2f7a", "#5446a4", "#7564c8"
+    IN = "#16123a"
+    BOOKS = [("#e3a6c4", "#b9739a"), ("#f6d993", "#c9a24e"), ("#8fb3e8", "#5d80c0"),
+             ("#b6e0d6", "#7ab0a4"), ("#c9b6f0", "#9580c8"), ("#f2a07a", "#c46f50")]
+    BAND = "#fbfaff"
+    sh = flat("M-60,-166 L60,-166 L60,0 L-60,0 Z", W2)
+    sh += flat("M50,-166 L60,-166 L60,0 L50,0 Z", W1) + flat("M-60,-166 L-56,-166 L-56,0 L-60,0 Z", W3)
+    # Cornisa / Cornice
+    sh += flat("M-64,-174 L64,-174 L64,-164 L-64,-164 Z", W3) + flat("M-64,-167 L64,-167 L64,-164 L-64,-164 Z", W1)
+    # Zócalo / Plinth
+    sh += flat("M-62,-10 L62,-10 L62,0 L-62,0 Z", W1)
+    shelves = [(-160, -112), (-106, -60), (-54, -12)]
+    for row, (top, bot) in enumerate(shelves):
+        sh += flat("M-52,%g L52,%g L52,%g L-52,%g Z" % (top, top, bot, bot), IN)
+        x = -50.0
+        k = row * 2
         while x < 46:
-            bw = 10 + (i % 3) * 3
-            bh = 30 + (i % 4) * 5
-            sh += shaded("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y - bh, x + bw, y - bh, x + bw, y, x, y), cols[i % len(cols)], shade=0.35, rim=0.35, sw=0.8)
-            sh += "<rect x='%g' y='%g' width='%g' height='2' fill='#ffffff' opacity='0.35'/>" % (x + 2, y - bh + 6, bw - 4)
-            x += bw + 3
-            i += 1
-        sh += shaded("M-60,%g L60,%g L60,%g L-60,%g Z" % (y, y, y + 6, y + 6), "#2c2a66", shade=0.2, rim=0.2, sw=0.6)
-    add("boss_shelf", -63, -173, 126, 176, sh, colors=32)
+            if row == 0 and -34 < x < 30:
+                x = 31.0   # hueco para los ojos / gap for the eyes
+                continue
+            bw = 8 + (k * 5) % 7
+            bh = (bot - top) - 4 - (k * 7) % 14
+            c, c1 = BOOKS[k % len(BOOKS)]
+            if row != 0 and k % 5 == 3 and x + bw + 12 < 50:
+                # Libro inclinado apoyado en el siguiente / Book leaning on the next one
+                lw = bw + 4
+                lean = 10
+                sh += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, bot, x + lw, bot, x + lw + lean, bot - bh + 6, x + lean, bot - bh + 2), c)
+                sh += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x + lw - 3, bot, x + lw, bot, x + lw + lean, bot - bh + 6, x + lw + lean - 3, bot - bh + 5), c1)
+                x += lw + lean + 1.5
+                k += 1
+                continue
+            sh += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, bot - bh, x + bw, bot - bh, x + bw, bot, x, bot), c)
+            sh += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x + bw - 2.5, bot - bh, x + bw, bot - bh, x + bw, bot, x + bw - 2.5, bot), c1)
+            if bh > 26:
+                sh += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, bot - bh + 6, x + bw, bot - bh + 6, x + bw, bot - bh + 9, x, bot - bh + 9), BAND)
+            x += bw + 1.5
+            k += 1
+        # Balda / Shelf board
+        sh += flat("M-56,%g L56,%g L56,%g L-56,%g Z" % (bot, bot, bot + 6, bot + 6), W3)
+        sh += flat("M-56,%g L56,%g L56,%g L-56,%g Z" % (bot + 3, bot + 3, bot + 6, bot + 6), W1)
+    add("boss_shelf", -66, -177, 132, 180, sh, flat=True)
 
     # Baúl de juguetes: caja y tapa / Toy chest: box and lid
     box = shaded("M-60,-66 L60,-66 L60,0 L-60,0 Z", "#c0a0dc", shade=0.45, rim=0.45, sw=1.2)
