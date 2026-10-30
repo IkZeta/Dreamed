@@ -187,6 +187,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	b.text = "ASTRAL_ACCEPT"
 	b.custom_minimum_size = Vector2(0, 60)
 	b.pressed.connect(_choose.bind(giver))
+	Keywords.on_focus(b, desc)
 	b.mouse_entered.connect(b.grab_focus)
 	b.focus_entered.connect(func() -> void: fig.highlight = true)
 	b.focus_exited.connect(func() -> void: fig.highlight = false)

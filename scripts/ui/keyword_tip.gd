@@ -38,9 +38,28 @@ func _ready() -> void:
 	_panel.visible = false
 
 
+var _anchor := Rect2()     # con mando: junto a la carta seleccionada / with a gamepad: next to the selected card
+
+
 func show_for(id: String) -> void:
+	_anchor = Rect2()
 	_title.text = tr("KW_%s_NAME" % id.to_upper())
 	_body.text = tr("KW_%s_DESC" % id.to_upper())
+	_panel.visible = true
+	_panel.reset_size()
+	_place()
+
+
+## Varias palabras a la vez, al lado de una carta / Several words at once, beside a card
+func show_many(ids: Array[String], near: Rect2) -> void:
+	_anchor = near
+	var names: Array[String] = []
+	var bodies: Array[String] = []
+	for id in ids:
+		names.append(tr("KW_%s_NAME" % id.to_upper()))
+		bodies.append("%s: %s" % [tr("KW_%s_NAME" % id.to_upper()), tr("KW_%s_DESC" % id.to_upper())])
+	_title.text = names[0] if ids.size() == 1 else " · ".join(names)
+	_body.text = tr("KW_%s_DESC" % ids[0].to_upper()) if ids.size() == 1 else "\n\n".join(bodies)
 	_panel.visible = true
 	_panel.reset_size()
 	_place()
@@ -59,6 +78,11 @@ func _process(_delta: float) -> void:
 ## Junto al ratón, sin salirse de la pantalla / Next to the mouse, without leaving the screen
 func _place() -> void:
 	var vp := get_viewport().get_visible_rect().size
+	if _anchor.size != Vector2.ZERO:
+		var s0 := _panel.size
+		var x := _anchor.end.x + 16 if _anchor.end.x + 16 + s0.x < vp.x - 10 else _anchor.position.x - s0.x - 16
+		_panel.position = Vector2(clampf(x, 10, vp.x - s0.x - 10), clampf(_anchor.position.y, 10, vp.y - s0.y - 10))
+		return
 	var m := get_viewport().get_mouse_position()
 	var p := m + Vector2(24, 24)
 	var s := _panel.size

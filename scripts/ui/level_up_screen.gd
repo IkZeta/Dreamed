@@ -137,6 +137,7 @@ func _card(choice: Dictionary, index: int) -> Control:
 	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(desc)
 	var b := Button.new()
+	Keywords.on_focus(b, desc)
 	b.text = "LEVELUP_PICK"
 	b.custom_minimum_size = Vector2(0, 58)
 	b.pressed.connect(_pick.bind(index))

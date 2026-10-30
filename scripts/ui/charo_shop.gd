@@ -140,6 +140,7 @@ func _card(id: String) -> Control:
 	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(desc)
 	var b := Button.new()
+	Keywords.on_focus(b, desc)
 	b.custom_minimum_size = Vector2(0, 58)
 	b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	b.pressed.connect(_buy.bind(id))

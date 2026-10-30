@@ -114,6 +114,41 @@ static func show_tip(from: Control, id: String) -> void:
 	_tip.show_for(id)
 
 
+## Palabras clave que aparecen en un texto, sin repetir / Keywords that appear in a text, without repeats
+static func ids_in(text: String) -> Array[String]:
+	var out: Array[String] = []
+	var re := RegEx.new()
+	re.compile("\\[url=(\\w+)\\]")
+	for m: RegExMatch in re.search_all(markup(TranslationServer.translate(text))):
+		if not out.has(m.get_string(1)):
+			out.append(m.get_string(1))
+	return out
+
+
+## Con mando o teclado no hay ratón: al seleccionar "owner" se enseñan a su lado las tarjetas de
+## todas las palabras clave de "label". With a gamepad or keyboard there's no mouse: when "owner"
+## is selected, the cards for every keyword in "label" are shown beside it.
+static func on_focus(owner: Control, label: RichTextLabel) -> void:
+	owner.focus_entered.connect(func() -> void:
+		# Si el ratón está encima, ya se encarga el ratón / If the mouse is over it, the mouse handles it
+		if owner.get_global_rect().has_point(owner.get_global_mouse_position()):
+			return
+		var ids: Array[String] = []
+		var re := RegEx.new()
+		re.compile("\\[url=(\\w+)\\]")
+		for m: RegExMatch in re.search_all(label.text):
+			if not ids.has(m.get_string(1)):
+				ids.append(m.get_string(1))
+		if ids.is_empty():
+			return
+		if not is_instance_valid(_tip):
+			_tip = KeywordTip.new()
+			owner.get_tree().root.add_child(_tip)
+		_tip.show_many(ids, owner.get_global_rect()))
+	owner.focus_exited.connect(hide_tip)
+	owner.tree_exiting.connect(hide_tip)
+
+
 static func hide_tip() -> void:
 	if is_instance_valid(_tip):
 		_tip.hide_tip()

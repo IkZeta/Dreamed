@@ -80,6 +80,7 @@ func _card(row: Control, id: String) -> Button:
 	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(desc)
 	var b := Button.new()
+	Keywords.on_focus(b, desc)
 	b.text = "WEAPON2_PICK"
 	b.custom_minimum_size = Vector2(0, 60)
 	b.pressed.connect(_pick.bind(id))
