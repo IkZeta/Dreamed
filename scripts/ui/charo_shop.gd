@@ -135,9 +135,8 @@ func _card(id: String) -> Control:
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(name_l)
-	var desc := UITheme.label("WARE_%s_DESC" % id.to_upper(), 18, UITheme.ASH, "italic")
+	var desc := Keywords.label("WARE_%s_DESC" % id.to_upper(), 18, UITheme.ASH, "italic")
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(desc)
 	var b := Button.new()

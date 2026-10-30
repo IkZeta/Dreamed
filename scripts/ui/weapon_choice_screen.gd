@@ -75,9 +75,8 @@ func _card(row: Control, id: String) -> Button:
 	var name_l := UITheme.label(c["weapon"], 40, UITheme.BONE, "display")
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(name_l)
-	var desc := UITheme.label(c["desc"], 20, UITheme.ASH, "italic")
+	var desc := Keywords.label(c["desc"], 20, UITheme.ASH, "italic")
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(desc)
 	var b := Button.new()

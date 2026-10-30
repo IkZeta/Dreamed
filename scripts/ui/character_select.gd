@@ -213,8 +213,7 @@ func _pair(key: String, value_key: String, color: Color) -> Control:
 	k.custom_minimum_size.x = 120
 	k.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(k)
-	var v := UITheme.label(value_key, 20, color)
-	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var v := Keywords.label(value_key, 20, color)
 	v.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(v)
 	return row

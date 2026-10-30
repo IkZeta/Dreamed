@@ -228,6 +228,9 @@ static func rule(color := LINE, width := 0.0) -> ColorRect:
 
 static func ignore_mouse(node: Node) -> void:
 	if node is Control:
-		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# Los textos con palabras clave siguen escuchando al ratón para enseñar sus tarjetas
+		# Texts with keywords keep listening to the mouse to show their cards
+		var keep := node.has_meta("keywords")
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_PASS if keep else Control.MOUSE_FILTER_IGNORE
 	for child in node.get_children():
 		ignore_mouse(child)

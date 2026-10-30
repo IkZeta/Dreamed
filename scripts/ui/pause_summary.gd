@@ -93,9 +93,7 @@ func _build(player: Player) -> void:
 			var head := UITheme.label("  ·  ".join(PackedStringArray(parts)), 24, UITheme.BONE, "body")
 			head.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 			v.add_child(head)
-			var desc := UITheme.label(s.upgrade_desc(g, weapon, lvl), 24, UITheme.ASH, "italic")
-			desc.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-			desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			var desc := Keywords.label(s.upgrade_desc(g, weapon, lvl), 24, UITheme.ASH, "italic")
 			desc.custom_minimum_size.x = 760
 			v.add_child(desc)
 	if not any:

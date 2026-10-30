@@ -149,7 +149,8 @@ func _show(id: String) -> void:
 		# Una línea por color con lo que hace / One line per colour with what it does
 		for power in ["split", "puddle", "haste"]:
 			text += "\n[color=#%s]■ %s[/color]" % [Enemy.ELITE_COLORS[power].to_html(false), tr("BEST_ELITE_" + power.to_upper())]
-	_desc.text = text
+	_desc.text = Keywords.markup(text) if seen and id != "elite" else text
+	Keywords.enable(_desc)
 	_count.text = (tr("BESTIARY_DEFEATED") % int(Progress.kills.get(id, 0))) if seen else ""
 
 

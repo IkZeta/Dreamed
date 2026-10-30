@@ -132,9 +132,8 @@ func _card(choice: Dictionary, index: int) -> Control:
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(value)
-	var desc := UITheme.label("STAT_DESC_" + id.to_upper(), 18, UITheme.ASH, "italic")
+	var desc := Keywords.label("STAT_DESC_" + id.to_upper(), 18, UITheme.ASH, "italic")
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(desc)
 	var b := Button.new()

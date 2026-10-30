@@ -178,7 +178,8 @@ func _show(id: String) -> void:
 	_name.text = _title(id) if known else "???"
 	_name.add_theme_color_override("font_color", AURA[id] if known else UITheme.ASH)
 	_role.text = tr(_role_key(id)) if known else ""
-	_desc.text = tr("CHARS_%s_BIO" % id.to_upper()) if known else tr("CHARS_UNKNOWN")
+	_desc.text = Keywords.markup(tr("CHARS_%s_BIO" % id.to_upper())) if known else tr("CHARS_UNKNOWN")
+	Keywords.enable(_desc)
 	_friend_row.visible = known and id != "kroker"
 	_hearts.color = AURA[id]
 	_hearts.set_level(Progress.friend_level(id))

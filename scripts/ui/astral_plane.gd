@@ -147,16 +147,14 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	var lvl_label := UITheme.label("", 14, UITheme.ASH, "caps")
 	lvl_label.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	up_row.add_child(lvl_label)
-	var desc := UITheme.label("", 19, Color(UITheme.BONE, 0.85), "light")
-	desc.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var desc := Keywords.label("", 19, Color(UITheme.BONE, 0.85), "light")
 	desc.custom_minimum_size.y = 84
 	var refresh := func() -> void:
 		var w: String = _target[giver]
 		var lvl := GameState.level(giver, w)
 		up_name.text = tr(GameState.upgrade_key(giver, w, "NAME"))
 		lvl_label.text = tr("UP_LEVEL") % (lvl + 1)
-		desc.text = GameState.upgrade_desc(giver, w, lvl + 1)
+		Keywords.set_text(desc, GameState.upgrade_desc(giver, w, lvl + 1))
 	if weapons.size() > 1:
 		var tabs := HBoxContainer.new()
 		tabs.add_theme_constant_override("separation", 8)
