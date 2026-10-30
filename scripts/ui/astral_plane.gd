@@ -22,7 +22,7 @@ var _talk_giver := ""
 var _talk_buttons: HBoxContainer
 var _tip_button: Button
 var _hearts: FriendHearts
-var _tipped := false
+var _first_talk := false
 
 
 func _ready() -> void:
@@ -271,7 +271,14 @@ func _talk_scene(giver: String) -> void:
 	_talk_text.add_theme_constant_override("line_separation", 8)
 	_talk_text.mouse_filter = MOUSE_FILTER_IGNORE
 	_talk_giver = giver
-	_talk_text.text = tr("TALK_%s_%d" % [giver.to_upper(), Progress.friend_level(giver)])
+	# Primera vez: presentación y sin propina. Luego, lo que toque según la amistad.
+	# First time: introduction and no tip. After that, whatever friendship calls for.
+	_first_talk = Progress.first_talk(giver)
+	if _first_talk:
+		_talk_text.text = tr("TALK_%s_INTRO" % giver.to_upper())
+		Progress.mark_talked(giver)
+	else:
+		_talk_text.text = tr("TALK_%s_%d" % [giver.to_upper(), Progress.friend_level(giver)])
 	_talk_text.visible_ratio = 0.0
 	v.add_child(_talk_text)
 	_talk_prompt = UITheme.label("DIALOGUE_NEXT", 14, Color(UITheme.ASH, 0.8), "caps")
@@ -297,7 +304,7 @@ func _talk_scene(giver: String) -> void:
 	_tip_button.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	_tip_button.pressed.connect(_tip)
 	_tip_button.mouse_entered.connect(_tip_button.grab_focus)
-	_tip_button.visible = GameState.reality_on()
+	_tip_button.visible = GameState.reality_on() and not _first_talk
 	_talk_buttons.add_child(_tip_button)
 	var go := Button.new()
 	go.text = "TALK_CONTINUE"
@@ -350,7 +357,7 @@ func _refresh_tip() -> void:
 	if not Progress.can_tip(g):
 		_tip_button.text = tr("TIP_MAX")
 		_tip_button.disabled = true
-	elif _tipped:
+	elif GameState.tipped.has(g):
 		_tip_button.text = tr("TIP_DONE")
 		_tip_button.disabled = true
 	elif GameState.reality < Progress.tip_cost(g):
@@ -361,19 +368,21 @@ func _refresh_tip() -> void:
 		_tip_button.disabled = false
 
 
-## Propina: sube la amistad y el personaje te cuenta algo nuevo (una vez por visita)
-## Tip: raises friendship and the character tells you something new (once per visit)
+## Propina (una por personaje y partida): sube la amistad y te da las gracias. Lo nuevo que
+## tenga que contarte lo dirá la próxima vez que lo veas.
+## Tip (one per character per run): raises friendship and they thank you. Whatever new thing
+## they have to tell you, they'll say it the next time you meet.
 func _tip() -> void:
 	var g := _talk_giver
-	if _tipped or _leaving or not Progress.can_tip(g) or GameState.reality < Progress.tip_cost(g):
+	if _first_talk or GameState.tipped.has(g) or _leaving or not Progress.can_tip(g) or GameState.reality < Progress.tip_cost(g):
 		return
 	GameState.add_reality(-Progress.tip_cost(g))
 	Progress.add_friend(g)
-	_tipped = true
+	GameState.tipped[g] = true
 	_hearts.set_level(Progress.friend_level(g))
 	Audio.play("reality", -2.0)
 	Audio.play("giver_" + g, -3.0)
-	_talk_text.text = tr("TALK_%s_%d" % [g.to_upper(), Progress.friend_level(g)])
+	_talk_text.text = tr("TALK_%s_THANKS" % g.to_upper())
 	_talk_text.visible_ratio = 0.0
 	_talk_t = 0.0
 	_talk_buttons.modulate.a = 0.0

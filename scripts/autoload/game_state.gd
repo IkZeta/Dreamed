@@ -208,7 +208,7 @@ func start_run() -> void:
 ## At the start of every dream the state is saved; "Continue" goes back to that moment.
 const RUN_SAVE := "user://run.cfg"
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped"]
 
 
 func save_run() -> void:
@@ -265,6 +265,7 @@ func reset_run() -> void:
 	stat_bonus = {}
 	reality = 0
 	bought = {}
+	tipped = {}
 	hacks = {}
 	_rng.randomize()
 
@@ -662,6 +663,9 @@ const WARES := {
 }
 ## Lo comprado en esta partida: artículo → cuántos / Bought this run: ware → how many
 var bought := {}
+## A quién se le ha dado propina en esta partida (solo una por personaje y partida)
+## Who has been tipped this run (only one per character per run)
+var tipped := {}
 
 
 ## Mejoras que aún pueden subir de nivel / Upgrades that can still level up

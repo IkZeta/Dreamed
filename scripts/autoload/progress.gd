@@ -189,6 +189,17 @@ func can_tip(id: String) -> bool:
 	return friend_level(id) < FRIEND_MAX
 
 
+## La primera vez que coges un don de alguien te dice algo especial y aún no admite propina
+## The first time you take someone's gift they say something special and won't take a tip yet
+func first_talk(id: String) -> bool:
+	return not stats.has("talked_" + id)
+
+
+func mark_talked(id: String) -> void:
+	stats["talked_" + id] = 1
+	save_progress()
+
+
 func add_friend(id: String) -> void:
 	friendship[id] = mini(FRIEND_MAX, friend_level(id) + 1)
 	save_progress()

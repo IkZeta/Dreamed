@@ -150,10 +150,11 @@ Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 d
 ### Amistad
 
 La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
-- **Propina:** después de elegir un don, en la charla puedes darle propina con Realidad Fragmentada (10 ◆ para el nivel 1, 13 para el 2, 16, 19 y 22), una vez por visita.
+- **Primera vez:** la primera vez que coges un don de alguien, se presenta con una frase única y todavía no admite propina.
+- **Propina:** desde la segunda vez, en la charla puedes darle propina con Realidad Fragmentada (10 ◆ para el nivel 1, 13 para el 2, 16, 19 y 22). Solo una por personaje y partida. Al dársela te da las gracias; lo nuevo que tenga que contarte lo dirá la próxima vez que lo veas.
 - **Mejores dones:** cada nivel de amistad mejora sus dones un 6 % (hasta un 30 %); en los de Doc, lo que empeora pesa menos y las recargas bajan.
 - **Conversaciones:** cada personaje te cuenta algo distinto en cada nivel de amistad.
-- **Charo:** en el kiosco también se le puede dar propina. Cada nivel rebaja los precios un 6 % y cambia lo que te dice al saludarte.
+- **Charo:** en el kiosco también se le puede dar propina, una por partida. Cada nivel rebaja los precios un 6 % y cambia lo que te dice al saludarte.
 - **Dónde verla:** la amistad sale con corazones en el menú Personajes, en las cartas del plano astral y en el kiosco.
 
 ### Niveles

@@ -489,7 +489,7 @@ const STRINGS := {
 	"FRIENDSHIP": {"es": "Amistad", "en": "Friendship"},
 	"TIP_BUTTON": {"es": "Dar propina · {cost} ◆", "en": "Give a tip · {cost} ◆"},
 	"TIP_SHORT": {"es": "Propina: te faltan {n} ◆", "en": "Tip: {n} ◆ short"},
-	"TIP_DONE": {"es": "¡Propina dada!", "en": "Tip given!"},
+	"TIP_DONE": {"es": "Ya le diste propina", "en": "Already tipped"},
 	"TIP_MAX": {"es": "Amistad al máximo", "en": "Best friends"},
 	"TALK_CONTINUE": {"es": "Seguir", "en": "Continue"},
 	"TALK_SVINHO_0": {"es": "«¡Joga bonito, Kroker! Todo lo que golpeas debería rebotar. Así es el fútbol... y los sueños.»", "en": "“Joga bonito, Kroker! Everything you hit should bounce. That's football... and dreams.”"},
@@ -533,6 +533,19 @@ const STRINGS := {
 	"SHOP_HELLO_3": {"es": "«Yo también tuve un nieto que soñaba mucho, ¿sabes? Se parecía a ti. Toma, más barato.»", "en": "“I had a grandson who dreamed a lot too, you know. He looked like you. Here, cheaper.”"},
 	"SHOP_HELLO_4": {"es": "«Llevo tantos años en este kiosco entre sueños que ya ni me acuerdo de cómo era despertar.»", "en": "“I've been in this kiosk between dreams so long I can't remember what waking up was like.”"},
 	"SHOP_HELLO_5": {"es": "«Para ti, precio de familia, corazón. Y cuando llegues al final, ven a contármelo, ¿eh?»", "en": "“Family prices for you, sweetheart. And when you reach the end, come and tell me all about it, eh?”"},
+	"TALK_SVINHO_INTRO": {"es": "«¡Olá, chaval! Soy Svinho, el mejor delantero de todos los sueños. Si golpeas, que rebote. Ya nos veremos, ¿eh?»", "en": "“Olá, kid! I'm Svinho, the best striker in every dream. If you hit something, make it bounce. See you around, eh?”"},
+	"TALK_STOLK_INTRO": {"es": "«¿Y tú quién eres, enano? Bah, me da igual. Toma esto y no llores cuando te duela.»", "en": "“And who are you, shrimp? Bah, whatever. Take this, and don't cry when it hurts.”"},
+	"TALK_SILLY_INTRO": {"es": "«Ah, hola. Usuario nuevo detectado. Soy Silly. No toques nada... bueno, toca lo que yo te diga.»", "en": "“Oh, hi. New user detected. I'm Silly. Don't touch anything... well, touch what I tell you to.”"},
+	"TALK_DOC_INTRO": {"es": "«Un paciente nuevo, qué bien. Soy Doc. Siéntate, saca la lengua y no te asustes de la factura.»", "en": "“A new patient, splendid. I'm Doc. Sit down, stick out your tongue and don't worry about the bill.”"},
+	"TALK_AD_INTRO": {"es": "«¡Bienvenido, nuevo cliente! Soy Mr. Ad, patrocinador oficial de tus sueños. ¡Primera mejora, gratis total!»", "en": "“Welcome, new customer! I'm Mr. Ad, official sponsor of your dreams. First upgrade, totally free!”"},
+	"TALK_PINCHE_INTRO": {"es": "«¡Uy! Perdona, me he escapado de la cocina. Soy el pinche. Si el chef pregunta, no me has visto.»", "en": "“Oops! Sorry, I sneaked out of the kitchen. I'm the kitchen boy. If Chef asks, you never saw me.”"},
+	"TALK_SVINHO_THANKS": {"es": "«¡Obrigado, parceiro! Esto lo celebro como un gol en el último minuto.»", "en": "“Obrigado, partner! I'll celebrate this like a last-minute goal.”"},
+	"TALK_STOLK_THANKS": {"es": "«...Vale. Gracias. Pero como se lo cuentes a alguien, te la devuelvo.»", "en": "“...Fine. Thanks. But if you tell anyone, I'm giving it back.”"},
+	"TALK_SILLY_THANKS": {"es": "«Propina recibida. Guardando en la caché de cosas bonitas. Gracias, Kroker.»", "en": "“Tip received. Saving it to the cache of nice things. Thanks, Kroker.”"},
+	"TALK_DOC_THANKS": {"es": "«Muy amable, chaval. Esto va directo a la hucha de las tiritas.»", "en": "“Very kind, lad. This goes straight into the plaster fund.”"},
+	"TALK_AD_THANKS": {"es": "«¡Transacción completada! Sin comisiones, sin letra pequeña... y con muchísimo cariño.»", "en": "“Transaction complete! No fees, no small print... and a whole lot of love.”"},
+	"TALK_PINCHE_THANKS": {"es": "«¡Gracias! Con esto me compro un delantal que no huela a cebolla. O dos.»", "en": "“Thanks! With this I can buy an apron that doesn't smell of onions. Or two.”"},
+	"SHOP_TIP_THANKS": {"es": "«¡Ay, qué detalle, criatura! Esto no se me olvida, ya verás la próxima vez.»", "en": "“Oh, how thoughtful, pet! I won't forget this, you'll see next time.”"},
 }
 
 

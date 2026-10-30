@@ -16,7 +16,7 @@ var _line: Label
 var _leave: Button
 var _tip: Button
 var _hearts: FriendHearts
-var _tipped := false
+
 var _ready_t := 0.4
 var _done := false
 
@@ -155,19 +155,20 @@ func _hello_key() -> String:
 	return "SHOP_HELLO" if lvl == 0 else "SHOP_HELLO_%d" % lvl
 
 
-## Propina a Charo (una vez por visita): sube la amistad y rebaja los precios
-## Tip for Charo (once per visit): raises friendship and lowers prices
+## Propina a Charo (una por partida): sube la amistad y rebaja los precios
+## Tip for Charo (one per run): raises friendship and lowers prices
 func _give_tip() -> void:
-	if _done or _ready_t > 0.0 or _tipped or not Progress.can_tip("charo"):
+	if _done or _ready_t > 0.0 or GameState.tipped.has("charo") or not Progress.can_tip("charo"):
 		return
 	var cost := Progress.tip_cost("charo")
 	if GameState.reality < cost:
 		return
 	GameState.add_reality(-cost)
 	Progress.add_friend("charo")
-	_tipped = true
+	GameState.tipped["charo"] = true
 	_hearts.set_level(Progress.friend_level("charo"))
-	_line.text = _hello_key()
+	# Solo da las gracias; el saludo nuevo, la próxima vez / She just thanks you; the new greeting comes next time
+	_line.text = "SHOP_TIP_THANKS"
 	Audio.play("reality", -2.0)
 	Audio.play("giver_charo", -4.0)
 	_ready_t = 0.2
@@ -180,7 +181,7 @@ func _refresh() -> void:
 	if not Progress.can_tip("charo"):
 		_tip.text = tr("TIP_MAX")
 		_tip.disabled = true
-	elif _tipped:
+	elif GameState.tipped.has("charo"):
 		_tip.text = tr("TIP_DONE")
 		_tip.disabled = true
 	elif GameState.reality < Progress.tip_cost("charo"):
