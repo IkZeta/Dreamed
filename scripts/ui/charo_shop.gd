@@ -14,6 +14,9 @@ var _buttons := {}
 var _count: Label
 var _line: Label
 var _leave: Button
+var _tip: Button
+var _hearts: FriendHearts
+var _tipped := false
 var _ready_t := 0.4
 var _done := false
 
@@ -54,7 +57,8 @@ func build() -> void:
 	talk.custom_minimum_size.x = 640
 	top.add_child(talk)
 	talk.add_child(UITheme.label("SHOP_TITLE", 60, UITheme.BONE, "display"))
-	_line = UITheme.label("SHOP_HELLO", 24, Color("7fe0d0"), "italic")
+	# Saluda según la amistad / Greets you according to friendship
+	_line = UITheme.label(_hello_key(), 24, Color("7fe0d0"), "italic")
 	_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	talk.add_child(_line)
 	var wallet := HBoxContainer.new()
@@ -67,6 +71,23 @@ func build() -> void:
 	_count.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	wallet.add_child(_count)
 	wallet.add_child(UITheme.label("REALITY_NAME", 18, UITheme.ASH, "caps"))
+	# Amistad con Charo y propina: a más amistad, mejores precios
+	# Friendship with Charo and tip: the more friendship, the better the prices
+	var friend := HBoxContainer.new()
+	friend.add_theme_constant_override("separation", 14)
+	talk.add_child(friend)
+	var fl := UITheme.label("FRIENDSHIP", 18, UITheme.ASH, "caps")
+	fl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	friend.add_child(fl)
+	_hearts = FriendHearts.new(Progress.friend_level("charo"), Color("7fe0d0"), 20.0)
+	_hearts.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	friend.add_child(_hearts)
+	_tip = Button.new()
+	_tip.custom_minimum_size = Vector2(330, 50)
+	_tip.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_tip.pressed.connect(_give_tip)
+	_tip.mouse_entered.connect(_tip.grab_focus)
+	friend.add_child(_tip)
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -129,11 +150,48 @@ func _card(id: String) -> Control:
 	return card
 
 
+func _hello_key() -> String:
+	var lvl := Progress.friend_level("charo")
+	return "SHOP_HELLO" if lvl == 0 else "SHOP_HELLO_%d" % lvl
+
+
+## Propina a Charo (una vez por visita): sube la amistad y rebaja los precios
+## Tip for Charo (once per visit): raises friendship and lowers prices
+func _give_tip() -> void:
+	if _done or _ready_t > 0.0 or _tipped or not Progress.can_tip("charo"):
+		return
+	var cost := Progress.tip_cost("charo")
+	if GameState.reality < cost:
+		return
+	GameState.add_reality(-cost)
+	Progress.add_friend("charo")
+	_tipped = true
+	_hearts.set_level(Progress.friend_level("charo"))
+	_line.text = _hello_key()
+	Audio.play("reality", -2.0)
+	Audio.play("giver_charo", -4.0)
+	_ready_t = 0.2
+	_refresh()
+	_leave.grab_focus()
+
+
 func _refresh() -> void:
 	_count.text = str(GameState.reality)
+	if not Progress.can_tip("charo"):
+		_tip.text = tr("TIP_MAX")
+		_tip.disabled = true
+	elif _tipped:
+		_tip.text = tr("TIP_DONE")
+		_tip.disabled = true
+	elif GameState.reality < Progress.tip_cost("charo"):
+		_tip.text = tr("TIP_SHORT").format({"n": Progress.tip_cost("charo") - GameState.reality})
+		_tip.disabled = true
+	else:
+		_tip.text = tr("TIP_BUTTON").format({"cost": Progress.tip_cost("charo")})
+		_tip.disabled = false
 	for id in _wares:
 		var b: Button = _buttons[id]
-		var cost: int = GameState.WARES[id]
+		var cost: int = GameState.ware_price(id)
 		if _sold.has(id):
 			b.text = tr("SHOP_SOLD")
 			b.disabled = true
@@ -152,7 +210,7 @@ func _process(delta: float) -> void:
 func _buy(id: String) -> void:
 	if _done or _ready_t > 0.0 or _sold.has(id):
 		return
-	var cost: int = GameState.WARES[id]
+	var cost: int = GameState.ware_price(id)
 	if GameState.reality < cost:
 		return
 	GameState.add_reality(-cost)

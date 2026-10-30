@@ -15,6 +15,8 @@ var _preview_holder: Control
 var _name: Label
 var _role: Label
 var _desc: RichTextLabel
+var _friend_row: HBoxContainer
+var _hearts: FriendHearts
 var _buttons := {}
 var _current := ""
 var _first: Button
@@ -62,6 +64,15 @@ func _ready() -> void:
 	_role = UITheme.label("", 18, UITheme.ASH, "caps")
 	_role.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	info.add_child(_role)
+	# Nivel de amistad (se mantiene entre partidas) / Friendship level (kept between runs)
+	_friend_row = HBoxContainer.new()
+	_friend_row.add_theme_constant_override("separation", 14)
+	info.add_child(_friend_row)
+	var fl := UITheme.label("FRIENDSHIP", 18, UITheme.ASH, "caps")
+	fl.size_flags_vertical = SIZE_SHRINK_CENTER
+	_friend_row.add_child(fl)
+	_hearts = FriendHearts.new(0, Color.WHITE, 22.0)
+	_friend_row.add_child(_hearts)
 	_desc = RichTextLabel.new()
 	_desc.bbcode_enabled = true
 	# Tamaño fijo: el panel no cambia de tamaño al pasar de una entrada a otra
@@ -167,6 +178,9 @@ func _show(id: String) -> void:
 	_name.add_theme_color_override("font_color", AURA[id] if known else UITheme.ASH)
 	_role.text = tr(_role_key(id)) if known else ""
 	_desc.text = tr("CHARS_%s_BIO" % id.to_upper()) if known else tr("CHARS_UNKNOWN")
+	_friend_row.visible = known and id != "kroker"
+	_hearts.color = AURA[id]
+	_hearts.set_level(Progress.friend_level(id))
 
 
 func _close() -> void:

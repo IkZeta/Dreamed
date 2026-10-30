@@ -18,6 +18,10 @@ var cleared := {}
 var stats := {}
 ## Logros conseguidos: id → true / Unlocked achievements: id → true
 var achieved := {}
+## Amistad con los personajes (se mantiene entre partidas): id → nivel 0..5
+## Friendship with the characters (kept between runs): id → level 0..5
+var friendship := {}
+const FRIEND_MAX := 5
 
 ## Logros: "stat" + "goal" se cuentan solos; "check" es una comprobación especial.
 ## "drawing" es el dibujo que aparece en la pared de la habitación al conseguirlo.
@@ -169,6 +173,27 @@ func check_achievements() -> void:
 			_unlock(a["id"])
 
 
+# --- Amistad / Friendship ----------------------------------------------------------------
+
+func friend_level(id: String) -> int:
+	return int(friendship.get(id, 0))
+
+
+## Propina para subir al siguiente nivel: 10, 13, 16, 19 y 22 de Realidad Fragmentada
+## Tip to reach the next level: 10, 13, 16, 19 and 22 Fragmented Reality
+func tip_cost(id: String) -> int:
+	return 10 + 3 * friend_level(id)
+
+
+func can_tip(id: String) -> bool:
+	return friend_level(id) < FRIEND_MAX
+
+
+func add_friend(id: String) -> void:
+	friendship[id] = mini(FRIEND_MAX, friend_level(id) + 1)
+	save_progress()
+
+
 ## Botón «Desbloquear todo» del menú: logros (y con ellos pijamas, Mr. Ad, El Pinche y dibujos),
 ## bestiario, personajes, Charo y la dificultad pesadilla. Sin avisos uno a uno.
 ## Menu "Unlock everything" button: achievements (and with them pajamas, Mr. Ad, the Kitchen Boy
@@ -228,6 +253,7 @@ func save_progress() -> void:
 	cfg.set_value("acts", "cleared", cleared)
 	cfg.set_value("achievements", "stats", stats)
 	cfg.set_value("achievements", "achieved", achieved)
+	cfg.set_value("friends", "levels", friendship)
 	cfg.save(PATH)
 
 
@@ -239,3 +265,4 @@ func load_progress() -> void:
 	cleared = cfg.get_value("acts", "cleared", {})
 	stats = cfg.get_value("achievements", "stats", {})
 	achieved = cfg.get_value("achievements", "achieved", {})
+	friendship = cfg.get_value("friends", "levels", {})

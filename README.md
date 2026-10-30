@@ -147,6 +147,15 @@ Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 d
 
 ![Plano astral](docs/screenshots/plano-astral.jpg)
 
+### Amistad
+
+La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
+- **Propina:** después de elegir un don, en la charla puedes darle propina con Realidad Fragmentada (10 ◆ para el nivel 1, 13 para el 2, 16, 19 y 22), una vez por visita.
+- **Mejores dones:** cada nivel de amistad mejora sus dones un 6 % (hasta un 30 %); en los de Doc, lo que empeora pesa menos y las recargas bajan.
+- **Conversaciones:** cada personaje te cuenta algo distinto en cada nivel de amistad.
+- **Charo:** en el kiosco también se le puede dar propina. Cada nivel rebaja los precios un 6 % y cambia lo que te dice al saludarte.
+- **Dónde verla:** la amistad sale con corazones en el menú Personajes, en las cartas del plano astral y en el kiosco.
+
 ### Niveles
 
 Los enemigos sueltan **trozos de estrella**; cuanto más duro es el enemigo, más sueltan. Al subir de nivel eliges 1 de 3 mejoras de estadística, cada una con su rareza: común, poco común, rara, épica o legendaria.

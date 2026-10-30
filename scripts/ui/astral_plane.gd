@@ -18,6 +18,11 @@ var _talk_text: RichTextLabel
 var _talk_prompt: Label
 var _talk_t := -1.0
 var _leaving := false
+var _talk_giver := ""
+var _talk_buttons: HBoxContainer
+var _tip_button: Button
+var _hearts: FriendHearts
+var _tipped := false
 
 
 func _ready() -> void:
@@ -124,6 +129,8 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	var line := UITheme.label("GIVER_%s_LINE" % giver.to_upper(), 20, UITheme.ASH, "italic")
 	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(line)
+	# Amistad con este personaje / Friendship with this character
+	v.add_child(FriendHearts.new(Progress.friend_level(giver), GiverFigure.AURA[giver], 14.0))
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.5)))
 
 	# Con dos armas, pestañas para elegir a cuál va el don / With two weapons, tabs to pick which one gets the gift
@@ -208,10 +215,10 @@ func _choose(giver: String) -> void:
 	tw.tween_callback(_talk_scene.bind(giver))
 
 
-## Pantalla de charla: el personaje grande a un lado y lo que dice al otro.
-## PROVISIONAL: de momento es texto de relleno (lorem ipsum); los diálogos de verdad vendrán con el lore.
-## Talk screen: the character large on one side and what they say on the other.
-## PLACEHOLDER: filler text (lorem ipsum) for now; the real dialogue will come with the lore.
+## Pantalla de charla: el personaje grande a un lado y lo que dice al otro. Lo que cuenta depende
+## de la amistad, y se le puede dar propina con Realidad Fragmentada para subirla.
+## Talk screen: the character large on one side and what they say on the other. What they tell
+## you depends on friendship, which you can raise by tipping them Fragmented Reality.
 func _talk_scene(giver: String) -> void:
 	_content.visible = false
 	var aura: Color = GiverFigure.AURA[giver]
@@ -263,13 +270,42 @@ func _talk_scene(giver: String) -> void:
 	_talk_text.add_theme_color_override("default_color", UITheme.BONE)
 	_talk_text.add_theme_constant_override("line_separation", 8)
 	_talk_text.mouse_filter = MOUSE_FILTER_IGNORE
-	_talk_text.text = tr("GIVER_TALK_PLACEHOLDER")
+	_talk_giver = giver
+	_talk_text.text = tr("TALK_%s_%d" % [giver.to_upper(), Progress.friend_level(giver)])
 	_talk_text.visible_ratio = 0.0
 	v.add_child(_talk_text)
 	_talk_prompt = UITheme.label("DIALOGUE_NEXT", 14, Color(UITheme.ASH, 0.8), "caps")
 	_talk_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_talk_prompt.modulate.a = 0.0
 	v.add_child(_talk_prompt)
+
+	# Amistad y propina / Friendship and tip
+	var friend_row := HBoxContainer.new()
+	friend_row.add_theme_constant_override("separation", 14)
+	col.add_child(friend_row)
+	var fl := UITheme.label("FRIENDSHIP", 18, UITheme.ASH, "caps")
+	fl.size_flags_vertical = SIZE_SHRINK_CENTER
+	friend_row.add_child(fl)
+	_hearts = FriendHearts.new(Progress.friend_level(giver), aura, 22.0)
+	friend_row.add_child(_hearts)
+	_talk_buttons = HBoxContainer.new()
+	_talk_buttons.add_theme_constant_override("separation", 20)
+	_talk_buttons.modulate.a = 0.0
+	col.add_child(_talk_buttons)
+	_tip_button = Button.new()
+	_tip_button.custom_minimum_size = Vector2(450, 60)
+	_tip_button.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	_tip_button.pressed.connect(_tip)
+	_tip_button.mouse_entered.connect(_tip_button.grab_focus)
+	_tip_button.visible = GameState.reality_on()
+	_talk_buttons.add_child(_tip_button)
+	var go := Button.new()
+	go.text = "TALK_CONTINUE"
+	go.custom_minimum_size = Vector2(300, 60)
+	go.pressed.connect(func() -> void: if not _leaving: _leave())
+	go.mouse_entered.connect(go.grab_focus)
+	_talk_buttons.add_child(go)
+	_refresh_tip()
 
 	talk.modulate.a = 0.0
 	create_tween().tween_property(talk, "modulate:a", 1.0, 0.4)
@@ -285,7 +321,13 @@ func _process(delta: float) -> void:
 	_talk_text.visible_ratio = minf(1.0, _talk_t * CharoDialogue.CPS / total)
 	if _talk_text.visible_ratio < 1.0 and int(_talk_t * 12.0) != int((_talk_t - delta) * 12.0) and before < 1.0:
 		Audio.play("ui_hover", -22.0, 0.15)
-	_talk_prompt.modulate.a = (0.5 + 0.5 * sin(_talk_t * 5.0)) if _talk_text.visible_ratio >= 1.0 else 0.0
+	_talk_prompt.modulate.a = 0.0
+	# Al acabar de hablar aparecen los botones / When they finish talking the buttons appear
+	if _talk_text.visible_ratio >= 1.0 and _talk_buttons.modulate.a < 1.0:
+		if _talk_buttons.modulate.a == 0.0:
+			var first: Button = _tip_button if _tip_button.visible and not _tip_button.disabled else _talk_buttons.get_child(1)
+			first.grab_focus()
+		_talk_buttons.modulate.a = minf(1.0, _talk_buttons.modulate.a + delta * 4.0)
 
 
 func _input(event: InputEvent) -> void:
@@ -295,12 +337,47 @@ func _input(event: InputEvent) -> void:
 		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
 	if not press:
 		return
-	get_viewport().set_input_as_handled()
-	if _talk_text.visible_ratio < 1.0:
-		_talk_t = 1000.0
-		_talk_text.visible_ratio = 1.0
+	# Con el texto entero, mandan los botones / With the full text shown, the buttons are in charge
+	if _talk_text.visible_ratio >= 1.0:
 		return
-	_leave()
+	get_viewport().set_input_as_handled()
+	_talk_t = 1000.0
+	_talk_text.visible_ratio = 1.0
+
+
+func _refresh_tip() -> void:
+	var g := _talk_giver
+	if not Progress.can_tip(g):
+		_tip_button.text = tr("TIP_MAX")
+		_tip_button.disabled = true
+	elif _tipped:
+		_tip_button.text = tr("TIP_DONE")
+		_tip_button.disabled = true
+	elif GameState.reality < Progress.tip_cost(g):
+		_tip_button.text = tr("TIP_SHORT").format({"n": Progress.tip_cost(g) - GameState.reality})
+		_tip_button.disabled = true
+	else:
+		_tip_button.text = tr("TIP_BUTTON").format({"cost": Progress.tip_cost(g)})
+		_tip_button.disabled = false
+
+
+## Propina: sube la amistad y el personaje te cuenta algo nuevo (una vez por visita)
+## Tip: raises friendship and the character tells you something new (once per visit)
+func _tip() -> void:
+	var g := _talk_giver
+	if _tipped or _leaving or not Progress.can_tip(g) or GameState.reality < Progress.tip_cost(g):
+		return
+	GameState.add_reality(-Progress.tip_cost(g))
+	Progress.add_friend(g)
+	_tipped = true
+	_hearts.set_level(Progress.friend_level(g))
+	Audio.play("reality", -2.0)
+	Audio.play("giver_" + g, -3.0)
+	_talk_text.text = tr("TALK_%s_%d" % [g.to_upper(), Progress.friend_level(g)])
+	_talk_text.visible_ratio = 0.0
+	_talk_t = 0.0
+	_talk_buttons.modulate.a = 0.0
+	_refresh_tip()
 
 
 ## Destello y al siguiente sueño / Flash, then on to the next dream

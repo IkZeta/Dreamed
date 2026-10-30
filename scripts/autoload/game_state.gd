@@ -601,6 +601,34 @@ const UPGRADE_VALUES := {
 }
 
 
+## --- Amistad: cada nivel mejora los dones de ese personaje un 6 % (un 30 % al máximo) ---------
+## --- Friendship: each level improves that character's gifts by 6% (30% at the most) ---------
+const FRIEND_BONUS := 0.06
+## Claves que son número de cosas (no se tocan) / Keys that are a count of things (left alone)
+const COUNT_KEYS: Array[String] = ["chain", "hits", "fluff"]
+
+
+func friend_mult(giver: String) -> float:
+	return 1.0 + FRIEND_BONUS * Progress.friend_level(giver)
+
+
+## Aplica la amistad a un valor: sube lo bueno y baja lo malo (recargas y peajes de Doc)
+## Applies friendship to a value: raises the good and lowers the bad (cooldowns and Doc's tolls)
+func _friendly(giver: String, key: String, v: float) -> float:
+	if key in COUNT_KEYS or (key == "extra" and giver != "ad"):
+		return v
+	var m := friend_mult(giver)
+	if key == "cd" or (giver == "doc" and key == "pct"):
+		return v / m
+	return v * m
+
+
+## Precio de un artículo del kiosco: la amistad con Charo lo rebaja un 6 % por nivel
+## Price of a kiosk ware: friendship with Charo cuts it by 6% per level
+func ware_price(id: String) -> int:
+	return maxi(1, roundi(float(WARES[id]) * (1.0 - FRIEND_BONUS * Progress.friend_level("charo"))))
+
+
 ## Valor de una mejora en un nivel (por defecto, el nivel que tienes). 0 si no la tienes.
 ## Value of an upgrade at a level (by default, your current level). 0 if you don't have it.
 func up_value(giver: String, key: String, lvl := -1, weapon := "") -> float:
@@ -611,7 +639,7 @@ func up_value(giver: String, key: String, lvl := -1, weapon := "") -> float:
 	if lvl <= 0:
 		return 0.0
 	var values: Array = UPGRADE_VALUES[giver][weapon][key]
-	return float(values[mini(lvl, values.size()) - 1])
+	return _friendly(giver, key, float(values[mini(lvl, values.size()) - 1]))
 
 
 ## Descripción traducida con los números del nivel indicado / Translated description with that level's numbers
