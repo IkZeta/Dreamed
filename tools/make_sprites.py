@@ -838,29 +838,64 @@ def npc_face(eye_y, ink, mood):
 
 
 def npcs():
-    # Svinho: futbolista / footballer
-    skin, shade_c = "#b97c56", "#8f5c45"
-    b = ""
-    for x in (82, 104):
-        b += shaded("M%g,196 L%g,196 L%g,236 L%g,236 Z" % (x, x + 16, x + 16, x), skin, shade=0.4, rim=0.3)
-        b += shaded("M%g,232 L%g,232 L%g,276 L%g,276 Z" % (x - 1, x + 17, x + 17, x - 1), "#f4f1ea", shade=0.35, rim=0.3,
-                    extra="<rect x='%g' y='240' width='18' height='4' fill='#2f9e5b'/>" % (x - 1))
-        b += shaded(ellipse_d(x + 9, 282, 13, 6), "#1e1f2e", shade=0.3, rim=0.4)
-    b += shaded("M74,168 L126,168 L128,204 L102,204 L100,190 L98,204 L72,204 Z", "#2b4fa8", shade=0.45, rim=0.4)
-    b += shaded("M62,104 L76,108 L72,168 L58,166 Z", skin, shade=0.4, rim=0.4)
-    b += shaded("M138,104 L124,108 L128,168 L142,166 Z", shade_c, shade=0.4, rim=0.2)
-    b += shaded(ellipse_d(65, 172, 7, 8), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(135, 172, 7, 8), shade_c, shade=0.3, rim=0.2, sw=0.8)
+    # Svinho: futbolista brasileño, en pixel art de verdad (modo flat). La pierna derecha va aparte
+    # para dar toques al balón (se anima en NpcArt._svinho).
+    # Svinho: Brazilian footballer, in real pixel art (flat mode). The right leg is separate so he
+    # can do keepy-uppies (animated in NpcArt._svinho).
+    Y1, Y2, Y3 = "#c99a1e", "#f6d24a", "#fff08a"
+    G, G1 = "#2f9e5b", "#1f6e3e"
+    B1, B2, B3 = "#1e3a80", "#2b4fa8", "#4a72cc"
+    S, S1, S2 = "#b97c56", "#8f5c45", "#d49a72"
+    HA, HA2 = "#1d1620", "#4a3a5a"
+    SO, SO1, BO, WH = "#f4f1ea", "#c8c4d8", "#1e1f2e", "#ece8f2"
+
+    def leg(x, sock_band=True):
+        d = flat("M%g,196 L%g,196 L%g,236 L%g,236 Z" % (x, x + 15, x + 15, x), S)
+        d += flat("M%g,196 L%g,196 L%g,236 L%g,236 Z" % (x + 10, x + 15, x + 15, x + 10), S1)
+        d += flat("M%g,232 L%g,232 L%g,274 L%g,274 Z" % (x - 1, x + 16, x + 16, x - 1), SO)
+        d += flat("M%g,232 L%g,232 L%g,274 L%g,274 Z" % (x + 11, x + 16, x + 16, x + 11), SO1)
+        d += flat("M%g,240 L%g,240 L%g,245 L%g,245 Z" % (x - 1, x + 16, x + 16, x - 1), G)
+        d += flat("M%g,274 L%g,274 C%g,274 %g,278 %g,282 L%g,286 L%g,286 Z" % (x - 2, x + 14, x + 22, x + 26, x + 26, x + 26, x - 2), BO)
+        d += "".join(flat("M%g,286 L%g,286 L%g,288 L%g,288 Z" % (sx, sx + 3, sx + 3, sx), WH) for sx in (x, x + 9, x + 18))
+        return d
+
+    # Pierna derecha aparte (cadera en 106,196) / Separate right leg (hip at 106,196)
+    add("npc_svinho_leg", 92, 192, 42, 100, leg(100), px=PX_NPC, flat=True)
+
+    b = leg(80)
+    # Pantalón corto azul / Blue shorts
+    b += flat("M72,168 L128,168 L130,204 L103,204 L100,192 L97,204 L70,204 Z", B2)
+    b += flat("M110,168 L128,168 L130,204 L112,204 C114,190 114,178 110,168 Z", B1)
+    b += flat("M75,172 L80,172 L79,200 L74,200 Z", B3)
+    b += "<path d='M72,170 L128,170' stroke='%s' stroke-width='2.6'/>" % SO
+    # Brazos / Arms
+    b += flat("M62,106 L76,110 L72,168 L58,166 Z", S) + flat("M68,110 L76,110 L72,168 L66,168 Z", S1)
+    b += flat("M138,106 L124,110 L128,168 L142,166 Z", S1)
+    b += flat(ellipse_d(65, 172, 7, 8), S) + flat(ellipse_d(135, 172, 7, 8), S1)
+    # Camiseta amarilla con el 10 / Yellow shirt with the number 10
     shirt = "M82,96 L118,96 L140,106 L136,130 L128,128 L128,172 L72,172 L72,128 L64,130 L60,106 Z"
-    b += shaded(shirt, "#f6d24a", shade=0.5, rim=0.4, extra="<text x='87' y='155' font-family='Arial Black,Arial' font-weight='900' font-size='26' fill='#2f9e5b'>10</text>")
-    b += "<path d='M88,97 L100,110 L112,97' fill='none' stroke='#2f9e5b' stroke-width='4' stroke-linejoin='round'/>"
-    b += shaded("M93,82 L107,82 L107,98 L93,98 Z", shade_c, shade=0.3, rim=0.1, outline=False)
-    b += shaded(ellipse_d(100, 60, 22, 26), skin, shade=0.45, rim=0.4)
-    for px_, py_ in ((82, 44), (92, 36), (104, 34), (116, 40), (122, 52), (78, 56), (98, 40), (110, 44)):
-        b += shaded(ellipse_d(px_, py_, 9, 9), "#1d1620", shade=0.4, rim=0.45, rim_color="#8a7aa8", sw=0.8)
-    add("npc_svinho", 50, 22, 100, 270, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a1d22", 1))
-    ball = shaded(ellipse_d(0, 0, 13, 13), "#f7f3ea", shade=0.45, rim=0.4)
-    ball += "<path d='M0,-5 L4.8,-1.5 L3,4 L-3,4 L-4.8,-1.5 Z' fill='#1e1f2e'/>"
-    add("npc_ball", -15, -15, 30, 30, ball, px=PX_NPC)
+    b += flat(shirt, Y2)
+    b += flat("M118,96 L140,106 L136,130 L128,128 L128,172 L114,172 C118,150 118,120 112,98 Z", Y1)
+    b += flat("M66,106 L80,99 L82,104 L70,110 Z", Y3)
+    b += "<path d='M60,106 L64,130 M140,106 L136,130' stroke='%s' stroke-width='2.6'/>" % G
+    b += "<path d='M86,97 L100,111 L114,97' fill='none' stroke='%s' stroke-width='4' stroke-linejoin='round'/>" % G
+    b += flat("M88,128 L94,124 L94,156 L88,156 Z", G)
+    b += flat("M100,124 L112,124 L112,156 L100,156 Z", G) + flat("M104,129 L108,129 L108,151 L104,151 Z", Y2)
+    # Cuello y cabeza / Neck and head
+    b += flat("M93,82 L107,82 L107,98 L93,98 Z", S1)
+    b += flat(ellipse_d(100, 60, 22, 26), S)
+    b += flat("M110,38 C118,44 122,52 122,60 C122,74 115,84 104,86 C112,78 115,70 115,60 C115,50 113,43 110,38 Z", S1)
+    b += flat("M82,62 C82,54 85,48 89,45 L90,49 C87,52 86,56 86,62 Z", S2)
+    # Pelo rizado / Curly hair
+    for (cx, cy) in ((82, 44), (92, 36), (104, 34), (116, 40), (122, 52), (78, 56), (98, 40), (110, 44), (86, 50)):
+        b += flat(ellipse_d(cx, cy, 9, 9), HA)
+    for (cx, cy) in ((90, 33), (102, 31), (80, 41)):
+        b += flat(ellipse_d(cx, cy, 3.5, 3), HA2)
+    add("npc_svinho", 50, 22, 100, 270, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 1))
+    ball = flat(ellipse_d(0, 0, 13, 13), "#f7f3ea") + flat("M4,-12 C10,-9 13,-4 13,0 C13,7 8,12 2,13 C8,8 10,3 9,-3 C8,-7 6,-10 4,-12 Z", "#c8c4d8")
+    ball += flat("M0,-5 L4.8,-1.5 L3,4 L-3,4 L-4.8,-1.5 Z", "#1e1f2e")
+    ball += flat("M-11,-6 L-7,-9 L-6,-4 Z", "#1e1f2e") + flat("M10,7 L7,10 L5,6 Z", "#1e1f2e")
+    add("npc_ball", -15, -15, 30, 30, ball, px=PX_NPC, flat=True)
 
     # Stolk: el matón del cole, en pixel art de verdad (modo flat). Grandullón con sudadera roja,
     # brazos cruzados, pelo rapado, tirita en la mejilla, palillo en la boca, vaqueros y
@@ -1759,56 +1794,112 @@ def chef():
 
 
 def mr_ad():
-    """Mr. Ad: un humanoide cubierto de carteles y anuncios de marcas inventadas de chocolatinas y comida basura.
-    Mr. Ad: a humanoid covered in banners and ads for made-up chocolate bar and junk food brands."""
-    def txt(x, y, t, size, col, rot=0):
-        return ("<text x='%g' y='%g' font-family='Arial Black,Arial' font-weight='900' font-size='%g' fill='%s' "
-                "text-anchor='middle' transform='rotate(%g %g %g)'>%s</text>" % (x, y, size, col, rot, x, y, t))
+    """Mr. Ad en pixel art de verdad (modo flat): cabeza de bolsa de patatas con ojos de «$», gorra,
+    cartel-sándwich con una pantalla en la barriga (los anuncios pasan por ella en el juego, con la
+    tira "ad_strip"), brazos envueltos en publicidad y calcetines de rayas.
+    Mr. Ad in real pixel art (flat mode): a crisp-bag head with "$" eyes, a cap, a sandwich board
+    with a screen in his belly (the ads scroll across it in game, using the "ad_strip" sprite),
+    arms wrapped in adverts and striped socks."""
+    P1, P2, P3 = "#c9902a", "#f6c24a", "#ffe08a"
+    C1, C2 = "#2a7fd0", "#3fa8ff"
+    R1, R2, R3 = "#a83246", "#e8455a", "#ff7a88"
+    FR, SCR = "#2a2838", "#0d1a2a"
+    T1, T2 = "#2a8f96", "#3fc1c9"
+    SK, SK1 = "#e8c4a8", "#c2a092"
+    WH, WH1, RED, BLU = "#f4f1fa", "#c8c4d8", "#e8455a", "#3fa8ff"
+    HOLE, PINK, POLE = "#1a1020", "#ff4f8a", "#cfc8ec"
     b = ""
-    # Mástil con banderín a la espalda / Pole with a pennant on his back
-    b += "<path d='M138,40 L138,150' stroke='#cfc8ec' stroke-width='4'/>"
-    b += shaded("M138,40 L186,52 L138,66 Z", "#ff4f8a", shade=0.3, rim=0.4, sw=0.8, extra=txt(156, 58, "2x1", 11, "#fff6c9"))
-    # Piernas con calcetines de rayas y pegatinas / Legs with striped socks and stickers
+    # Mástil con banderín / Pole with a pennant
+    b += flat("M136,38 L140,38 L140,150 L136,150 Z", POLE)
+    b += flat("M140,40 L186,52 L140,66 Z", PINK) + flat("M140,58 L170,56 L140,66 Z", "#c8306a")
+    # Piernas con calcetines de rayas y zapatillas amarillas / Legs with striped socks and yellow trainers
     for x in (80, 104):
-        b += shaded("M%g,206 L%g,206 L%g,276 L%g,276 Z" % (x, x + 18, x + 18, x), "#f4f1fa", shade=0.4, rim=0.3,
-                    extra="".join("<rect x='%g' y='%g' width='18' height='5' fill='%s'/>" % (x, y, c) for y, c in ((222, "#e8455a"), (236, "#3fa8ff"), (250, "#e8455a"))))
-        b += shaded(ellipse_d(x + 9, 282, 14, 6), "#f6c24a", shade=0.3, rim=0.4)
+        b += flat("M%g,208 L%g,208 L%g,276 L%g,276 Z" % (x, x + 17, x + 17, x), WH)
+        b += flat("M%g,208 L%g,208 L%g,276 L%g,276 Z" % (x + 12, x + 17, x + 17, x + 12), WH1)
+        for y, c in ((222, RED), (236, BLU), (250, RED)):
+            b += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y, x + 17, y, x + 17, y + 5, x, y + 5), c)
+        b += flat("M%g,274 L%g,274 C%g,274 %g,280 %g,288 L%g,288 Z" % (x - 4, x + 16, x + 22, x + 24, x + 24, x - 4), P2)
+        b += flat("M%g,284 L%g,284 L%g,288 L%g,288 Z" % (x - 4, x + 24, x + 24, x - 4), P1)
     # Brazos envueltos en tiras de publicidad / Arms wrapped in advert strips
-    for (pts, col, word) in (("M52,108 L68,104 L74,182 L56,184 Z", "#3fc1c9", "YUM!"), ("M148,108 L132,104 L126,182 L144,184 Z", "#f6c24a", "SODAX")):
-        b += shaded(pts, col, shade=0.4, rim=0.4, sw=0.9)
-    b += txt(64, 146, "YUM!", 10, "#1a1a3a", -86) + txt(137, 146, "SODAX", 10, "#1a1a3a", 86)
-    b += shaded(ellipse_d(64, 190, 8, 8), "#e8c4a8", shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(136, 190, 8, 8), "#c2a092", shade=0.3, rim=0.2, sw=0.8)
-    # Cartel-sándwich: el cuerpo entero es un anuncio / Sandwich board: the whole body is an ad
-    b += shaded("M66,98 L134,98 L140,212 L60,212 Z", "#e8455a", shade=0.45, rim=0.4, sw=1.2)
-    b += "<rect x='70' y='104' width='60' height='22' fill='#fff6c9'/>" + txt(100, 121, "CHOCO", 15, "#7a2e1a") 
-    b += txt(100, 140, "LOCO", 16, "#fff6c9")
-    # Chocolatina dibujada / Drawn chocolate bar
-    b += shaded("M78,150 L122,150 L122,176 L78,176 Z", "#6a3a22", shade=0.3, rim=0.3, sw=0.8,
-                extra="<path d='M92,150 L92,176 M107,150 L107,176 M78,163 L122,163' stroke='#4a2414' stroke-width='2'/>")
-    b += shaded("M74,170 L126,170 L126,186 L74,186 Z", "#f6c24a", shade=0.3, rim=0.4, sw=0.8)
-    b += txt(100, 204, "¡NUEVO!", 11, "#fff6c9")
-    # Pegatinas sueltas / Loose stickers
-    b += shaded(ellipse_d(132, 112, 10, 10), "#9be38a", shade=0.2, rim=0.4, sw=0.7, extra=txt(132, 116, "%", 11, "#1a3a1a"))
-    b += "<g transform='rotate(-14 70 196)'>" + shaded(rect_d(56, 190, 28, 12), "#3fa8ff", shade=0.2, rim=0.3, sw=0.6) + txt(70, 199, "MEGA", 8, "#fff") + "</g>"
-    # Cabeza: bolsa de papel de patatas con agujeros para los ojos y gorra con logo
-    # Head: a crisps paper bag with eye holes and a cap with a logo
-    b += shaded("M76,40 L124,40 L128,96 L72,96 Z", "#f6c24a", shade=0.45, rim=0.4, sw=1.1)
-    b += "<path d='M76,96 L80,90 L84,96 L88,90 L92,96 L96,90 L100,96 L104,90 L108,96 L112,90 L116,96 L120,90 L124,96 L128,96' fill='none' stroke='#c9902a' stroke-width='2'/>"
-    b += txt(100, 86, "PAPAS", 11, "#c9475a")
-    b += shaded("M72,42 Q100,20 128,42 L128,48 L72,48 Z", "#3fa8ff", shade=0.3, rim=0.4, sw=0.9) + shaded("M118,46 L146,50 L142,56 L118,52 Z", "#2a7fd0", shade=0.3, rim=0.3, sw=0.8)
-    b += txt(100, 44, "BURGUIX", 8, "#fff6c9")
-    for ex in (89, 111):
-        b += "<path d='%s' fill='#1a1020'/>" % ellipse_d(ex, 62, 6, 5)
-    b += "<path d='M88,74 Q100,82 112,74' fill='none' stroke='#7a2e1a' stroke-width='2.4'/>"
-    def eyes(img, to_px):
+    b += flat("M52,108 L68,104 L74,182 L56,184 Z", T2) + flat("M62,106 L68,104 L74,182 L66,183 Z", T1)
+    b += "".join("<path d='M53,%g L71,%g' stroke='%s' stroke-width='2.6'/>" % (y, y - 3, WH) for y in (124, 144, 164))
+    b += flat("M148,108 L132,104 L126,182 L144,184 Z", P1)
+    b += "".join("<path d='M129,%g L147,%g' stroke='%s' stroke-width='2.6'/>" % (y - 3, y, R2) for y in (124, 144, 164))
+    b += flat(ellipse_d(64, 190, 8, 8), SK) + flat(ellipse_d(136, 190, 8, 8), SK1)
+    # Cartel-sándwich: el cuerpo entero es un anuncio, con la pantalla en la barriga
+    # Sandwich board: the whole body is an advert, with the screen in the belly
+    b += flat("M66,98 L134,98 L140,212 L60,212 Z", R2)
+    b += flat("M122,98 L134,98 L140,212 L128,212 C130,170 128,130 122,98 Z", R1)
+    b += flat("M68,102 L76,102 L72,200 L64,200 Z", R3)
+    b += flat("M70,106 L130,106 L130,112 L70,112 Z", P2)
+    b += flat("M71,114 L129,114 L129,156 L71,156 Z", FR) + flat("M75,118 L125,118 L125,152 L75,152 Z", SCR)
+    b += flat("M96,160 L104,160 L104,166 L96,166 Z", FR)
+    b += flat("M74,172 L126,172 L128,200 L72,200 Z", P2) + flat("M74,172 L126,172 L126,178 L74,178 Z", P3)
+    b += "<path d='M86,182 L114,182 M90,190 L110,190' stroke='%s' stroke-width='3'/>" % R1
+    b += flat(ellipse_d(132, 112, 9, 9), "#9be38a")
+    # Cabeza de bolsa de patatas con agujeros grandes para los ojos y gorra
+    # Crisp-bag head with big eye holes and a cap
+    b += flat("M76,40 L124,40 L128,96 L72,96 Z", P2)
+    b += flat("M116,40 L124,40 L128,96 L118,96 C121,78 120,58 116,40 Z", P1)
+    b += flat("M79,44 L84,44 L82,88 L77,88 Z", P3)
+    b += "<path d='M72,96 L76,90 L80,96 L84,90 L88,96 L92,90 L96,96 L100,90 L104,96 L108,90 L112,96 L116,90 L120,96 L124,90 L128,96' fill='none' stroke='%s' stroke-width='2.4'/>" % P1
+    b += flat("M81,54 L95,54 L95,71 L81,71 Z", HOLE) + flat("M105,54 L119,54 L119,71 L105,71 Z", HOLE)
+    b += "<path d='M90,80 Q100,87 110,80' fill='none' stroke='#7a2e1a' stroke-width='2.6'/>"
+    b += flat("M72,42 Q100,18 128,42 L128,48 L72,48 Z", C2) + flat("M112,28 Q122,33 128,42 L128,48 L116,48 Z", C1)
+    b += flat("M118,44 L148,49 L144,56 L118,52 Z", C1)
+
+    def dollar_eyes(img, to_px):
+        """Ojos de «$» pintados píxel a píxel / "$" eyes painted pixel by pixel."""
         pix = img.load()
         w, h = img.size
-        for ex in (89, 111):
-            x, y = to_px(ex, 62)
-            x, y = int(x), int(y)
-            if 0 <= x < w and 0 <= y < h:
-                pix[x, y] = (255, 255, 255, 255)
-    add("npc_ad", 46, 16, 144, 276, b, px=PX_NPC, colors=32, post=eyes)
+        glyph = ["..#..", ".####", "#.#..", ".###.", "..#.#", "####.", "..#.."]
+        for ex, ey in ((88, 62.5), (112, 62.5)):
+            cx, cy = to_px(ex, ey)
+            x0, y0 = int(round(cx - 2.5)), int(round(cy - 3.5))
+            for gy, row in enumerate(glyph):
+                for gx, ch in enumerate(row):
+                    if ch == "#" and 0 <= x0 + gx < w and 0 <= y0 + gy < h:
+                        pix[x0 + gx, y0 + gy] = (255, 224, 74, 255)
+    add("npc_ad", 46, 16, 144, 276, b, px=PX_NPC, flat=True, post=dollar_eyes)
+
+    # Tira de anuncios inventados que pasa por la pantalla (6 paneles de 50 x 34)
+    # Strip of made-up adverts scrolling across the screen (6 panels of 50 x 34)
+    st = ""
+    panels = [
+        ("#e8455a", "choco"), ("#f6c24a", "burger"), ("#3fa8ff", "soda"),
+        ("#ff9a3a", "papas"), ("#ff7ab8", "donut"), ("#5fd08a", "2x1"),
+    ]
+    for n, (bg, kind) in enumerate(panels):
+        x = n * 50
+        st += flat("M%g,0 L%g,0 L%g,34 L%g,34 Z" % (x, x + 50, x + 50, x), bg)
+        st += flat("M%g,0 L%g,0 L%g,4 L%g,4 Z" % (x, x + 50, x + 50, x), "#fff6c9")
+        cx = x + 25
+        if kind == "choco":
+            st += flat("M%g,10 L%g,10 L%g,28 L%g,28 Z" % (cx - 14, cx + 14, cx + 14, cx - 14), "#6a3a22")
+            st += "<path d='M%g,10 L%g,28 M%g,10 L%g,28 M%g,19 L%g,19' stroke='#3e1e10' stroke-width='2.4'/>" % (cx - 5, cx - 5, cx + 5, cx + 5, cx - 14, cx + 14)
+            st += flat("M%g,22 L%g,22 L%g,30 L%g,30 Z" % (cx - 16, cx + 16, cx + 16, cx - 16), "#f6c24a")
+        elif kind == "burger":
+            st += flat("M%g,18 Q%g,6 %g,18 Z" % (cx - 15, cx, cx + 15), "#c9802a")
+            st += flat("M%g,18 L%g,18 L%g,22 L%g,22 Z" % (cx - 16, cx + 16, cx + 16, cx - 16), "#5fd08a")
+            st += flat("M%g,22 L%g,22 L%g,26 L%g,26 Z" % (cx - 15, cx + 15, cx + 15, cx - 15), "#6a3a22")
+            st += flat("M%g,26 L%g,26 Q%g,31 %g,26 Z" % (cx - 14, cx + 14, cx, cx - 14), "#c9802a")
+        elif kind == "soda":
+            st += flat("M%g,8 L%g,8 L%g,30 L%g,30 Z" % (cx - 8, cx + 8, cx + 8, cx - 8), "#f4f1fa")
+            st += flat("M%g,13 L%g,13 L%g,24 L%g,24 Z" % (cx - 8, cx + 8, cx + 8, cx - 8), "#e8455a")
+            st += flat("M%g,6 L%g,6 L%g,8 L%g,8 Z" % (cx - 5, cx + 5, cx + 5, cx - 5), "#c8c4d8")
+        elif kind == "papas":
+            st += flat("M%g,8 L%g,8 L%g,30 L%g,30 Z" % (cx - 11, cx + 11, cx + 13, cx - 13), "#f6c24a")
+            st += flat(ellipse_d(cx, 19, 6, 6), "#e8455a")
+            st += "<path d='M%g,8 L%g,6 L%g,8 L%g,6 L%g,8' fill='none' stroke='#c9902a' stroke-width='2'/>" % (cx - 11, cx - 5, cx, cx + 5, cx + 11)
+        elif kind == "donut":
+            st += flat(ellipse_d(cx, 19, 13, 11), "#c9802a") + flat(ellipse_d(cx, 17, 12, 9), "#ffd0e8")
+            st += flat(ellipse_d(cx, 18, 4, 3.5), "#ff7ab8")
+            st += "".join("<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='2'/>" % (cx + dx, 12 + dy, cx + dx + 2, 13 + dy, c)
+                          for dx, dy, c in ((-8, 0, "#3fa8ff"), (5, -1, "#5fd08a"), (-2, 8, "#f6c24a"), (7, 6, "#e8455a")))
+        else:
+            st += ("<text x='%g' y='28' font-family='Arial Black,Arial' font-weight='900' font-size='22' fill='#fff6c9' "
+                   "text-anchor='middle'>2x1</text>" % cx)
+    add("ad_strip", 0, 0, 300, 34, st, px=PX_NPC, flat=True, outline="#000000")
 
 
 def pinche():

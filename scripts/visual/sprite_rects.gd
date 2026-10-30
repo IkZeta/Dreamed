@@ -4,6 +4,7 @@ class_name SpriteRects
 ## Rectángulo de cada sprite en las coordenadas del dibujo / Each sprite's rectangle in drawing coordinates
 
 const RECTS := {
+	"ad_strip": Rect2(-3.571, -3.571, 307.143, 40.476),
 	"boss_bed": Rect2(-83.000, -191.000, 166.000, 196.000),
 	"boss_chest_box": Rect2(-66.000, -72.000, 132.000, 78.000),
 	"boss_chest_lid": Rect2(-69.000, -27.000, 138.000, 34.000),
@@ -89,6 +90,7 @@ const RECTS := {
 	"npc_silly": Rect2(42.429, 20.429, 114.286, 276.190),
 	"npc_stolk": Rect2(40.429, 18.429, 123.810, 278.571),
 	"npc_svinho": Rect2(46.429, 18.429, 107.143, 276.190),
+	"npc_svinho_leg": Rect2(88.429, 188.429, 50.000, 107.143),
 	"pickup_clock": Rect2(-21.000, -41.000, 42.000, 50.000),
 	"pickup_milk": Rect2(-18.000, -37.000, 36.000, 46.000),
 	"pickup_pillow": Rect2(-25.000, -35.000, 50.000, 42.000),

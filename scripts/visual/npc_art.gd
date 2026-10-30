@@ -28,26 +28,76 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float) -> void
 # --- Personajes en pixel art (tools/make_sprites.py) con detalles animados encima
 # --- Pixel-art characters (tools/make_sprites.py) with animated details on top
 
+## Svinho da toques: la pierna derecha sube justo cuando el balón le llega al pie
+## Svinho does keepy-uppies: the right leg kicks up just as the ball reaches his foot
+const SVINHO_HIP := Vector2(107, 196)
+const SVINHO_TOUCH := 0.8       # segundos entre toque y toque / seconds between touches
+const SVINHO_KICK := -0.4       # cuánto levanta la pierna (radianes) / how high the leg lifts (radians)
+
+
 static func _svinho(t: float) -> void:
+	var ph := fmod(t, SVINHO_TOUCH) / SVINHO_TOUCH
+	var near := minf(ph, 1.0 - ph)
+	var kick := clampf(1.0 - near / 0.22, 0.0, 1.0)
+	kick = kick * kick * (3.0 - 2.0 * kick)
+	# Pierna que golpea (detrás del cuerpo) / Kicking leg (behind the body)
+	_ci.draw_set_transform_matrix(_xf * Transform2D(SVINHO_KICK * kick, SVINHO_HIP) * Transform2D(0.0, -SVINHO_HIP))
+	Sprites.draw(_ci, "npc_svinho_leg")
+	_ci.draw_set_transform_matrix(_xf)
 	Sprites.draw(_ci, "npc_svinho")
-	# Balón botando / Bouncing ball
-	var bounce := absf(sin(t * 3.2))
-	var ball := Vector2(150, 274 - bounce * 40.0)
-	_ci.draw_colored_polygon(_ellipse(Vector2(150, 286), Vector2(12 - bounce * 4.0, 3)), Color(0, 0, 0, 0.25))
-	_ci.draw_set_transform_matrix(_xf * Transform2D(t * 3.0, ball))
+	# El balón sube hasta el pecho y vuelve al pie / The ball rises to chest height and drops back to the foot
+	var foot := SVINHO_HIP + Vector2(13, 74).rotated(SVINHO_KICK)
+	var height := 4.0 * 95.0 * ph * (1.0 - ph)
+	var ball := foot + Vector2(-4.0 - sin(ph * PI) * 4.0, -12.0 - height)
+	var shadow_k := 1.0 - height / 120.0
+	_ci.draw_colored_polygon(_ellipse(Vector2(ball.x, 286), Vector2(11.0 * shadow_k + 2.0, 3)), Color(0, 0, 0, 0.22 * shadow_k + 0.05))
+	_ci.draw_set_transform_matrix(_xf * Transform2D(t * 6.0, ball))
 	Sprites.draw(_ci, "npc_ball")
 	_ci.draw_set_transform_matrix(_xf)
 
 
-## Mr. Ad: sus carteles parpadean como neones / Mr. Ad: his signs blink like neon
+## Mr. Ad: en la pantalla de la barriga van pasando anuncios, uno tras otro
+## Mr. Ad: adverts scroll across the screen in his belly, one after another
+const AD_SCREEN := Rect2(75, 118, 50, 34)
+const AD_PANEL := 50.0
+const AD_PANELS := 6
+const AD_HOLD := 1.3      # segundos que se queda cada anuncio / seconds each advert stays
+const AD_SLIDE := 0.35    # segundos que tarda en pasar al siguiente / seconds to slide to the next
+
+
 static func _ad(t: float) -> void:
 	Sprites.draw(_ci, "npc_ad")
-	var blink := fmod(t, 1.2) < 0.6
-	_ci.draw_rect(Rect2(68, 102, 64, 26), Color("fff6c9", 0.25 if blink else 0.0))
-	# Estrellitas de «¡oferta!» girando / Spinning "special offer!" sparkles
+	var step := AD_HOLD + AD_SLIDE
+	var n := int(t / step)
+	var k := clampf((fmod(t, step) - AD_HOLD) / AD_SLIDE, 0.0, 1.0)
+	k = k * k * (3.0 - 2.0 * k)
+	var u := fmod((n + k) * AD_PANEL, AD_PANEL * AD_PANELS)
+	_strip_window(u, AD_SCREEN)
+	# Brillo de pantalla y estrellitas de «¡oferta!» / Screen sheen and "special offer!" sparkles
+	_ci.draw_rect(Rect2(AD_SCREEN.position, Vector2(AD_SCREEN.size.x, 3)), Color(1, 1, 1, 0.12))
 	for i in 3:
 		var a := t * 2.0 + i * TAU / 3.0
 		DreamBackground.draw_star(_ci, Vector2(100, 150) + Vector2(cos(a) * 62.0, sin(a) * 20.0), 3.0, Color("f6c24a", 0.8))
+
+
+## Dibuja un trozo de la tira de anuncios (desde u, en unidades) dentro de la pantalla, dando la vuelta al final
+## Draws a piece of the ad strip (from u, in units) inside the screen, wrapping round at the end
+static func _strip_window(u: float, screen: Rect2) -> void:
+	var tex := Sprites.tex("ad_strip")
+	var r: Rect2 = SpriteRects.RECTS["ad_strip"]
+	var tw := float(tex.get_width())
+	var th := float(tex.get_height())
+	var total := AD_PANEL * AD_PANELS
+	var to_tx := func(x: float) -> float: return (x - r.position.x) / r.size.x * tw
+	var sy := (0.0 - r.position.y) / r.size.y * th
+	var sh := screen.size.y / r.size.y * th
+	var first := minf(screen.size.x, total - u)
+	_ci.draw_texture_rect_region(tex, Rect2(screen.position, Vector2(first, screen.size.y)),
+		Rect2(to_tx.call(u), sy, to_tx.call(u + first) - to_tx.call(u), sh))
+	if first < screen.size.x:
+		var rest := screen.size.x - first
+		_ci.draw_texture_rect_region(tex, Rect2(screen.position + Vector2(first, 0), Vector2(rest, screen.size.y)),
+			Rect2(to_tx.call(0.0), sy, to_tx.call(rest) - to_tx.call(0.0), sh))
 
 
 ## El Pinche: la llama del soplete baila y el cuchillo destella
