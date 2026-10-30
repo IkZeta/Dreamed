@@ -48,7 +48,9 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	if _fade > 0.0:
-		draw_rect(Rect2(-400, -400, 2720, 1880), Color.WHITE)
+		# Sigue a la cámara (en el pasillo infinito se mueve) / Follows the camera (it moves in the endless hallway)
+		var c: Vector2 = run._camera.position
+		draw_rect(Rect2(c - Vector2(1360, 940), Vector2(2720, 1880)), Color.WHITE)
 
 
 ## Brillo cálido de la lumbre sobre la oscuridad / Warm firelight glow over the darkness

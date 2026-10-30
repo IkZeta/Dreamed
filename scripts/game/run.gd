@@ -305,6 +305,9 @@ func _spawn_charo(kiosk: bool) -> CharoNpc:
 	charo.run = self
 	charo.with_kiosk = kiosk
 	charo.position = Bedroom.to_world(LivingRoom.KIOSK_POINT if kiosk else LivingRoom.CHARO_POINT)
+	if room.follows_camera():
+		# En el pasillo pone el kiosco cerca de Kroker / In the hallway she sets up near Kroker
+		charo.position.x = player.position.x + (-300.0 if player.position.x > _camera.position.x - 200.0 else 300.0)
 	_actors.add_child(charo)
 	player.set_facing(signf(charo.position.x - player.position.x))
 	return charo
@@ -678,6 +681,7 @@ func _walk_time(a: Vector2, b: Vector2) -> float:
 
 
 func _physics_process(delta: float) -> void:
+	_follow_camera(delta)
 	_shake = maxf(0.0, _shake - delta * 30.0)
 	_camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake * Settings.shake_amount
 	if not running:
@@ -699,7 +703,29 @@ func _physics_process(delta: float) -> void:
 	if _spawn_timer <= 0.0:
 		_spawn_timer = _wave["spawn_every"]
 		_spawn_group()
+	if room.follows_camera():
+		_recycle_far_enemies()
 
+
+## Pasillo infinito: la cámara sigue a Kroker de lado a lado / Endless hallway: the camera follows Kroker sideways
+func _follow_camera(delta: float) -> void:
+	if not room.follows_camera() or not is_instance_valid(player):
+		return
+	_camera.position.x = lerpf(_camera.position.x, player.position.x, minf(1.0, delta * 6.0))
+
+
+## Los enemigos que se quedan muy atrás vuelven a aparecer por delante (como en Vampire Survivors)
+## Enemies left far behind reappear ahead (like in Vampire Survivors)
+func _recycle_far_enemies() -> void:
+	for e: Node in enemies.get_children():
+		if not e is Enemy or e.is_boss() or e is GoldenFoox or not e.is_targetable():
+			continue
+		var dx: float = e.position.x - player.position.x
+		if absf(dx) > 1700.0:
+			var ahead := signf(player.velocity_hint().x) if absf(player.velocity_hint().x) > 10.0 else -signf(dx)
+			var p := Vector2(player.position.x + ahead * randf_range(1050.0, 1250.0), e.position.y)
+			if not _blocked(p, 40.0):
+				e.position = p
 
 func _unhandled_input(event: InputEvent) -> void:
 	if GameState.god_mode and running and _level_screen == null and _overlay == null \
@@ -799,7 +825,11 @@ func _count_alive(type: Variant) -> int:
 
 
 func _spawn_point() -> Vector2:
-	var area := Bedroom.rect_world(Bedroom.WALKABLE).grow(-30)
+	var area := arena_rect().grow(-30)
+	# En el pasillo infinito salen alrededor de lo que se ve / In the endless hallway they spawn around the view
+	if room.follows_camera():
+		var v := view_rect()
+		area = Rect2(Vector2(v.position.x - 200.0, area.position.y), Vector2(v.size.x + 400.0, area.size.y))
 	for attempt in 30:
 		var p := Vector2(randf_range(area.position.x, area.end.x), randf_range(area.position.y, area.end.y))
 		if p.distance_to(player.position) > 360.0 and not _blocked(p, 40.0) and not _near_boss(p):
@@ -835,7 +865,15 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 
 ## Rectángulo de la zona de juego en pantalla / Play area rectangle on screen
 func arena_rect() -> Rect2:
-	return Bedroom.rect_world(Bedroom.WALKABLE)
+	return Bedroom.rect_world(room.walkable())
+
+
+## Lo que se ve de la zona de juego (en el pasillo infinito, solo el tramo de la cámara)
+## The visible part of the play area (in the endless hallway, only the camera's stretch)
+func view_rect() -> Rect2:
+	var half := Vector2(960, 540)
+	var cam := Rect2(_camera.position - half, half * 2.0)
+	return arena_rect().intersection(cam)
 
 
 ## Si un enemigo empujado cae por un agujero, devuelve hacia dónde cae; si no, Vector2.INF.
@@ -875,7 +913,7 @@ func _blocked(p: Vector2, margin: float) -> bool:
 ## Mantiene a alguien dentro del suelo y fuera de los muebles.
 ## Keeps someone on the floor and out of the furniture.
 func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
-	var r := Bedroom.rect_world(Bedroom.WALKABLE).grow(-margin * 0.5)
+	var r := arena_rect().grow(-margin * 0.5)
 	p = Vector2(clampf(p.x, r.position.x, r.end.x), clampf(p.y, r.position.y, r.end.y))
 	for o in room.blockers():
 		var g := Bedroom.rect_world(o).grow(margin * 0.6)

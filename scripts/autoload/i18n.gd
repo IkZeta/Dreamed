@@ -376,7 +376,6 @@ const STRINGS := {
 	"WEAPON2_SUB_RANGED": {"es": "Ya sabes pelear de cerca. Elige un arma a distancia: la llevarás en la mano libre y tendrá sus propias mejoras.", "en": "You can already fight up close. Pick a ranged weapon: you'll hold it in your free hand and it will have its own upgrades."},
 	"WEAPON2_SUB_MELEE": {"es": "Ya sabes pelear de lejos. Elige un arma cuerpo a cuerpo: la llevarás en la mano libre y tendrá sus propias mejoras.", "en": "You can already fight from afar. Pick a melee weapon: you'll hold it in your free hand and it will have its own upgrades."},
 	"WEAPON2_PICK": {"es": "Llevármela", "en": "Take it"},
-	"ACT3_PLACEHOLDER": {"es": "ACTO 3 · EN OBRAS", "en": "ACT 3 · UNDER CONSTRUCTION"},
 	"ACT3_CLEAR_TITLE": {"es": "Fin del Acto 3", "en": "End of Act 3"},
 	"ACT3_CLEAR_SUB": {"es": "Este sueño aún está en obras. Pronto habrá más.", "en": "This dream is still under construction. More coming soon."},
 	"ACH_MR_AD_NAME": {"es": "Hora de la publicidad", "en": "Ad break"},

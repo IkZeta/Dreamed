@@ -20,7 +20,7 @@ var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	z_index = 1
 	_rng.randomize()
-	var area: Rect2 = run.arena_rect()
+	var area: Rect2 = run.view_rect()
 	for i in MOTES:
 		_motes.append({"p": _rand_point(area), "s": _rng.randf_range(0.6, 1.4), "ph": _rng.randf() * TAU})
 
@@ -36,7 +36,7 @@ func _process(delta: float) -> void:
 	_scroll = fmod(_scroll + delta * (40.0 + 90.0 * k), ARROW_GAP)
 	# Las motas ruedan cuesta abajo y reaparecen por el lado de arriba
 	# The motes roll downhill and reappear on the uphill side
-	var area: Rect2 = run.arena_rect()
+	var area: Rect2 = run.view_rect()
 	for m in _motes:
 		var p: Vector2 = m["p"] + tilt * float(m["s"]) * 2.2 * delta
 		if not area.has_point(p):
@@ -50,7 +50,7 @@ func _draw() -> void:
 	var k := clampf(tilt.length() / MAX_TILT, 0.0, 1.0)
 	if k < 0.05:
 		return
-	var area: Rect2 = run.arena_rect()
+	var area: Rect2 = run.view_rect()
 	var dir := tilt.normalized()
 	var side := dir.orthogonal()
 	var c := area.get_center()

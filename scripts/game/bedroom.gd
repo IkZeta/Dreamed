@@ -123,6 +123,17 @@ func _ready() -> void:
 	_make_cracks()
 
 
+## Zona de suelo por la que se puede andar (en el lienzo) / Walkable floor area (on the canvas)
+func walkable() -> Rect2:
+	return WALKABLE
+
+
+## Si la cámara tiene que seguir a Kroker (el pasillo infinito del Acto 3)
+## Whether the camera has to follow Kroker (the endless Act 3 hallway)
+func follows_camera() -> bool:
+	return false
+
+
 ## Cuántos agujeros hay en el suelo según lo corrupto que está el sueño
 ## How many floor holes there are depending on how corrupted the dream is
 func hole_count() -> int:

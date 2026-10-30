@@ -152,6 +152,11 @@ func _process(delta: float) -> void:
 
 
 ## Pequeño rebote al caer de un salto / Small bounce when landing from a hop
+## Hacia dónde se mueve ahora mismo / Where he's moving right now
+func velocity_hint() -> Vector2:
+	return _vel
+
+
 func land() -> void:
 	_land = 1.0
 

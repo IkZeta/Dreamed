@@ -176,6 +176,8 @@ def flat_pixelize(img, tw, th, palette, outline):
             k = max(votes, key=votes.get)
             if k >= 0:
                 op[xx, yy] = pal[k] + (255,)
+    if outline is None:
+        return out   # piezas que se repiten sin costuras / pieces that tile seamlessly
     oc = rgb(outline) + (255,)
     snap = out.copy()
     sp = snap.load()
@@ -1139,8 +1141,8 @@ def rect_d(x, y, w, h):
     return "M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y, x + w, y, x + w, y + h, x, y + h)
 
 
-def room_add(name, x, y, w, h, body, colors=24):
-    add(name, x, y, w, h, body, px=PX_ROOM, colors=colors, flat=True)
+def room_add(name, x, y, w, h, body, colors=24, outline="#1a1024"):
+    add(name, x, y, w, h, body, px=PX_ROOM, colors=colors, flat=True, outline=outline)
 
 
 def room():
@@ -1686,6 +1688,140 @@ def living_room():
     room_add("lroom_sofa", sx - 6, sy - 20, 432, 156, b, colors=18)
 
 
+def school_hall():
+    """Acto 3: el pasillo del colegio, en pixel art plano. Es infinito: se dibuja a trozos de
+    1920 de ancho que se repiten (tres paredes distintas que se van alternando y un suelo que
+    casa por los lados). Taquillas, puertas de clase, baños, fuente, tablón de anuncios,
+    ventanales a la noche y vitrina de trofeos.
+    Act 3: the school hallway, in flat pixel art. It's endless: it's drawn in 1920-wide pieces
+    that repeat (three different walls taking turns and a floor that tiles at the sides).
+    Lockers, classroom doors, toilets, a water fountain, a notice board, big windows onto the
+    night and a trophy case."""
+    WB = 300
+    # Colores de colegio: pintura crema, azulejos verdes, taquillas azules y suelo de terrazo
+    # School colours: cream paint, green tiles, blue lockers and a terrazzo floor
+    PAINT, PAINT1, TILE, TILE1, TRIM = "#e4d6b2", "#d2c39c", "#7fae96", "#62927c", "#f4eedf"
+    LK, LK1, LK2, LK3 = "#3f72b8", "#2f5a96", "#6a98d8", "#24467a"
+    WOOD, WOOD1, WOOD2 = "#8a5a3e", "#6a4430", "#a8714f"
+
+    def wall_base():
+        b = "<rect x='0' y='0' width='1920' height='%d' fill='%s'/>" % (WB, PAINT)
+        b += "<rect x='0' y='0' width='1920' height='26' fill='%s'/>" % PAINT1
+        # Zócalo de azulejos / Tiled dado
+        b += "<rect x='0' y='196' width='1920' height='%d' fill='%s'/>" % (WB - 196, TILE)
+        for x in range(0, 1920, 48):
+            b += "<rect x='%d' y='196' width='3' height='%d' fill='%s'/>" % (x, WB - 196, TILE1)
+        for y in (226, 256):
+            b += "<rect x='0' y='%d' width='1920' height='3' fill='%s'/>" % (y, TILE1)
+        b += shaded(rect_d(0, 190, 1920, 10), TRIM, shade=0.3, rim=0.5, sw=1)
+        b += shaded(rect_d(0, WB - 14, 1920, 18), "#8a7e66", shade=0.3, rim=0.4, sw=1.2)
+        # Fluorescentes del techo / Ceiling strip lights
+        for x in range(120, 1920, 480):
+            b += "<rect x='%d' y='4' width='220' height='12' fill='#fbfbf0'/><rect x='%d' y='14' width='220' height='4' fill='#b8b29a'/>" % (x, x)
+        return b
+
+    def lockers(x0, x1):
+        b = ""
+        x = x0
+        n = 0
+        while x + 70 <= x1:
+            col = ["#c8463e", "#e0b53a"][n % 2] if n % 7 == 5 else LK
+            b += shaded(rect_d(x, 60, 70, 196), col, shade=0.35, rim=0.35, sw=1)
+            b += "<rect x='%d' y='60' width='70' height='8' fill='%s'/>" % (x, LK2)
+            for y in (78, 88, 98):
+                b += "<rect x='%d' y='%d' width='40' height='4' fill='%s'/>" % (x + 15, y, LK3)
+            b += "<rect x='%d' y='150' width='6' height='26' fill='#d8dcf0'/>" % (x + 56)
+            b += "<rect x='%d' y='60' width='4' height='196' fill='%s'/>" % (x + 66, LK3)
+            if n % 5 == 2:
+                # Pegatina / Sticker
+                b += "<rect x='%d' y='200' width='18' height='14' fill='%s'/>" % (x + 14, ["#f6d993", "#ff8fb0", "#8fe0ff"][n % 3])
+            x += 72
+            n += 1
+        return b
+
+    def door(x, label_col=None, icon=None):
+        b = shaded(rect_d(x - 10, 50, 160, 250), "#8a7e66", shade=0.3, rim=0.3, sw=1)
+        b += shaded(rect_d(x, 60, 140, 240), WOOD, shade=0.35, rim=0.3, sw=1)
+        b += "<rect x='%d' y='60' width='12' height='240' fill='%s'/>" % (x + 128, WOOD1)
+        b += "<rect x='%d' y='84' width='56' height='70' fill='#9fc4d8'/><rect x='%d' y='88' width='16' height='30' fill='#e4f2f8'/>" % (x + 42, x + 46)
+        b += "<rect x='%d' y='180' width='18' height='8' fill='#e0b860'/>" % (x + 112)
+        if icon == "boy":
+            b += "<circle cx='%d' cy='200' r='9' fill='#8fc8ff'/><rect x='%d' y='212' width='22' height='34' fill='#8fc8ff'/>" % (x + 70, x + 59)
+        elif icon == "girl":
+            b += "<circle cx='%d' cy='200' r='9' fill='#ff9fc0'/><path d='M%d,212 L%d,212 L%d,248 L%d,248 Z' fill='#ff9fc0'/>" % (x + 70, x + 61, x + 79, x + 87, x + 53)
+        elif label_col:
+            b += "<rect x='%d' y='30' width='90' height='22' fill='%s'/><rect x='%d' y='38' width='60' height='5' fill='#2b2945'/>" % (x + 25, label_col, x + 40)
+        return b
+
+    # Pared A: taquillas, puerta de clase, tablón / Wall A: lockers, classroom door, notice board
+    b = wall_base() + lockers(40, 700) + door(760, "#f6d993")
+    b += shaded(rect_d(980, 70, 290, 150), "#b07a4a", shade=0.3, rim=0.3, sw=1)
+    b += "<rect x='992' y='82' width='266' height='126' fill='#c8925e'/>"
+    for i, (px_, py_, c) in enumerate(((1006, 92, "#fbf3dc"), (1066, 100, "#ff9fc0"), (1130, 90, "#fbf3dc"), (1196, 104, "#8fe0ff"), (1024, 150, "#f6d993"), (1150, 148, "#fbf3dc"))):
+        b += "<rect x='%d' y='%d' width='46' height='40' fill='%s'/><rect x='%d' y='%d' width='6' height='6' fill='#e2434f'/>" % (px_, py_, c, px_ + 20, py_ - 2)
+        b += "<rect x='%d' y='%d' width='30' height='4' fill='#6a6a8a'/>" % (px_ + 8, py_ + 14)
+    b += lockers(1320, 1900)
+    room_add("hall_wall_0", 0, 0, 1920, WB + 4, b, colors=16, outline=None)
+    # Pared B: taquillas, baños y fuente / Wall B: lockers, toilets and fountain
+    b = wall_base() + lockers(40, 560) + door(620, icon="boy") + door(820, icon="girl")
+    b += shaded(rect_d(1040, 170, 90, 60), "#b8c2ea", shade=0.3, rim=0.4, sw=1)
+    b += "<rect x='1048' y='176' width='74' height='16' fill='#8fc8e0'/><rect x='1080' y='162' width='8' height='12' fill='#9aa2c0'/>"
+    b += "<rect x='1060' y='230' width='50' height='70' fill='#a8b0c0'/>"
+    b += lockers(1220, 1900)
+    room_add("hall_wall_1", 0, 0, 1920, WB + 4, b, colors=16, outline=None)
+    # Pared C: ventanales, vitrina de trofeos y puerta / Wall C: big windows, trophy case and door
+    b = wall_base()
+    for wx in (120, 1420):
+        b += shaded(rect_d(wx, 40, 400, 170), TRIM, shade=0.3, rim=0.4, sw=1)
+        b += "<rect x='%d' y='50' width='380' height='150' fill='#141844'/>" % (wx + 10)
+        for sx, sy in ((40, 30), (130, 80), (220, 40), (310, 110), (80, 120), (350, 50)):
+            b += "<rect x='%d' y='%d' width='4' height='4' fill='#f6e9b0'/>" % (wx + 10 + sx, 50 + sy)
+        for k in (1, 2, 3):
+            b += "<rect x='%d' y='50' width='6' height='150' fill='%s'/>" % (wx + 10 + k * 95 - 3, TRIM)
+        b += "<rect x='%d' y='122' width='380' height='6' fill='%s'/>" % (wx + 10, TRIM)
+    b += "<circle cx='1530' cy='96' r='22' fill='#f6efc8'/><circle cx='1522' cy='90' r='5' fill='#d8d0a8'/>"
+    b += shaded(rect_d(740, 60, 340, 200), WOOD1, shade=0.3, rim=0.3, sw=1)
+    b += "<rect x='752' y='72' width='316' height='176' fill='#c8dce4'/>"
+    for sy in (156, 236):
+        b += "<rect x='752' y='%d' width='316' height='6' fill='%s'/>" % (sy, WOOD2)
+    for i, tx in enumerate((790, 870, 960, 1030)):
+        gold = ["#f6d24a", "#c9c9e0", "#e0a060", "#f6d24a"][i]
+        b += "<path d='M%d,150 L%d,150 L%d,138 L%d,138 L%d,112 C%d,112 %d,96 %d,96 L%d,96 C%d,96 %d,112 %d,112 L%d,138 L%d,138 Z' fill='%s'/>" % (
+            tx - 14, tx + 14, tx + 10, tx + 4, tx + 4, tx + 14, tx + 16, tx + 14, tx - 14, tx - 16, tx - 14, tx - 4, tx - 4, tx - 10, gold)
+    for i, tx in enumerate((800, 900, 1000)):
+        b += "<rect x='%d' y='200' width='40' height='36' fill='%s'/>" % (tx, ["#e2434f", "#5b8fe0", "#6fbf98"][i])
+    b += door(1180, "#8fe0ff")
+    room_add("hall_wall_2", 0, 0, 1920, WB + 4, b, colors=16, outline=None)
+    # Suelo de linóleo a cuadros que casa por los lados / Chequered linoleum floor that tiles at the sides
+    b = "<rect x='0' y='%d' width='1920' height='740' fill='#cfc7b0'/>" % WB
+    for gy, y in enumerate(range(WB, 1040, 60)):
+        for gx, x in enumerate(range(0, 1920, 120)):
+            if (gx + gy) % 2 == 0:
+                b += "<rect x='%d' y='%d' width='120' height='60' fill='#bdb49a'/>" % (x, y)
+            # Motitas del terrazo / Terrazzo speckles
+            for m in range(3):
+                mx = x + (gx * 37 + gy * 53 + m * 41) % 110 + 4
+                my = y + (gx * 29 + gy * 17 + m * 23) % 50 + 4
+                b += "<rect x='%d' y='%d' width='5' height='5' fill='%s'/>" % (mx, my, ["#9a917a", "#e8e2d0", "#a8a088"][m])
+        b += "<rect x='0' y='%d' width='1920' height='3' fill='#a49c86'/>" % y
+    for x in range(0, 1920, 120):
+        b += "<rect x='%d' y='%d' width='3' height='740' fill='#a49c86'/>" % (x, WB)
+    # Brillo de los fluorescentes en el suelo / Strip-light shine on the floor
+    for x in range(160, 1920, 480):
+        b += "<rect x='%d' y='%d' width='140' height='8' fill='#f2eee2'/>" % (x, WB + 40)
+    b += "<rect x='0' y='%d' width='1920' height='14' fill='#8f8872'/>" % WB
+    room_add("hall_floor", 0, WB, 1920, 742, b, colors=10, outline=None)
+    # Cartel de suelo mojado y cubo de fregar / Wet-floor sign and mop bucket
+    b = flat("M-26,0 L-6,-70 L6,-70 L26,0 Z", "#f6d24a") + flat("M6,-70 L26,0 L16,0 L2,-60 Z", "#c9a428")
+    b += flat("M-12,-38 L4,-38 L-2,-26 L8,-26 L-10,-8 L-4,-22 L-14,-22 Z", "#2b2945")
+    add("hall_sign", -30, -74, 60, 78, b, px=PX_ROOM, flat=True)
+    b = flat("M-30,-40 L30,-40 L24,0 L-24,0 Z", "#5b8fe0") + flat("M14,-40 L30,-40 L24,0 L12,0 Z", "#3a6ab8")
+    b += flat("M-30,-44 L30,-44 L30,-36 L-30,-36 Z", "#8fb8f0")
+    b += "<path d='M8,-40 L22,-110' stroke='#a87a5c' stroke-width='5'/>"
+    b += flat("M-6,-44 L18,-44 L14,-54 L-2,-54 Z", "#e8e0d0")
+    add("hall_bucket", -34, -114, 68, 118, b, px=PX_ROOM, flat=True)
+
+
 def charo_body(small):
     """Kioskera Charo en pixel art de verdad (modo flat): anciana bajita y redondita, con gafas
     redondas y cadenita, permanente gris, pendientes de perla, coloretes, rebeca morada abierta,
@@ -2199,6 +2335,7 @@ def build():
     FLAT_SHADED = True
     room()
     living_room()
+    school_hall()
     drawings()
     FLAT_SHADED = False
     act2_npcs()
