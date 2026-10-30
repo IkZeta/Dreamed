@@ -1726,12 +1726,16 @@ def school_hall():
         n = 0
         while x + 70 <= x1:
             col = ["#c8463e", "#e0b53a"][n % 2] if n % 7 == 5 else LK
-            b += shaded(rect_d(x, 60, 70, 196), col, shade=0.35, rim=0.35, sw=1)
+            b += shaded(rect_d(x, 60, 70, 240), col, shade=0.35, rim=0.35, sw=1)
             b += "<rect x='%d' y='60' width='70' height='8' fill='%s'/>" % (x, LK2)
             for y in (78, 88, 98):
                 b += "<rect x='%d' y='%d' width='40' height='4' fill='%s'/>" % (x + 15, y, LK3)
             b += "<rect x='%d' y='150' width='6' height='26' fill='#d8dcf0'/>" % (x + 56)
-            b += "<rect x='%d' y='60' width='4' height='196' fill='%s'/>" % (x + 66, LK3)
+            # Rejilla de abajo y patas a ras de suelo / Bottom vent and feet at floor level
+            for y in (262, 272):
+                b += "<rect x='%d' y='%d' width='40' height='4' fill='%s'/>" % (x + 15, y, LK3)
+            b += "<rect x='%d' y='292' width='70' height='8' fill='%s'/>" % (x, LK1)
+            b += "<rect x='%d' y='60' width='4' height='240' fill='%s'/>" % (x + 66, LK3)
             if n % 5 == 2:
                 # Pegatina / Sticker
                 b += "<rect x='%d' y='200' width='18' height='14' fill='%s'/>" % (x + 14, ["#f6d993", "#ff8fb0", "#8fe0ff"][n % 3])
@@ -1979,6 +1983,92 @@ def act2_enemies():
     for mx, my in ((-30, -4), (-25, -12), (26, -3), (30, -14)):
         b += flat(ellipse_d(mx, my, 4.5, 3.5), MOSS) + flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (mx - 4, my + 1, mx + 4, my + 1, mx + 3, my + 3, mx - 3, my + 3), MOSS1)
     add("nest_body", -42, -50, 84, 56, b, flat=True)
+
+def act3_enemies():
+    """Enemigos del Acto 3 en pixel art plano: la Marioneta (cuerpo, pierna, brazo y sus tres
+    brazos-arma) y el Gólem de papel higiénico (cuerpo y brazo).
+    Act 3 enemies in flat pixel art: the Puppet (body, leg, arm and its three weapon arms) and
+    the Toilet-Paper Golem (body and arm)."""
+    WD, WD1, WD2 = "#e2b98c", "#c0946a", "#f2d2ac"      # madera clara / light wood
+    JK, JK1, GOLDB = "#c8463e", "#9a3030", "#f6d24a"
+    SH, SH1 = "#3a5aa8", "#2a4080"
+    HAIR = "#6a4026"
+    # Cuerpo: cabeza de madera con mandíbula, mejillas pintadas y chaqueta roja
+    # Body: wooden head with a hinged jaw, painted cheeks and a red jacket
+    b = flat("M-14,-74 L14,-74 L16,-40 L-16,-40 Z", JK) + flat("M6,-74 L14,-74 L16,-40 L8,-40 Z", JK1)
+    b += flat("M-16,-46 L16,-46 L16,-34 L-16,-34 Z", SH) + flat("M6,-46 L16,-46 L16,-34 L8,-34 Z", SH1)
+    b += flat("M-6,-74 L0,-62 L6,-74 Z", "#fbf3dc")
+    for y in (-64, -54):
+        b += flat(ellipse_d(0, y, 2, 2), GOLDB)
+    b += flat("M-5,-80 L5,-80 L5,-73 L-5,-73 Z", WD1)
+    head = ellipse_d(0, -96, 17, 18)
+    b += flat(head, WD) + flat("M8,-112 C15,-106 18,-98 16,-88 C14,-82 10,-79 6,-78 C11,-86 12,-96 8,-112 Z", WD1)
+    b += flat("M-15,-102 C-14,-114 -4,-116 6,-115 C14,-114 17,-106 17,-102 C10,-108 -6,-108 -15,-102 Z", HAIR)
+    b += flat("M-12,-84 L12,-84 L10,-78 L-10,-78 Z", WD2)
+    b += "<path d='M-10,-86 L-10,-79 M10,-86 L10,-79' stroke='%s' stroke-width='2.4'/>" % WD1
+    b += flat(ellipse_d(-9, -91, 4, 3), "#ff8fa0") + flat(ellipse_d(9, -91, 4, 3), "#ff8fa0")
+    b += flat(ellipse_d(-6, -98, 2.6, 3.2), "#1a1328") + flat(ellipse_d(6, -98, 2.6, 3.2), "#1a1328")
+    b += flat("M-5,-87 L5,-87 L4,-84 L-4,-84 Z", "#8a2a3a")
+    add("puppet_body", -20, -118, 40, 86, b, flat=True)
+    # Pierna: palo con articulación y zapato (cadera en el origen) / Leg: stick with a joint and a shoe (hip at the origin)
+    l = flat("M-3.5,0 L3.5,0 L3.5,34 L-3.5,34 Z", WD) + flat("M1,0 L3.5,0 L3.5,34 L1,34 Z", WD1)
+    l += flat(ellipse_d(0, 17, 4.4, 4.4), WD1)
+    l += flat("M-5,32 L8,32 C11,32 12,36 11,40 L-5,40 Z", "#2b2238")
+    add("puppet_leg", -8, -2, 22, 44, l, flat=True)
+    # Brazo libre (hombro en el origen) / Free arm (shoulder at the origin)
+    arm = flat("M-3,0 L3,0 L3,26 L-3,26 Z", JK) + flat("M0.5,0 L3,0 L3,26 L0.5,26 Z", JK1)
+    arm += flat(ellipse_d(0, 30, 4.6, 4.6), WD)
+    add("puppet_arm", -7, -3, 14, 40, arm, flat=True)
+    # Brazos-arma, apuntando hacia +x desde el hombro / Weapon arms, pointing towards +x from the shoulder
+    base = flat("M0,-3 L22,-3 L22,3 L0,3 Z", JK) + flat("M0,0.5 L22,0.5 L22,3 L0,3 Z", JK1) + flat(ellipse_d(25, 0, 4.4, 4.4), WD)
+    blade = base + flat("M27,-4 L33,-4 L33,4 L27,4 Z", "#4a2e22")
+    blade += flat("M33,-10 L58,-6 C62,-2 60,6 54,8 L33,6 Z", "#dfe6ff") + flat("M33,2 L56,4 C58,6 56,8 54,8 L33,6 Z", "#9aa2c0")
+    add("puppet_blade", -4, -14, 68, 26, blade, flat=True)
+    rod = base + flat("M27,-3 L36,-3 L36,3 L27,3 Z", "#2b2945")
+    rod += flat("M36,-4 L64,-4 L64,4 L36,4 Z", "#f6d24a") + flat("M36,1 L64,1 L64,4 L36,4 Z", "#c9a428")
+    rod += "".join(flat("M%g,-4 L%g,-4 L%g,4 L%g,4 Z" % (x, x + 3, x + 3, x), "#2b2945") for x in (44, 54))
+    rod += flat(ellipse_d(66, 0, 4.4, 4.4), "#8fe0ff")
+    add("puppet_rod", -4, -10, 76, 20, rod, flat=True)
+    gun = base + flat("M18,2 L34,2 L30,12 L20,12 Z", "#8a5a3e")
+    gun += flat("M24,-4 L54,-4 L54,2 L24,2 Z", "#8a5a3e") + flat("M24,-1 L54,-1 L54,2 L24,2 Z", "#6a4430")
+    gun += flat("M34,-7 L80,-6 L80,-1 L34,-1 Z", "#5a5a72") + flat("M78,-9 L86,-10 L86,3 L78,2 Z", "#3a3a52")
+    gun += flat("M40,-9 L46,-9 L46,-6 L40,-6 Z", "#c9a24e")
+    add("puppet_gun", -4, -14, 94, 30, gun, flat=True)
+
+    # Gólem de papel higiénico: rollos apilados envueltos en tiras de papel; tubo de cartón por cabeza
+    # Toilet-paper golem: stacked rolls wrapped in strips of paper; a cardboard tube for a head
+    P0, P1, P2, P3 = "#fbfaf2", "#e6e2d2", "#c8c2ae", "#a49c86"
+    TUBE, TUBE1 = "#b98a5a", "#8a6040"
+    g = ""
+    # Piernas: rollos / Legs: rolls
+    for x in (-22, 22):
+        g += flat("M%g,-40 L%g,-40 L%g,0 L%g,0 Z" % (x - 16, x + 16, x + 16, x - 16), P1)
+        g += flat("M%g,-40 L%g,-40 L%g,0 L%g,0 Z" % (x + 6, x + 16, x + 16, x + 6), P2)
+        g += flat(ellipse_d(x, -40, 16, 5), P0) + flat(ellipse_d(x, -40, 6, 2.6), TUBE)
+        g += flat("M%g,-20 L%g,-20 L%g,-17 L%g,-17 Z" % (x - 16, x + 16, x + 16, x - 16), P3)
+    # Cuerpo: bulto de papel enrollado / Body: a lump of wound paper
+    torso = "M-44,-150 C-56,-130 -56,-70 -42,-46 C-20,-36 20,-36 42,-46 C56,-70 56,-130 44,-150 C20,-162 -20,-162 -44,-150 Z"
+    g += flat(torso, P1)
+    g += flat("M20,-158 C34,-156 42,-152 44,-150 C56,-130 56,-70 42,-46 C34,-42 26,-40 18,-39 C34,-70 34,-120 20,-158 Z", P2)
+    for y, w in ((-136, 2.8), (-112, 2.8), (-88, 2.8), (-64, 2.8)):
+        g += "<path d='M-48,%g Q0,%g 48,%g' fill='none' stroke='%s' stroke-width='%g'/>" % (y, y + 10, y - 4, P3, w)
+    g += flat("M-30,-150 C-24,-154 -14,-156 -4,-156 L-4,-150 C-14,-150 -22,-148 -28,-144 Z", P0)
+    # Tira suelta que cuelga / Loose hanging strip
+    g += flat("M30,-100 L42,-98 L40,-40 L34,-24 L28,-40 Z", P0) + flat("M36,-99 L42,-98 L40,-40 L36,-32 Z", P2)
+    # Cabeza: tubo de cartón con ojos en el hueco / Head: a cardboard tube with eyes in the hole
+    g += flat("M-20,-188 L20,-188 L22,-152 L-22,-152 Z", TUBE) + flat("M8,-188 L20,-188 L22,-152 L10,-152 Z", TUBE1)
+    g += flat(ellipse_d(0, -188, 20, 6), TUBE1) + flat(ellipse_d(0, -188, 14, 4), "#3a2618")
+    g += "<path d='M-20,-176 L22,-166 M-21,-164 L21,-158' stroke='%s' stroke-width='2.4'/>" % TUBE1
+    g += flat(ellipse_d(-8, -170, 4, 5), "#1a1328") + flat(ellipse_d(8, -170, 4, 5), "#1a1328")
+    add("golem_body", -60, -196, 120, 200, g, flat=True)
+    # Brazo: dos rollos y una mano de papel arrugado (hombro en el origen) / Arm: two rolls and a crumpled paper fist (shoulder at the origin)
+    a = ""
+    for y in (0, 30):
+        a += flat("M-12,%g L12,%g L12,%g L-12,%g Z" % (y, y, y + 30, y + 30), P1) + flat("M4,%g L12,%g L12,%g L4,%g Z" % (y, y, y + 30, y + 30), P2)
+        a += flat(ellipse_d(0, y + 30, 12, 4), P3)
+    a += flat(ellipse_d(0, 70, 14, 12), P0) + flat("M4,62 C12,64 14,72 10,80 C6,82 2,82 0,82 C8,76 8,68 4,62 Z", P2)
+    add("golem_arm", -16, -4, 32, 90, a, flat=True)
+
 
 def dot_painter(points, color):
     """Pinta píxeles sueltos (ojos) / Paints single pixels (eyes)."""
@@ -2340,6 +2430,7 @@ def build():
     FLAT_SHADED = False
     act2_npcs()
     act2_enemies()
+    act3_enemies()
     cyberpunk()
     chef()
     mr_ad()
