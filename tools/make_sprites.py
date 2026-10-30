@@ -71,11 +71,30 @@ FILTERS = """
 BIG = "M-2000,-2000 H4000 V4000 H-2000 Z "
 
 
+## Con FLAT_SHADED activo, "shaded" dibuja en pixel art plano: color base, una franja de sombra
+## dura abajo a la derecha, un filo de luz arriba a la izquierda y un borde interior de 1 píxel.
+## Se usa en los decorados, que son muchas piezas. / With FLAT_SHADED on, "shaded" draws in flat
+## pixel art: base colour, a hard shadow band bottom-right, a light edge top-left and a 1-pixel
+## inner border. It's used for the sets, which have lots of pieces.
+FLAT_SHADED = False
+FLAT_SW = 2.8
+
+
 def shaded(d, base, outline=True, shade=0.42, rim=0.5, grad=True, extra="", deep=None, sw=1.1, rim_color="#dfe6ff"):
     """Forma con degradado, sombra interior abajo a la derecha y luz de luna arriba a la izquierda.
     Shape with gradient, inner shadow bottom-right and moonlight top-left."""
     i = uid()
     deep = deep or dark(base, 0.5)
+    if FLAT_SHADED:
+        out = ["<defs><clipPath id='c%s'><path d='%s'/></clipPath></defs>" % (i, d), "<path d='%s' fill='%s'/>" % (d, base),
+               "<g clip-path='url(#c%s)'>" % i, extra,
+               "<path d='%s%s' transform='translate(-6,-5)' fill-rule='evenodd' fill='%s'/>" % (BIG, d, mix(base, deep, min(0.75, shade * 1.1)))]
+        if rim > 0:
+            out.append("<path d='%s%s' transform='translate(3.5,3.5)' fill-rule='evenodd' fill='%s'/>" % (BIG, d, mix(base, rim_color, min(0.6, rim * 0.7))))
+        out.append("</g>")
+        if outline:
+            out.append("<path d='%s' fill='none' stroke='%s' stroke-width='%.2f' stroke-linejoin='round'/>" % (d, dark(base, 0.55), FLAT_SW))
+        return "".join(out)
     out = ["<defs><clipPath id='c%s'><path d='%s'/></clipPath>" % (i, d)]
     if grad:
         out.append("<linearGradient id='g%s' x1='0' y1='0' x2='0.9' y2='1'>"
@@ -1121,39 +1140,40 @@ def rect_d(x, y, w, h):
 
 
 def room_add(name, x, y, w, h, body, colors=24):
-    add(name, x, y, w, h, body, px=PX_ROOM, colors=colors)
+    add(name, x, y, w, h, body, px=PX_ROOM, colors=colors, flat=True)
 
 
 def room():
     WB = 300
-    # Pared: un sprite por nivel de rareza / Wall: one sprite per strangeness level
+    # Pared en pixel art plano: un sprite por nivel de rareza, con rayas verticales suaves y una
+    # franja más oscura junto al rodapié / Wall in flat pixel art: one sprite per strangeness
+    # level, with soft vertical stripes and a darker band by the skirting board
     for wl in range(4):
         k = min(1.0, wl / 3.0)
         top, bot = mix("#1d2463", "#3a1d63", k), mix("#2c3681", "#1f6a7a", k)
-        i = uid()
-        b = ("<defs><linearGradient id='w%s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%s'/>"
-             "<stop offset='1' stop-color='%s'/></linearGradient></defs><rect x='0' y='0' width='1920' height='%d' fill='url(#w%s)'/>" % (i, top, bot, WB, i))
+        wall = mix(top, bot, 0.45)
+        b = "<rect x='0' y='0' width='1920' height='%d' fill='%s'/>" % (WB, wall)
+        b += "<rect x='0' y='0' width='1920' height='70' fill='%s'/>" % mix(wall, top, 0.6)
+        b += "<rect x='0' y='%d' width='1920' height='60' fill='%s'/>" % (WB - 74, mix(wall, bot, 0.8))
         for x in range(0, 1920, 48):
-            b += "<rect x='%d' y='0' width='18' height='%d' fill='#ffffff' opacity='0.035'/>" % (x, WB)
+            b += "<rect x='%d' y='0' width='18' height='%d' fill='%s' opacity='0.5'/>" % (x, WB, light(wall, 0.06))
         b += shaded(rect_d(0, WB - 14, 1920, 18), "#cfc8ec", shade=0.3, rim=0.5, sw=1.2)
         room_add("room_wall_%d" % wl, 0, 0, 1920, WB + 4, b, colors=12)
     # Suelo de tablas / Floorboards
-    i = uid()
-    b = ("<defs><linearGradient id='f%s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#3e3a7c'/>"
-         "<stop offset='1' stop-color='#2f2c66'/></linearGradient></defs><rect x='0' y='%d' width='1920' height='740' fill='url(#f%s)'/>" % (i, WB, i))
+    b = "<rect x='0' y='%d' width='1920' height='740' fill='#36326f'/>" % WB
     y, row = WB + 4, 0
     while y < 1000:
-        b += "<rect x='0' y='%d' width='1920' height='3' fill='#1c1846' opacity='0.55'/>" % y
-        b += "<rect x='0' y='%d' width='1920' height='2' fill='#5a54a8' opacity='0.25'/>" % (y + 3)
+        b += "<rect x='0' y='%d' width='1920' height='3' fill='#1c1846'/>" % y
+        b += "<rect x='0' y='%d' width='1920' height='3' fill='#45408a'/>" % (y + 3)
         x = -120 + (row % 3) * 140
         while x < 1920:
-            b += "<rect x='%d' y='%d' width='3' height='46' fill='#1c1846' opacity='0.45'/>" % (x, y)
+            b += "<rect x='%d' y='%d' width='3' height='46' fill='#1c1846'/>" % (x, y)
             for nx in (60, 300):
-                b += "<circle cx='%d' cy='%d' r='2.4' fill='#24205a' opacity='0.6'/>" % (x + nx, y + 23)
+                b += "<circle cx='%d' cy='%d' r='3' fill='#24205a'/>" % (x + nx, y + 23)
             x += 420
         # Vetas / Grain
         for gx in range(row * 37 % 200, 1920, 240):
-            b += "<path d='M%d,%d Q%d,%d %d,%d' fill='none' stroke='#4a4590' stroke-width='2' opacity='0.35'/>" % (gx, y + 16, gx + 50, y + 12, gx + 110, y + 18)
+            b += "<path d='M%d,%d L%d,%d' fill='none' stroke='#2c2862' stroke-width='3'/>" % (gx, y + 18, gx + 90, y + 18)
         y += 46
         row += 1
     room_add("room_floor", 0, WB, 1920, 742, b, colors=12)
@@ -2175,15 +2195,18 @@ def build():
     boss()
     shots()
     npcs()
+    global FLAT_SHADED
+    FLAT_SHADED = True
     room()
     living_room()
+    drawings()
+    FLAT_SHADED = False
     act2_npcs()
     act2_enemies()
     cyberpunk()
     chef()
     mr_ad()
     pinche()
-    drawings()
     pickups()
     thug()
     sling()
