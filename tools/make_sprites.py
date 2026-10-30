@@ -2016,51 +2016,70 @@ def mr_ad():
 
 
 def pinche():
-    """El Pinche: un chaval aprendiz de cocina con gorro de papel, chaquetilla, pantalón de cuadros,
-    un cuchillo en una mano y un soplete de cocina en la otra.
-    The Kitchen Boy: a young kitchen apprentice with a paper hat, chef jacket, check trousers,
-    a knife in one hand and a kitchen blowtorch in the other."""
-    skin, shade_c, white = "#f0c8a8", "#c9a090", "#f4f1fa"
+    """El Pinche en pixel art de verdad (modo flat): chaval aprendiz de cocina, pelirrojo y con
+    pecas, gorro de papel, chaquetilla blanca, pañuelo rojo, delantal de rayas, pantalón de
+    cuadros, un cuchillo en una mano y el soplete de cocina en la otra (la llama se anima en el juego).
+    The Kitchen Boy in real pixel art (flat mode): a red-haired, freckled young kitchen apprentice
+    with a paper hat, white chef's jacket, red neckerchief, striped apron, check trousers, a knife
+    in one hand and the kitchen blowtorch in the other (the flame is animated in game)."""
+    W1, W2, W3 = "#a9a6c8", "#dcdaee", "#f8f7ff"
+    B1, B2 = "#2f5fae", "#4f7fd0"
+    RED, RED1 = "#e2434f", "#a82a36"
+    PC, CHK = "#e9e6f2", "#1e1f2e"
+    SHO = "#2a2238"
+    S, S1, FREC = "#f0c8a8", "#c9957e", "#c47a5a"
+    HA1, HA2, HA3 = "#8a3e1a", "#c8622e", "#e08a4a"
+    BLADE, BLADE1, HANDLE = "#dfe6ff", "#9aa2c0", "#4a2e22"
+    TR, TR1, NOZ = "#e2434f", "#a82a36", "#8f8fb8"
     b = ""
     # Pantalón de cuadros de cocina / Kitchen check trousers
     for x in (82, 102):
-        checks = "".join("<rect x='%g' y='%g' width='4' height='4' fill='#1e1f2e' opacity='0.7'/>" % (x + dx, y)
-                         for y in range(190, 272, 8) for dx in ((0, 8) if (y // 8) % 2 == 0 else (4, 12)))
-        b += shaded("M%g,186 L%g,186 L%g,274 L%g,274 Z" % (x, x + 16, x + 16, x), "#e9e6f2", shade=0.4, rim=0.3, extra=checks)
-        b += shaded(ellipse_d(x + 8, 282, 12, 6), "#2a2238", shade=0.3, rim=0.4)
-    # Chaquetilla blanca y delantal de rayas / White jacket and striped apron
-    b += shaded("M80,96 L120,96 L140,108 L138,196 L62,196 L60,108 Z", white, shade=0.5, rim=0.3, deep="#8a84b8")
+        b += flat("M%g,186 L%g,186 L%g,274 L%g,274 Z" % (x, x + 16, x + 16, x), PC)
+        for y in range(190, 272, 8):
+            for dx in ((0, 8) if (y // 8) % 2 == 0 else (4, 12)):
+                b += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x + dx, y, x + dx + 4, y, x + dx + 4, y + 4, x + dx, y + 4), CHK)
+        b += flat("M%g,274 L%g,274 C%g,274 %g,280 %g,288 L%g,288 Z" % (x - 2, x + 14, x + 19, x + 21, x + 21, x - 2), SHO)
+    # Chaquetilla blanca / White chef's jacket
+    b += flat("M80,96 L120,96 L140,108 L138,196 L62,196 L60,108 Z", W2)
+    b += flat("M120,96 L140,108 L138,196 L124,196 C128,160 128,122 116,98 Z", W1)
+    b += flat("M64,112 C66,106 70,101 76,99 L76,104 C72,106 69,110 67,116 Z", W3)
     for y in (116, 132, 148):
-        b += "<circle cx='92' cy='%d' r='2.6' fill='#2b2945'/><circle cx='108' cy='%d' r='2.6' fill='#2b2945'/>" % (y, y)
-    stripes = "".join("<rect x='%g' y='150' width='4' height='60' fill='#ffffff' opacity='0.55'/>" % x for x in range(70, 132, 9))
-    b += shaded("M68,150 L132,150 L134,210 L66,210 Z", "#4f7fd0", shade=0.4, rim=0.3, extra=stripes)
-    b += "<path d='M68,150 L132,150' stroke='#2f5fae' stroke-width='3'/>"
+        b += flat(ellipse_d(92, y, 2.4, 2.4), "#2b2945") + flat(ellipse_d(108, y, 2.4, 2.4), "#2b2945")
+    # Delantal de rayas / Striped apron
+    b += flat("M68,150 L132,150 L134,212 L66,212 Z", B2)
+    b += "".join(flat("M%g,150 L%g,150 L%g,212 L%g,212 Z" % (x, x + 3, x + 3, x), W3) for x in range(72, 132, 9))
+    b += flat("M120,150 L132,150 L134,212 L122,212 Z", B1)
+    b += "<path d='M68,150 L132,150' stroke='%s' stroke-width='3'/>" % B1
     # Pañuelo rojo al cuello / Red neckerchief
-    b += shaded("M86,96 L114,96 L100,112 Z", "#e2434f", shade=0.3, rim=0.3, sw=0.8)
+    b += flat("M86,96 L114,96 L100,114 Z", RED) + flat("M100,96 L114,96 L100,114 Z", RED1)
     # Brazos / Arms
-    b += shaded("M60,108 L74,112 L72,170 L58,168 Z", white, shade=0.4, rim=0.3, deep="#8a84b8")
-    b += shaded("M140,108 L126,112 L130,160 L144,156 Z", "#d8d4ea", shade=0.4, rim=0.2, deep="#8a84b8")
-    # Cuchillo en la mano izquierda (nuestra izquierda) / Knife in the left hand
-    b += shaded("M62,178 L68,178 L68,196 L62,196 Z", "#4a2e22", shade=0.3, rim=0.3, sw=0.7)
-    b += shaded("M61,178 L69,178 L67,148 Q64,142 62,150 Z", "#dfe6ff", shade=0.4, rim=0.7, rim_color="#ffffff", sw=0.7)
-    b += shaded(ellipse_d(65, 176, 7, 7), skin, shade=0.3, rim=0.3, sw=0.8)
-    # Soplete de cocina en la derecha / Kitchen blowtorch in the right hand
-    b += shaded("M132,150 L150,150 L150,176 L132,176 Z", "#e2434f", shade=0.4, rim=0.4, sw=0.8)
-    b += shaded("M136,140 L146,140 L146,150 L136,150 Z", "#3a3a52", shade=0.3, rim=0.4, sw=0.7)
-    b += shaded("M140,132 L160,128 L160,134 L142,140 Z", "#8f8fb8", shade=0.3, rim=0.5, sw=0.7)
-    b += shaded(ellipse_d(138, 160, 7, 7), shade_c, shade=0.3, rim=0.2, sw=0.8)
+    b += flat("M60,108 L74,112 L72,170 L58,168 Z", W2) + flat("M62,112 L66,112 L64,164 L60,164 Z", W3)
+    b += flat("M140,108 L126,112 L130,156 L144,152 Z", W1)
+    # Cuchillo en la mano izquierda: la mano agarra el mango / Knife in the left hand: the hand grips the handle
+    b += flat("M61,178 L69,178 L67,148 Q64,142 62,150 Z", BLADE) + flat("M65,178 L69,178 L67,148 Q66,146 65,148 Z", BLADE1)
+    b += flat("M61,178 L69,178 L69,196 L61,196 Z", HANDLE)
+    b += flat(ellipse_d(65, 180, 7, 7), S) + flat("M65,187 C69,186 72,183 72,180 L68,180 C68,183 67,184 64,185 Z", S1)
+    # Soplete en la mano derecha / Blowtorch in the right hand
+    b += flat("M132,150 L150,150 L150,176 L132,176 Z", TR) + flat("M144,150 L150,150 L150,176 L144,176 Z", TR1)
+    b += flat("M136,140 L146,140 L146,150 L136,150 Z", "#3a3a52")
+    b += flat("M140,132 L160,128 L160,134 L142,140 Z", NOZ)
+    b += flat(ellipse_d(138, 160, 7, 7), S) + flat("M138,167 C142,166 145,163 145,160 L141,160 C141,163 140,164 137,165 Z", S1)
     # Cuello y cabeza / Neck and head
-    b += shaded("M93,82 L107,82 L107,98 L93,98 Z", shade_c, shade=0.3, rim=0.1, outline=False)
-    b += shaded(ellipse_d(100, 62, 22, 25), skin, shade=0.45, rim=0.4)
-    # Pecas / Freckles
-    for (fx, fy) in ((88, 72), (91, 75), (110, 72), (113, 75)):
-        b += "<circle cx='%d' cy='%d' r='1.2' fill='#c47a5a'/>" % (fx, fy)
+    b += flat("M93,82 L107,82 L107,98 L93,98 Z", S1)
+    b += flat(ellipse_d(100, 62, 22, 25), S)
+    b += flat("M110,40 C117,46 122,53 122,62 C122,75 115,84 106,87 C112,79 115,71 115,62 C115,53 113,46 110,40 Z", S1)
+    for (fx, fy) in ((88, 72), (92, 75), (85, 75), (110, 72), (114, 75), (108, 75)):
+        b += flat(ellipse_d(fx, fy, 1.3, 1.3), FREC)
     # Pelo pelirrojo revuelto asomando del gorro / Messy red hair poking out of the hat
-    b += shaded("M77,58 Q76,40 90,36 L112,36 Q126,40 124,58 L118,48 L110,52 L104,46 L96,52 L88,46 L82,54 Z", "#c8622e", shade=0.4, rim=0.5, sw=0.8)
+    b += flat("M77,58 Q76,40 90,36 L112,36 Q126,40 124,58 L118,48 L110,52 L104,46 L96,52 L88,46 L82,54 Z", HA2)
+    b += flat("M112,36 Q126,40 124,58 L118,48 L114,50 C116,44 115,40 112,36 Z", HA1)
+    b += flat("M80,50 C80,44 84,40 89,38 L90,41 C86,43 84,46 83,51 Z", HA3)
+    b += flat("M75,58 L71,66 L78,62 Z", HA2) + flat("M125,56 L130,63 L123,61 Z", HA1)
     # Gorro de papel / Paper hat
-    b += shaded("M76,42 L124,42 L120,20 L80,20 Z", white, shade=0.4, rim=0.4, deep="#8a84b8",
-                extra="<path d='M78,34 L122,34' stroke='#cfcbe2' stroke-width='1.5'/>")
-    add("npc_pinche", 50, 14, 116, 278, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a1d22", 1))
+    b += flat("M76,42 L124,42 L120,18 L80,18 Z", W2) + flat("M110,18 L120,18 L124,42 L114,42 Z", W1)
+    b += flat("M80,20 L86,20 L83,40 L78,40 Z", W3)
+    b += "<path d='M78,34 L122,34' stroke='%s' stroke-width='2.4'/>" % W1
+    add("npc_pinche", 50, 12, 116, 280, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 1))
 
 
 def act2_npcs():
