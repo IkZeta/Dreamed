@@ -14,7 +14,7 @@ const SHOT_DAMAGE := 3.0
 const JACKET := Color("4f5f8f")
 const JACKET_DARK := Color("38456d")
 const CAP := Color("a34d5f")
-const SKIN := Color("e2b8a0")
+const SKIN := Color("b9a3c9")
 const EYES := Color("ffcf7a")
 
 var _shot_t := 1.5
@@ -105,12 +105,11 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 		Sprites.draw(self, "sling_leg", mod, Vector2(x, sin(_t * 6.0 + x) * 1.5))
 	Sprites.draw(self, "sling_body", mod)
 	Sprites.draw(self, "sling_head", mod)
-	# Ojos que brillan bajo la visera / Eyes glowing under the brim
-	draw_rect(Rect2(4, -97, 3, 2), Color(EYES, 0.85 * a))
-	draw_rect(Rect2(-5, -97, 3, 2), Color(EYES, 0.85 * a))
+	draw_rect(Rect2(5, -99, 3, 3), Color(EYES, a))
+	draw_rect(Rect2(-5, -99, 3, 3), Color(EYES, a))
 	# Tirachinas: la goma se tensa antes de disparar / Slingshot: the band stretches before firing
-	var hand := Vector2(34, -56)
-	draw_line(Vector2(27, -64), hand, Color(skin, a), 6.0)
+	var hand := Vector2(26, -66)
+	draw_line(Vector2(14, -74), hand, Color(skin, a), 6.0)
 	draw_line(hand, hand + Vector2(4, -16), Color("8a5a3a") * tint, 3.0)
 	draw_line(hand, hand + Vector2(12, -12), Color("8a5a3a") * tint, 3.0)
 	var pull := Vector2(-14, 4) * _aiming

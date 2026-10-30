@@ -43,18 +43,12 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	draw_set_transform(offset + buzz, 0.0, Vector2(_facing, 1.0))
 	# Alas que baten muy deprisa / Wings beating very fast
 	var flap := absf(sin(_t * 40.0 + _phase))
-	# Alas grandes y translúcidas con nervios / Big translucent wings with veins
 	for side in [-1.0, 1.0]:
-		var root := Vector2(-1 + side * 2.0, -36)
-		var tip := root + Vector2(-6.0 - 4.0 * side, -12.0 - 6.0 * flap)
 		var w := PackedVector2Array()
-		for i in 14:
-			var ang := TAU * i / 14.0
-			var along := (tip - root)
-			w.append(root + along * (0.5 + 0.5 * cos(ang)) + along.orthogonal().normalized() * sin(ang) * 4.5)
-		draw_colored_polygon(w, Color(Color("e8ecff"), 0.4 * a) * tint)
-		draw_polyline(w + PackedVector2Array([w[0]]), Color(Color("c8c0e0"), 0.6 * a) * tint, 0.8)
-		draw_line(root, tip, Color(Color("c8c0e0"), 0.55 * a) * tint, 0.8)
+		for i in 12:
+			var ang := TAU * i / 12.0
+			w.append(Vector2(-2 + side * 2.0, -40 + 2.0 * side) + Vector2(cos(ang) * 8.0, sin(ang) * (3.0 + 4.0 * flap)))
+		draw_colored_polygon(w, Color(Color("dfe6ff"), 0.45 * a) * tint)
 	Sprites.draw(self, "mosquito_body", mod)
 	draw_set_transform(Vector2.ZERO)
 
