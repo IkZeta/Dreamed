@@ -73,26 +73,43 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	ci.draw_circle(Vector2.ZERO, 44, Color(0.05, 0.03, 0.18, 0.35))
 	_use(Transform2D.IDENTITY)
 
-	if outfit == "vacuum" and armed:
+	# Segunda arma (desde El Chef): va en la mano libre / Second weapon (after The Chef): goes in the free hand
+	var second: String = opts.get("second", "")
+	var anim2: float = opts.get("anim2", 0.0)
+	var show2: bool = second != "" and not opts.get("hide2", false)
+	if (outfit == "vacuum" and armed) or (second == "vacuum" and show2):
 		_vacuum_tank(t, mod)
 
 	# Rebote al andar e inclinación / Walking bounce and lean
 	var bob := -absf(sin(walk)) * 5.0 * moving
 	_xf = _xf * Transform2D(lean, Vector2(100, 288 + bob)) * Transform2D(0.0, Vector2(-100, -288))
 
+	# Qué lleva cada mano: el pijama decide la suya y la segunda arma va en la otra
+	# What each hand holds: the pajama picks its hand and the second weapon goes in the other
+	var main_hand := hand_of(outfit)
+	var w_l := ""
+	var w_r := ""
+	var a_l := 0.0
+	var a_r := 0.0
+	if armed:
+		if main_hand == "l":
+			w_l = outfit
+			a_l = attack if outfit in ["shield", "teddy"] else cast
+		else:
+			w_r = outfit
+			a_r = cast if outfit in ["book", "finger"] else attack
+	if show2:
+		if main_hand == "l":
+			w_r = second
+			a_r = anim2
+		else:
+			w_l = second
+			a_l = anim2
+
 	# Ángulos de piernas y brazos / Leg and arm angles
 	var swing := sin(walk) * 0.42 * moving
-	var arm_l := -swing * 0.8 + 2.7 * stretch - 1.25 * (attack if outfit in ["shield", "teddy"] else 0.0)
-	var arm_r := swing * 0.8 - 2.7 * stretch
-	if outfit == "bat":
-		arm_r += -0.9 * attack
-	elif outfit == "book":
-		arm_r += -1.2 * cast
-	elif outfit == "finger" and armed:
-		# Apunta con el dedo hacia delante y da un respingo al disparar / Points forward and kicks up when firing
-		arm_r = -1.3 + swing * 0.15 - 0.35 * cast
-	if armed and outfit in ["bat", "vacuum"]:
-		arm_r *= 0.5  # el arma pesa / the weapon is heavy
+	var arm_l := _arm_pose(w_l, -swing * 0.8 + 2.7 * stretch, a_l, swing)
+	var arm_r := _arm_pose(w_r, swing * 0.8 - 2.7 * stretch, a_r, swing)
 	# Kroker es bajito: hombros y caderas más abajo, brazos y piernas cortos
 	# Kroker is short: shoulders and hips sit lower, arms and legs are short
 	const SH_L := Vector2(75, 184)
@@ -113,6 +130,17 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	Sprites.draw(ci, "kroker_arm_r_" + o, mod)
 	_use(Transform2D.IDENTITY)
 
+	# En la mano izquierda, todo menos la almohada y el oso va por detrás del cuerpo
+	# In the left hand, everything but the pillow and the teddy goes behind the body
+	var aim_main: Vector2 = opts.get("aim", Vector2(1, 0.5))
+	var aim_2: Vector2 = opts.get("aim2", Vector2(1, 0.5))
+	var suck_main: bool = opts.get("sucking", false)
+	var suck_2: bool = opts.get("sucking2", false)
+	var l_behind := w_l != "" and not w_l in ["shield", "teddy"]
+	if l_behind:
+		_weapon(ci, w_l, t, hand_l, arm_l, Vector2(-5, 53.3).rotated(arm_l).normalized(), a_l,
+			aim_2 * Vector2(facing, 1), suck_2, mod, true)
+
 	# Pijama / Pajamas
 	Sprites.draw(ci, "kroker_torso_" + o, mod)
 
@@ -121,18 +149,49 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod)
 	_use(Transform2D.IDENTITY)
 
-	if armed:
-		match outfit:
-			"bat": _bat(t, attack, hand_r, arm_r, mod)
-			"shield": _pillow(t, attack, hand_l, mod)
-			"book": _book(t, cast, hand_r, mod)
-			"vacuum": _vacuum_nozzle(t, opts.get("aim", Vector2(1, 0.5)) * Vector2(facing, 1), opts.get("sucking", false), hand_r, mod)
-			"finger":
-				_use(Transform2D.IDENTITY)
-				finger_gun(ci, _xf, hand_r + Vector2(5, 53.3).rotated(arm_r).normalized() * 3.0, Vector2(5, 53.3).rotated(arm_r).normalized(), cast, "weapon_finger", 1.0)
-			"teddy": _teddy(t, attack, hand_l, mod)
+	# Armas en las manos / Weapons in the hands
+	if w_l != "" and not l_behind:
+		var mine := w_l == outfit and main_hand == "l"
+		_weapon(ci, w_l, t, hand_l, arm_l, Vector2(-5, 53.3).rotated(arm_l).normalized(), a_l,
+			(aim_main if mine else aim_2) * Vector2(facing, 1), suck_main if mine else suck_2, mod)
+	if w_r != "":
+		var mine := w_r == outfit and main_hand == "r"
+		_weapon(ci, w_r, t, hand_r, arm_r, Vector2(5, 53.3).rotated(arm_r).normalized(), a_r,
+			(aim_main if mine else aim_2) * Vector2(facing, 1), suck_main if mine else suck_2, mod)
 
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+
+
+## Mano con la que se lleva cada arma: almohada y oso en la izquierda, el resto en la derecha
+## Hand each weapon is held in: pillow and teddy in the left, the rest in the right
+static func hand_of(weapon: String) -> String:
+	return "l" if weapon in ["shield", "teddy"] else "r"
+
+
+## Ángulo del brazo según lo que lleve en la mano y cómo esté atacando
+## Arm angle depending on what the hand holds and how it's attacking
+static func _arm_pose(w: String, base: float, a: float, swing: float) -> float:
+	match w:
+		"bat": return (base - 0.9 * a) * 0.5        # el bate pesa / the bat is heavy
+		"vacuum": return base * 0.5
+		"book": return base - 1.2 * a
+		"shield", "teddy": return base - 1.25 * a
+		# Apunta con el dedo hacia delante y da un respingo al disparar / Points forward and kicks up when firing
+		"finger": return -1.3 + swing * 0.15 - 0.35 * a
+	return base
+
+
+## Dibuja un arma en una mano / Draws a weapon in a hand
+static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: float, arm_dir: Vector2, a: float, aim: Vector2, sucking: bool, mod: Color, left := false) -> void:
+	match w:
+		"bat": _bat(t, a, hand, arm, mod, left)
+		"shield": _pillow(t, a, hand, mod)
+		"book": _book(t, a, hand, mod)
+		"vacuum": _vacuum_nozzle(t, aim, sucking, hand, mod)
+		"finger":
+			_use(Transform2D.IDENTITY)
+			finger_gun(ci, _xf, hand + arm_dir * 3.0, arm_dir, a, "weapon_finger", 1.0)
+		"teddy": _teddy(t, a, hand, mod)
 
 
 ## Gira una extremidad alrededor de su articulación / Rotates a limb around its joint
@@ -169,8 +228,10 @@ static func draw_sleeping(ci: CanvasItem, center: Vector2, scale: float, _t: flo
 
 # --- Armas / Weapons --------------------------------------------------------
 
-static func _bat(t: float, attack: float, hand: Vector2, arm: float, mod: Color) -> void:
-	_use(Transform2D(0.55 - attack * 2.2 + arm * 0.5 + sin(t * 1.6) * 0.03, hand + Vector2(2, 2)))
+static func _bat(t: float, attack: float, hand: Vector2, arm: float, mod: Color, left := false) -> void:
+	# En la izquierda descansa inclinado hacia atrás y golpea hacia delante / In the left hand it rests tilted back and swings forward
+	var rot := (-0.5 + attack * 1.4 + arm * 0.3) if left else (0.55 - attack * 2.2 + arm * 0.5)
+	_use(Transform2D(rot + sin(t * 1.6) * 0.03, hand + Vector2(2, 2)))
 	Sprites.draw(_ci, "weapon_bat", mod)
 	_use(Transform2D.IDENTITY)
 

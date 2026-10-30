@@ -34,18 +34,19 @@ func charge_bars() -> Array:
 ## Where the charge ring is drawn, relative to Kroker (already flipped by facing).
 func charge_anchor() -> Vector2:
 	if not primary:
-		return float_offset() + Vector2(0, -34)
+		return second_anchor()
 	return Vector2(26.0 * player._facing, -42.0)
 
 
-## Dónde flota la segunda arma, relativo a Kroker: detrás del hombro, subiendo y bajando
-## Where the second weapon floats, relative to Kroker: behind his shoulder, bobbing
-func float_offset() -> Vector2:
-	return Vector2(-46.0 * player._facing, -112.0 + sin(player._t * 2.2) * 5.0) + Vector2(14.0 * player._facing, 8.0) * anim
+## La segunda arma va en la mano libre: su anillo sale de ese lado
+## The second weapon is in the free hand: its ring sits on that side
+func second_anchor() -> Vector2:
+	var side := -1.0 if KrokerArt.hand_of(player.outfit) == "r" else 1.0
+	return Vector2(30.0 * side * player._facing, -40.0)
 
 
-## Marca que el arma ha atacado (anima a Kroker o a la propia arma flotante)
-## Marks that the weapon attacked (animates Kroker or the floating weapon itself)
+## Marca que el arma ha atacado (anima el brazo de Kroker que la lleva)
+## Marks that the weapon attacked (animates the arm of Kroker holding it)
 func swung(cast := false) -> void:
 	if not primary:
 		anim = 1.0
@@ -69,11 +70,9 @@ func attack() -> bool:
 	return false
 
 
-## Centro del cuerpo de Kroker (no los pies); la segunda arma ataca desde donde flota.
-## Kroker's body centre (not his feet); the second weapon attacks from where it floats.
+## Centro del cuerpo de Kroker (no los pies); las dos armas atacan desde ahí.
+## Kroker's body centre (not his feet); both weapons attack from there.
 func origin() -> Vector2:
-	if not primary:
-		return player.global_position + float_offset()
 	return player.global_position + Vector2(0, -44)
 
 

@@ -231,9 +231,12 @@ func _draw() -> void:
 	var sy := ART_SCALE * (1.0 - squash)
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
 		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
-		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean})
-	if weapon2:
-		_draw_floating_weapon()
+		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean,
+		# La segunda arma va en la mano libre / The second weapon goes in the free hand
+		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
+		"hide2": weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow,
+		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
+		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})
 	if alive and run.running and weapon:
 		_ring_a = _draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor(), _ring_a)
 	if alive and run.running and weapon2:
@@ -304,39 +307,3 @@ func _draw_charge_rings(bars: Array, anchor: Vector2, ring_a: Array[float]) -> A
 			draw_circle(c, r * 0.45, Color(col, 0.7 * a))
 	return ring_a
 
-
-## La segunda arma flota detrás del hombro de Kroker, con un aura suave
-## The second weapon floats behind Kroker's shoulder, with a soft aura
-func _draw_floating_weapon() -> void:
-	var w := weapon2
-	if w is WeaponShield and (w as WeaponShield).hidden_pillow:
-		return
-	var c := w.float_offset()
-	var col: Color = KrokerArt.ACCENT.get(w.id, UITheme.GOLD)
-	draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(46, 46), Vector2(92, 92)), false, Color(col, 0.25))
-	var s := ART_SCALE
-	match w.id:
-		"bat":
-			draw_set_transform(c + Vector2(0, 26), (0.5 - w.anim * 2.2) * _facing, Vector2(s, s))
-			Sprites.draw(self, "weapon_bat")
-		"shield":
-			draw_set_transform(c, sin(_t * 1.5) * 0.15, Vector2(s, s) * (1.0 + w.anim * 0.3))
-			Sprites.draw(self, "weapon_pillow")
-		"book":
-			draw_set_transform(c, sin(_t * 1.2) * 0.1, Vector2(s, s))
-			Sprites.draw(self, "weapon_book")
-			if w.anim > 0.0:
-				draw_circle(Vector2.ZERO, 20.0 * w.anim, Color(col, 0.5 * w.anim))
-		"vacuum":
-			var dir: Vector2 = (w as WeaponVacuum).aim_dir()
-			draw_set_transform(c - Vector2(150, 253) * s, 0.0, Vector2(s, s))
-			Sprites.draw(self, "weapon_tank")
-			draw_set_transform(c + dir * 14.0, dir.angle(), Vector2(s, s))
-			Sprites.draw(self, "weapon_nozzle")
-		"finger":
-			# Una mano que flota haciendo la pistola con los dedos / A floating hand making a finger gun
-			KrokerArt.finger_gun(self, Transform2D(0.0, Vector2(_facing, 1.0) * s * 1.6, 0.0, c), Vector2.ZERO, Vector2(1, 0), w.anim)
-		"teddy":
-			draw_set_transform(c, sin(_t * 1.4) * 0.12 - w.anim * 0.4 * _facing, Vector2(s, s) * (1.0 + w.anim * 0.2))
-			Sprites.draw(self, "weapon_teddy")
-	draw_set_transform(Vector2.ZERO)

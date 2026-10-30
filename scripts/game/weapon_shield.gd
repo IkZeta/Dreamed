@@ -18,7 +18,7 @@ const THROW_RANGE := 520.0
 const THROW_ARMOR_LOSS := 4.0
 
 var throw_mode := false
-var hidden_pillow := false   # la segunda arma lanzada no se dibuja flotando / the thrown second weapon isn't drawn floating
+var hidden_pillow := false   # la segunda arma lanzada no se dibuja en la mano / the thrown second weapon isn't drawn in the hand
 var _projectile: Node2D
 
 

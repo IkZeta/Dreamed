@@ -95,9 +95,9 @@ func attack() -> bool:
 
 ## La punta del dedo / The fingertip
 func muzzle() -> Vector2:
-	if not primary:
-		return player.global_position + float_offset() + Vector2(14.0 * player._facing, 0)
-	return player.global_position + Vector2(30.0 * player._facing, -58.0)
+	# Con la mano izquierda (segunda arma) el dedo queda un poco más atrás / In the left hand (second weapon) the finger sits a little further back
+	var x := 30.0 if primary else 18.0
+	return player.global_position + Vector2(x * player._facing, -58.0)
 
 
 ## Silly: el láser corrupto ralentiza / Silly: the corrupted laser slows
@@ -109,5 +109,5 @@ func on_laser_hit(e: Node2D) -> void:
 func charge_anchor() -> Vector2:
 	if not primary:
 		return super.charge_anchor()
-	# Detrás, para no tapar la mano que dispara / Behind him, so it doesn't cover the firing hand
-	return Vector2(-30.0 * player._facing, -40.0)
+	# Encima de la mano que dispara, para no taparla / Above the firing hand, so it doesn't cover it
+	return Vector2(32.0 * player._facing, -80.0)

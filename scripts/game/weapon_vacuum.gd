@@ -107,8 +107,6 @@ func charge_anchor() -> Vector2:
 
 
 func _nozzle_base() -> Vector2:
-	if not primary:
-		return origin()
 	return player.global_position + Vector2(0, -30)
 
 
@@ -122,7 +120,7 @@ func _draw() -> void:
 		return
 	# Cono de succión con corrientes que viajan hacia la boquilla
 	# Suction cone with currents travelling toward the nozzle
-	var c := Vector2(0, -30) if primary else float_offset()
+	var c := Vector2(0, -30)
 	var col: Color = KrokerArt.ACCENT["vacuum"]
 	var a := _dir.angle()
 	var pts := PackedVector2Array([c])
