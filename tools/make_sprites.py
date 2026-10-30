@@ -862,23 +862,60 @@ def npcs():
     ball += "<path d='M0,-5 L4.8,-1.5 L3,4 L-3,4 L-4.8,-1.5 Z' fill='#1e1f2e'/>"
     add("npc_ball", -15, -15, 30, 30, ball, px=PX_NPC)
 
-    # Stolk: el matón / the bully
-    skin, shade_c = "#f0c4aa", "#c99a8e"
+    # Stolk: el matón del cole, en pixel art de verdad (modo flat). Grandullón con sudadera roja,
+    # brazos cruzados, pelo rapado, tirita en la mejilla, palillo en la boca, vaqueros y
+    # zapatillas blancas enormes.
+    # Stolk: the school bully, in real pixel art (flat mode). A big lad in a red sweatshirt, arms
+    # crossed, buzz cut, a plaster on his cheek, a toothpick in his mouth, jeans and huge white trainers.
+    R1, R2, R3 = "#6e1f2a", "#a8323f", "#d0505a"
+    J1, J2, J3 = "#283153", "#3a4670", "#526094"
+    W, W1, RED = "#ece8f2", "#b9b4c8", "#c8304a"
+    S, S1 = "#f0c4aa", "#c9957e"
+    HA1, HA2 = "#5a3f2c", "#8a6448"
     b = ""
-    for x in (74, 104):
-        b += shaded("M%g,186 L%g,186 L%g,276 L%g,276 Z" % (x, x + 24, x + 24, x), "#3b4a7a" if x == 74 else "#2f3c66", shade=0.45, rim=0.3)
-        b += shaded(ellipse_d(x + 12, 282, 17, 7), "#e9e6f2", shade=0.35, rim=0.3)
-    b += shaded("M78,94 L122,94 L150,108 L146,190 L54,190 L50,108 Z", "#b9474f", shade=0.55, rim=0.4,
-                extra="<rect x='54' y='178' width='92' height='12' fill='#8f343c'/>")
-    b += "<path d='%s' fill='#8f343c'/>" % ellipse_d(100, 96, 30, 10)
-    b += shaded("M52,112 L70,110 L130,140 L128,156 L60,140 Z", "#c4545c", shade=0.4, rim=0.4)
-    b += shaded("M148,112 L130,110 L70,146 L74,160 L142,140 Z", "#a83e46", shade=0.4, rim=0.3)
-    b += shaded(ellipse_d(130, 148, 9, 9), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(70, 152, 9, 9), shade_c, shade=0.3, rim=0.2, sw=0.8)
-    b += shaded("M90,80 L110,80 L110,96 L90,96 Z", shade_c, shade=0.3, rim=0.1, outline=False)
-    b += shaded(ellipse_d(100, 58, 25, 27), skin, shade=0.45, rim=0.4)
-    b += shaded("M76,52 L80,38 L94,30 L108,30 L120,38 L124,52 L116,44 L84,44 Z", "#8a6a52", shade=0.4, rim=0.4, sw=0.8)
-    b += "<g transform='translate(114,72) rotate(-23)'><rect x='-8' y='-3' width='16' height='6' rx='2' fill='#f2d4a6'/></g>"
-    add("npc_stolk", 46, 26, 108, 266, b, px=PX_NPC, colors=32, post=npc_face(58, "#3a2a30", 2))
+    # Piernas / Legs
+    b += flat("M104,184 L127,184 L127,270 L104,270 Z", J1)
+    b += flat("M74,184 L98,184 L98,270 L74,270 Z", J2) + flat("M89,184 L98,184 L98,270 L91,270 Z", J1)
+    b += flat("M76,186 L80,186 L80,262 L76,262 Z", J3)
+    b += flat("M73,260 L99,260 L99,268 L73,268 Z", J3) + flat("M103,260 L128,260 L128,268 L103,268 Z", J2)
+    # Zapatillas blancas enormes / Huge white trainers
+    for x0 in (66, 100):
+        b += flat("M%g,268 L%g,268 C%g,268 %g,274 %g,280 L%g,288 L%g,288 Z" % (x0 + 4, x0 + 30, x0 + 36, x0 + 38, x0 + 38, x0 + 38, x0), W)
+        b += flat("M%g,282 L%g,282 L%g,288 L%g,288 Z" % (x0, x0 + 38, x0 + 38, x0), W1)
+        b += "<path d='M%g,276 L%g,276' stroke='%s' stroke-width='3'/>" % (x0 + 8, x0 + 30, RED)
+    # Sudadera / Sweatshirt
+    b += flat("M72,96 L128,96 C142,100 150,108 150,118 L146,192 L54,192 L50,118 C50,108 58,100 72,96 Z", R2)
+    b += flat("M128,96 C142,100 150,108 150,118 L146,192 L130,192 C134,160 134,124 124,98 Z", R1)
+    b += flat("M60,104 C64,100 70,98 76,97 L76,102 C70,103 66,106 62,110 Z", R3)
+    b += flat("M54,180 L146,180 L146,192 L54,192 Z", R1)
+    b += "".join("<path d='M%d,181 L%d,191' stroke='#4a141c' stroke-width='2.2'/>" % (x, x) for x in range(60, 146, 8))
+    b += flat("M88,92 C92,98 108,98 112,92 L114,100 C106,104 94,104 86,100 Z", R1)
+    # Cuello / Neck
+    b += flat("M90,82 L110,82 L110,96 C104,99 96,99 90,96 Z", S1)
+    # Brazos cruzados: los brazos bajan por los lados y los antebrazos se cruzan sobre el pecho
+    # Crossed arms: the upper arms run down the sides and the forearms cross over the chest
+    SEAM = "#4a141c"
+    b += flat("M50,110 C45,124 45,142 49,158 L64,158 L64,110 Z", R2) + flat("M52,116 C49,128 49,142 51,152 L55,152 L55,116 Z", R3)
+    b += flat("M150,110 C155,124 155,142 151,158 L136,158 L136,110 Z", R1)
+    b += "<path d='M64,112 L64,156 M136,112 L136,156' stroke='%s' stroke-width='2.4'/>" % SEAM
+    # Antebrazo de atrás (derecho) con la mano asomando por la izquierda / Back forearm (right) with the hand peeking out on the left
+    b += flat("M151,140 L151,158 L70,140 L72,124 Z", R1)
+    b += flat(ellipse_d(68, 128, 8, 8), S) + flat("M70,135 C73,134 76,131 76,128 L72,128 C72,131 70,133 67,134 Z", S1)
+    # Antebrazo de delante (izquierdo) con la mano metida bajo el otro brazo / Front forearm (left) with the hand tucked under the other arm
+    b += flat("M49,142 L49,160 L136,144 L134,126 Z", R2) + flat("M49,142 L134,126 L135,131 L49,147 Z", R3)
+    b += "<path d='M49,142 L134,126 M49,160 L136,144' stroke='%s' stroke-width='2.4'/>" % SEAM
+    b += flat(ellipse_d(140, 133, 8, 8), S) + flat("M142,140 C145,139 148,136 148,133 L144,133 C144,136 142,138 139,139 Z", S1)
+    # Cabeza cuadrada / Square head
+    b += flat(ellipse_d(76, 60, 5, 7), S) + flat(ellipse_d(124, 60, 5, 7), S1)
+    b += flat("M77,56 C77,38 87,30 100,30 C113,30 123,38 123,56 L121,74 C117,84 110,88 100,88 C90,88 83,84 79,74 Z", S)
+    b += flat("M112,34 C119,39 123,46 123,56 L121,74 C118,82 113,86 106,88 C114,80 117,70 116,58 C116,48 115,40 112,34 Z", S1)
+    # Pelo rapado / Buzz cut
+    b += flat("M77,52 C77,36 88,27 100,27 C112,27 123,36 123,52 L119,44 C112,41 88,41 81,44 Z", HA1)
+    b += flat("M84,38 C89,32 95,30 101,30 L101,34 C95,34 90,36 86,41 Z", HA2)
+    # Tirita en la mejilla y palillo en la boca / Plaster on the cheek and toothpick in the mouth
+    b += "<g transform='rotate(-25 113 70)'>%s</g>" % flat("M106,67 L120,67 L120,73 L106,73 Z", "#f2d4a6")
+    b += "<path d='M104,78 L118,73' stroke='#e8d0a0' stroke-width='2.6' stroke-linecap='round'/>"
+    add("npc_stolk", 44, 22, 116, 272, b, px=PX_NPC, flat=True, post=npc_face(60, "#3a2a30", 2))
 
     # Silly: la hacker / the hacker
     skin, shade_c = "#f4d2c0", "#caa8b4"
