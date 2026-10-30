@@ -96,7 +96,7 @@ func attack() -> bool:
 ## La punta del dedo / The fingertip
 func muzzle() -> Vector2:
 	# Con la mano izquierda (segunda arma) el dedo queda un poco más atrás / In the left hand (second weapon) the finger sits a little further back
-	var x := 30.0 if primary else 18.0
+	var x := 30.0 if hand() == "r" else -18.0
 	return player.global_position + Vector2(x * player._facing, -58.0)
 
 

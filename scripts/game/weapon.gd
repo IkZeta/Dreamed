@@ -35,14 +35,22 @@ func charge_bars() -> Array:
 func charge_anchor() -> Vector2:
 	if not primary:
 		return second_anchor()
+	if hand() == "l" and KrokerArt.hand_of(id) == "r":
+		return Vector2(-30.0 * player._facing, -40.0)
 	return Vector2(26.0 * player._facing, -42.0)
 
 
 ## La segunda arma va en la mano libre: su anillo sale de ese lado
 ## The second weapon is in the free hand: its ring sits on that side
 func second_anchor() -> Vector2:
-	var side := -1.0 if KrokerArt.hand_of(player.outfit) == "r" else 1.0
+	var side := 1.0 if hand() == "r" else -1.0
 	return Vector2(30.0 * side * player._facing, -40.0)
+
+
+## Mano en la que Kroker lleva esta arma ("l" o "r") / Hand Kroker holds this weapon in ("l" or "r")
+func hand() -> String:
+	var hs := KrokerArt.hands(player.outfit, player.weapon2.id if player.weapon2 else "")
+	return hs["main"] if primary else hs["second"]
 
 
 ## Marca que el arma ha atacado (anima el brazo de Kroker que la lleva)

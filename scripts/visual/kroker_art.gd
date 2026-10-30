@@ -86,7 +86,8 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 
 	# Qué lleva cada mano: el pijama decide la suya y la segunda arma va en la otra
 	# What each hand holds: the pajama picks its hand and the second weapon goes in the other
-	var main_hand := hand_of(outfit)
+	var hs := hands(outfit if armed else "", second if show2 else "")
+	var main_hand: String = hs["main"] if armed else hand_of(outfit)
 	var w_l := ""
 	var w_r := ""
 	var a_l := 0.0
@@ -94,12 +95,12 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	if armed:
 		if main_hand == "l":
 			w_l = outfit
-			a_l = attack if outfit in ["shield", "teddy"] else cast
+			a_l = attack if outfit in ["shield", "teddy", "bat"] else cast
 		else:
 			w_r = outfit
 			a_r = cast if outfit in ["book", "finger"] else attack
 	if show2:
-		if main_hand == "l":
+		if hs["second"] == "r":
 			w_r = second
 			a_r = anim2
 		else:
@@ -166,6 +167,25 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 ## Hand each weapon is held in: pillow and teddy in the left, the rest in the right
 static func hand_of(weapon: String) -> String:
 	return "l" if weapon in ["shield", "teddy"] else "r"
+
+
+## Reparte las dos armas entre las manos: cada una en la suya y, si las dos quieren la derecha
+## (el bate con el libro, la aspiradora o la pistola de dedos), el bate pasa a la izquierda.
+## Splits the two weapons between the hands: each in its own and, if both want the right one
+## (the bat with the book, the vacuum or the finger gun), the bat moves to the left.
+static func hands(main: String, second: String) -> Dictionary:
+	var hm := hand_of(main)
+	if second == "":
+		return {"main": hm, "second": ""}
+	var hs := hand_of(second)
+	if hm == hs:
+		if main == "bat":
+			hm = "l" if hs == "r" else "r"
+		elif second == "bat":
+			hs = "l" if hm == "r" else "r"
+		else:
+			hs = "l" if hm == "r" else "r"
+	return {"main": hm, "second": hs}
 
 
 ## Ángulo del brazo según lo que lleve en la mano y cómo esté atacando
