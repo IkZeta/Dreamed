@@ -165,30 +165,122 @@ func _ready() -> void:
 		_drop_in(depth)
 
 
-## En los sueños siguientes Kroker cae desde lo alto entre estrellas.
-## In later dreams Kroker falls in from above among stars.
+## En los sueños siguientes Kroker llega de una de tres formas (solo estético): cae del cielo y
+## se estampa de boca contra el suelo, sale de uno de los agujeros del suelo o aparece en un
+## resplandor, como cuando se fue pero al revés.
+## In later dreams Kroker arrives in one of three ways (purely cosmetic): he falls from the sky
+## and faceplants on the floor, climbs out of one of the holes in the floor, or appears in a
+## glow, like when he left but in reverse.
 func _drop_in(depth: int) -> void:
 	var start := Bedroom.to_world(Bedroom.START_POINT)
 	player.position = start
-	player.hop = 600.0
 	player.visible = true
-	var tw := create_tween()
-	tw.tween_interval(0.6)
-	tw.tween_property(player, "hop", 0.0, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func() -> void:
-		player.land()
-		Audio.play("land")
-		Audio.play("crack", -4.0)
-		shake(6.0)
-		fx.dissipate(start + Vector2(0, -20), UITheme.GOLD)
-		fx.ring(start, 30.0, UITheme.GOLD, 0.5, 2.4))
-	tw.tween_interval(0.5)
+	var ways := ["fall", "glow"]
+	if room.hole_count() > 0:
+		ways.append("hole")
+	var tw: Tween
+	match ways[randi() % ways.size()]:
+		"hole": tw = _arrive_hole()
+		"glow": tw = _arrive_glow(start)
+		_: tw = _arrive_faceplant(start)
+	tw.tween_interval(0.4)
 	# La primera vez que llega al salón, Charo le da la bienvenida
 	# The first time he reaches the living room, Charo welcomes him
 	if depth == GameState.ACT2_START and not Progress.stats.has("charo_met"):
 		tw.tween_callback(_charo_welcome.bind(_begin.bind(depth)))
 	else:
 		tw.tween_callback(_begin.bind(depth))
+
+
+## Cae dando vueltas y se estampa de boca; se queda un momento mareado y se levanta
+## Falls tumbling and faceplants; stays dizzy for a moment and gets up
+func _arrive_faceplant(at: Vector2) -> Tween:
+	var f := player._facing
+	player.hop = 600.0
+	player.rotation = -0.4 * f
+	var tw := create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_property(player, "hop", 0.0, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(player, "rotation", 1.45 * f, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func() -> void:
+		Audio.play("land")
+		Audio.play("crack", -4.0)
+		shake(7.0)
+		fx.dissipate(at + Vector2(60 * f, -10), UITheme.BONE)
+		fx.ring(at + Vector2(60 * f, 0), 26.0, UITheme.BONE, 0.45, 2.2)
+		# Estrellitas de mareo / Dizzy little stars
+		for i in 3:
+			fx.ring(at + Vector2(70 * f + (i - 1) * 22, -50 - (i % 2) * 10), 5.0, UITheme.GOLD, 0.9, 1.2))
+	# Rebote al estamparse / Bounce on impact
+	tw.tween_property(player, "rotation", 1.32 * f, 0.08)
+	tw.tween_property(player, "rotation", 1.45 * f, 0.1)
+	tw.tween_interval(0.7)
+	# Se levanta de un salto / Springs back up
+	tw.tween_callback(Audio.play.bind("dash", -10.0, 0.1))
+	tw.tween_property(player, "rotation", 0.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_method(func(k: float) -> void: player.hop = sin(k * PI) * 26.0, 0.0, 1.0, 0.28)
+	tw.tween_callback(func() -> void:
+		player.rotation = 0.0
+		player.hop = 0.0
+		player.land())
+	return tw
+
+
+## Asoma por un agujero del suelo, trepa y salta fuera / Pops up through a floor hole, climbs and hops out
+func _arrive_hole() -> Tween:
+	var holes := room.holes_list()
+	var hole: Rect2 = Bedroom.rect_world(holes[randi() % room.hole_count()])
+	var from := hole.get_center() + Vector2(0, hole.size.y * 0.2)
+	# Sale hacia delante (abajo en pantalla) o hacia el lado con más sitio / Hops out forward or toward the roomier side
+	var area := arena_rect().grow(-60)
+	var to := from + Vector2(0, hole.size.y * 0.5 + 60)
+	if not area.has_point(to):
+		to = from + Vector2((hole.size.x * 0.5 + 70) * (1.0 if from.x < area.get_center().x else -1.0), 0)
+	to = Vector2(clampf(to.x, area.position.x, area.end.x), clampf(to.y, area.position.y, area.end.y))
+	player.position = from
+	player.scale = Vector2(1.0, 0.0)
+	player.set_facing(signf(to.x - from.x) if absf(to.x - from.x) > 4.0 else 1.0)
+	var tw := create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_callback(func() -> void:
+		Audio.play("crack", -8.0)
+		fx.dissipate(from, Color("2a2148")))
+	# Asoma la cabeza, mira y trepa / Head pops up, looks around and climbs out
+	tw.tween_property(player, "scale", Vector2(1.0, 0.45), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.35)
+	tw.tween_property(player, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(Audio.play.bind("dash", -10.0, 0.1))
+	tw.tween_method(_hop_down.bind(from, to), 0.0, 1.0, 0.45)
+	tw.tween_callback(func() -> void:
+		player.position = to
+		player.hop = 0.0
+		player.land()
+		Audio.play("land", -4.0)
+		fx.ring(to, 22.0, UITheme.BONE, 0.4, 2.0))
+	return tw
+
+
+## Aparece en un resplandor pequeño, como cuando se fue pero al revés
+## Appears in a small glow, like when he left but in reverse
+func _arrive_glow(at: Vector2) -> Tween:
+	var glow := DreamGlow.new()
+	glow.position = at + Vector2(0, -70)
+	world.add_child(glow)
+	player.modulate = Color(3, 3, 3, 0)
+	player.scale = Vector2(0.4, 0.4)
+	var tw := create_tween()
+	tw.tween_interval(0.3)
+	tw.tween_callback(Audio.play.bind("astral", -8.0))
+	tw.tween_property(glow, "power", 1.0, 0.45).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(player, "modulate", Color(3, 3, 3, 1), 0.25)
+	tw.parallel().tween_property(player, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(player, "modulate", Color.WHITE, 0.45)
+	tw.parallel().tween_property(glow, "power", 0.0, 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func() -> void:
+		glow.queue_free()
+		player.land()
+		fx.dissipate(at + Vector2(0, -40), UITheme.GOLD))
+	return tw
 
 
 ## Empieza el sueño de verdad / The dream really starts
@@ -1109,7 +1201,8 @@ func _end_run_victory() -> void:
 	get_tree().create_timer(1.6, false).timeout.connect(_wake_scene.bind(true))
 
 
-## Un destello leve y Kroker pasa al plano astral / A soft flash takes Kroker to the astral plane
+## Un resplandor pequeño sale de Kroker, se lo lleva y pasa al plano astral
+## A small glow comes out of Kroker, takes him away and he goes to the astral plane
 func _flash_to_astral() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 30
@@ -1120,10 +1213,19 @@ func _flash_to_astral() -> void:
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(flash)
 	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var glow := DreamGlow.new()
+	glow.position = player.global_position + Vector2(0, -70)
+	world.add_child(glow)
 	var tw := create_tween()
 	tw.tween_interval(0.3)
 	tw.tween_callback(Audio.play.bind("astral", -2.0))
-	tw.tween_property(flash, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(glow, "power", 1.0, 0.6).set_trans(Tween.TRANS_SINE)
+	tw.parallel().tween_property(player, "modulate", Color(3, 3, 3, 1), 0.6)
+	# Kroker se encoge dentro del brillo y desaparece / Kroker shrinks into the glow and vanishes
+	tw.tween_property(player, "scale", Vector2(0.3, 0.3), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(player, "modulate:a", 0.0, 0.3)
+	tw.tween_property(glow, "radius", 40.0, 0.25)
+	tw.tween_property(flash, "modulate:a", 1.0, 0.25).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_plane.tscn"))
 
 
