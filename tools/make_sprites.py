@@ -1004,34 +1004,69 @@ def npcs():
     b += flat("M108,40 L114,40 L114,44 L108,44 Z", CY)
     add("npc_silly", 46, 24, 108, 268, b, px=PX_NPC, flat=True, post=npc_face(64, "#2a2238", 3))
 
-    # Doc: el doctor / the doctor
-    skin, shade_c, coat, coat_s = "#e8c4a8", "#c2a092", "#f2f0f8", "#cfcbe2"
+    # Doc: el doctor, en pixel art de verdad (modo flat). Médico mayor con bata blanca, espejo
+    # frontal, pelo canoso a los lados, bigote, estetoscopio, camisa azul con corbata roja y su
+    # carpeta de historiales.
+    # Doc: the doctor, in real pixel art (flat mode). An elderly doctor in a white coat, with a
+    # head mirror, grey hair at the sides, a moustache, a stethoscope, a blue shirt with a red tie
+    # and his clipboard of patient notes.
+    W1, W2, W3 = "#a9a6c8", "#dcdaee", "#f8f7ff"
+    SB1, SB2 = "#6f93c8", "#9fc1e8"
+    TIE, TIE1 = "#c95f6f", "#8f3a4a"
+    S, S1 = "#e8c4a8", "#c2a092"
+    G1, G2 = "#9a97ae", "#d4d2e2"
+    PA1, PA2 = "#2e3150", "#454a72"
+    SHO, SHO1 = "#2a2238", "#4a3f5c"
+    ST, ST1 = "#3c4170", "#8f8fb8"
+    WOOD, WOOD1, PAPER, PAPER1 = "#b98a5a", "#8a6440", "#f7f3ea", "#c8c4d8"
     b = ""
-    for x in (80, 104):
-        b += shaded("M%g,196 L%g,196 L%g,276 L%g,276 Z" % (x, x + 18, x + 18, x), "#4a4f7a", shade=0.4, rim=0.3)
-        b += shaded(ellipse_d(x + 9, 282, 14, 6), "#2a2238", shade=0.3, rim=0.4)
-    b += shaded("M80,94 L120,94 L142,106 L146,236 L54,236 L58,106 Z", coat, shade=0.5, rim=0.3, deep="#8a84b8")
-    b += shaded("M88,96 L112,96 L106,200 L94,200 Z", "#9fc1e8", shade=0.3, rim=0.2, sw=0.8)
-    b += shaded("M97,100 L103,100 L105,150 L100,158 L95,150 Z", "#c95f6f", shade=0.3, rim=0.3, sw=0.7)
-    b += "<rect x='118' y='128' width='16' height='14' fill='none' stroke='%s' stroke-width='1.5'/>" % coat_s
-    b += "<path d='M122,128 L122,118 M127,128 L127,120' stroke-width='2.5'/><path d='M122,128 L122,118' stroke='#5b67c4' stroke-width='2.5'/><path d='M127,128 L127,120' stroke='#c95f6f' stroke-width='2.5'/>"
-    b += shaded("M58,106 L72,110 L74,176 L60,176 Z", coat, shade=0.4, rim=0.3, deep="#8a84b8")
-    b += shaded("M142,106 L128,110 L126,176 L140,176 Z", coat_s, shade=0.4, rim=0.2, deep="#8a84b8")
-    b += shaded("M52,150 L86,150 L86,194 L52,194 Z", "#b98a5a", shade=0.35, rim=0.3)
-    b += shaded("M56,156 L82,156 L82,190 L56,190 Z", "#f7f3ea", shade=0.2, rim=0.1, sw=0.6)
-    for y in (162, 170, 178):
-        b += "<path d='M59,%d L78,%d' stroke='#5a5a82' stroke-width='1' opacity='0.5'/>" % (y, y)
-    b += "<rect x='62' y='147' width='14' height='5' fill='#8f8fb8'/>"
-    b += shaded(ellipse_d(67, 182, 7, 7), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(133, 180, 7, 7), shade_c, shade=0.3, rim=0.2, sw=0.8)
-    b += "<path d='M86,110 A16,16 0 0 0 114,110' fill='none' stroke='#3c4170' stroke-width='3'/><path d='M114,110 L118,150' stroke='#3c4170' stroke-width='3'/>"
-    b += shaded(ellipse_d(118, 154, 6, 6), "#8f8fb8", shade=0.3, rim=0.4, sw=0.7)
-    b += shaded("M93,82 L107,82 L107,98 L93,98 Z", shade_c, shade=0.3, rim=0.1, outline=False)
-    b += shaded(ellipse_d(100, 60, 23, 27), skin, shade=0.45, rim=0.45)
-    b += shaded(ellipse_d(78, 62, 5, 12), "#c9c6d6", shade=0.3, rim=0.3, sw=0.7) + shaded(ellipse_d(122, 62, 5, 12), "#c9c6d6", shade=0.3, rim=0.2, sw=0.7)
-    b += shaded("M90,72 L100,69 L110,72 L106,76 L100,74 L94,76 Z", "#c9c6d6", shade=0.2, rim=0.3, sw=0.6)
-    b += "<path d='M80,44 L120,44' stroke='#3c4170' stroke-width='2.5'/>"
-    b += shaded(ellipse_d(100, 40, 8, 8), "#dfe6ff", shade=0.3, rim=0.5, sw=0.8)
-    add("npc_doc", 48, 28, 104, 264, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a2238", 1))
+    # Piernas y zapatos / Legs and shoes
+    b += flat("M104,206 L120,206 L120,276 L104,276 Z", PA1) + flat("M80,206 L97,206 L97,276 L80,276 Z", PA2)
+    b += flat("M90,206 L97,206 L97,276 L91,276 Z", PA1)
+    for x0 in (78, 102):
+        b += flat("M%g,274 L%g,274 C%g,274 %g,280 %g,288 L%g,288 Z" % (x0, x0 + 16, x0 + 20, x0 + 22, x0 + 22, x0), SHO)
+        b += flat("M%g,276 L%g,276 L%g,280 L%g,280 Z" % (x0 + 3, x0 + 13, x0 + 13, x0 + 3), SHO1)
+    # Bata blanca larga / Long white coat
+    b += flat("M80,94 L120,94 L142,106 L146,238 L54,238 L58,106 Z", W2)
+    b += flat("M120,94 L142,106 L146,238 L128,238 C132,190 130,130 116,96 Z", W1)
+    b += flat("M62,110 C64,104 70,99 78,96 L78,101 C72,104 68,108 66,114 Z", W3)
+    # Camisa y corbata / Shirt and tie
+    b += flat("M88,96 L112,96 L106,200 L94,200 Z", SB2) + flat("M103,96 L112,96 L106,200 L102,200 Z", SB1)
+    b += flat("M97,100 L103,100 L105,150 L100,158 L95,150 Z", TIE) + flat("M100,100 L103,100 L105,150 L100,158 Z", TIE1)
+    # Solapas y bolsillo con bolígrafos / Lapels and pocket with pens
+    b += "<path d='M88,96 L94,140 M112,96 L106,140' stroke='%s' stroke-width='2.6'/>" % W1
+    b += flat("M118,128 L134,128 L134,142 L118,142 Z", W1)
+    b += flat("M121,118 L124,118 L124,128 L121,128 Z", "#5b67c4") + flat("M126,120 L129,120 L129,128 L126,128 Z", TIE)
+    # Estetoscopio / Stethoscope
+    b += "<path d='M86,104 C86,120 112,120 114,106 M114,108 L118,150' fill='none' stroke='%s' stroke-width='3'/>" % ST
+    b += flat(ellipse_d(118, 154, 6, 6), ST1) + flat(ellipse_d(117, 153, 2.5, 2.5), "#dfe6ff")
+    # Brazos / Arms
+    b += flat("M58,106 L72,110 L74,176 L60,176 Z", W2) + flat("M62,110 L66,110 L66,170 L62,170 Z", W3)
+    b += flat("M142,106 L128,110 L126,176 L140,176 Z", W1)
+    b += flat(ellipse_d(133, 180, 7, 7), S1)
+    # La mano sujeta la carpeta por el borde: los dedos van detrás y solo asoma el pulgar
+    # The hand holds the clipboard by its edge: the fingers go behind and only the thumb shows
+    b += flat(ellipse_d(52, 184, 7, 8), S)
+    # Carpeta de historiales / Clipboard
+    b += flat("M50,148 L86,148 L86,196 L50,196 Z", WOOD) + flat("M78,148 L86,148 L86,196 L80,196 Z", WOOD1)
+    b += flat("M54,154 L82,154 L82,192 L54,192 Z", PAPER) + flat("M76,154 L82,154 L82,192 L78,192 Z", PAPER1)
+    b += "".join("<path d='M58,%d L76,%d' stroke='#7a78a0' stroke-width='2'/>" % (y, y) for y in (162, 170, 178, 186))
+    b += flat("M62,144 L74,144 L74,151 L62,151 Z", G1)
+    b += flat("M49,178 L56,176 L57,183 L50,186 Z", S)
+    # Cuello y cabeza / Neck and head
+    b += flat("M93,82 L107,82 L107,98 L93,98 Z", S1)
+    b += flat(ellipse_d(100, 60, 23, 27), S)
+    b += flat("M111,37 C119,43 123,51 123,60 C123,75 116,84 106,87 C113,79 116,70 116,60 C116,50 114,43 111,37 Z", S1)
+    # Pelo canoso a los lados y calva / Grey hair at the sides and a bald top
+    b += flat(ellipse_d(78, 62, 6, 13), G2) + flat(ellipse_d(122, 62, 6, 13), G1)
+    b += flat("M80,50 C82,44 86,40 90,38 L91,42 C87,44 85,47 84,52 Z", "#fff4e8")
+    # Bigote / Moustache
+    b += flat("M89,73 L100,70 L111,73 L107,78 L100,75 L93,78 Z", G2)
+    b += flat("M100,70 L111,73 L107,78 L100,75 Z", G1)
+    # Espejo frontal con su cinta / Head mirror with its band
+    b += "<path d='M79,46 C88,40 112,40 121,46' fill='none' stroke='%s' stroke-width='3'/>" % ST
+    b += flat(ellipse_d(100, 40, 9, 9), G1) + flat(ellipse_d(100, 40, 6.5, 6.5), "#dfe6ff") + flat(ellipse_d(98, 38, 2.5, 2.5), "#ffffff")
+    add("npc_doc", 46, 26, 106, 266, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a2238", 1))
 
 
 # --- Habitación de Kroker / Kroker's bedroom -------------------------------------------

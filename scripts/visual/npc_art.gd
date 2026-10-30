@@ -171,7 +171,7 @@ static func _doc(t: float) -> void:
 	Sprites.draw(_ci, "npc_doc")
 	# Espejo frontal que brilla / Glowing head mirror
 	var glint := 0.6 + 0.4 * sin(t * 2.0)
-	_ci.draw_rect(Rect2(97, 37, 6, 6), Color(1, 1, 1, glint))
+	_ci.draw_rect(Rect2(96, 36, 4, 4), Color(1, 1, 1, glint))
 
 
 # --- Utilidades / Helpers -----------------------------------------------------

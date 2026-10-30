@@ -275,10 +275,10 @@ func _talk_scene(giver: String) -> void:
 	# First time: introduction and no tip. After that, whatever friendship calls for.
 	_first_talk = Progress.first_talk(giver)
 	if _first_talk:
-		_talk_text.text = tr("TALK_%s_INTRO" % giver.to_upper())
+		_set_talk(tr("TALK_%s_INTRO" % giver.to_upper()))
 		Progress.mark_talked(giver)
 	else:
-		_talk_text.text = tr("TALK_%s_%d" % [giver.to_upper(), Progress.friend_level(giver)])
+		_set_talk(tr("TALK_%s_%d" % [giver.to_upper(), Progress.friend_level(giver)]))
 	_talk_text.visible_ratio = 0.0
 	v.add_child(_talk_text)
 	_talk_prompt = UITheme.label("DIALOGUE_NEXT", 14, Color(UITheme.ASH, 0.8), "caps")
@@ -352,6 +352,15 @@ func _input(event: InputEvent) -> void:
 	_talk_text.visible_ratio = 1.0
 
 
+## Pone lo que dice el personaje; los textos largos (como el binario de Silly) van con letra más pequeña para que quepan
+## Sets what the character says; long texts (like Silly's binary) use a smaller font so they fit
+func _set_talk(text: String) -> void:
+	_talk_text.text = text
+	var n := text.length()
+	var px := 36 if n <= 150 else (28 if n <= 230 else 20)
+	_talk_text.add_theme_font_size_override("normal_font_size", UITheme.pixel_size(px))
+
+
 func _refresh_tip() -> void:
 	var g := _talk_giver
 	if not Progress.can_tip(g):
@@ -382,7 +391,7 @@ func _tip() -> void:
 	_hearts.set_level(Progress.friend_level(g))
 	Audio.play("reality", -2.0)
 	Audio.play("giver_" + g, -3.0)
-	_talk_text.text = tr("TALK_%s_THANKS" % g.to_upper())
+	_set_talk(tr("TALK_%s_THANKS" % g.to_upper()))
 	_talk_text.visible_ratio = 0.0
 	_talk_t = 0.0
 	_talk_buttons.modulate.a = 0.0
