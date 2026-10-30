@@ -82,20 +82,22 @@ static func _stolk(t: float) -> void:
 
 static func _silly(t: float) -> void:
 	# El portátil le ilumina la cara / The laptop lights up her face
-	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(40, 60, 120, 140), false, Color("5ff2ff", 0.18))
+	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(40, 60, 120, 140), false, Color("5ff2ff", 0.16))
 	Sprites.draw(_ci, "npc_silly")
-	# Pantalla y código que brillan / Glowing screen and code
-	_ci.draw_rect(Rect2(76, 125, 50, 20), Color("5ff2ff", 0.45 + 0.15 * sin(t * 5.0)))
+	# Código que corre por la pantalla / Code running down the screen
+	_ci.draw_rect(Rect2(72, 121, 56, 24), Color("5ff2ff", 0.08 + 0.05 * sin(t * 5.0)))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(t * 6.0)
 	for row in 5:
-		var y := 168.0 + row * 6.0
-		var x := 66.0 + rng.randf_range(0, 10)
-		while x < 132.0:
-			var w := rng.randf_range(4, 12)
-			_ci.draw_rect(Rect2(x, y, w, 2.5), Color("7dffb0", rng.randf_range(0.2, 0.6)))
-			x += w + rng.randf_range(3, 8)
-
+		var y := 123.0 + row * 4.5
+		var x := 74.0 + rng.randf_range(0, 6)
+		while x < 124.0:
+			var w := minf(rng.randf_range(3, 10), 126.0 - x)
+			_ci.draw_rect(Rect2(x, y, w, 2.2), Color("7dffb0", rng.randf_range(0.45, 0.9)))
+			x += w + rng.randf_range(2, 6)
+	# Cursor que parpadea / Blinking cursor
+	if fmod(t, 1.0) < 0.5:
+		_ci.draw_rect(Rect2(118, 141, 4, 3), Color("5ff2ff", 0.9))
 
 static func _doc(t: float) -> void:
 	Sprites.draw(_ci, "npc_doc")

@@ -917,23 +917,57 @@ def npcs():
     b += "<path d='M104,78 L118,73' stroke='#e8d0a0' stroke-width='2.6' stroke-linecap='round'/>"
     add("npc_stolk", 44, 22, 116, 272, b, px=PX_NPC, flat=True, post=npc_face(60, "#3a2a30", 2))
 
-    # Silly: la hacker / the hacker
-    skin, shade_c = "#f4d2c0", "#caa8b4"
+    # Silly: la hacker, en pixel art de verdad (modo flat). Media melena morada, sudadera oscura
+    # con capucha, cascos cian al cuello y el portátil abierto mirando hacia nosotros (el código
+    # de la pantalla se pinta y se mueve en el juego).
+    # Silly: the hacker, in real pixel art (flat mode). A purple bob, a dark hoodie, cyan
+    # headphones round her neck and an open laptop facing us (the code on screen is painted and
+    # animated in game).
+    D1, D2, D3 = "#252852", "#383e74", "#545ca0"
+    P1, P2, P3 = "#5a3a9e", "#8a5bd6", "#b48cf0"
+    S, S1 = "#f4d2c0", "#caa8b4"
+    CY, CY1 = "#5ff2ff", "#2a9fb0"
+    PA1, PA2 = "#1a1c34", "#272a48"
+    WH = "#ece8f2"
+    L1, L2, SCR = "#9aa0c0", "#c8cce0", "#0d1a2a"
     b = ""
-    for x in (82, 102):
-        b += shaded("M%g,186 L%g,186 L%g,276 L%g,276 Z" % (x, x + 16, x + 16, x), "#272a48", shade=0.4, rim=0.3)
-        b += shaded(ellipse_d(x + 8, 282, 12, 6), "#5ff2ff", shade=0.35, rim=0.3)
-    b += shaded("M80,96 L120,96 L144,110 L142,196 L58,196 L56,110 Z", "#2b2f5a", shade=0.55, rim=0.4)
-    b += shaded("M66,150 L134,150 L128,168 L72,168 Z", "#3c4170", shade=0.3, rim=0.3, sw=0.8)
-    b += shaded("M70,120 L130,120 L134,150 L66,150 Z", "#1a1d38", shade=0.3, rim=0.3, sw=0.8)
-    b += shaded(ellipse_d(82, 160, 7, 7), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(118, 160, 7, 7), shade_c, shade=0.3, rim=0.2, sw=0.8)
-    b += shaded("M93,82 L107,82 L107,98 L93,98 Z", shade_c, shade=0.3, rim=0.1, outline=False)
-    b += shaded(ellipse_d(100, 62, 22, 26), skin, shade=0.45, rim=0.4)
-    b += shaded("M74,80 L74,50 Q78,38 84,36 Q92,31 100,31 Q108,31 116,36 Q122,38 126,50 L126,80 L118,80 L118,56 L110,54 L100,58 L90,54 L82,58 L82,80 Z",
-                "#8a5bd6", shade=0.45, rim=0.5, rim_color="#e3d3ff")
-    b += "<path d='M82,96 A18,18 0 0 0 118,96' fill='none' stroke='#5ff2ff' stroke-width='4'/>"
-    b += shaded(ellipse_d(82, 98, 7, 7), "#3c4170", shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(118, 98, 7, 7), "#3c4170", shade=0.3, rim=0.3, sw=0.8)
-    add("npc_silly", 50, 26, 100, 266, b, px=PX_NPC, colors=32, post=npc_face(62, "#2a2238", 3))
+    # Piernas y zapatillas cian / Legs and cyan trainers
+    b += flat("M102,186 L117,186 L117,276 L102,276 Z", PA1) + flat("M83,186 L98,186 L98,276 L83,276 Z", PA2)
+    for x0 in (79, 102):
+        b += flat("M%g,274 L%g,274 C%g,274 %g,279 %g,283 L%g,288 L%g,288 Z" % (x0 + 2, x0 + 14, x0 + 18, x0 + 20, x0 + 20, x0 + 20, x0), CY)
+        b += flat("M%g,284 L%g,284 L%g,288 L%g,288 Z" % (x0, x0 + 20, x0 + 20, x0), WH)
+        b += "<path d='M%g,276 L%g,278' stroke='%s' stroke-width='2'/>" % (x0 + 6, x0 + 13, CY1)
+    # Sudadera / Hoodie
+    b += flat("M80,96 L120,96 C136,100 144,108 144,120 L140,196 L60,196 L56,120 C56,108 64,100 80,96 Z", D2)
+    b += flat("M120,96 C136,100 144,108 144,120 L140,196 L126,196 C130,160 130,124 116,98 Z", D1)
+    b += flat("M62,108 C66,102 72,99 78,98 L78,103 C72,104 68,108 65,113 Z", D3)
+    b += flat("M60,186 L140,186 L140,196 L60,196 Z", D1)
+    b += flat("M82,94 C88,102 112,102 118,94 L122,102 C110,108 90,108 78,102 Z", D1)
+    # Cascos al cuello / Headphones round the neck
+    b += "<path d='M83,100 C88,110 112,110 117,100' fill='none' stroke='%s' stroke-width='3.4'/>" % CY
+    b += flat(ellipse_d(81, 100, 6, 7), CY) + flat(ellipse_d(119, 100, 6, 7), CY1)
+    # Brazos que sujetan el portátil / Arms holding the laptop
+    b += flat("M56,114 C51,130 53,146 60,156 L72,156 L70,116 Z", D2) + flat("M58,120 C55,132 56,144 60,150 L63,150 L61,120 Z", D3)
+    b += flat("M144,114 C149,130 147,146 140,156 L128,156 L130,116 Z", D1)
+    b += "<path d='M70,116 L72,156 M130,116 L128,156' stroke='#141630' stroke-width='2.4'/>"
+    # Bolsillo de la sudadera / Hoodie pocket
+    b += flat("M76,166 L124,166 L128,182 L72,182 Z", D1)
+    b += "<path d='M76,166 C72,172 72,177 72,182 M124,166 C128,172 128,177 128,182' fill='none' stroke='#141630' stroke-width='2.2'/>"
+    # Portátil abierto mirando hacia nosotros / Open laptop facing us
+    b += flat("M66,116 L134,116 L134,150 L66,150 Z", L2) + flat("M126,116 L134,116 L134,150 L126,150 Z", L1)
+    b += flat("M71,120 L129,120 L129,146 L71,146 Z", SCR)
+    b += flat("M62,150 L138,150 L134,158 L66,158 Z", L1)
+    b += flat(ellipse_d(66, 151, 6, 6), S) + flat(ellipse_d(134, 151, 6, 6), S1)
+    # Cuello y cabeza / Neck and head
+    b += flat("M93,82 L107,82 L107,96 C103,98 97,98 93,96 Z", S1)
+    b += flat("M80,62 C80,44 89,36 100,36 C111,36 120,44 120,62 C120,76 112,86 100,86 C88,86 80,76 80,62 Z", S)
+    b += flat("M110,40 C116,45 120,52 120,62 C120,74 115,82 106,86 C112,78 114,70 114,62 C114,52 113,45 110,40 Z", S1)
+    # Media melena morada con flequillo / Purple bob with a fringe
+    b += flat("M75,82 L75,52 C75,37 86,29 100,29 C114,29 125,37 125,52 L125,82 L117,82 L117,58 L109,52 L100,58 L91,52 L83,58 L83,82 Z", P2)
+    b += flat("M117,40 C122,45 125,50 125,56 L125,82 L117,82 L117,58 L112,54 C115,50 116,45 117,40 Z", P1)
+    b += flat("M80,50 C82,40 89,34 98,32 L98,36 C91,38 86,43 84,50 Z", P3)
+    b += flat("M108,40 L114,40 L114,44 L108,44 Z", CY)
+    add("npc_silly", 46, 24, 108, 268, b, px=PX_NPC, flat=True, post=npc_face(64, "#2a2238", 3))
 
     # Doc: el doctor / the doctor
     skin, shade_c, coat, coat_s = "#e8c4a8", "#c2a092", "#f2f0f8", "#cfcbe2"
