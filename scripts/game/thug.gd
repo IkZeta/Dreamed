@@ -31,25 +31,22 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	var stomp := absf(sin(_t * 4.0 + _phase))
 	draw_set_transform(offset + Vector2(0, -stomp * 3.0), sin(_t * 4.0 + _phase) * 0.04, Vector2(_facing, 1.0))
 	var mod := Sprites.flash_color(_flash * 0.6, a) * tint
-	var dark := HOODIE_DARK * tint
 	# Sombra / Shadow
 	draw_colored_polygon(_ellipse(Vector2(0, 0), Vector2(36, 9)), Color(0.05, 0.02, 0.15, 0.4 * a))
-	# Piernas que se deshacen en humo / Legs dissolving into smoke
+	# Vaqueros anchos y zapatillas, pisando fuerte / Baggy jeans and trainers, stomping
 	for x in [-14.0, 14.0]:
-		Sprites.draw(self, "thug_leg", mod, Vector2(x, 0))
-		for i in 3:
-			var y := -6.0 + fposmod(_t * 18.0 + i * 4.0 + x, 10.0)
-			draw_circle(Vector2(x + sin(_t * 3.0 + i) * 3.0, y), 6.0 - i * 1.5, Color(dark, a * 0.5))
+		var lift := maxf(0.0, sin(_t * 4.0 + _phase + (PI if x > 0.0 else 0.0))) * 4.0
+		Sprites.draw(self, "thug_leg", mod, Vector2(x, -lift))
 	Sprites.draw(self, "thug_body", mod)
-	# Puños apretados / Clenched fists
-	Sprites.draw(self, "thug_fist", mod, Vector2(-40, -54 + sin(_t * 4.0) * 3.0))
-	Sprites.draw(self, "thug_fist", mod, Vector2(40, -54 - sin(_t * 4.0) * 3.0))
+	# Puños apretados saliendo de las mangas / Clenched fists poking out of the sleeves
+	Sprites.draw(self, "thug_fist", mod, Vector2(-42, -50 + sin(_t * 4.0) * 3.0))
+	Sprites.draw(self, "thug_fist", mod, Vector2(42, -50 - sin(_t * 4.0) * 3.0))
 	Sprites.draw(self, "thug_head", mod)
-	# Ojos que brillan con el ceño fruncido / Glowing eyes with a frown
+	# Dentro de la capucha solo se ven los ojos, que brillan con el ceño fruncido
+	# Inside the hood only the eyes show, glowing with a frown
 	for x in [-7.0, 7.0]:
-		draw_circle(Vector2(x, -122), 7.0, Color(EYES, 0.2 * a))
-		draw_line(Vector2(x - 4, -124 + (1 if x < 0 else -1) * 2), Vector2(x + 4, -124 - (1 if x < 0 else -1) * 2), Color(EYES, a), 3.0)
-	draw_line(Vector2(-6, -110), Vector2(6, -111), Color(0.1, 0.05, 0.15, a), 2.0)
+		draw_circle(Vector2(x, -125), 4.0, Color(EYES, 0.18 * a))
+		draw_line(Vector2(x - 4, -126 + (1 if x < 0 else -1) * 2), Vector2(x + 4, -126 - (1 if x < 0 else -1) * 2), Color(EYES, a), 3.0)
 
 
 func _ellipse(c: Vector2, r: Vector2, n := 20) -> PackedVector2Array:
@@ -61,4 +58,4 @@ func _ellipse(c: Vector2, r: Vector2, n := 20) -> PackedVector2Array:
 
 
 func head_top() -> Vector2:
-	return Vector2(0, -150)
+	return Vector2(0, -160)

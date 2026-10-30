@@ -385,9 +385,10 @@ def kroker_weapons():
         x, x + 0.5, x - 0.3, x * 0.4) for x in (-4, -1, 2.5, 5))
     b = wood + shaded(bat, "#c99a68", grad=False, extra=grain, shade=0.45, rim=0.5)
     b = b.replace("<path d='%s' fill='#c99a68'/>" % bat, "<path d='%s' fill='url(#w%s)'/>" % (bat, i), 1)
-    b += shaded("M-3.9,-16 L3.9,-16 L3.6,4 L-3.6,4 Z", "#3a3355", shade=0.4, rim=0.3, sw=0.8)
-    for y in range(-14, 4, 4):
-        b += "<path d='M-3.8,%d L3.8,%d' stroke='#6b6394' stroke-width='1' opacity='0.7'/>" % (y + 2, y)
+    # Mango con cinta blanca enrollada / Handle with white tape wrapped round it
+    b += shaded("M-3.9,-18 L3.9,-18 L3.6,4 L-3.6,4 Z", "#ece8f2", shade=0.35, rim=0.3, sw=0.8)
+    for y in range(-16, 4, 3):
+        b += "<path d='M-3.8,%d L3.8,%d' stroke='#a8a2c0' stroke-width='0.9' opacity='0.8'/>" % (y + 2, y)
     b += shaded(ellipse_d(0, 5, 5.2, 2.6), "#2b2545", shade=0.3, rim=0.3, sw=0.7)
     b += "<path d='%s' fill='#f6d993'/>" % star_d(0, -86, 3.6)
     add("weapon_bat", -12, -113, 24, 122, b, px=PX_KROKER)
@@ -470,7 +471,11 @@ def kroker_weapons():
     t += shaded(ellipse_d(0, -12, 15, 15), "#c99a78", shade=0.4, rim=0.4)
     t += ("<path d='%s' fill='#e8c9a8'/><circle cx='0' cy='-9' r='2.4' fill='#3a2a30'/>"
           "<circle cx='-6' cy='-15' r='2' fill='#3a2a30'/><circle cx='6' cy='-15' r='2' fill='#3a2a30'/>" % ellipse_d(0, -7, 7, 5))
-    t += "<path d='M0,-1 L-8,-5 L-8,3 Z M0,-1 L8,-5 L8,3 Z' fill='#ff5f7a'/>"
+    t += "<path d='M0,-1 L-8,-5 L-8,3 Z M0,-1 L8,-5 L8,3 Z' fill='#8a7fd8'/><circle cx='0' cy='-1' r='2' fill='#6f63c4'/>"
+    # Parches cosidos / Sewn-on patches
+    t += "<rect x='-19' y='22' width='7' height='6' fill='#d8b48e' transform='rotate(-12 -15 25)'/>"
+    t += "<path d='M-18,23 L-13,28 M-13,23 L-18,28' stroke='#7a4f33' stroke-width='0.7' transform='rotate(-12 -15 25)'/>"
+    t += "<rect x='-16' y='-26' width='5' height='5' fill='#d8b48e'/>"
     add("weapon_teddy", -26, -32, 52, 66, t, px=PX_KROKER)
 
 
@@ -498,41 +503,90 @@ def foox():
 
 
 def thug():
-    hood, dark_h, skin = "#7a3a58", "#5a2742", "#b9a3c9"
-    body = "M-30,-104 Q0,-110 30,-104 Q40,-98 40,-88 L36,-42 Q0,-38 -36,-42 L-40,-88 Q-40,-98 -30,-104 Z"
-    b = shaded(body, hood, shade=0.55, rim=0.4,
-               extra=fold("M-20,-80 Q-24,-64 -18,-50", hood, 3, 0.4) + fold("M18,-84 Q24,-66 20,-50", hood, 3, 0.4))
-    b += shaded("M-18,-66 L18,-66 Q20,-52 16,-48 L-16,-48 Q-20,-52 -18,-66 Z", dark(hood, 0.1), shade=0.4, rim=0.2, sw=0.8)
-    b += "<path d='M-6,-104 L-8,-82 M6,-104 L8,-80' stroke='#e9d6e4' stroke-width='1.6' stroke-linecap='round' opacity='0.8'/>"
-    b += "<circle cx='-8' cy='-81' r='1.8' fill='#e9d6e4'/><circle cx='8' cy='-79' r='1.8' fill='#e9d6e4'/>"
-    b += shaded("M-36,-50 Q0,-46 36,-50 L36,-42 Q0,-38 -36,-42 Z", dark_h, shade=0.3, rim=0.2, sw=0.8)
-    add("thug_body", -44, -112, 88, 74, b)
-    head = shaded(ellipse_d(0, -124, 27, 26), dark_h, shade=0.5, rim=0.45, sw=1)
-    head += shaded(ellipse_d(0, -120, 19, 19), mix(skin, "#3a2a50", 0.45), shade=0.6, rim=0.15, deep="#1a1030", sw=0.8)
-    head += "<path d='M-19,-128 Q0,-142 19,-128' fill='none' stroke='%s' stroke-width='3' opacity='0.7'/>" % light(dark_h, 0.15)
-    add("thug_head", -30, -153, 60, 56, head)
+    """Matón: sudadera granate enorme con la capucha tapándole la cara (solo se le ven los ojos),
+    bolsillo canguro, cordones, vaqueros anchos y zapatillas.
+    Thug: a huge maroon hoodie with the hood hiding his face (only his eyes show), kangaroo
+    pocket, drawstrings, baggy jeans and trainers."""
+    hood, dark_h, deep_h, skin = "#8a3448", "#62233a", "#3e1426", "#e2b8a0"
+    jeans, shoe, sole = "#323a5c", "#2a2838", "#ece8f2"
+    # Torso de la sudadera, ancho abajo y con los hombros caídos / Hoodie torso, wide at the bottom with slumped shoulders
+    body = "M-26,-106 Q0,-112 26,-106 Q40,-100 42,-86 L40,-46 Q0,-40 -40,-46 L-42,-86 Q-40,-100 -26,-106 Z"
+    b = shaded(body, hood, shade=0.55, rim=0.35, deep=deep_h,
+               extra=fold("M-24,-84 Q-28,-66 -22,-52", hood, 3, 0.4) + fold("M24,-88 Q29,-68 23,-52", hood, 3, 0.4))
+    # Mangas que caen hasta los puños / Sleeves hanging down to the fists
+    for sgn in (-1, 1):
+        sl = "M%g,-102 Q%g,-100 %g,-86 L%g,-62 L%g,-60 L%g,-84 Z" % (sgn * 26, sgn * 42, sgn * 48, sgn * 50, sgn * 34, sgn * 30)
+        b += shaded(sl, hood if sgn < 0 else dark_h, shade=0.5, rim=0.35 if sgn < 0 else 0.15, deep=deep_h, sw=1.0)
+        cuff = "M%g,-66 L%g,-64 L%g,-57 L%g,-59 Z" % (sgn * 50, sgn * 34, sgn * 34, sgn * 51)
+        b += shaded(cuff, dark_h, shade=0.3, rim=0.2, sw=0.8,
+                    extra="".join("<path d='M%g,-65 L%g,-58' stroke='%s' stroke-width='0.8' opacity='0.5'/>" % (sgn * x, sgn * x, deep_h) for x in (38, 42, 46)))
+    # Bolsillo canguro / Kangaroo pocket
+    b += shaded("M-20,-70 L20,-70 L26,-52 L-26,-52 Z", dark(hood, 0.08), shade=0.35, rim=0.2, sw=0.9)
+    b += "<path d='M-20,-70 Q-26,-62 -26,-52 M20,-70 Q26,-62 26,-52' fill='none' stroke='%s' stroke-width='1.4' opacity='0.7'/>" % deep_h
+    # Cordones con sus puntas / Drawstrings with their tips
+    b += "<path d='M-6,-106 L-8,-84 M6,-106 L8,-82' stroke='#ece4ea' stroke-width='1.8' stroke-linecap='round'/>"
+    b += "<rect x='-9.4' y='-85' width='2.8' height='5' rx='1' fill='#b8b0c0'/><rect x='6.6' y='-83' width='2.8' height='5' rx='1' fill='#b8b0c0'/>"
+    # Cintura de canalé / Ribbed waistband
+    b += shaded("M-40,-52 Q0,-46 40,-52 L40,-44 Q0,-38 -40,-44 Z", dark_h, shade=0.3, rim=0.2, sw=0.8,
+                extra="".join("<path d='M%d,-50 L%d,-43' stroke='%s' stroke-width='0.8' opacity='0.45'/>" % (x, x, deep_h) for x in range(-34, 36, 6)))
+    add("thug_body", -54, -114, 108, 78, b, colors=16)
+    # Capucha grande que tapa la cara: solo un hueco oscuro (los ojos se dibujan en el juego)
+    # Big hood hiding the face: just a dark hollow (the eyes are drawn in-game)
+    head = shaded("M-30,-100 Q-36,-128 -24,-146 Q-8,-162 6,-158 Q24,-154 32,-136 Q38,-118 30,-100 Q0,-92 -30,-100 Z",
+                  hood, shade=0.55, rim=0.45, deep=deep_h, sw=1.1)
+    head += "<path d='M-22,-142 Q-6,-156 14,-150' fill='none' stroke='%s' stroke-width='2.4' opacity='0.5' stroke-linecap='round'/>" % light(hood, 0.25)
+    i2 = uid()
+    head += ("<defs><radialGradient id='h%s' cx='0.5' cy='0.45' r='0.6'><stop offset='0' stop-color='#0a0610'/>"
+             "<stop offset='0.75' stop-color='#140a18'/><stop offset='1' stop-color='%s'/></radialGradient></defs>" % (i2, deep_h))
+    head += "<path d='M-19,-112 Q-22,-130 -10,-138 Q2,-143 12,-138 Q22,-130 19,-112 Q0,-104 -19,-112 Z' fill='url(#h%s)'/>" % i2
+    head += "<path d='M-19,-112 Q-22,-130 -10,-138 Q2,-143 12,-138 Q22,-130 19,-112' fill='none' stroke='%s' stroke-width='2.6'/>" % dark_h
+    add("thug_head", -40, -166, 80, 72, head, colors=12)
     fist = shaded("M-10,0 C-10,-7 -5,-11 0,-11 C6,-11 10,-7 10,0 C10,7 6,10 0,10 C-6,10 -10,6 -10,0 Z", skin, shade=0.45, rim=0.4)
     for x in (-4, 1, 6):
         fist += "<path d='M%d,-9 L%d,-3' stroke='%s' stroke-width='0.9' opacity='0.6'/>" % (x, x - 1, dark(skin, 0.35))
     add("thug_fist", -13, -14, 26, 27, fist)
-    leg = shaded("M-11,-44 L11,-44 L9,-8 Q0,-5 -9,-8 Z", dark_h, shade=0.5, rim=0.3)
-    add("thug_leg", -14, -47, 28, 44, leg)
+    # Pierna de vaquero ancho con zapatilla (la punta mira hacia delante) / Baggy jeans leg with a trainer (toe points forward)
+    leg = shaded("M-13,-46 L13,-46 L12,-12 Q0,-9 -12,-12 Z", jeans, shade=0.5, rim=0.3,
+                 extra=fold("M-4,-40 Q-6,-28 -3,-16", jeans, 1.6, 0.35))
+    leg += shaded("M-13,-12 Q-14,-20 -2,-19 L8,-18 Q20,-17 21,-8 L21,-3 L-13,-3 Z", shoe, shade=0.35, rim=0.35, sw=0.9)
+    leg += shaded("M10,-15 Q20,-15 21,-8 L21,-6 L12,-6 Q9,-10 10,-15 Z", sole, shade=0.2, rim=0.2, sw=0.6)
+    leg += shaded("M-14,-5 L22,-5 L22,0 L-14,0 Z", sole, shade=0.25, rim=0.2, sw=0.7)
+    leg += "<path d='M-6,-16 L2,-14 M-4,-12 L4,-10' stroke='%s' stroke-width='1' opacity='0.8'/>" % sole
+    add("thug_leg", -17, -49, 42, 52, leg)
 
 
 def sling():
-    jacket, jdark, cap, skin = "#4f5f8f", "#38456d", "#a34d5f", "#b9a3c9"
-    body = shaded("M-18,-82 Q0,-86 18,-82 L22,-40 Q0,-37 -22,-40 Z", jacket, shade=0.5, rim=0.4,
-                  extra=fold("M-10,-70 Q-12,-56 -8,-44", jacket, 2.4, 0.35))
-    body += "<path d='M0,-82 L0,-41' stroke='%s' stroke-width='2'/>" % jdark
-    body += "<path d='M-18,-82 L-10,-76 L0,-82 L10,-76 L18,-82' fill='none' stroke='%s' stroke-width='1.6' opacity='0.8'/>" % light(jacket, 0.25)
-    add("sling_body", -25, -88, 50, 52, body)
-    head = shaded(ellipse_d(0, -98, 15, 16), mix(skin, "#3a2a50", 0.4), shade=0.55, rim=0.3, sw=0.9)
-    head += shaded("M-16,-104 Q-15,-116 0,-116 Q15,-116 16,-104 Q0,-108 -16,-104 Z", cap, shade=0.45, rim=0.4, sw=0.9)
-    head += shaded("M-16,-106 L-29,-102 Q-24,-99 -16,-101 Z", dark(cap, 0.3), shade=0.3, rim=0.2, sw=0.7)
-    head += "<circle cx='0' cy='-116' r='1.8' fill='%s'/>" % light(cap, 0.3)
-    add("sling_head", -31, -119, 49, 38, head)
-    leg = shaded("M-6,-40 L6,-40 L5,-6 Q0,-4 -5,-6 Z", jdark, shade=0.5, rim=0.3, sw=0.8)
-    add("sling_leg", -8, -42, 16, 40, leg)
+    """Tirachinas: un chaval con la gorra calada (no se le ven los ojos), pelo revuelto, camiseta
+    ancha de manga corta, pantalón oscuro y zapatillas.
+    Slingshot kid: a boy with his cap pulled down (his eyes don't show), messy hair, a loose
+    short-sleeved T-shirt, dark trousers and trainers."""
+    tee, tdark, cap, skin, hair = "#5a74b0", "#3f5590", "#a8384c", "#e2b8a0", "#1c1626"
+    pants, shoe, sole = "#2c2a3c", "#262434", "#ece8f2"
+    # Camiseta ancha con mangas cortas y brazo izquierdo colgando / Loose T-shirt with short sleeves and the left arm hanging
+    body = shaded("M-14,-86 L-30,-80 L-34,-66 L-24,-62 L-20,-70 L-22,-40 Q0,-36 22,-40 L20,-70 L24,-62 L34,-66 L30,-80 L14,-86 Q0,-82 -14,-86 Z",
+                  tee, shade=0.5, rim=0.4, deep="#26305a",
+                  extra=fold("M-10,-72 Q-13,-56 -9,-44", tee, 2.4, 0.35) + fold("M10,-74 Q13,-58 9,-46", tee, 2.0, 0.3))
+    body += "<path d='M-8,-85 Q0,-80 8,-85' fill='none' stroke='%s' stroke-width='2'/>" % tdark
+    body += shaded("M-31,-64 L-24,-61 L-25,-44 L-31,-45 Z", skin, shade=0.4, rim=0.3, sw=0.8)
+    body += shaded(ellipse_d(-28, -42, 4.5, 4.5), skin, shade=0.35, rim=0.3, sw=0.7)
+    add("sling_body", -38, -90, 76, 56, body, colors=24)
+    # Cabeza con la gorra calada y mechones asomando / Head with the cap pulled down and tufts poking out
+    head = shaded(ellipse_d(0, -98, 14, 15), skin, shade=0.5, rim=0.35, sw=0.9)
+    for (x1, y1, x2, y2) in ((-14, -102, -20, -92), (-12, -98, -17, -88), (13, -101, 19, -93), (10, -96, 14, -88), (-6, -100, -9, -90)):
+        head += "<path d='M%g,%g L%g,%g L%g,%g Z' fill='%s'/>" % (x1, y1, x2, y2, x1 + 5, y1 + 2, hair)
+    # Sombra de la visera sobre los ojos / Brim shadow over the eyes
+    head += "<path d='M-14,-101 Q0,-96 14,-101 L13,-94 Q0,-90 -13,-94 Z' fill='#2a1e30' opacity='0.55'/>"
+    head += shaded("M-16,-103 Q-16,-118 0,-118 Q16,-118 16,-103 Q0,-106 -16,-103 Z", cap, shade=0.45, rim=0.45, sw=0.9)
+    head += shaded("M14,-106 L31,-102 Q30,-97 20,-98 L13,-100 Z", dark(cap, 0.25), shade=0.3, rim=0.25, sw=0.8)
+    head += "<circle cx='0' cy='-118' r='1.8' fill='%s'/>" % light(cap, 0.3)
+    head += "<path d='M-10,-112 Q-2,-116 6,-115' fill='none' stroke='#ffffff' stroke-width='1.4' opacity='0.4' stroke-linecap='round'/>"
+    head += "<path d='M-3,-86 Q1,-84 4,-86' fill='none' stroke='#8a5060' stroke-width='1.2'/>"
+    add("sling_head", -24, -121, 58, 44, head, colors=14)
+    # Pierna con zapatilla / Leg with a trainer
+    leg = shaded("M-7,-42 L7,-42 L6,-10 Q0,-8 -6,-10 Z", pants, shade=0.5, rim=0.3, sw=0.8)
+    leg += shaded("M-7,-10 Q-8,-15 0,-14 L5,-13 Q13,-12 13,-6 L13,-3 L-7,-3 Z", shoe, shade=0.35, rim=0.35, sw=0.8)
+    leg += shaded("M-8,-4 L14,-4 L14,0 L-8,0 Z", sole, shade=0.25, rim=0.2, sw=0.6)
+    add("sling_leg", -10, -44, 26, 46, leg)
 
 
 def skeleton():
@@ -540,12 +594,14 @@ def skeleton():
     skull = shaded("M-13,-98 C-13,-108 -6,-113 2,-113 C11,-113 17,-107 17,-98 C17,-92 14,-89 11,-88 L11,-81 L-6,-81 L-6,-88 C-10,-90 -13,-93 -13,-98 Z",
                    bone, shade=0.5, rim=0.45, deep="#6f6658")
     for x in (-3, 8):
-        skull += "<path d='%s' fill='#1a1328'/>" % ellipse_d(x, -98, 4.6, 4.8)
+        skull += "<path d='%s' fill='#1a1328'/>" % ellipse_d(x, -98, 5.4, 5.8)
     skull += "<path d='M2,-93 L4,-89 L0,-89 Z' fill='#3a3040'/>"
     for k in range(4):
         skull += "<path d='M%.1f,-87 L%.1f,-81.5' stroke='#3a3040' stroke-width='1.1'/>" % (-3 + k * 4.5, -3 + k * 4.5)
     skull += "<path d='M-8,-107 Q-2,-111 6,-110' fill='none' stroke='#ffffff' stroke-width='1.8' opacity='0.6' stroke-linecap='round'/>"
-    add("skel_skull", -16, -116, 36, 38, skull)
+    # Cráneo grande, de dibujo animado / Big, cartoony skull
+    skull = "<g transform='translate(2,-84) scale(1.25) translate(-2,84)'>%s</g>" % skull
+    add("skel_skull", -21, -125, 47, 50, skull)
     ribs = "<path d='M0,-84 L0,-44' stroke='%s' stroke-width='4.5' stroke-linecap='round'/>" % shade_c
     for k in range(4):
         y = -78 + k * 8
@@ -1407,18 +1463,20 @@ def charo_kiosk(px, name):
 
 
 def act2_enemies():
-    # Mosquito: diminuto, a rayas, con trompa; las alas se dibujan en el juego
-    # Mosquito: tiny and striped, with a proboscis; the wings are drawn in game
+    # Mosquito: abdomen rojizo (lleno de... mejor no preguntar), patas largas y finas y trompa larga.
+    # Las alas se dibujan en el juego.
+    # Mosquito: reddish abdomen (full of... better not ask), long thin legs and a long proboscis.
+    # The wings are drawn in game.
     b = ""
-    for lx, ly in ((-2, -27), (2, -27), (5, -28)):
-        b += "<path d='M%g,%g L%g,%g L%g,%g' fill='none' stroke='#2a2040' stroke-width='1.6'/>" % (lx, ly, lx - 4, ly + 5, lx - 5, ly + 9)
-    stripes = "".join("<rect x='%g' y='-34' width='2.4' height='10' fill='#9a8ac8' opacity='0.8'/>" % x for x in (-14, -10, -6))
-    b += "<g transform='rotate(-12 -8 -29)'>%s</g>" % shaded(ellipse_d(-9, -29, 10, 4.6), "#4a3a66", shade=0.4, rim=0.5, sw=0.8, extra=stripes)
-    b += shaded(ellipse_d(2, -31, 5, 4.4), "#3a2e52", shade=0.35, rim=0.5, sw=0.8)
-    b += shaded(ellipse_d(8, -33, 3.6, 3.4), "#3a2e52", shade=0.3, rim=0.5, sw=0.7)
-    b += "<circle cx='9.5' cy='-34' r='1.6' fill='#ff5a7a'/>"
-    b += "<path d='M11,-32.5 L21,-28' stroke='#2a2040' stroke-width='1.4' stroke-linecap='round'/>"
-    add("mosquito_body", -22, -40, 46, 24, b)
+    for lx, ly, dx in ((-3, -28, -7), (1, -28, -4), (4, -29, 1), (6, -29, 5), (-1, -28, -1), (3, -28, 3)):
+        b += "<path d='M%g,%g L%g,%g L%g,%g' fill='none' stroke='#221a30' stroke-width='1.3' stroke-linecap='round'/>" % (lx, ly, lx + dx * 0.6, ly + 6, lx + dx, ly + 13)
+    stripes = "".join("<path d='M%g,-35 Q%g,-29 %g,-23' fill='none' stroke='#5a1e32' stroke-width='1.6' opacity='0.8'/>" % (x, x - 1, x) for x in (-17, -12, -7))
+    b += "<g transform='rotate(-14 -9 -29)'>%s</g>" % shaded(ellipse_d(-10, -29, 11, 5), "#9a3a50", shade=0.45, rim=0.55, sw=0.8, extra=stripes)
+    b += shaded(ellipse_d(2, -31, 5, 4.6), "#2e2640", shade=0.35, rim=0.5, sw=0.8)
+    b += shaded(ellipse_d(8, -33, 3.6, 3.4), "#2e2640", shade=0.3, rim=0.5, sw=0.7)
+    b += "<circle cx='9.6' cy='-34' r='1.6' fill='#ff5a7a'/>"
+    b += "<path d='M11,-32.5 L25,-27' stroke='#221a30' stroke-width='1.2' stroke-linecap='round'/>"
+    add("mosquito_body", -24, -40, 52, 30, b)
 
     # Nido: montículo de barro y papel con agujeros de los que salen / Nest: mound of mud and paper with holes they come out of
     mound = "M-36,0 Q-40,-20 -22,-34 Q-4,-48 14,-40 Q36,-30 36,-8 Q36,0 30,2 L-30,2 Q-36,2 -36,0 Z"
