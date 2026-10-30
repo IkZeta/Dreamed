@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 	sucking = false
 	if primary:
 		player.sucking = false
-	if not run.running or not player.alive:
+	if not run.running or not player.alive or player.weapon_stunk(self):
 		Audio.set_loop("vacuum", false)
 		queue_redraw()
 		return

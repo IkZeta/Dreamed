@@ -84,11 +84,13 @@ const WAVES := [
 	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.5}, "shop": true},
 	# Sueño 10: El Chef sale de la tele / Dream 10: The Chef comes out of the TV
 	{"boss": true, "boss_kind": "chef", "duration": 120.0, "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 0.3}},
-	# --- Acto 3 (PROVISIONAL): escenario de pruebas para jugar con las dos armas.
-	# --- Act 3 (PLACEHOLDER): a test stage to play with both weapons.
-	{"duration": 45.0, "spawn_every": 2.0, "group": [2, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5}},
-	{"duration": 50.0, "spawn_every": 1.9, "group": [3, 4], "max_alive": 14, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6}, "shop": true},
-	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 3, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.7}, "act_end": true},
+	# --- Acto 3: el pasillo infinito del colegio. El 11 trae las Marionetas (poco comunes) y el
+	# 13, el Gólem de papel higiénico.
+	# --- Act 3: the endless school hallway. Dream 11 brings the Puppets (uncommon) and dream 13
+	# the Toilet-Paper Golem.
+	{"duration": 45.0, "spawn_every": 2.0, "group": [2, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5, "puppet": 0.7}, "new": "puppet"},
+	{"duration": 50.0, "spawn_every": 1.9, "group": [3, 4], "max_alive": 14, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8}, "shop": true},
+	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8, "golem": 0.6}, "new": "golem", "act_end": true},
 ]
 const BOSS_DEPTH := 5
 ## Primer sueño de cada acto / First dream of each act

@@ -26,6 +26,11 @@ var slow_t := 0.0            # frenado por un charco / slowed by a puddle
 var push := Vector2.ZERO     # empuje del suelo inclinado / push from a tilted floor
 var bleed_t := 0.0           # sangrado de los cuchillos del Chef / bleeding from the Chef's knives
 var _bleed_tick := 0.0
+var shock_t := 0.0           # descarga de la Marioneta: chispas mientras está paralizado / Puppet zap: sparks while paralysed
+## Mal olor del Gólem de papel higiénico: una de las armas deja de funcionar un rato
+## Toilet-Paper Golem stench: one of the weapons stops working for a while
+var stench_t := 0.0
+var stench_weapon: Weapon = null
 var root_t := 0.0            # aturdido por el sartenazo: no se puede mover / dazed by the pan: can't move
 var _land := 0.0             # rebote al aterrizar / landing squash
 
@@ -114,6 +119,11 @@ func _physics_process(delta: float) -> void:
 			heal(_regen_acc)
 			_regen_acc = 0.0
 	_invuln = maxf(0.0, _invuln - delta)
+	shock_t = maxf(0.0, shock_t - delta)
+	if stench_t > 0.0:
+		stench_t = maxf(0.0, stench_t - delta)
+		if stench_t <= 0.0:
+			stench_weapon = null
 	_flash = maxf(0.0, _flash - delta * 4.0)
 	attack_anim = maxf(0.0, attack_anim - delta * 4.0)
 	cast_anim = maxf(0.0, cast_anim - delta * 3.0)
@@ -225,6 +235,27 @@ func root(seconds: float) -> void:
 	root_t = maxf(root_t, seconds)
 
 
+func shock(seconds: float) -> void:
+	shock_t = maxf(shock_t, seconds)
+
+
+## Mal olor: pierde una de sus armas al azar durante un rato (si solo lleva una, no pasa nada)
+## Stench: loses one of his weapons at random for a while (with only one weapon, nothing happens)
+func stink(seconds: float) -> void:
+	if weapon2 == null:
+		return
+	if stench_t <= 0.0 or stench_weapon == null:
+		stench_weapon = weapon if randf() < 0.5 else weapon2
+		run.fx.text(global_position + Vector2(0, -150), tr("STENCH_LOST"), Color("9fd86a"), 22)
+		Audio.play("puff", -4.0, 0.1)
+	stench_t = maxf(stench_t, seconds)
+
+
+## ¿Esta arma está anulada por el mal olor? / Is this weapon knocked out by the stench?
+func weapon_stunk(w: Weapon) -> bool:
+	return stench_t > 0.0 and w == stench_weapon
+
+
 func _draw() -> void:
 	# Parpadea mientras es invulnerable / Blinks while invulnerable
 	var visible_now := _invuln <= 0.0 or fmod(_t, 0.12) < 0.07 or not alive
@@ -236,15 +267,15 @@ func _draw() -> void:
 	var sy := ART_SCALE * (1.0 - squash)
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
 		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
-		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed, "lean": hurt_lean,
+		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon), "lean": hurt_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
-		"hide2": weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow,
+		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2),
 		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
 		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})
-	if alive and run.running and weapon:
+	if alive and run.running and weapon and not weapon_stunk(weapon):
 		_ring_a = _draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor(), _ring_a)
-	if alive and run.running and weapon2:
+	if alive and run.running and weapon2 and not weapon_stunk(weapon2):
 		_ring_b = _draw_charge_rings(weapon2.charge_bars(), weapon2.charge_anchor(), _ring_b)
 	_draw_hearth_ring()
 	_draw_shield_bubble()
@@ -271,6 +302,16 @@ func _draw_states() -> void:
 		for i in 3:
 			var ang := _t * 7.0 + i * TAU / 3.0
 			DreamBackground.draw_star(self, Vector2(cos(ang) * 18.0, -158 + sin(ang) * 5.0), 3.0, UITheme.GOLD)
+	if shock_t > 0.0:
+		for i in 4:
+			var p := Vector2(randf_range(-26, 26), randf_range(-140, -20))
+			draw_line(p, p + Vector2(randf_range(-12, 12), randf_range(-12, 12)), Color("8fe0ff", 0.9), 2.0)
+	if stench_t > 0.0:
+		# Nubecillas verdes de peste / Little green stink clouds
+		for i in 4:
+			var ph := fposmod(_t * 0.6 + i * 0.25, 1.0)
+			var p := Vector2(sin(i * 2.1 + _t) * 26.0, -40.0 - ph * 110.0)
+			draw_circle(p, 6.0 + ph * 6.0, Color("9fd86a", 0.45 * (1.0 - ph)))
 	if bleed_t > 0.0:
 		for i in 3:
 			var y := -60.0 + fposmod(_t * 60.0 + i * 20.0, 50.0)

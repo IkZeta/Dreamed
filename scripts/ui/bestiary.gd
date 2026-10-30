@@ -178,6 +178,8 @@ class BestiaryPreview extends Control:
 			"nest": e = Nest.new()
 			"mosquito": e = Mosquito.new()
 			"cyber": e = Cyberpunk.new()
+			"puppet": e = Puppet.new()
+			"golem": e = Golem.new()
 			"boss_chef": e = Chef.new()
 			"golden_foox": e = GoldenFoox.new()
 			_: e = Foox.new()
@@ -195,7 +197,7 @@ class BestiaryPreview extends Control:
 		_enemy = e
 
 	## Alto de cada dibujo (con cuernos y aura) / Height of each drawing (with horns and aura)
-	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "boss_chef": 290.0,
+	const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "puppet": 210.0, "golem": 210.0, "boss_chef": 290.0,
 		"boss_bed": 200.0, "boss_shelf": 190.0, "boss_chest": 130.0}
 
 	## Escala para que quepa entero en el hueco / Scale so it fits whole in the space

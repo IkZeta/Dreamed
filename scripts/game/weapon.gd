@@ -19,6 +19,9 @@ func _physics_process(delta: float) -> void:
 	anim = maxf(0.0, anim - delta * 3.0)
 	if not run.running or not player.alive:
 		return
+	# Con el mal olor del Gólem esta arma no ataca / With the Golem's stench this weapon doesn't attack
+	if player.weapon_stunk(self):
+		return
 	_timer -= delta * speed_mult()
 	if _timer <= 0.0 and attack():
 		_timer = cooldown

@@ -7,7 +7,7 @@ extends Node
 const PATH := "user://progress.cfg"
 
 ## Entradas del bestiario en orden / Bestiary entries in order
-const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "cyber", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef"]
+const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "cyber", "puppet", "golem", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef"]
 const DIFFICULTIES: Array[String] = ["normal", "nightmare"]
 
 ## id → veces derrotado (si aparece aquí, ya se ha visto) / id → times defeated (present = seen)

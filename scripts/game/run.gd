@@ -812,6 +812,11 @@ func _pick_kind() -> String:
 			# Como mucho 2 Cyberpunks a la vez: muchos son un caos / At most 2 Cyberpunks at once: many is chaos
 			if k == "cyber" and _count_alive(Cyberpunk) >= 2:
 				return "foox"
+			# Como mucho 2 Gólems y 3 Marionetas / At most 2 Golems and 3 Puppets
+			if k == "golem" and _count_alive(Golem) >= 2:
+				return "thug"
+			if k == "puppet" and _count_alive(Puppet) >= 3:
+				return "foox"
 			return k
 	return "foox"
 
@@ -854,6 +859,8 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"nest": e = Nest.new()
 		"mosquito": e = Mosquito.new()
 		"cyber": e = Cyberpunk.new()
+		"puppet": e = Puppet.new()
+		"golem": e = Golem.new()
 		_: e = Foox.new()
 	e.setup(self)
 	e.position = pos
