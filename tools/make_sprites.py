@@ -118,10 +118,63 @@ def glow(cx, cy, r, color, op):
             "<circle cx='%.2f' cy='%.2f' r='%.2f' fill='url(#r%s)'/>" % (i, color, op, color, cx, cy, r, i))
 
 
-def add(name, x, y, w, h, body, xf=(1, 1, 0, 0), px=PX_ENEMY, colors=12, ghost=False, post=None):
+def add(name, x, y, w, h, body, xf=(1, 1, 0, 0), px=PX_ENEMY, colors=12, ghost=False, post=None, flat=False, outline="#1a1024"):
     """xf = (sx, sy, tx, ty): escala y mueve la pieza (para hacer a Kroker más bajito).
-    xf = (sx, sy, tx, ty): scales and moves the piece (to make Kroker shorter)."""
-    SPRITES[name] = dict(x=x, y=y, w=w, h=h, body=body, xf=xf, px=px, colors=colors, ghost=ghost, post=post)
+    flat = pixel art de verdad: formas de color plano (sin degradados), cada píxel toma el color
+    que más ocupa su celda y se añade un contorno de 1 píxel del color "outline".
+    xf = (sx, sy, tx, ty): scales and moves the piece (to make Kroker shorter).
+    flat = real pixel art: flat-colour shapes (no gradients), each pixel takes the colour that
+    fills most of its cell, plus a 1-pixel outline in the "outline" colour."""
+    SPRITES[name] = dict(x=x, y=y, w=w, h=h, body=body, xf=xf, px=px, colors=colors, ghost=ghost, post=post, flat=flat, outline=outline)
+
+
+def flat_pixelize(img, tw, th, palette, outline):
+    """Pixel art limpio: cada píxel toma el color de la paleta que más ocupa su celda (nada de
+    mezclas), y alrededor de la silueta va un contorno de 1 píxel.
+    Clean pixel art: each pixel takes the palette colour covering most of its cell (no blends),
+    with a 1-pixel outline around the silhouette."""
+    from PIL import Image
+    pal = [rgb(c) for c in palette]
+    W, H = img.size
+    src = img.load()
+    out = Image.new("RGBA", (tw, th), (0, 0, 0, 0))
+    op = out.load()
+    for yy in range(th):
+        y0, y1 = int(yy * H / th), max(int(yy * H / th) + 1, int((yy + 1) * H / th))
+        for xx in range(tw):
+            x0, x1 = int(xx * W / tw), max(int(xx * W / tw) + 1, int((xx + 1) * W / tw))
+            votes = {}
+            n = 0
+            for sy in range(y0, y1, 2):
+                for sx in range(x0, x1, 2):
+                    r, g, b, a = src[sx, sy]
+                    n += 1
+                    if a < 128:
+                        votes[-1] = votes.get(-1, 0) + 1
+                        continue
+                    best = min(range(len(pal)), key=lambda k: (pal[k][0] - r) ** 2 + (pal[k][1] - g) ** 2 + (pal[k][2] - b) ** 2)
+                    votes[best] = votes.get(best, 0) + 1
+            k = max(votes, key=votes.get)
+            if k >= 0:
+                op[xx, yy] = pal[k] + (255,)
+    oc = rgb(outline) + (255,)
+    snap = out.copy()
+    sp = snap.load()
+    for yy in range(th):
+        for xx in range(tw):
+            if sp[xx, yy][3]:
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nx, ny = xx + dx, yy + dy
+                if 0 <= nx < tw and 0 <= ny < th and sp[nx, ny][3]:
+                    op[xx, yy] = oc
+                    break
+    return out
+
+
+def flat(d, color, extra_attrs=""):
+    """Forma de color plano para el modo pixel art / Flat-colour shape for pixel-art mode."""
+    return "<path d='%s' fill='%s' %s/>" % (d, color, extra_attrs)
 
 
 ## Kroker es un niño bajito: la cabeza no cambia, pero el torso, los brazos y las piernas
@@ -498,25 +551,75 @@ def foox():
 
 
 def thug():
-    hood, dark_h, skin = "#7a3a58", "#5a2742", "#b9a3c9"
-    body = "M-30,-104 Q0,-110 30,-104 Q40,-98 40,-88 L36,-42 Q0,-38 -36,-42 L-40,-88 Q-40,-98 -30,-104 Z"
-    b = shaded(body, hood, shade=0.55, rim=0.4,
-               extra=fold("M-20,-80 Q-24,-64 -18,-50", hood, 3, 0.4) + fold("M18,-84 Q24,-66 20,-50", hood, 3, 0.4))
-    b += shaded("M-18,-66 L18,-66 Q20,-52 16,-48 L-16,-48 Q-20,-52 -18,-66 Z", dark(hood, 0.1), shade=0.4, rim=0.2, sw=0.8)
-    b += "<path d='M-6,-104 L-8,-82 M6,-104 L8,-80' stroke='#e9d6e4' stroke-width='1.6' stroke-linecap='round' opacity='0.8'/>"
-    b += "<circle cx='-8' cy='-81' r='1.8' fill='#e9d6e4'/><circle cx='8' cy='-79' r='1.8' fill='#e9d6e4'/>"
-    b += shaded("M-36,-50 Q0,-46 36,-50 L36,-42 Q0,-38 -36,-42 Z", dark_h, shade=0.3, rim=0.2, sw=0.8)
-    add("thug_body", -44, -112, 88, 74, b)
-    head = shaded(ellipse_d(0, -124, 27, 26), dark_h, shade=0.5, rim=0.45, sw=1)
-    head += shaded(ellipse_d(0, -120, 19, 19), mix(skin, "#3a2a50", 0.45), shade=0.6, rim=0.15, deep="#1a1030", sw=0.8)
-    head += "<path d='M-19,-128 Q0,-142 19,-128' fill='none' stroke='%s' stroke-width='3' opacity='0.7'/>" % light(dark_h, 0.15)
-    add("thug_head", -30, -153, 60, 56, head)
-    fist = shaded("M-10,0 C-10,-7 -5,-11 0,-11 C6,-11 10,-7 10,0 C10,7 6,10 0,10 C-6,10 -10,6 -10,0 Z", skin, shade=0.45, rim=0.4)
-    for x in (-4, 1, 6):
-        fist += "<path d='M%d,-9 L%d,-3' stroke='%s' stroke-width='0.9' opacity='0.6'/>" % (x, x - 1, dark(skin, 0.35))
-    add("thug_fist", -13, -14, 26, 27, fist)
-    leg = shaded("M-11,-44 L11,-44 L9,-8 Q0,-5 -9,-8 Z", dark_h, shade=0.5, rim=0.3)
-    add("thug_leg", -14, -47, 28, 44, leg)
+    """Matón en pixel art de verdad (modo flat): sudadera granate enorme con la capucha tapándole la
+    cara (dentro solo brillan los ojos, que se pintan en el juego), bolsillo canguro, cordones,
+    vaqueros anchos y zapatillas. Tres tonos por material y contorno de 1 píxel.
+    Thug in real pixel art (flat mode): a huge maroon hoodie with the hood hiding his face (only
+    the eyes glow inside, painted in game), kangaroo pocket, drawstrings, baggy jeans and
+    trainers. Three tones per material and a 1-pixel outline."""
+    H0, H1, H2, H3 = "#3b1422", "#62213a", "#8c3046", "#b04c5e"
+    HOLE = "#120a16"
+    STR, TIP = "#ece4ea", "#9a90a8"
+    SK, SK1 = "#f0c8a8", "#c9957e"
+    J1, J2, J3 = "#283153", "#3a4670", "#526094"
+    SH, SH2, WH, WH1 = "#2a2838", "#45435a", "#ece8f2", "#b9b4c8"
+
+    # --- Capucha / Hood ---
+    hood = "M-30,-100 C-37,-122 -31,-150 -6,-158 C14,-163 33,-148 35,-126 C37,-112 33,-102 28,-97 C10,-93 -12,-93 -30,-100 Z"
+    h = flat(hood, H2)
+    h += flat("M14,-153 C31,-146 37,-128 34,-110 L28,-98 L20,-103 C25,-120 22,-137 11,-144 Z", H1)
+    h += flat("M-27,-128 C-27,-146 -15,-155 -3,-157 L-2,-152 C-13,-150 -21,-141 -22,-127 Z", H3)
+    h += flat("M-19,-107 C-23,-124 -15,-141 2,-141 C19,-141 25,-124 21,-107 C11,-101 -9,-101 -19,-107 Z", HOLE)
+    h += "<path d='M-19,-107 C-23,-124 -15,-141 2,-141 C19,-141 25,-124 21,-107' fill='none' stroke='%s' stroke-width='3'/>" % H3
+    h += "<path d='M21,-107 C25,-124 19,-138 8,-141' fill='none' stroke='%s' stroke-width='3'/>" % H1
+    add("thug_head", -40, -166, 80, 72, h, flat=True)
+
+    # --- Sudadera / Hoodie ---
+    torso = "M-30,-104 C-14,-110 14,-110 30,-104 C40,-100 44,-92 44,-84 L42,-48 L-42,-48 L-44,-84 C-44,-92 -40,-100 -30,-104 Z"
+    b = flat(torso, H2)
+    b += flat("M30,-104 C40,-100 44,-92 44,-84 L42,-48 L30,-48 C32,-70 32,-90 25,-104 Z", H1)
+    b += flat("M-28,-102 C-20,-106 -8,-108 2,-108 L2,-104 C-8,-104 -18,-102 -25,-97 Z", H3)
+    b += flat("M-14,-106 C-6,-102 8,-102 16,-106 L14,-100 C6,-97 -6,-97 -12,-100 Z", H0)
+    # Bolsillo canguro / Kangaroo pocket
+    b += flat("M-22,-76 L22,-76 L26,-56 L-26,-56 Z", H1)
+    b += "<path d='M-22,-76 L22,-76' stroke='%s' stroke-width='2.4'/>" % H0
+    b += "<path d='M-22,-76 C-27,-68 -27,-62 -26,-56 M22,-76 C27,-68 27,-62 26,-56' fill='none' stroke='%s' stroke-width='2.4'/>" % H0
+    b += "<path d='M-20,-74 L-6,-74' stroke='%s' stroke-width='2.2'/>" % H3
+    # Cintura de canalé / Ribbed waistband
+    b += flat("M-42,-56 L42,-56 L42,-46 L-42,-46 Z", H1)
+    b += "".join("<path d='M%d,-55 L%d,-47' stroke='%s' stroke-width='2.2'/>" % (x, x, H0) for x in range(-36, 40, 8))
+    # Cordones / Drawstrings
+    b += "<path d='M-6,-104 L-8,-84 M7,-104 L9,-82' stroke='%s' stroke-width='2.6' stroke-linecap='round'/>" % STR
+    b += flat("M-10.5,-86 L-5.5,-86 L-5.5,-79 L-10.5,-79 Z", TIP) + flat("M6.5,-84 L11.5,-84 L11.5,-77 L6.5,-77 Z", TIP)
+    # Mangas que caen a los lados / Sleeves hanging at the sides
+    b += flat("M-44,-97 C-53,-90 -55,-74 -53,-60 L-35,-58 C-35,-72 -36,-87 -33,-99 Z", H2)
+    b += flat("M-41,-94 C-48,-86 -50,-74 -49,-62 L-45,-62 C-46,-74 -44,-86 -38,-94 Z", H3)
+    b += flat("M44,-97 C53,-90 55,-74 53,-60 L35,-58 C35,-72 36,-87 33,-99 Z", H1)
+    b += flat("M-54,-63 L-34,-61 L-34,-53 L-54,-55 Z", H1) + flat("M54,-63 L34,-61 L34,-53 L54,-55 Z", H0)
+    b += "".join("<path d='M%d,-62 L%d,-54' stroke='%s' stroke-width='2'/>" % (x, x, H0) for x in (-48, -42))
+    # Costura que separa mangas y cuerpo / Seam separating sleeves and body
+    b += "<path d='M-33,-99 C-36,-87 -35,-72 -35,-60' fill='none' stroke='%s' stroke-width='2.6'/>" % H0
+    b += "<path d='M33,-99 C36,-87 35,-72 35,-60' fill='none' stroke='%s' stroke-width='2.6'/>" % H0
+    add("thug_body", -58, -112, 116, 72, b, flat=True)
+
+    # --- Puño / Fist ---
+    f = flat("M-10,0 C-10,-8 -5,-11 0,-11 C6,-11 10,-8 10,0 C10,7 6,10 0,10 C-6,10 -10,7 -10,0 Z", SK)
+    f += flat("M10,0 C10,7 6,10 0,10 C-4,10 -7,8 -8,6 C-2,7 4,5 6,-2 C7,-5 8,-7 8,-8 C9,-6 10,-3 10,0 Z", SK1)
+    f += "".join("<path d='M%d,-10 L%d,-4' stroke='%s' stroke-width='1.8'/>" % (x, x - 1, SK1) for x in (-3, 3))
+    add("thug_fist", -13, -14, 26, 27, f, flat=True)
+
+    # --- Pierna con vaquero ancho y zapatilla (la punta mira hacia delante) ---
+    # --- Leg with baggy jeans and a trainer (toe points forward) ---
+    l = flat("M-12,-50 L12,-50 L13,-15 L-13,-15 Z", J2)
+    l += flat("M3,-50 L12,-50 L13,-15 L5,-15 Z", J1)
+    l += flat("M-11,-48 L-7,-48 L-8,-18 L-12,-18 Z", J3)
+    l += flat("M-14,-20 L14,-20 L14,-13 L-14,-13 Z", J1)
+    l += flat("M-14,-13 C-14,-20 -4,-21 2,-19 L10,-18 C18,-17 22,-12 22,-7 L22,-3 L-14,-3 Z", SH)
+    l += flat("M-12,-14 C-11,-18 -5,-19 0,-18 L0,-15 C-5,-16 -9,-15 -10,-13 Z", SH2)
+    l += flat("M12,-16 C19,-15 22,-11 22,-7 L12,-7 C10,-10 10,-13 12,-16 Z", WH)
+    l += flat("M-15,-6 L23,-6 L23,0 L-15,0 Z", WH) + flat("M-15,-2 L23,-2 L23,0 L-15,0 Z", WH1)
+    l += "<path d='M-4,-17 L3,-15 M-2,-13 L5,-11' stroke='%s' stroke-width='2'/>" % WH
+    add("thug_leg", -18, -53, 44, 56, l, flat=True)
 
 
 def sling():
@@ -1740,7 +1843,12 @@ def render(only=None):
             page.set_viewport_size({"width": int(math.ceil(vw)) + 2, "height": int(math.ceil(vh)) + 2})
             page.set_content("<html><body style='margin:0;background:transparent'>%s</body></html>" % svg)
             hi = Image.open(io.BytesIO(page.locator("svg").screenshot(omit_background=True))).convert("RGBA")
-            img = pixelize(hi, tw, th, sp["colors"], sp["ghost"])
+            if sp["flat"]:
+                import re as _re
+                palette = sorted(set(c.lower() for c in _re.findall(r"(?:fill|stroke)='(#[0-9a-fA-F]{6})'", sp["body"])))
+                img = flat_pixelize(hi, tw, th, palette, sp["outline"])
+            else:
+                img = pixelize(hi, tw, th, sp["colors"], sp["ghost"])
             if sp["post"]:
                 sp["post"](img, lambda X, Y, sx=sx, sy=sy, tx=tx, ty=ty, x0=x0, y0=y0, px=px: ((X * sx + tx - x0) * px, (Y * sy + ty - y0) * px))
             img.save(os.path.join(OUT, name + ".png"))
