@@ -56,8 +56,8 @@ static func _svinho(t: float) -> void:
 	_ci.draw_set_transform_matrix(_xf)
 
 
-## Mr. Ad: en la pantalla de la barriga van pasando anuncios, uno tras otro
-## Mr. Ad: adverts scroll across the screen in his belly, one after another
+## Mr. Ad, robot anunciante medio roto: en la pantalla de la barriga van pasando anuncios
+## Mr. Ad, a half-broken advertising robot: adverts scroll across the screen in his belly
 const AD_SCREEN := Rect2(75, 118, 50, 34)
 const AD_PANEL := 50.0
 const AD_PANELS := 6
@@ -73,11 +73,29 @@ static func _ad(t: float) -> void:
 	k = k * k * (3.0 - 2.0 * k)
 	var u := fmod((n + k) * AD_PANEL, AD_PANEL * AD_PANELS)
 	_strip_window(u, AD_SCREEN)
-	# Brillo de pantalla y estrellitas de «¡oferta!» / Screen sheen and "special offer!" sparkles
 	_ci.draw_rect(Rect2(AD_SCREEN.position, Vector2(AD_SCREEN.size.x, 3)), Color(1, 1, 1, 0.12))
-	for i in 3:
-		var a := t * 2.0 + i * TAU / 3.0
-		DreamBackground.draw_star(_ci, Vector2(100, 150) + Vector2(cos(a) * 62.0, sin(a) * 20.0), 3.0, Color("f6c24a", 0.8))
+	# Es un robot medio roto: interferencias, grieta, chispas, antena y un ojo que falla
+	# He's a half-broken robot: interference, a crack, sparks, the antenna and a failing eye
+	if fmod(t, 3.7) < 0.18:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = int(t * 30.0)
+		for i in 9:
+			var y := AD_SCREEN.position.y + rng.randf() * AD_SCREEN.size.y
+			_ci.draw_rect(Rect2(AD_SCREEN.position.x, y, AD_SCREEN.size.x, rng.randf_range(1.5, 4.0)), Color(0.8, 0.85, 1.0, rng.randf_range(0.2, 0.6)))
+	_ci.draw_polyline(PackedVector2Array([Vector2(119, 118), Vector2(116, 123), Vector2(117, 127), Vector2(112, 133), Vector2(110, 140), Vector2(106, 144)]), Color("e8ecff", 0.85), 1.6)
+	_ci.draw_line(Vector2(116, 123), Vector2(121, 128), Color("e8ecff", 0.7), 1.2)
+	if fmod(t, 4.1) < 0.14 or (fmod(t, 4.1) > 0.25 and fmod(t, 4.1) < 0.32):
+		_ci.draw_rect(Rect2(105, 54, 14, 17), Color(0.1, 0.06, 0.12, 0.85))
+	var bulb := fmod(t, 1.4) < 0.7
+	_ci.draw_circle(Vector2(73, 19), 3.5, Color("ff5a6e") if bulb else Color("5a1e2a"))
+	if bulb:
+		_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(63, 9, 20, 20), false, Color("ff5a6e", 0.35))
+	var spark := fmod(t, 2.3)
+	if spark < 0.16:
+		var c := Vector2(90, 108) if fmod(t, 4.6) < 2.3 else Vector2(110, 106)
+		for i in 4:
+			var ang := i * 1.6 + spark * 20.0
+			_ci.draw_line(c, c + Vector2(cos(ang), sin(ang)) * (4.0 + i), Color("ffe36a", 1.0 - spark * 5.0), 1.4)
 
 
 ## Dibuja un trozo de la tira de anuncios (desde u, en unidades) dentro de la pantalla, dando la vuelta al final

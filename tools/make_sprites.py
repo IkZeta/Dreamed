@@ -1794,62 +1794,93 @@ def chef():
 
 
 def mr_ad():
-    """Mr. Ad en pixel art de verdad (modo flat): cabeza de bolsa de patatas con ojos de «$», gorra,
-    cartel-sándwich con una pantalla en la barriga (los anuncios pasan por ella en el juego, con la
-    tira "ad_strip"), brazos envueltos en publicidad y calcetines de rayas.
-    Mr. Ad in real pixel art (flat mode): a crisp-bag head with "$" eyes, a cap, a sandwich board
-    with a screen in his belly (the ads scroll across it in game, using the "ad_strip" sprite),
-    arms wrapped in adverts and striped socks."""
+    """Mr. Ad en pixel art de verdad (modo flat): un robot anunciante medio roto y demacrado. Cabeza
+    de chapa abollada con la pegatina de patatas medio despegada, ojos-pantalla con «$» (uno rajado),
+    antena doblada, cables sueltos, cuerpo oxidado lleno de pegatinas con una pantalla rajada en la
+    barriga (los anuncios pasan por ella en el juego, con la tira "ad_strip"), un brazo aún
+    envuelto en publicidad y el otro mecánico al descubierto, y piernas desparejadas.
+    Mr. Ad in real pixel art (flat mode): a half-broken, worn-out advertising robot. A dented tin
+    head with a half-peeled crisp sticker, screen eyes with "$" (one cracked), a bent antenna, loose
+    wires, a rusty body covered in stickers with a cracked screen in his belly (the ads scroll
+    across it in game, using the "ad_strip" sprite), one arm still wrapped in adverts and the
+    other bare and mechanical, and mismatched legs."""
+    M1, M2, M3, M4 = "#3e4258", "#6a7090", "#9aa2c0", "#c8cee4"
+    RU1, RU2 = "#7a3a20", "#b0602e"
     P1, P2, P3 = "#c9902a", "#f6c24a", "#ffe08a"
-    C1, C2 = "#2a7fd0", "#3fa8ff"
-    R1, R2, R3 = "#a83246", "#e8455a", "#ff7a88"
-    FR, SCR = "#2a2838", "#0d1a2a"
+    R1, R2 = "#a83246", "#e8455a"
     T1, T2 = "#2a8f96", "#3fc1c9"
-    SK, SK1 = "#e8c4a8", "#c2a092"
-    WH, WH1, RED, BLU = "#f4f1fa", "#c8c4d8", "#e8455a", "#3fa8ff"
+    FR, SCR = "#2a2838", "#0d1a2a"
+    WH, WH1, BLU = "#f4f1fa", "#c8c4d8", "#3fa8ff"
     HOLE, PINK, POLE = "#1a1020", "#ff4f8a", "#cfc8ec"
+    CRACK = "#e8ecff"
     b = ""
-    # Mástil con banderín / Pole with a pennant
-    b += flat("M136,38 L140,38 L140,150 L136,150 Z", POLE)
-    b += flat("M140,40 L186,52 L140,66 Z", PINK) + flat("M140,58 L170,56 L140,66 Z", "#c8306a")
-    # Piernas con calcetines de rayas y zapatillas amarillas / Legs with striped socks and yellow trainers
-    for x in (80, 104):
-        b += flat("M%g,208 L%g,208 L%g,276 L%g,276 Z" % (x, x + 17, x + 17, x), WH)
-        b += flat("M%g,208 L%g,208 L%g,276 L%g,276 Z" % (x + 12, x + 17, x + 17, x + 12), WH1)
-        for y, c in ((222, RED), (236, BLU), (250, RED)):
-            b += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y, x + 17, y, x + 17, y + 5, x, y + 5), c)
-        b += flat("M%g,274 L%g,274 C%g,274 %g,280 %g,288 L%g,288 Z" % (x - 4, x + 16, x + 22, x + 24, x + 24, x - 4), P2)
-        b += flat("M%g,284 L%g,284 L%g,288 L%g,288 Z" % (x - 4, x + 24, x + 24, x - 4), P1)
-    # Brazos envueltos en tiras de publicidad / Arms wrapped in advert strips
+    # Mástil con banderín roto / Pole with a torn pennant
+    b += flat("M136,36 L140,36 L140,150 L136,150 Z", POLE)
+    b += flat("M140,38 L184,48 L172,52 L182,58 L164,60 L140,64 Z", PINK) + flat("M140,56 L164,60 L140,64 Z", "#c8306a")
+    # Pierna izquierda: tubo de metal con rodilla al aire / Left leg: a metal tube with a bare knee joint
+    b += flat("M80,208 L96,208 L96,276 L80,276 Z", M2) + flat("M90,208 L96,208 L96,276 L90,276 Z", M1)
+    b += flat("M82,210 L85,210 L85,272 L82,272 Z", M3)
+    b += flat(ellipse_d(88, 240, 9, 7), M1) + flat(ellipse_d(87, 239, 5, 4), M3)
+    b += flat("M74,274 L100,274 L102,288 L72,288 Z", M1) + flat("M74,274 L100,274 L100,278 L74,278 Z", M2)
+    # Pierna derecha con el calcetín de rayas roto y una zapatilla amarilla / Right leg with a torn striped sock and a yellow trainer
+    b += flat("M104,208 L121,208 L121,276 L104,276 Z", WH) + flat("M116,208 L121,208 L121,276 L116,276 Z", WH1)
+    for y, c in ((222, R2), (236, BLU), (250, R2)):
+        b += flat("M104,%g L121,%g L121,%g L104,%g Z" % (y, y, y + 5, y + 5), c)
+    b += flat("M108,256 L116,254 L114,262 L106,263 Z", M2)
+    b += flat("M100,274 L120,274 C126,274 128,280 128,288 L100,288 Z", P2) + flat("M100,284 L128,284 L128,288 L100,288 Z", P1)
+    # Brazo izquierdo aún envuelto en publicidad / Left arm still wrapped in adverts
     b += flat("M52,108 L68,104 L74,182 L56,184 Z", T2) + flat("M62,106 L68,104 L74,182 L66,183 Z", T1)
     b += "".join("<path d='M53,%g L71,%g' stroke='%s' stroke-width='2.6'/>" % (y, y - 3, WH) for y in (124, 144, 164))
-    b += flat("M148,108 L132,104 L126,182 L144,184 Z", P1)
-    b += "".join("<path d='M129,%g L147,%g' stroke='%s' stroke-width='2.6'/>" % (y - 3, y, R2) for y in (124, 144, 164))
-    b += flat(ellipse_d(64, 190, 8, 8), SK) + flat(ellipse_d(136, 190, 8, 8), SK1)
-    # Cartel-sándwich: el cuerpo entero es un anuncio, con la pantalla en la barriga
-    # Sandwich board: the whole body is an advert, with the screen in the belly
-    b += flat("M66,98 L134,98 L140,212 L60,212 Z", R2)
-    b += flat("M122,98 L134,98 L140,212 L128,212 C130,170 128,130 122,98 Z", R1)
-    b += flat("M68,102 L76,102 L72,200 L64,200 Z", R3)
-    b += flat("M70,106 L130,106 L130,112 L70,112 Z", P2)
+    b += flat("M54,150 L62,146 L60,156 Z", M3)
+    b += flat(ellipse_d(64, 190, 8, 8), M3) + flat("M60,194 L68,194 L67,198 L61,198 Z", M1)
+    # Brazo derecho mecánico al descubierto, con un cable colgando y pinza / Bare mechanical right arm, a dangling wire and a claw
+    b += flat("M132,106 L146,108 L144,142 L132,142 Z", M2) + flat("M140,108 L146,108 L144,142 L140,142 Z", M1)
+    b += flat(ellipse_d(139, 146, 8, 7), M1) + flat(ellipse_d(138, 145, 4, 3.5), RU2)
+    b += flat("M133,150 L145,150 L143,182 L135,182 Z", M3) + flat("M140,150 L145,150 L143,182 L140,182 Z", M2)
+    b += "<path d='M144,148 C152,156 150,170 146,178' fill='none' stroke='%s' stroke-width='2.4'/>" % R2
+    b += flat("M132,182 L138,182 L136,196 L130,192 Z", M1) + flat("M140,182 L146,182 L148,192 L142,196 Z", M1)
+    # Cuerpo de chapa oxidada / Rusty tin body
+    b += flat("M64,98 L136,98 L140,212 L60,212 Z", M2)
+    b += flat("M122,98 L136,98 L140,212 L128,212 C130,170 128,130 122,98 Z", M1)
+    b += flat("M67,102 L74,102 L70,206 L63,206 Z", M3)
+    b += flat("M64,198 L140,198 L140,212 L60,212 Z", M1)
+    b += flat(ellipse_d(84, 190, 7, 4), RU1) + flat(ellipse_d(83, 189, 4, 2), RU2)
+    b += flat(ellipse_d(126, 168, 4, 6), RU1)
+    for (rx, ry) in ((70, 104), (130, 104), (66, 204), (134, 204)):
+        b += flat(ellipse_d(rx, ry, 2, 2), M4)
+    # Pegatinas de anuncios medio despegadas / Half-peeled advert stickers
+    b += flat("M72,160 L98,158 L100,176 L74,178 Z", P2) + flat("M90,158 L98,158 L100,166 L92,168 Z", P3)
+    b += "<path d='M78,166 L94,165 M78,171 L90,170' stroke='%s' stroke-width='2.2'/>" % R1
+    b += "<g transform='rotate(12 118 182)'>%s</g>" % flat("M106,174 L130,174 L130,190 L106,190 Z", PINK)
+    b += flat("M108,190 L118,186 L116,196 Z", "#ffb0d0")
+    # Pantalla rajada en la barriga / Cracked screen in the belly
     b += flat("M71,114 L129,114 L129,156 L71,156 Z", FR) + flat("M75,118 L125,118 L125,152 L75,152 Z", SCR)
-    b += flat("M96,160 L104,160 L104,166 L96,166 Z", FR)
-    b += flat("M74,172 L126,172 L128,200 L72,200 Z", P2) + flat("M74,172 L126,172 L126,178 L74,178 Z", P3)
-    b += "<path d='M86,182 L114,182 M90,190 L110,190' stroke='%s' stroke-width='3'/>" % R1
-    b += flat(ellipse_d(132, 112, 9, 9), "#9be38a")
-    # Cabeza de bolsa de patatas con agujeros grandes para los ojos y gorra
-    # Crisp-bag head with big eye holes and a cap
-    b += flat("M76,40 L124,40 L128,96 L72,96 Z", P2)
-    b += flat("M116,40 L124,40 L128,96 L118,96 C121,78 120,58 116,40 Z", P1)
-    b += flat("M79,44 L84,44 L82,88 L77,88 Z", P3)
-    b += "<path d='M72,96 L76,90 L80,96 L84,90 L88,96 L92,90 L96,96 L100,90 L104,96 L108,90 L112,96 L116,90 L120,96 L124,90 L128,96' fill='none' stroke='%s' stroke-width='2.4'/>" % P1
+    b += flat("M96,108 L104,108 L104,114 L96,114 Z", M1)
+    # Cables sueltos en el cuello / Loose wires at the neck
+    b += flat("M90,90 L110,90 L110,100 L90,100 Z", M1)
+    b += "<path d='M94,92 C88,98 86,104 90,108' fill='none' stroke='%s' stroke-width='2.6'/>" % R2
+    b += "<path d='M106,92 C112,98 114,102 110,106' fill='none' stroke='%s' stroke-width='2.6'/>" % BLU
+    # Cabeza de chapa abollada / Dented tin head
+    b += flat("M74,44 L82,38 L126,38 L126,92 L74,92 Z", M2)
+    b += flat("M116,38 L126,38 L126,92 L118,92 C121,76 120,56 116,38 Z", M1)
+    b += flat("M77,46 L82,42 L82,88 L77,88 Z", M3)
+    b += flat("M96,38 L104,44 L110,38 Z", M1)
+    b += flat("M85,80 L115,80 L115,88 L85,88 Z", M1)
+    b += "".join("<path d='M%g,81 L%g,87' stroke='%s' stroke-width='2'/>" % (x, x, M3) for x in (90, 96, 102, 108))
+    for (rx, ry) in ((78, 50), (122, 50), (78, 86), (122, 86)):
+        b += flat(ellipse_d(rx, ry, 1.8, 1.8), M4)
+    # Pegatina de la bolsa de patatas medio despegada / Half-peeled crisp-bag sticker
+    b += flat("M104,40 L126,40 L126,52 L114,56 L104,50 Z", P2) + flat("M114,56 L126,52 L122,60 Z", P3)
+    b += "<path d='M107,45 L122,45' stroke='%s' stroke-width='2'/>" % R1
+    # Ojos-pantalla (los «$» se pintan después) / Screen eyes (the "$" is painted afterwards)
+    b += flat("M80,53 L96,53 L96,72 L80,72 Z", FR) + flat("M104,53 L120,53 L120,72 L104,72 Z", FR)
     b += flat("M81,54 L95,54 L95,71 L81,71 Z", HOLE) + flat("M105,54 L119,54 L119,71 L105,71 Z", HOLE)
-    b += "<path d='M90,80 Q100,87 110,80' fill='none' stroke='#7a2e1a' stroke-width='2.6'/>"
-    b += flat("M72,42 Q100,18 128,42 L128,48 L72,48 Z", C2) + flat("M112,28 Q122,33 128,42 L128,48 L116,48 Z", C1)
-    b += flat("M118,44 L148,49 L144,56 L118,52 Z", C1)
+    # Antena doblada / Bent antenna
+    b += "<path d='M86,38 L84,26 L74,20' fill='none' stroke='%s' stroke-width='2.6'/>" % M3
+    b += flat(ellipse_d(73, 19, 3.5, 3.5), R1)
 
     def dollar_eyes(img, to_px):
-        """Ojos de «$» pintados píxel a píxel / "$" eyes painted pixel by pixel."""
+        """Ojos de «$» pintados píxel a píxel; el derecho, rajado / "$" eyes painted pixel by pixel; the right one, cracked."""
         pix = img.load()
         w, h = img.size
         glyph = ["..#..", ".####", "#.#..", ".###.", "..#.#", "####.", "..#.."]
@@ -1860,7 +1891,16 @@ def mr_ad():
                 for gx, ch in enumerate(row):
                     if ch == "#" and 0 <= x0 + gx < w and 0 <= y0 + gy < h:
                         pix[x0 + gx, y0 + gy] = (255, 224, 74, 255)
-    add("npc_ad", 46, 16, 144, 276, b, px=PX_NPC, flat=True, post=dollar_eyes)
+        # Grieta en el ojo derecho y en la pantalla de la barriga / Crack in the right eye and in the belly screen
+        crack = (232, 236, 255, 255)
+        for (sx, sy, pts) in ((106, 55, [(0, 0), (1, 1), (2, 1), (3, 2), (3, 3), (4, 4), (4, 5)]),
+                              (118, 120, [(0, 0), (-1, 1), (-1, 2), (-2, 3), (-3, 3), (-3, 4), (-4, 5), (-4, 6), (-5, 7)])):
+            px0, py0 = to_px(sx, sy)
+            for dx, dy in pts:
+                x, y = int(round(px0)) + dx, int(round(py0)) + dy
+                if 0 <= x < w and 0 <= y < h:
+                    pix[x, y] = crack
+    add("npc_ad", 46, 12, 144, 280, b, px=PX_NPC, flat=True, post=dollar_eyes)
 
     # Tira de anuncios inventados que pasa por la pantalla (6 paneles de 50 x 34)
     # Strip of made-up adverts scrolling across the screen (6 panels of 50 x 34)
