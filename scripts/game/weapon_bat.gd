@@ -9,7 +9,7 @@ extends Weapon
 ##  Silly  — Golpe corrupto: "chance" % de congelar "secs" segundos.
 
 const RANGE := 115.0
-const DAMAGE := 10.0
+const DAMAGE := 8.0
 const KNOCKBACK := 160.0
 
 

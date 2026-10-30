@@ -12,7 +12,7 @@ extends Weapon
 ##  Silly   — Rayo en bucle: un segundo después se repite el "pct" % del daño.
 
 const RANGE := 260.0
-const DAMAGE := 7.0
+const DAMAGE := 8.0
 const BOLT_WEIGHTS: Array[float] = [40.0, 35.0, 25.0]   # 1, 2 o 3 rayos / 1, 2 or 3 bolts
 const BOLT_GAP := 0.09     # tiempo entre un rayo y el siguiente / time between bolts
 const JUMP_RANGE := 230.0

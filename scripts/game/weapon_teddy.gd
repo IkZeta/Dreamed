@@ -14,7 +14,7 @@ extends Weapon
 ##  Doc    — vida máxima a cambio de −"pct" % de duración de la pelusa.
 
 const RANGE := 135.0
-const DAMAGE := 5.0
+const DAMAGE := 6.0
 const KNOCKBACK := 90.0
 const JUMP_RANGE := 240.0
 const FLUFF := Color("f4e9da")

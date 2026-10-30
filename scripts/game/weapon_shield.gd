@@ -11,7 +11,7 @@ extends Weapon
 ##  Silly   — Desfase: "chance" % de dejar al enemigo a cámara lenta "secs" segundos.
 
 const RANGE := 100.0
-const DAMAGE := 4.0
+const DAMAGE := 5.0
 const KNOCKBACK := 720.0
 const CONE := 1.0  # medio ángulo en radianes / half angle in radians
 const THROW_RANGE := 520.0

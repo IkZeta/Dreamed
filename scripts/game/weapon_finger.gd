@@ -16,7 +16,7 @@ extends Weapon
 ##  Doc    — vida máxima a cambio de +"pct" % de recarga.
 
 const RANGE := 450.0
-const DAMAGE := 4.0
+const DAMAGE := 5.0
 const CRIT := 1.75
 ## Probabilidad base de cada tipo de disparo / Base weight of each kind of shot
 const KINDS := {"normal": 40.0, "pierce": 12.0, "push": 12.0, "crit": 12.0, "back": 12.0, "bounce": 12.0}
