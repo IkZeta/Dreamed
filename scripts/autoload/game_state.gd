@@ -281,7 +281,7 @@ func reset_run() -> void:
 ## steal health (and the book starts with −10 luck)
 const BASE_LEVEL_STATS := {
 	"bat": {"regen": 3.0},
-	"shield": {"regen": 5.0},
+	"shield": {"regen": 2.0},
 	"book": {"luck": -15.0, "lifesteal": 5.0},
 	"vacuum": {"lifesteal": 5.0},
 	"finger": {"luck": 10.0, "lifesteal": 5.0},
@@ -548,7 +548,7 @@ const UPGRADE_VALUES := {
 		# El golpeado sale volando y golpea a "chain" enemigos más con "pct" % del daño
 		"bat": {"chain": [1, 2, 3], "pct": [30, 45, 60]},
 		# Lanzar la almohada: golpea a "hits" enemigos, "dmg" de daño, recarga "cd" s
-		"shield": {"hits": [1, 2, 3], "dmg": [5, 7, 9], "cd": [1.8, 1.5, 1.2]},
+		"shield": {"hits": [1, 2, 3], "dmg": [9, 13, 18], "cd": [1.3, 1.0, 0.8]},
 		# El rayo salta a "extra" enemigos más
 		"book": {"extra": [1, 2, 3]},
 		# La aspiradora escupe un enemigo cada "cd" s; rebota contra "chain" más

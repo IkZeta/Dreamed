@@ -172,9 +172,9 @@ func take_damage(amount: float) -> void:
 		run.fx.ring(global_position + Vector2(0, -36), 34.0, Color("8fe0ff"), 0.5, 2.0)
 		Audio.play("pillow", -4.0)
 		return
-	# La defensa resta daño, pero siempre se recibe al menos 1.
-	# Defense subtracts damage, but at least 1 always gets through.
-	var dmg := maxf(1.0, amount - armor)
+	# La defensa resta daño, pero nunca quita más de la mitad del golpe y siempre se recibe al menos 1.
+	# Defense subtracts damage, but never more than half the hit, and at least 1 always gets through.
+	var dmg := maxf(maxf(1.0, amount * 0.5), amount - armor)
 	hp = maxf(0.0, hp - dmg)
 	_invuln = HIT_INVULN
 	_flash = 1.0
