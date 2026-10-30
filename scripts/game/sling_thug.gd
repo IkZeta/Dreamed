@@ -14,7 +14,7 @@ const SHOT_DAMAGE := 3.0
 const JACKET := Color("4f5f8f")
 const JACKET_DARK := Color("38456d")
 const CAP := Color("a34d5f")
-const SKIN := Color("b9a3c9")
+const SKIN := Color("f0c8a8")
 const EYES := Color("ffcf7a")
 
 var _shot_t := 1.5
@@ -79,7 +79,7 @@ func _draw() -> void:
 
 
 func _shot_from() -> Vector2:
-	return global_position + Vector2(18 * _facing, -60)
+	return global_position + Vector2(32 * _facing, -66)
 
 
 func _fire() -> void:
@@ -99,17 +99,17 @@ func _fire() -> void:
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
 	var mod := Sprites.flash_color(_flash * 0.6, a) * tint
-	var skin := SKIN.lerp(Color.WHITE, _flash * 0.6) * tint
 	draw_colored_polygon(_ellipse(Vector2(0, 0), Vector2(24, 7)), Color(0.05, 0.02, 0.15, 0.4 * a))
 	for x in [-8.0, 8.0]:
 		Sprites.draw(self, "sling_leg", mod, Vector2(x, sin(_t * 6.0 + x) * 1.5))
 	Sprites.draw(self, "sling_body", mod)
 	Sprites.draw(self, "sling_head", mod)
-	draw_rect(Rect2(5, -99, 3, 3), Color(EYES, a))
-	draw_rect(Rect2(-5, -99, 3, 3), Color(EYES, a))
+	# Ojos que brillan bajo la visera / Eyes glowing under the brim
+	draw_rect(Rect2(1, -99, 2, 2), Color(EYES, a))
+	draw_rect(Rect2(7, -99, 2, 2), Color(EYES, a))
 	# Tirachinas: la goma se tensa antes de disparar / Slingshot: the band stretches before firing
-	var hand := Vector2(26, -66)
-	draw_line(Vector2(14, -74), hand, Color(skin, a), 6.0)
+	# La mano del brazo doblado (ya va en el sprite) / The bent arm's hand (already in the sprite)
+	var hand := Vector2(28.5, -58)
 	draw_line(hand, hand + Vector2(4, -16), Color("8a5a3a") * tint, 3.0)
 	draw_line(hand, hand + Vector2(12, -12), Color("8a5a3a") * tint, 3.0)
 	var pull := Vector2(-14, 4) * _aiming

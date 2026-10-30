@@ -623,19 +623,67 @@ def thug():
 
 
 def sling():
-    jacket, jdark, cap, skin = "#4f5f8f", "#38456d", "#a34d5f", "#b9a3c9"
-    body = shaded("M-18,-82 Q0,-86 18,-82 L22,-40 Q0,-37 -22,-40 Z", jacket, shade=0.5, rim=0.4,
-                  extra=fold("M-10,-70 Q-12,-56 -8,-44", jacket, 2.4, 0.35))
-    body += "<path d='M0,-82 L0,-41' stroke='%s' stroke-width='2'/>" % jdark
-    body += "<path d='M-18,-82 L-10,-76 L0,-82 L10,-76 L18,-82' fill='none' stroke='%s' stroke-width='1.6' opacity='0.8'/>" % light(jacket, 0.25)
-    add("sling_body", -25, -88, 50, 52, body)
-    head = shaded(ellipse_d(0, -98, 15, 16), mix(skin, "#3a2a50", 0.4), shade=0.55, rim=0.3, sw=0.9)
-    head += shaded("M-16,-104 Q-15,-116 0,-116 Q15,-116 16,-104 Q0,-108 -16,-104 Z", cap, shade=0.45, rim=0.4, sw=0.9)
-    head += shaded("M-16,-106 L-29,-102 Q-24,-99 -16,-101 Z", dark(cap, 0.3), shade=0.3, rim=0.2, sw=0.7)
-    head += "<circle cx='0' cy='-116' r='1.8' fill='%s'/>" % light(cap, 0.3)
-    add("sling_head", -31, -119, 49, 38, head)
-    leg = shaded("M-6,-40 L6,-40 L5,-6 Q0,-4 -5,-6 Z", jdark, shade=0.5, rim=0.3, sw=0.8)
-    add("sling_leg", -8, -42, 16, 40, leg)
+    """Tirachinas en pixel art de verdad (modo flat): un chaval con la gorra roja calada, el pelo
+    revuelto asomando, camiseta azul ancha de manga corta, pantalón oscuro y zapatillas. El brazo
+    derecho, doblado, sujeta el tirachinas (que se pinta en el juego).
+    Slingshot kid in real pixel art (flat mode): a boy with a red cap pulled down, messy hair
+    poking out, a loose blue short-sleeved T-shirt, dark trousers and trainers. His bent right
+    arm holds the slingshot (painted in game)."""
+    T1, T2, T3 = "#2f4c86", "#4566a8", "#6c8cc8"
+    S, S1 = "#f0c8a8", "#c9957e"
+    C1, C2, C3 = "#7a2433", "#a8384c", "#cc5a68"
+    HA, HA2 = "#1c1626", "#3a3050"
+    P1, P2, P3 = "#1e1d2c", "#2e2c40", "#45425c"
+    SH, WH, WH1 = "#2a2838", "#ece8f2", "#b9b4c8"
+
+    # --- Cabeza / Head ---
+    h = ""
+    # Pelo revuelto por detrás y a los lados / Messy hair at the back and sides
+    h += flat("M-16,-104 L-21,-99 L-16,-97 L-20,-91 L-14,-92 L-15,-86 L-9,-90 L-8,-102 Z", HA)
+    h += flat("M12,-102 L17,-96 L13,-95 L15,-90 L9,-93 Z", HA)
+    h += flat("M-17,-101 L-14,-100 L-16,-95 Z", HA2)
+    h += flat("M-12,-96 C-12,-106 -6,-110 1,-110 C8,-110 13,-106 13,-96 C13,-88 8,-83 1,-83 C-6,-83 -12,-88 -12,-96 Z", S)
+    h += flat("M6,-108 C11,-105 13,-100 13,-96 C13,-89 9,-84 3,-83 C8,-87 10,-93 9,-100 Z", S1)
+    # Sombra de la visera sobre los ojos / Brim shadow over the eyes
+    h += flat("M-12,-100 L13,-100 L13,-95 C6,-94 -6,-94 -12,-95 Z", S1)
+    h += "<path d='M-2,-88 L4,-88' stroke='%s' stroke-width='2'/>" % S1
+    # Gorra / Cap
+    h += flat("M-15,-101 C-15,-115 -6,-120 2,-120 C12,-120 17,-113 16,-101 Z", C2)
+    h += flat("M6,-119 C13,-116 17,-110 16,-101 L9,-101 C11,-108 10,-114 6,-119 Z", C1)
+    h += flat("M-12,-104 C-12,-112 -6,-117 0,-118 L0,-115 C-5,-114 -9,-110 -9,-104 Z", C3)
+    h += flat("M12,-104 L31,-101 C31,-96 24,-95 13,-98 Z", C1)
+    h += "<path d='M-15,-101 L16,-101' stroke='%s' stroke-width='2.4'/>" % C1
+    h += flat("M0.5,-122 L3.5,-122 L3.5,-119 L0.5,-119 Z", C3)
+    add("sling_head", -24, -126, 58, 46, h, flat=True)
+
+    # --- Camiseta y brazos / T-shirt and arms ---
+    b = ""
+    # Brazo izquierdo colgando / Left arm hanging
+    b += flat("M-23,-69 L-16,-68 L-16,-51 L-23,-51 Z", S) + flat("M-18,-68 L-16,-68 L-16,-51 L-18,-51 Z", S1)
+    b += flat("M-24,-49 C-24,-53 -21,-54 -19.5,-54 C-17,-54 -15,-53 -15,-49 C-15,-45 -17,-44 -19.5,-44 C-22,-44 -24,-45 -24,-49 Z", S)
+    # Camiseta / T-shirt
+    b += flat("M-14,-87 C-6,-89 6,-89 14,-87 L18,-44 C6,-41 -6,-41 -18,-44 Z", T2)
+    b += flat("M8,-88 L14,-87 L18,-44 L11,-43 C13,-58 12,-74 8,-88 Z", T1)
+    b += flat("M-12,-84 L-8,-85 L-10,-48 L-14,-48 Z", T3)
+    b += flat("M-18,-47 C-6,-44 6,-44 18,-47 L18,-44 C6,-41 -6,-41 -18,-44 Z", T1)
+    b += flat("M-5,-89 L5,-89 L4,-85 L-4,-85 Z", S1)
+    b += "<path d='M-6,-88 C-3,-84 3,-84 6,-88' fill='none' stroke='%s' stroke-width='2.2'/>" % T1
+    # Mangas cortas / Short sleeves
+    b += flat("M-14,-87 L-25,-81 L-25,-68 L-15,-66 Z", T2) + flat("M-22,-80 L-25,-80 L-25,-69 L-22,-69 Z", T3)
+    b += flat("M14,-87 L25,-81 L26,-70 L16,-68 Z", T1)
+    # Brazo derecho doblado hacia delante, con la mano donde va el tirachinas
+    # Right arm bent forward, with the hand where the slingshot goes
+    b += flat("M18,-71 L24,-71 L31,-60 L26,-56 Z", S) + flat("M24,-71 L31,-60 L29,-58 L22,-69 Z", S1)
+    b += flat("M24,-58 C24,-62 27,-63 28.5,-63 C31,-63 33,-62 33,-58 C33,-54 31,-53 28.5,-53 C26,-53 24,-54 24,-58 Z", S)
+    add("sling_body", -30, -93, 68, 56, b, flat=True)
+
+    # --- Pierna con zapatilla / Leg with a trainer ---
+    l = flat("M-6,-43 L6,-43 L6,-12 L-6,-12 Z", P2) + flat("M1,-43 L6,-43 L6,-12 L2,-12 Z", P1)
+    l += flat("M-5,-41 L-3,-41 L-3,-14 L-5,-14 Z", P3)
+    l += flat("M-7,-12 C-7,-17 -1,-17 2,-16 L6,-15 C11,-14 13,-10 13,-6 L13,-3 L-7,-3 Z", SH)
+    l += flat("M6,-14 C11,-13 13,-10 13,-7 L6,-7 Z", WH)
+    l += flat("M-8,-5 L14,-5 L14,0 L-8,0 Z", WH) + flat("M-8,-2 L14,-2 L14,0 L-8,0 Z", WH1)
+    add("sling_leg", -10, -46, 26, 48, l, flat=True)
 
 
 def skeleton():
