@@ -530,24 +530,40 @@ def kroker_weapons():
 # --- Enemigos / Enemies --------------------------------------------------------
 
 def foox():
-    body = "M-22,-16 C-22,-26 -10,-29 0,-29 C12,-29 22,-25 22,-16 C22,-9 16,-4 8,-3 C2,-1 -6,-1 -12,-3 C-18,-5 -22,-10 -22,-16 Z"
-    i = uid()
-    g = ("<defs><linearGradient id='v%s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#f2f4ff' stop-opacity='0.85'/>"
-         "<stop offset='0.7' stop-color='#cdd3f0' stop-opacity='0.55'/><stop offset='1' stop-color='#a9bcff' stop-opacity='0'/></linearGradient></defs>" % i)
-    b = g + "<path d='%s' fill='url(#v%s)'/>" % (body, i)
-    b += "<path d='M-14,-24 Q0,-30 16,-23' fill='none' stroke='#ffffff' stroke-width='2' opacity='0.6' filter='url(#b1)'/>"
-    add("foox_body", -26, -33, 52, 34, b, ghost=True)
-    head = ("M8,-30 C8,-36 10,-44 13,-48 C16,-42 18,-38 19,-35 C21,-39 23,-45 26,-48 C28,-42 29,-36 29,-31 "
-            "C35,-28 42,-25 45,-22 C40,-18 33,-16 27,-16 C21,-15 15,-16 11,-19 C8,-22 7,-26 8,-30 Z")
-    h = shaded(head, "#e8ebf8", shade=0.45, rim=0.55, deep="#7f8ccc", sw=0.9)
-    h = h.replace("<path d='%s' fill='url(#g" % head, "<path opacity='0.92' d='%s' fill='url(#g" % head, 1)
-    for d in ("M12,-44 C14,-40 15,-37 16,-35 L12,-34 Z", "M25,-44 C24,-40 24,-37 24,-35 L27,-34 Z"):
-        h += "<path d='%s' fill='#c7b6e8' opacity='0.7'/>" % d
-    h += "<path d='M41,-23 C43,-23 45,-22 45,-21.5 C44,-20.5 42,-20.5 41,-21 Z' fill='#4a4a7a'/>"
-    h += "<path d='M14,-20 Q20,-17 27,-18' fill='none' stroke='#ffffff' stroke-width='1.6' opacity='0.5'/>"
-    # Cuenca oscura del ojo; el brillo se dibuja en el juego / Dark eye socket; the glow is drawn in game
-    h += "<path d='M21,-27.5 Q25,-29 29,-25.5 Q25,-25 21,-27.5 Z' fill='#2c3466' opacity='0.8'/>"
-    add("foox_head", 4, -51, 44, 39, h, ghost=True)
+    """Foox en pixel art plano: zorro fantasma con orejas de punta, hocico largo, pechera de pelo y
+    la parte de abajo deshilachada en jirones de niebla (no tiene patas). La cola de humo y el
+    brillo del ojo se dibujan en el juego.
+    Foox in flat pixel art: a ghost fox with pointed ears, a long snout, a fluffy chest and its
+    underside frayed into wisps of mist (it has no legs). The smoky tail and the eye glow are
+    drawn in game."""
+    G3, G2, G1, G0 = "#f6f7ff", "#d9ddf6", "#aeb5e4", "#858dcc"
+    EAR, SOCK, NOSE = "#c9a8ec", "#2c3466", "#3d3f7a"
+    b = ""
+    # Torso con jirones abajo / Torso with wisps underneath
+    b += flat("M-22,-18 C-22,-27 -8,-30 4,-30 C16,-30 24,-26 24,-18 C24,-11 20,-7 16,-5 L17,2 L10,-2 "
+              "L5,3 L0,-3 L-6,2 L-9,-4 L-16,0 L-15,-8 C-20,-11 -22,-14 -22,-18 Z", G2)
+    # Sombra de la barriga / Belly shade
+    b += flat("M-21,-14 C-16,-12 -4,-10 8,-10 C16,-10 22,-12 24,-16 C24,-11 20,-7 16,-5 L17,2 L10,-2 "
+              "L5,3 L0,-3 L-6,2 L-9,-4 L-16,0 L-15,-8 C-19,-10 -21,-12 -21,-14 Z", G1)
+    b += flat("M-4,-4 L0,-3 L5,3 L3,-4 Z M10,-4 L17,2 L15,-5 Z M-14,-3 L-16,0 L-15,-8 L-12,-6 Z", G0)
+    # Lomo con brillo / Shiny back
+    b += flat("M-16,-24 C-10,-28 2,-29 12,-28 C6,-26 -6,-25 -16,-21 Z", G3)
+    add("foox_body", -26, -33, 52, 37, b, ghost=True, flat=True, outline="#4b4f9a")
+    h = ""
+    # Orejas / Ears
+    h += flat("M10,-32 L12,-49 L21,-36 Z", G2) + flat("M23,-36 L28,-50 L32,-31 Z", G1)
+    h += flat("M13,-34 L13.5,-44 L18,-36 Z", EAR) + flat("M25,-35 L28,-45 L30,-33 Z", EAR)
+    # Cabeza y hocico / Head and snout
+    h += flat("M8,-28 C8,-35 14,-38 21,-38 C28,-38 32,-34 33,-30 C38,-28 43,-26 46,-23 "
+              "C43,-19 36,-18 30,-18 C24,-15 16,-15 11,-19 C8,-21 8,-25 8,-28 Z", G2)
+    h += flat("M33,-30 C38,-28 43,-26 46,-23 C43,-21 38,-21 32,-22 C33,-25 33,-27 33,-30 Z", G1)
+    h += flat("M12,-33 C14,-36 18,-37 22,-37 C19,-35 15,-33 12,-30 Z", G3)
+    # Mejilla de pelo blanco con mechones / White fluffy cheek with tufts
+    h += flat("M12,-22 C16,-25 24,-25 30,-22 C27,-19 24,-17 22,-14 L20,-17 L17,-13 L16,-17 L12,-15 Z", G3)
+    # Nariz y cuenca del ojo (el brillo va en el juego) / Nose and eye socket (glow drawn in game)
+    h += flat("M42,-25 L47,-24 L46,-21 L42,-22 Z", NOSE)
+    h += flat("M20,-29 L29,-30 L29,-25 L21,-26 Z", SOCK)
+    add("foox_head", 4, -52, 46, 40, h, ghost=True, flat=True, outline="#4b4f9a")
 
 
 def thug():
@@ -2196,6 +2212,15 @@ def render(only=None):
                 import re as _re
                 palette = sorted(set(c.lower() for c in _re.findall(r"(?:fill|stroke)='(#[0-9a-fA-F]{6})'", sp["body"])))
                 img = flat_pixelize(hi, tw, th, palette, sp["outline"])
+                if sp["ghost"]:
+                    # Fantasma: cuerpo algo translúcido y contorno más suave / Ghost: slightly see-through body, softer outline
+                    oc = rgb(sp["outline"])
+                    gp = img.load()
+                    for gy in range(img.size[1]):
+                        for gx in range(img.size[0]):
+                            c = gp[gx, gy]
+                            if c[3]:
+                                gp[gx, gy] = c[:3] + ((150,) if c[:3] == oc else (225,))
             else:
                 img = pixelize(hi, tw, th, sp["colors"], sp["ghost"])
             if sp["post"]:

@@ -44,10 +44,13 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
 	draw_texture_rect(_glow, Rect2(-60, -70, 120, 100), false, Color(UITheme.MIST, 0.22 * a))
 	# Cola de humo que ondula / Smoky tail that ripples
+	# En bloques de píxel para casar con el sprite / In pixel blocks to match the sprite
 	for i in 10:
 		var k := i / 9.0
 		var p := Vector2(-18 - k * 46.0, -16 - k * 18.0 + sin(_t * 4.0 - k * 4.0 + _phase) * 8.0 * k)
-		draw_circle(p, lerpf(10.0, 2.0, k), Color(body, a * lerpf(0.5, 0.08, k)))
+		var r := snappedf(lerpf(10.0, 2.0, k), 2.0)
+		p = p.snapped(Vector2(2, 2))
+		draw_rect(Rect2(p - Vector2(r, r), Vector2(r, r) * 2.0), Color(body, a * lerpf(0.5, 0.08, k)))
 	Sprites.draw(self, "foox_body", mod)
 	# Gotas de niebla que caen / Dripping mist
 	for i in 4:
