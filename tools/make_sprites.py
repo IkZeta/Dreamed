@@ -753,19 +753,52 @@ def skeleton():
 # --- Jefe: muebles / Boss: furniture ----------------------------------------------
 
 def boss():
-    # Cama (coordenadas con la base en y = 0) / Bed (coordinates with the base at y = 0)
-    w, h = 140, 150
-    bed = shaded("M-76,-176 Q-76,-184 -68,-184 L68,-184 Q76,-184 76,-176 L76,-140 L-76,-140 Z", "#aab4ea", shade=0.45, rim=0.5)
-    for x in (-72, 72):
-        bed += shaded(ellipse_d(x, -178, 8, 8), "#cfd6f6", shade=0.35, rim=0.5, sw=0.8)
-    bed += shaded("M-70,-150 L70,-150 L70,0 L-70,0 Z", "#e6e2f6", shade=0.4, rim=0.4)
-    bed += shaded("M-52,-142 Q0,-148 52,-142 Q56,-125 52,-108 Q0,-102 -52,-108 Q-56,-125 -52,-142 Z", "#f8f6ff", shade=0.35, rim=0.4, sw=0.8)
-    quilt = "M-74,-94 Q0,-100 74,-94 L74,0 L-74,0 Z"
-    stars = "".join("<path d='%s' fill='#f6d993' opacity='0.85'/>" % star_d(-46 + c * 46 + r * 20, -60 + r * 34, 5.5)
-                    for r in range(2) for c in range(3))
-    bed += shaded(quilt, "#5b67c4", shade=0.5, rim=0.4, extra=stars + fold("M-40,-80 Q-30,-40 -38,-10", "#5b67c4", 3, 0.4) + fold("M30,-84 Q38,-50 30,-14", "#5b67c4", 3, 0.4))
-    bed += shaded("M-74,-94 Q0,-100 74,-94 L74,-80 Q0,-86 -74,-80 Z", "#eeeaf8", shade=0.3, rim=0.3, sw=0.8)
-    add("boss_bed", -80, -188, 160, 190, bed, colors=20)
+    # Cama en pixel art plano: cabecero de madera con barrotes y pomos, almohada mullida, sábana
+    # doblada y edredón de estrellas y lunas que cuelga por los lados (base en y = 0; los ojos y
+    # las patas se dibujan en el juego, los ojos sobre la almohada).
+    # Bed in flat pixel art: wooden headboard with bars and knobs, a fluffy pillow, a folded sheet
+    # and a star-and-moon quilt hanging over the sides (base at y = 0; the eyes and legs are drawn
+    # in game, the eyes over the pillow).
+    W0, W1, W2, W3 = "#2a2058", "#46388a", "#6553b0", "#8a78d4"
+    KN, KN1 = "#e8ecff", "#aab4ea"
+    S1, S2, S3 = "#aaa5d4", "#dcd8f2", "#fbfaff"
+    Q0, Q1, Q2, Q3 = "#2c3480", "#4350ad", "#5b68c8", "#7e8ae0"
+    GOLD, GOLD1 = "#f6d993", "#d6a94e"
+    bed = ""
+    # Postes y cabecero / Posts and headboard
+    for x in (-74, 66):
+        bed += flat("M%g,-176 L%g,-176 L%g,-6 L%g,-6 Z" % (x, x + 8, x + 8, x), W1)
+        bed += flat("M%g,-176 L%g,-176 L%g,-6 L%g,-6 Z" % (x + 1, x + 3, x + 3, x + 1), W3)
+        bed += flat(ellipse_d(x + 4, -180, 7, 7), KN) + flat("M%g,-180 C%g,-176 %g,-174 %g,-173 C%g,-175 %g,-177 %g,-180 Z" % (x + 9, x + 9, x + 6, x + 4, x + 7, x + 8, x + 9), KN1)
+    bed += flat("M-66,-170 C-40,-182 40,-182 66,-170 L66,-128 L-66,-128 Z", W2)
+    bed += flat("M-66,-170 C-40,-182 40,-182 66,-170 L66,-164 C40,-175 -40,-175 -66,-164 Z", W3)
+    bed += flat("M-66,-136 L66,-136 L66,-128 L-66,-128 Z", W1)
+    for x in range(-54, 60, 18):
+        bed += flat("M%g,-166 L%g,-166 L%g,-140 L%g,-140 Z" % (x - 3, x + 3, x + 3, x - 3), W0)
+    # Colchón con la sábana / Mattress with the sheet
+    bed += flat("M-66,-130 L66,-130 L66,-6 L-66,-6 Z", S2)
+    # Almohada mullida / Fluffy pillow
+    bed += flat("M-50,-140 C-20,-146 20,-146 50,-140 C55,-128 55,-116 50,-104 C20,-99 -20,-99 -50,-104 C-55,-116 -55,-128 -50,-140 Z", S3)
+    bed += flat("M-50,-110 C-20,-105 20,-105 50,-110 L50,-104 C20,-99 -20,-99 -50,-104 Z", S1)
+    # Edredón que cuelga por los lados / Quilt hanging over the sides
+    quilt = "M-73,-90 C-30,-96 30,-96 73,-90 L74,-2 L-74,-2 Z"
+    bed += flat(quilt, Q2)
+    bed += flat("M48,-93 C60,-92 68,-91 73,-90 L74,-2 L54,-2 C58,-30 56,-62 48,-93 Z", Q1)
+    bed += flat("M-73,-90 C-66,-91 -60,-92 -54,-93 C-60,-60 -62,-30 -58,-2 L-74,-2 Z", Q1)
+    bed += flat("M-74,-12 L74,-12 L74,-2 L-74,-2 Z", Q0)
+    bed += flat("M-36,-86 C-30,-60 -32,-36 -38,-14 L-33,-14 C-27,-36 -26,-60 -32,-86 Z", Q1)
+    bed += flat("M28,-88 C34,-62 34,-38 30,-14 L35,-14 C39,-38 38,-62 32,-88 Z", Q0)
+    bed += flat("M-50,-86 C-46,-70 -46,-52 -50,-36 L-47,-36 C-43,-52 -43,-70 -47,-86 Z", Q3)
+    # Estrellas y lunas del edredón / Quilt stars and moons
+    for (x, y, r) in ((-44, -64, 9), (2, -70, 10), (-14, -32, 9), (40, -30, 8)):
+        bed += flat(star_d(x, y, r, inner=0.5), GOLD)
+    for (x, y) in ((-50, -30), (40, -64)):
+        bed += flat(ellipse_d(x, y, 9, 9), GOLD1) + flat(ellipse_d(x + 5, y - 3, 8, 8), Q2)
+    # Sábana doblada encima del edredón / Sheet folded over the quilt
+    bed += flat("M-74,-94 C-30,-100 30,-100 74,-94 L74,-80 C30,-86 -30,-86 -74,-80 Z", S2)
+    bed += flat("M-74,-84 C-30,-90 30,-90 74,-84 L74,-80 C30,-86 -30,-86 -74,-80 Z", S1)
+    bed += flat("M-60,-95 C-30,-98 0,-98 20,-97 L20,-94 C0,-95 -30,-95 -60,-92 Z", S3)
+    add("boss_bed", -82, -190, 164, 192, bed, flat=True)
 
     # Estantería / Bookshelf
     w, h = 120, 170
