@@ -255,43 +255,37 @@ PAJAMAS = {
 
 
 def pattern_fill(pj, d):
-    """Estampado del pijama recortado a la forma / Pajama print clipped to the shape."""
+    """Estampado del pijama en pixel art: motivos opacos y gorditos (Kroker se dibuja muy pequeño,
+    así que cada motivo mide al menos un píxel y medio), recortados a la forma "d".
+    Pajama print in pixel art: opaque, chunky motifs (Kroker is drawn very small, so each motif
+    is at least a pixel and a half), clipped to the shape "d"."""
     i = uid()
     col = pj["pattern"]
     kind = pj["print"]
     if kind == "stripes":
-        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='9' height='9'>"
-               "<rect x='3' y='0' width='2.4' height='9' fill='%s' opacity='0.5'/>"
-               "<rect x='5.6' y='0' width='0.7' height='9' fill='%s' opacity='0.25'/></pattern>" % (i, col, col))
+        pat = "<pattern id='p%s' patternUnits='userSpaceOnUse' width='13' height='9'><rect x='4' y='0' width='4.4' height='9' fill='%s'/></pattern>" % (i, col)
     elif kind == "plaid":
-        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='16' height='16'>"
-               "<rect x='0' y='5' width='16' height='4' fill='%s' opacity='0.5'/>"
-               "<rect x='5' y='0' width='4' height='16' fill='%s' opacity='0.42'/>"
-               "<rect x='0' y='11' width='16' height='1' fill='#f6e9ef' opacity='0.3'/>"
-               "<rect x='12' y='0' width='1' height='16' fill='#f6e9ef' opacity='0.22'/></pattern>" % (i, col, col))
-    elif kind == "stars":
-        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='16' height='26'>"
-               "<path d='%s' fill='%s' opacity='0.9'/><path d='%s' fill='%s' opacity='0.9'/>"
-               "<circle cx='12' cy='5' r='0.7' fill='%s' opacity='0.7'/></pattern>"
-               % (i, star_d(5, 6, 2.8), col, star_d(13, 19, 2.8), col, col))
-    elif kind == "bolts":
-        # Rayitos láser en diagonal / Little diagonal laser beams
-        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='16' height='18'>"
-               "<path d='M3,13 L9,5' stroke='%s' stroke-width='2.2' stroke-linecap='round' opacity='0.9'/>"
-               "<path d='M11,17 L15,11' stroke='#7ff5ff' stroke-width='1.6' stroke-linecap='round' opacity='0.8'/>"
-               "<circle cx='9.5' cy='4.5' r='1.3' fill='#ffffff' opacity='0.8'/></pattern>" % (i, col))
-    elif kind == "paws":
-        # Huellas de oso / Bear paw prints
         pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='18' height='22'>"
-               "<ellipse cx='6' cy='8' rx='3' ry='2.5' fill='%s' opacity='0.85'/>"
-               "<circle cx='3.2' cy='4.6' r='1.1' fill='%s' opacity='0.85'/><circle cx='6' cy='3.8' r='1.1' fill='%s' opacity='0.85'/>"
-               "<circle cx='8.8' cy='4.6' r='1.1' fill='%s' opacity='0.85'/>"
-               "<ellipse cx='14' cy='18' rx='2.6' ry='2.2' fill='%s' opacity='0.6'/></pattern>" % (i, col, col, col, col, col))
+               "<rect x='0' y='7' width='18' height='7' fill='%s'/><rect x='7' y='0' width='4.6' height='22' fill='%s'/></pattern>" % (i, col, col))
+    elif kind == "stars":
+        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='18' height='28'>"
+               "<path d='M5,3 L8,9 L5,15 L2,9 Z M14,17 L17,23 L14,29 L11,23 Z M14,-11 L17,-5 L14,1 L11,-5 Z' fill='%s'/></pattern>" % (i, col))
+    elif kind == "bolts":
+        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='18' height='26'>"
+               "<path d='M3,18 L11,4' stroke='%s' stroke-width='4.4'/><rect x='12' y='16' width='4.4' height='7' fill='#7ff5ff'/></pattern>" % (i, col))
+    elif kind == "paws":
+        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='18' height='26'>"
+               "<ellipse cx='6' cy='9' rx='4' ry='4.5' fill='%s'/><ellipse cx='15' cy='22' rx='3' ry='3.6' fill='%s'/></pattern>" % (i, col, col))
     else:  # dots
-        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='14' height='22'>"
-               "<circle cx='4' cy='5' r='2.3' fill='%s' opacity='0.85'/>"
-               "<circle cx='11' cy='16' r='2.3' fill='%s' opacity='0.85'/></pattern>" % (i, col, col))
-    return "<defs>%s</defs><rect x='0' y='0' width='300' height='400' fill='url(#p%s)'/>" % (pat, i)
+        pat = ("<pattern id='p%s' patternUnits='userSpaceOnUse' width='16' height='24'>"
+               "<ellipse cx='4' cy='5' rx='3' ry='4.2' fill='%s'/><ellipse cx='12' cy='17' rx='3' ry='4.2' fill='%s'/></pattern>" % (i, col, col))
+    return "<defs>%s<clipPath id='k%s'><path d='%s'/></clipPath></defs><rect clip-path='url(#k%s)' x='0' y='0' width='300' height='400' fill='url(#p%s)'/>" % (pat, i, d, i, i)
+
+
+def clipped(d, inner):
+    """Dibuja "inner" recortado a la forma "d" / Draws "inner" clipped to the shape "d"."""
+    i = uid()
+    return "<defs><clipPath id='k%s'><path d='%s'/></clipPath></defs><g clip-path='url(#k%s)'>%s</g>" % (i, d, i, inner)
 
 
 def fold(d, base, w=2.2, op=0.35):
@@ -300,23 +294,25 @@ def fold(d, base, w=2.2, op=0.35):
 
 
 def kroker_leg(outfit, side):
+    """Pierna del pijama en pixel art plano, con estampado, puño de ribete y zapatilla mullida.
+    Pajama leg in flat pixel art, with the print, a piped cuff and a fluffy slipper."""
     pj = PAJAMAS[outfit]
-    base = dark(pj["base"], 0.08 if side == 0 else 0.16)
+    base = dark(pj["base"], 0.0 if side == 0 else 0.1)
     dx = 0 if side == 0 else 25
     leg = "M%d,170 L%d,170 Q%d,222 %d,268 L%d,268 Q%d,222 %d,170 Z" % (
         77 + dx, 98 + dx, 100 + dx, 98 + dx, 77 + dx, 75 + dx, 77 + dx)
-    body = shaded(leg, base, extra=pattern_fill(pj, leg) + fold("M%d,200 Q%d,215 %d,232" % (92 + dx, 95 + dx, 93 + dx), base), shade=0.5)
-    # Puño con ribete / Cuff with piping
-    cuff = "M%d,265 L%d,265 L%d,273 Q%d,275 %d,273 Z" % (76.5 + dx, 98.5 + dx, 98.5 + dx, 87.5 + dx, 76.5 + dx)
-    body += shaded(cuff, pj["piping"], shade=0.3, rim=0.3)
-    # Zapatilla mullida / Fluffy slipper
+    body = flat(leg, base) + pattern_fill(pj, leg)
+    # Sombra del lado de dentro / Shade on the inner side
+    body += clipped(leg, flat("M%d,160 L%d,160 L%d,280 L%d,280 Z" % (92 + dx, 104 + dx, 104 + dx, 92 + dx), dark(base, 0.3)))
+    cuff = "M%d,262 L%d,262 L%d,274 L%d,274 Z" % (76 + dx, 99 + dx, 99 + dx, 76 + dx)
+    body += flat(cuff, pj["piping"])
     cx = 87.5 + dx
-    slip = "M%.1f,282 C%.1f,274 %.1f,274 %.1f,278 C%.1f,276 %.1f,280 %.1f,284 C%.1f,290 %.1f,290 %.1f,282 Z" % (
-        cx - 15, cx - 14, cx - 2, cx + 2, cx + 10, cx + 16, cx + 15, cx + 12, cx - 12, cx - 15)
-    body += shaded(slip, pj["slippers"], shade=0.5, rim=0.45)
-    body += "<path d='M%.1f,279 Q%.1f,276 %.1f,279' stroke='#ffffff' stroke-width='1.6' fill='none' opacity='0.35' stroke-linecap='round'/>" % (
-        cx - 9, cx - 3, cx + 3)
-    add("kroker_leg_%s_%s" % ("l" if side == 0 else "r", outfit), 66 + dx, 166, 40, 128, body, XF_LEG, PX_KROKER)
+    slip = "M%.1f,284 C%.1f,274 %.1f,273 %.1f,277 C%.1f,275 %.1f,279 %.1f,284 C%.1f,291 %.1f,291 %.1f,284 Z" % (
+        cx - 16, cx - 14, cx - 2, cx + 2, cx + 10, cx + 17, cx + 16, cx + 12, cx - 12, cx - 16)
+    body += flat(slip, pj["slippers"])
+    body += clipped(slip, flat("M%.1f,284 L%.1f,284 L%.1f,292 L%.1f,292 Z" % (cx - 20, cx + 20, cx + 20, cx - 20), dark(pj["slippers"], 0.3)))
+    body += flat("M%.1f,276 L%.1f,276 L%.1f,280 L%.1f,280 Z" % (cx - 8, cx + 4, cx + 4, cx - 8), light(pj["slippers"], 0.35))
+    add("kroker_leg_%s_%s" % ("l" if side == 0 else "r", outfit), 66 + dx, 166, 40, 128, body, XF_LEG, PX_KROKER, flat=True)
 
 
 def mirror_x(d):
@@ -326,172 +322,121 @@ def mirror_x(d):
 
 
 def kroker_arm(outfit, side):
+    """Brazo del pijama en pixel art plano (manga con estampado, puño y mano).
+    Pajama arm in flat pixel art (printed sleeve, cuff and hand)."""
     pj = PAJAMAS[outfit]
-    base = dark(pj["base"], 0.04 if side == 0 else 0.12)
+    base = dark(pj["base"], 0.0 if side == 0 else 0.1)
     sleeve = "M68,104 Q77,100 82,110 L79,178 Q71,182 63,180 L64,140 Q65,118 68,104 Z"
-    cuff = "M63.4,172 L79.4,172 L79,179 Q71,182.5 63,180 Z"
-    hand = "M63,187 C63,181 67,180 70,180 C74,180 77,182 77,188 C77,194 74,196 70,196 C66,196 63,193 63,187 Z"
-    thumb = "M75,184 C79,183 80,187 77,189 Z"
+    cuff = "M63.4,170 L79.4,170 L79,180 Q71,182.5 63,180 Z"
+    hand = "M62,188 C62,181 66,179 70,179 C75,179 78,182 78,188 C78,195 74,197 70,197 C65,197 62,194 62,188 Z"
+    shade = "M75,100 L90,100 L90,190 L75,190 Z"
     skin = SKIN if side == 0 else mix(SKIN, SKIN_SHADE, 0.4)
     if side == 1:
-        sleeve, cuff, hand, thumb = mirror_x(sleeve), mirror_x(cuff), mirror_x(hand), mirror_x(thumb)
-    body = shaded(hand, skin, shade=0.35, rim=0.4, sw=0.9)
-    body += shaded(thumb, skin, shade=0.2, rim=0.2, sw=0.7)
-    dx = 0 if side == 0 else 62
-    body += shaded(sleeve, base, extra=pattern_fill(pj, sleeve) + fold(
-        "M%d,130 Q%d,145 %d,160" % (73 + (0 if side == 0 else 54), 72 + (0 if side == 0 else 56), 74 + (0 if side == 0 else 52)), base), shade=0.5)
-    body += shaded(cuff, pj["piping"], shade=0.3, rim=0.25)
-    add("kroker_arm_%s_%s" % ("l" if side == 0 else "r", outfit), 56 if side == 0 else 112, 96, 32, 104, body, XF_ARM, PX_KROKER)
+        sleeve, cuff, hand, shade = mirror_x(sleeve), mirror_x(cuff), mirror_x(hand), mirror_x(shade)
+    body = flat(hand, skin)
+    body += flat(sleeve, base) + pattern_fill(pj, sleeve)
+    body += clipped(sleeve, flat(shade, dark(base, 0.3)))
+    body += flat(cuff, pj["piping"])
+    add("kroker_arm_%s_%s" % ("l" if side == 0 else "r", outfit), 56 if side == 0 else 112, 96, 32, 104, body, XF_ARM, PX_KROKER, flat=True)
 
 
 def kroker_torso(outfit):
+    """Torso del pijama en pixel art plano: camisa con estampado, solapas con ribete, botones y
+    bajo con ribete. / Pajama torso in flat pixel art: printed shirt, piped lapels, buttons and a piped hem."""
     pj = PAJAMAS[outfit]
     base = pj["base"]
     pip = pj["piping"]
-    neck = "M93,84 L107,84 L107,102 L93,102 Z"
-    body = shaded(neck, mix(SKIN, SKIN_SHADE, 0.45), shade=0.4, rim=0.2, outline=False)
+    body = flat("M92,84 L108,84 L108,102 L92,102 Z", mix(SKIN, SKIN_SHADE, 0.45))
     shirt = "M84,98 Q100,101 116,98 Q129,101 132,108 L134,176 Q100,181 66,176 L68,108 Q71,101 84,98 Z"
-    folds = (fold("M78,150 Q84,160 82,172", base) + fold("M122,146 Q117,158 120,172", base) +
-             fold("M90,128 Q96,134 94,142", base, 1.6, 0.25))
-    body += shaded(shirt, base, extra=pattern_fill(pj, shirt) + folds, shade=0.5)
-    # Solapas / Lapels
-    body += shaded("M86,97 L99,99 L100,122 L90,110 Z", light(base, 0.12), shade=0.25, rim=0.3, sw=0.8)
-    body += shaded("M114,97 L101,99 L100,122 L110,110 Z", dark(base, 0.05), shade=0.3, rim=0.15, sw=0.8)
-    body += "<path d='M86,97 L90,110 L100,122 L110,110 L114,97' fill='none' stroke='%s' stroke-width='2' stroke-linejoin='round'/>" % pip
-    body += "<path d='M100,122 L100,176' stroke='%s' stroke-width='1.4' opacity='0.7'/>" % pip
-    for y in (134, 150, 166):
-        body += "<circle cx='103' cy='%d' r='2.5' fill='%s'/><circle cx='102.3' cy='%.1f' r='0.9' fill='#ffffff' opacity='0.7'/>" % (y, pip, y - 0.8)
-    body += "<path d='M76,126 L90,126 L90,138 Q83,140 76,138 Z' fill='none' stroke='%s' stroke-width='1.1' opacity='0.75'/>" % pip
-    body += "<path d='M66.5,176 Q100,181 133.5,176' fill='none' stroke='%s' stroke-width='2.6' stroke-linecap='round'/>" % pip
-    add("kroker_torso_%s" % outfit, 60, 80, 80, 104, body, XF_TORSO, PX_KROKER)
+    body += flat(shirt, base) + pattern_fill(pj, shirt)
+    body += clipped(shirt, flat("M120,90 L140,90 L140,190 L120,190 Z", dark(base, 0.3)) + flat("M60,90 L74,90 L74,190 L60,190 Z", light(base, 0.12)))
+    # Solapas con ribete / Piped lapels
+    body += clipped(shirt, flat("M93,96 L107,96 L107,182 L93,182 Z", base))
+    body += flat("M86,96 L100,99 L100,122 L90,110 Z", light(base, 0.15)) + flat("M114,96 L100,99 L100,122 L110,110 Z", dark(base, 0.15))
+    body += "<path d='M85,96 L90,110 L100,123 L110,110 L115,96' fill='none' stroke='%s' stroke-width='4' stroke-linejoin='round'/>" % pip
+    for y in (140, 160):
+        body += flat(ellipse_d(100, y, 2.6, 4), pip)
+    body += flat("M66,172 Q100,177 134,172 L134,180 Q100,185 66,180 Z", pip)
+    add("kroker_torso_%s" % outfit, 60, 80, 80, 104, body, XF_TORSO, PX_KROKER, flat=True)
 
 
 def kroker_head():
+    """Cabeza de Kroker en pixel art plano: cara redonda, orejas, coloretes y pelo negro con un
+    mechón de punta y reflejos azulados. Los ojos, las gafas y la boca se pintan píxel a píxel.
+    Kroker's head in flat pixel art: a round face, ears, blush and black hair with a spiky tuft
+    and bluish highlights. The eyes, glasses and mouth are painted pixel by pixel."""
+    SK, SK1, BLUSH = SKIN, "#d8aaa6", "#f0a4ae"
+    H1, H2, H3 = "#0c0b14", HAIR, "#3b4475"
     body = ""
-    for cx, col in ((76, SKIN), (124, SKIN_SHADE)):
-        e = ellipse_d(cx, 68, 5.5, 7.5)
-        body += shaded(e, col, shade=0.35, rim=0.3, sw=0.8)
-        body += "<path d='%s' fill='%s' opacity='0.35'/>" % (ellipse_d(cx, 68.5, 2.5, 4), dark(col, 0.25))
+    for cx, col in ((76, SK), (124, SK1)):
+        body += flat(ellipse_d(cx, 68, 6, 8), col)
     face = "M76,62 C76,44 88,37 100,37 C112,37 124,44 124,62 C124,80 113,91 100,91 C87,91 76,80 76,62 Z"
-    i = uid()
-    fgrad = ("<defs><radialGradient id='f%s' cx='0.4' cy='0.38' r='0.75'><stop offset='0' stop-color='#fde6d8'/>"
-             "<stop offset='0.55' stop-color='%s'/><stop offset='1' stop-color='#d8aaa6'/></radialGradient></defs>" % (i, SKIN))
-    body += fgrad
-    body += shaded(face, SKIN, grad=False, shade=0.42, rim=0.35, deep=SKIN_SHADE, sw=0.9)
-    body = body.replace("<path d='%s' fill='%s'/>" % (face, SKIN), "<path d='%s' fill='url(#f%s)'/>" % (face, i), 1)
-    body += glow(87, 78, 6.5, "#f2a0ad", 0.45) + glow(114, 78, 6, "#f2a0ad", 0.35)
-    # Nariz / Nose
-    body += "<path d='M101,70 Q104,75 101,77' fill='none' stroke='%s' stroke-width='1.4' stroke-linecap='round' opacity='0.85'/>" % SKIN_SHADE
-    # Pelo negro con volumen y reflejos azulados / Black hair with volume and bluish highlights
+    body += flat(face, SK)
+    body += clipped(face, flat("M112,40 C122,48 126,60 124,72 C121,84 112,91 100,92 L100,96 L130,96 L130,40 Z", SK1))
+    body += flat(ellipse_d(86, 78, 4.4, 3), BLUSH) + flat(ellipse_d(114, 78, 4.4, 3), BLUSH)
     hair = ("M75,70 C70,55 73,42 83,35 C91,29 108,27 117,32 C126,37 130,51 126,70 C124,62 121,57 117,55 "
             "C114,60 110,60 107,53 C103,59 97,60 94,52 C90,58 85,58 81,54 C78,58 76,63 75,70 Z")
-    tuft = "M100,31 C99,24 104,21 109,23 C105,24 104,27 106,31 Z"
-    j = uid()
-    body += ("<defs><linearGradient id='h%s' x1='0' y1='0' x2='0.8' y2='1'><stop offset='0' stop-color='#3b4475'/>"
-             "<stop offset='0.4' stop-color='#1b1a2b'/><stop offset='1' stop-color='#0a0912'/></linearGradient></defs>" % j)
-    body += shaded(tuft, "#1b1a2b", shade=0.3, rim=0.35, sw=0.8)
-    body += shaded(hair, HAIR, grad=False, shade=0.5, rim=0.55, rim_color="#8f9ee0", deep="#000000", sw=0.9)
-    body = body.replace("<path d='%s' fill='%s'/>" % (hair, HAIR), "<path d='%s' fill='url(#h%s)'/>" % (hair, j), 1)
-    for d, w, op in (("M80,47 C84,40 90,36 98,34", 2.4, 0.7), ("M84,53 C87,48 90,45 94,43", 1.6, 0.5), ("M110,35 C116,37 121,42 123,48", 1.6, 0.4)):
-        body += "<path d='%s' fill='none' stroke='#9fb0ff' stroke-width='%.1f' stroke-linecap='round' opacity='%.2f' filter='url(#b1)'/>" % (d, w, op)
-    # Cejas / Eyebrows
-    body += "<path d='M85,59.5 Q90,57 95,58.5' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' opacity='0.9'/>" % HAIR
-    body += "<path d='M105,58.5 Q110,57 115,59.5' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' opacity='0.9'/>" % HAIR
+    body += flat("M99,34 C98,27 103,24 110,26 C106,28 105,31 107,34 Z", H2)
+    body += flat(hair, H2)
+    body += clipped(hair, flat("M116,28 C128,36 132,52 128,72 L140,72 L140,20 Z", H1))
+    body += "<path d='M81,48 C85,41 91,37 99,35' fill='none' stroke='%s' stroke-width='4.4'/>" % H3
     head = body
-
-    eyes = ""
-    for x in (90, 110):
-        eyes += "<path d='%s' fill='#2a2238'/>" % ellipse_d(x, 67, 3.0, 3.6)
-        eyes += "<path d='%s' fill='#4d3f78' opacity='0.8'/>" % ellipse_d(x + 0.3, 68.2, 1.8, 1.7)
-        eyes += "<circle cx='%.1f' cy='65.8' r='1.05' fill='#ffffff'/><circle cx='%.1f' cy='68.8' r='0.5' fill='#ffffff' opacity='0.6'/>" % (x - 1, x + 1)
-    closed = ""
-    for x in (90, 110):
-        closed += "<path d='M%.1f,67 Q%.1f,69.4 %.1f,67' fill='none' stroke='#2a2238' stroke-width='1.6' stroke-linecap='round'/>" % (x - 3.4, x, x + 3.4)
-    mouth = "<path d='M95,81 Q100,84.5 105,81' fill='none' stroke='#9a5a6c' stroke-width='2' stroke-linecap='round'/>"
-    yawn = shaded(ellipse_d(100, 83, 3.8, 5.4), "#7d4a5e", shade=0.5, rim=0.2, sw=0.8)
-    yawn += "<path d='%s' fill='#d98a9a' opacity='0.8'/>" % ellipse_d(100, 86.4, 2.2, 1.5)
-    gl = ""
-    for cx in (90, 110):
-        i = uid()
-        gl += ("<defs><linearGradient id='l%s' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#eef2ff' stop-opacity='0.4'/>"
-               "<stop offset='0.6' stop-color='#cbd6ff' stop-opacity='0.1'/><stop offset='1' stop-color='#8f9ee0' stop-opacity='0.25'/></linearGradient></defs>" % i)
-        gl += "<path d='%s' fill='url(#l%s)' stroke='%s' stroke-width='1.5'/>" % (ellipse_d(cx, 67, 9, 7.2), i, FRAME)
-    gl += "<path d='M99,65.2 Q100,64 101,65.2' fill='none' stroke='%s' stroke-width='1.4'/>" % FRAME
-    gl += "<path d='M81,64 L75.5,62' stroke='%s' stroke-width='1.6' stroke-linecap='round'/>" % FRAME
-    gl += "<path d='M119,64 L124.5,62' stroke='%s' stroke-width='1.6' stroke-linecap='round'/>" % FRAME
     # La cara va pintada en la cabeza: ojos abiertos o cerrados, gafas o no, y bostezo
     # The face is painted onto the head: eyes open or closed, glasses or not, and yawning
     for suffix, e, m in (("", "open", "smile"), ("_blink", "closed", "smile"), ("_yawn", "closed", "yawn")):
-        add("kroker_head" + suffix, 64, 18, 72, 78, head, XF_HEAD, PX_KROKER, 14, post=face_painter(e, m, False))
-        add("kroker_head" + suffix + "_g", 64, 18, 72, 78, head, XF_HEAD, PX_KROKER, 14, post=face_painter(e, m, True))
+        add("kroker_head" + suffix, 64, 18, 72, 78, head, XF_HEAD, PX_KROKER, 14, post=face_painter(e, m, False), flat=True)
+        add("kroker_head" + suffix + "_g", 64, 18, 72, 78, head, XF_HEAD, PX_KROKER, 14, post=face_painter(e, m, True), flat=True)
 
 
 
 
 def kroker_weapons():
-    # Bate / Bat
+    """Armas de Kroker en pixel art plano (se dibujan muy pequeñas: los detalles miden al menos
+    un píxel y medio). / Kroker's weapons in flat pixel art (drawn very small: details are at
+    least a pixel and a half)."""
+    # Bate de madera con cinta en el mango y una estrella / Wooden bat with grip tape and a star
     bat = "M-3,4 L3,4 C5,-40 8,-80 8,-96 C8,-104 5,-109 0,-109 C-5,-109 -8,-104 -8,-96 C-8,-80 -5,-40 -3,4 Z"
-    i = uid()
-    wood = ("<defs><linearGradient id='w%s' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='#f0cb9a'/>"
-            "<stop offset='0.45' stop-color='#c99a68'/><stop offset='1' stop-color='#87593a'/></linearGradient></defs>" % i)
-    grain = "".join("<path d='M%.1f,-100 C%.1f,-70 %.1f,-40 %.1f,-10' fill='none' stroke='#7a4f33' stroke-width='0.6' opacity='0.35'/>" % (
-        x, x + 0.5, x - 0.3, x * 0.4) for x in (-4, -1, 2.5, 5))
-    b = wood + shaded(bat, "#c99a68", grad=False, extra=grain, shade=0.45, rim=0.5)
-    b = b.replace("<path d='%s' fill='#c99a68'/>" % bat, "<path d='%s' fill='url(#w%s)'/>" % (bat, i), 1)
-    b += shaded("M-3.9,-16 L3.9,-16 L3.6,4 L-3.6,4 Z", "#3a3355", shade=0.4, rim=0.3, sw=0.8)
-    for y in range(-14, 4, 4):
-        b += "<path d='M-3.8,%d L3.8,%d' stroke='#6b6394' stroke-width='1' opacity='0.7'/>" % (y + 2, y)
-    b += shaded(ellipse_d(0, 5, 5.2, 2.6), "#2b2545", shade=0.3, rim=0.3, sw=0.7)
-    b += "<path d='%s' fill='#f6d993'/>" % star_d(0, -86, 3.6)
-    add("weapon_bat", -12, -113, 24, 122, b, px=PX_KROKER)
+    b = flat(bat, "#c99a68")
+    b += clipped(bat, flat("M2,-112 L12,-112 L12,6 L2,6 Z", "#8a5d3c") + flat("M-10,-112 L-4,-112 L-4,6 L-10,6 Z", "#f0cb9a"))
+    b += flat("M-4.4,-20 L4.4,-20 L4,6 L-4,6 Z", "#3a3355")
+    b += "".join(flat("M-4.4,%d L4.4,%d L4.4,%d L-4.4,%d Z" % (y, y - 4, y - 1, y + 3), "#6b6394") for y in (-12, -2))
+    b += flat(ellipse_d(0, 6, 6, 3.4), "#2b2545")
+    b += flat(star_d(0, -86, 5, inner=0.5), "#f6d993")
+    add("weapon_bat", -12, -113, 24, 122, b, px=PX_KROKER, flat=True)
 
     # Almohada / Pillow
     pts = []
     for k in range(64):
         a = math.tau * k / 64
-        c, s = math.cos(a), math.sin(a)
-        p = (math.copysign(abs(c) ** 0.6, c) * 36, math.copysign(abs(s) ** 0.6, s) * 26)
+        c, s_ = math.cos(a), math.sin(a)
+        p_ = (math.copysign(abs(c) ** 0.6, c) * 36, math.copysign(abs(s_) ** 0.6, s_) * 26)
         f = 1 - 0.07 * abs(math.sin(a * 2))
-        pts.append("%.2f,%.2f" % (p[0] * f, p[1] * f))
+        pts.append("%.2f,%.2f" % (p_[0] * f, p_[1] * f))
     pil = "M" + " L".join(pts) + " Z"
-    i = uid()
-    pg = ("<defs><radialGradient id='q%s' cx='0.38' cy='0.35' r='0.8'><stop offset='0' stop-color='#ffffff'/>"
-          "<stop offset='0.6' stop-color='#f0ebfb'/><stop offset='1' stop-color='#cfc6ee'/></radialGradient></defs>" % i)
-    p = pg + shaded(pil, "#f0ebfb", grad=False, shade=0.5, rim=0.4, deep="#8d82c4",
-                    extra="<path d='M-30,1 Q0,4 30,1' fill='none' stroke='#cfc6ee' stroke-width='1.2'/>"
-                          + fold("M-20,-14 Q-12,-6 -16,4", "#cfc6ee", 2.5, 0.3) + fold("M18,12 Q10,4 16,-8", "#cfc6ee", 2.5, 0.3))
-    p = p.replace("<path d='%s' fill='#f0ebfb'/>" % pil, "<path d='%s' fill='url(#q%s)'/>" % (pil, i), 1)
-    p += "<path d='%s' fill='#f6d993' stroke='#d9b35e' stroke-width='0.6'/>" % star_d(-2, -2, 5.5)
-    for cx, cy in ((-34, -24), (34, -24), (34, 24), (-34, 24)):
-        p += "<circle cx='%d' cy='%d' r='2.2' fill='#ffffff' opacity='0.8'/>" % (cx * 0.92, cy * 0.92)
-    add("weapon_pillow", -42, -32, 84, 64, p, px=PX_KROKER)
+    p = flat(pil, "#ece7fa")
+    p += clipped(pil, flat("M-40,10 Q0,4 40,10 L40,40 L-40,40 Z", "#c4bbe8") + flat("M-34,-26 L-10,-26 L-10,-18 L-34,-14 Z", "#ffffff"))
+    p += flat(star_d(-2, -2, 9, inner=0.5), "#f6d993")
+    add("weapon_pillow", -42, -32, 84, 64, p, px=PX_KROKER, flat=True)
 
-    # Libro de cuentos / Storybook
-    bk = shaded("M-29,-14 Q-14,-12 0,-9 L0,16 Q-14,13 -29,12 Z", "#3b4fa8", shade=0.4, rim=0.4)
-    bk += shaded("M29,-14 Q14,-12 0,-9 L0,16 Q14,13 29,12 Z", "#34479c", shade=0.45, rim=0.2)
-    bk += shaded("M-25.5,-11.5 Q-12,-10 -0.8,-7 L-0.8,12.5 Q-12,10.5 -25.5,9.5 Z", "#fbf3dc", shade=0.25, rim=0.2, sw=0.6)
-    bk += shaded("M25.5,-11.5 Q12,-10 0.8,-7 L0.8,12.5 Q12,10.5 25.5,9.5 Z", "#f1e6c8", shade=0.35, rim=0.1, sw=0.6)
-    for ly in (-4, 0, 4, 8):
-        bk += "<path d='M-21,%.1f Q-13,%.1f -5,%.1f' fill='none' stroke='#5a5a82' stroke-width='0.8' opacity='0.4'/>" % (ly - 2, ly - 1.4, ly)
-        bk += "<path d='M5,%.1f Q13,%.1f 21,%.1f' fill='none' stroke='#5a5a82' stroke-width='0.8' opacity='0.4'/>" % (ly, ly - 1.4, ly - 2)
-    bk += "<path d='M3,-7 L3,20 L5.5,17 L8,20 L8,-6' fill='#e3a6c4'/>"
-    for cx, cy in ((-27, -12), (-27, 10), (27, -12), (27, 10)):
-        bk += "<path d='%s' fill='#f6d993'/>" % star_d(cx, cy, 2.4)
-    add("weapon_book", -32, -18, 64, 40, bk, px=PX_KROKER)
+    # Libro de cuentos abierto / Open storybook
+    bk = flat("M-29,-14 Q-14,-12 0,-9 L0,16 Q-14,13 -29,12 Z", "#3b4fa8") + flat("M29,-14 Q14,-12 0,-9 L0,16 Q14,13 29,12 Z", "#2c3c88")
+    bk += flat("M-25,-11 Q-12,-9.5 -1,-6.5 L-1,12 Q-12,10 -25,9 Z", "#fbf3dc") + flat("M25,-11 Q12,-9.5 1,-6.5 L1,12 Q12,10 25,9 Z", "#e6d8b4")
+    bk += flat("M3,-6 L9,-6 L9,22 L6,18 L3,22 Z", "#e3a6c4")
+    add("weapon_book", -32, -18, 64, 42, bk, px=PX_KROKER, flat=True)
 
     # Depósito y boquilla del Barrepesadillas / Nightmare Sweeper tank and nozzle
-    tank = shaded(ellipse_d(150, 252, 22, 30), "#e9e3f3", shade=0.5, rim=0.5, deep="#6c64a8")
-    tank += "<path d='M129,262 Q150,270 171,262' fill='none' stroke='#b7b2d6' stroke-width='2.4'/>"
-    tank += shaded(ellipse_d(148, 244, 10, 12), "#8fd6cf", shade=0.4, rim=0.5)
-    tank += "<path d='M142,238 Q145,234 150,234' fill='none' stroke='#ffffff' stroke-width='1.8' stroke-linecap='round' opacity='0.8'/>"
-    tank += "<path d='M140,226 Q150,220 160,226' fill='none' stroke='#4a4f86' stroke-width='4' stroke-linecap='round'/>"
+    tk = ellipse_d(150, 252, 22, 30)
+    tank = flat(tk, "#e3ddf0") + clipped(tk, flat("M158,210 L180,210 L180,290 L158,290 Z", "#a8a2cc"))
+    tank += flat(ellipse_d(148, 244, 11, 13), "#8fd6cf") + flat(ellipse_d(152, 248, 7, 9), "#5fb0a8")
+    tank += flat("M141,236 L148,233 L149,238 L143,241 Z", "#ffffff")
+    tank += "<path d='M138,228 Q150,218 162,228' fill='none' stroke='#4a4f86' stroke-width='5'/>"
     for cx in (136, 164):
-        tank += shaded(ellipse_d(cx, 280, 5.5, 5.5), "#3b3f73", shade=0.4, rim=0.3, sw=0.7)
-        tank += "<circle cx='%d' cy='280' r='1.6' fill='#b7b2d6'/>" % cx
-    add("weapon_tank", 124, 218, 52, 70, tank, px=PX_KROKER)
-    noz = shaded("M-4,-6.5 L10,-11.5 Q13,-11 13,-8 L13,8 Q13,11 10,11.5 L-4,6.5 Z", "#4a4f86", shade=0.45, rim=0.4)
-    noz += "<path d='M11.5,-10.5 L11.5,10.5' stroke='#b9f0ea' stroke-width='1.8' stroke-linecap='round'/>"
-    add("weapon_nozzle", -7, -14, 23, 28, noz, px=PX_KROKER)
+        tank += flat(ellipse_d(cx, 280, 6, 6), "#3b3f73") + flat(ellipse_d(cx, 280, 2.4, 2.4), "#b7b2d6")
+    add("weapon_tank", 124, 216, 52, 72, tank, px=PX_KROKER, flat=True)
+    noz = flat("M-4,-6.5 L10,-11.5 Q13,-11 13,-8 L13,8 Q13,11 10,11.5 L-4,6.5 Z", "#4a4f86")
+    noz += flat("M-4,1 L13,3 L13,8 Q13,11 10,11.5 L-4,6.5 Z", "#33376a")
+    noz += flat("M10,-10 L14,-10 L14,10 L10,10 Z", "#b9f0ea")
+    add("weapon_nozzle", -7, -14, 24, 28, noz, px=PX_KROKER, flat=True)
 
     # Pistola de dedos: puño redondeado, pulgar recto hacia arriba e índice apuntando (origen en el
     # centro del puño, el índice hacia +x). Una versión para Kroker y otra más fina para los iconos.
@@ -499,32 +444,30 @@ def kroker_weapons():
     # centre, index towards +x). One version for Kroker and a finer one for the icons.
     hand = ("M-3,-6 L-3,-14 Q-3,-17 -0.5,-17 Q2,-17 2,-14 L2,-6 L15.5,-6 Q18.5,-6 18.5,-3 Q18.5,0 15.5,0 "
             "L10,0 L10,6 Q10,13 3,13 L-5,13 Q-10,13 -10,7 L-10,-3 Q-10,-6 -7,-6 Z")
-    peach = "#e8bea6"
-    fh = shaded(hand, peach, shade=0.38, rim=0.45, sw=1.0,
-                extra="<path d='M2,-6 L2,-2' stroke='#c4957f' stroke-width='0.9' opacity='0.55'/>"
-                      "<path d='M10,0 Q6,1.5 3,0.5' fill='none' stroke='#c4957f' stroke-width='0.9' opacity='0.55'/>")
-    add("weapon_finger", -13, -20, 34, 36, fh, px=PX_KROKER * 1.6, colors=8)
-    add("icon_finger", -13, -20, 34, 36, fh, px=1.25, colors=12)
+    fh = flat(hand, "#ecc2aa") + clipped(hand, flat("M-12,6 L12,6 L12,16 L-12,16 Z", "#c4957f"))
+    add("weapon_finger", -13, -20, 34, 36, fh, px=PX_KROKER * 1.6, flat=True)
+    fi = fh + "<path d='M10,0 Q6,2 2,0.5 M2,-6 L2,-2' fill='none' stroke='#c4957f' stroke-width='1.4'/>"
+    add("icon_finger", -13, -20, 34, 36, fi, px=1.25, flat=True)
 
     # Osito de peluche con una costura abierta por la que asoma pelusa (centrado en la mano)
     # Teddy bear with an open seam with fluff poking out (centred on the hand)
-    t = "<circle cx='0' cy='30' r='22' fill='#000000' opacity='0.08'/>"
+    BR, BR1, BR2, MZ = "#c99a78", "#a87a5c", "#e8c9a8", "#3a2a30"
+    t = ""
     for x in (-15, 15):
-        t += shaded(ellipse_d(x, 26, 8, 8), "#a87a5c", shade=0.3, rim=0.3, sw=0.8)
-    t += shaded(ellipse_d(0, 12, 18, 20), "#c99a78", shade=0.4, rim=0.4) + "<path d='%s' fill='#e8c9a8'/>" % ellipse_d(0, 15, 10, 12)
-    # Costura y pelusa / Seam and fluff
-    t += "<path d='M-4,8 L4,20' stroke='#7a4f33' stroke-width='1.6'/>"
-    for (cx, cy, r) in ((1, 13, 4.5), (5, 10, 3.5), (-2, 18, 3.5)):
-        t += "<circle cx='%g' cy='%g' r='%g' fill='#fbf5ea'/>" % (cx, cy, r)
+        t += flat(ellipse_d(x, 27, 8.5, 8.5), BR1)
+    bel = ellipse_d(0, 12, 18, 20)
+    t += flat(bel, BR) + clipped(bel, flat("M8,-10 L22,-10 L22,34 L8,34 Z", BR1)) + flat(ellipse_d(-1, 15, 10, 12), BR2)
+    t += flat(ellipse_d(1, 13, 6, 6), "#fbf5ea") + flat(ellipse_d(5, 8, 4, 4), "#fbf5ea")
     for x in (-17, 17):
-        t += shaded(ellipse_d(x, 6, 6.5, 6.5), "#a87a5c", shade=0.3, rim=0.3, sw=0.8)
+        t += flat(ellipse_d(x, 6, 7, 7), BR1)
     for x in (-12, 12):
-        t += shaded(ellipse_d(x, -22, 7.5, 7.5), "#c99a78", shade=0.3, rim=0.3, sw=0.8) + "<circle cx='%d' cy='-22' r='3.8' fill='#e8c9a8'/>" % x
-    t += shaded(ellipse_d(0, -12, 15, 15), "#c99a78", shade=0.4, rim=0.4)
-    t += ("<path d='%s' fill='#e8c9a8'/><circle cx='0' cy='-9' r='2.4' fill='#3a2a30'/>"
-          "<circle cx='-6' cy='-15' r='2' fill='#3a2a30'/><circle cx='6' cy='-15' r='2' fill='#3a2a30'/>" % ellipse_d(0, -7, 7, 5))
-    t += "<path d='M0,-1 L-8,-5 L-8,3 Z M0,-1 L8,-5 L8,3 Z' fill='#ff5f7a'/>"
-    add("weapon_teddy", -26, -32, 52, 66, t, px=PX_KROKER)
+        t += flat(ellipse_d(x, -22, 8, 8), BR1 if x > 0 else BR) + flat(ellipse_d(x, -22, 4, 4), BR2)
+    hd = ellipse_d(0, -12, 15, 15)
+    t += flat(hd, BR) + clipped(hd, flat("M7,-30 L18,-30 L18,4 L7,4 Z", BR1))
+    t += flat(ellipse_d(0, -7, 7.5, 5.5), BR2) + flat(ellipse_d(0, -9, 3, 2.6), MZ)
+    t += flat(ellipse_d(-6, -15, 2.6, 2.6), MZ) + flat(ellipse_d(6, -15, 2.6, 2.6), MZ)
+    t += flat("M0,0 L-9,-5 L-9,5 Z M0,0 L9,-5 L9,5 Z", "#ff5f7a")
+    add("weapon_teddy", -26, -32, 52, 66, t, px=PX_KROKER, flat=True)
 
 
 # --- Enemigos / Enemies --------------------------------------------------------
@@ -886,14 +829,13 @@ def boss():
 # --- Proyectiles / Projectiles --------------------------------------------------------
 
 def shots():
-    bk = shaded("M-16,-11 L16,-11 L16,11 L-16,11 Z", "#6a4fa8", shade=0.4, rim=0.4)
-    bk += shaded("M-13,-8 L13,-8 L13,8 L-13,8 Z", "#f1e6c8", shade=0.25, rim=0.2, sw=0.6)
-    bk += "<path d='M0,-11 L0,11' stroke='#6a4fa8' stroke-width='3'/>"
-    add("shot_book", -19, -14, 38, 28, bk)
-    st = shaded(ellipse_d(0, 0, 10, 9), "#8f86b0", shade=0.5, rim=0.5)
-    st += "<circle cx='-3' cy='-3' r='3' fill='#cfc6e8' opacity='0.8'/>"
-    add("shot_stone", -12, -12, 24, 24, st)
-
+    bk = flat("M-16,-11 L16,-11 L16,11 L-16,11 Z", "#6a4fa8") + flat("M-13,-8 L13,-8 L13,8 L-13,8 Z", "#f1e6c8")
+    bk += flat("M-13,4 L13,4 L13,8 L-13,8 Z", "#d6c8a4")
+    bk += flat("M-1.5,-11 L1.5,-11 L1.5,11 L-1.5,11 Z", "#4a3488")
+    add("shot_book", -19, -14, 38, 28, bk, flat=True)
+    st = flat(ellipse_d(0, 0, 10, 9), "#8f86b0") + clipped(ellipse_d(0, 0, 10, 9), flat("M-12,3 L12,3 L12,12 L-12,12 Z", "#655c8a"))
+    st += flat(ellipse_d(-3.5, -3.5, 3, 2.6), "#cfc6e8")
+    add("shot_stone", -12, -12, 24, 24, st, flat=True)
 
 # --- Personajes del plano astral / Astral plane characters ----------------------------
 
@@ -1436,11 +1378,11 @@ def room():
 
 def pickups():
     # Vaso de leche / Glass of milk
-    b = shaded("M-11,-30 L11,-30 L9,0 Q0,3 -9,0 Z", "#cfd8f6", shade=0.35, rim=0.5, deep="#6c74b0")
-    b += shaded("M-10,-22 L10,-22 L8.6,-1 Q0,1.6 -8.6,-1 Z", "#fbf8ff", shade=0.3, rim=0.3, sw=0.6)
-    b += "<path d='M-6,-27 L-5,-4' stroke='#ffffff' stroke-width='2.4' opacity='0.8' stroke-linecap='round'/>"
-    b += "<path d='M-10,-22 Q-4,-25 0,-22 Q5,-19 10,-22' fill='none' stroke='#ffffff' stroke-width='1.6'/>"
-    add("pickup_milk", -15, -34, 30, 40, b)
+    gl = "M-11,-30 L11,-30 L9,0 Q0,3 -9,0 Z"
+    b = flat(gl, "#b8c2ea")
+    b += flat("M-10,-22 L10,-22 L8.6,-1 Q0,1.6 -8.6,-1 Z", "#fbf8ff") + flat("M3,-22 L10,-22 L8.6,-1 Q5,0 3,0 Z", "#d6dcf4")
+    b += flat("M-7,-28 L-4.5,-28 L-4,-4 L-6.4,-4 Z", "#ffffff")
+    add("pickup_milk", -15, -34, 30, 40, b, flat=True)
     # Almohada escudo / Pillow shield
     pts = []
     for k in range(48):
@@ -1448,19 +1390,19 @@ def pickups():
         c, s_ = math.cos(a), math.sin(a)
         pts.append("%.2f,%.2f" % (math.copysign(abs(c) ** 0.6, c) * 18, math.copysign(abs(s_) ** 0.6, s_) * 13 - 14))
     pil = "M" + " L".join(pts) + " Z"
-    b = shaded(pil, "#f0ebfb", shade=0.45, rim=0.4, deep="#8d82c4")
-    b += "<path d='%s' fill='#8fe0ff' stroke='#4aa8d0' stroke-width='1'/>" % star_d(0, -14, 6)
-    add("pickup_pillow", -22, -32, 44, 36, b)
+    b = flat(pil, "#ece7fa") + clipped(pil, flat("M-20,-10 L20,-10 L20,2 L-20,2 Z", "#c4bbe8"))
+    b += flat(star_d(0, -14, 7, inner=0.5), "#8fe0ff")
+    add("pickup_pillow", -22, -32, 44, 36, b, flat=True)
     # Despertador / Alarm clock
     b = ""
     for x in (-9, 9):
-        b += shaded(ellipse_d(x, -30, 5.5, 5.5), "#f6c86a", shade=0.3, rim=0.4, sw=0.8)
-    b += "<path d='M-8,-2 L-11,3 M8,-2 L11,3' stroke='#4a3f7a' stroke-width='3' stroke-linecap='round'/>"
-    b += shaded(ellipse_d(0, -15, 14, 14), "#e85d75", shade=0.45, rim=0.45)
-    b += shaded(ellipse_d(0, -15, 10, 10), "#fbf8ff", shade=0.2, rim=0.2, sw=0.6)
-    b += "<path d='M0,-15 L0,-22 M0,-15 L5,-12' stroke='#2b2945' stroke-width='2' stroke-linecap='round'/>"
-    add("pickup_clock", -18, -38, 36, 44, b)
-
+        b += flat(ellipse_d(x, -30, 5.5, 5.5), "#f6c86a")
+    b += "<path d='M-8,-2 L-11,3 M8,-2 L11,3' stroke='#4a3f7a' stroke-width='3'/>"
+    ck = ellipse_d(0, -15, 14, 14)
+    b += flat(ck, "#e85d75") + clipped(ck, flat("M4,-32 L16,-32 L16,2 L4,2 Z", "#b83a56"))
+    b += flat(ellipse_d(0, -15, 9.5, 9.5), "#fbf8ff")
+    b += "<path d='M0,-14 L0,-22 M0,-14 L5,-11' stroke='#2b2945' stroke-width='2.4'/>"
+    add("pickup_clock", -18, -38, 36, 44, b, flat=True)
 
 # --- Dibujos infantiles de los logros / Children's drawings for achievements ---------
 # Hoja de papel algo torcida con trazos de cera; van pegados en la pared de la habitación.
