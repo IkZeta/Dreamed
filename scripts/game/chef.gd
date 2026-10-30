@@ -20,7 +20,8 @@ const WAKE_TIME := 2.6
 const PAN_RANGE := 160.0
 const PAN_DAMAGE := 4.0
 const PAN_ROOT := 0.5
-const KNIFE_SPEED := 560.0
+const KNIFE_SPEED := 820.0
+const KNIFE_WINDUP := 0.45   # lo que tarda en echar el brazo atrás / how long the arm swings back
 const LAND := Vector2(1330, 440)   # donde aterriza al salir de la tele (lienzo del salón) / where he lands (room canvas)
 
 var _wake := WAKE_TIME
@@ -193,13 +194,13 @@ func _act(delta: float) -> void:
 			elif t > 0.95:
 				_end_attack()
 		"knives":
-			if t < 0.7:
-				_arm_back = lerpf(0.0, 2.3, t / 0.7)
+			if t < KNIFE_WINDUP:
+				_arm_back = lerpf(0.0, 2.3, t / KNIFE_WINDUP)
 			elif not _atk.has("done"):
 				_atk["done"] = true
 				_arm_back = -1.4
 				_throw_knives()
-			elif t > 1.0:
+			elif t > KNIFE_WINDUP + 0.3:
 				_end_attack()
 		"plates":
 			var n: int = _atk["n"]
@@ -337,10 +338,10 @@ func _draw_attack_warnings() -> void:
 				draw_arc(Vector2.ZERO, PAN_RANGE * k, -PI / 2.0 if _facing > 0 else PI / 2.0, PI / 2.0 if _facing > 0 else 3.0 * PI / 2.0, 16, Color(col, 0.7), 3.0)
 				draw_set_transform(Vector2.ZERO)
 		"knives":
-			if t < 0.7:
+			if t < KNIFE_WINDUP:
 				var from := _hand_from() - global_position
 				for dir: Vector2 in _atk["dirs"]:
-					EnemyShot.draw_warning(self, from, dir, EnemyShot.reach(run, _hand_from(), dir, 900.0), 16.0, t / 0.7)
+					EnemyShot.draw_warning(self, from, dir, EnemyShot.reach(run, _hand_from(), dir, 900.0), 16.0, t / KNIFE_WINDUP)
 
 
 func _draw_chef(offset: Vector2, s: float, tint: Color, a: float) -> void:
