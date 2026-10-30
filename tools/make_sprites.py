@@ -1623,54 +1623,92 @@ def living_room():
 
 
 def charo_body(small):
-    """Kioskera Charo: anciana bajita y redondita, con gafas, permanente gris y rebeca.
-    Kiosk lady Charo: a short, round old woman with glasses, a grey perm and a cardigan."""
-    skin, shade_c = "#f0cdb6", "#cfa898"
+    """Kioskera Charo en pixel art de verdad (modo flat): anciana bajita y redondita, con gafas
+    redondas y cadenita, permanente gris, pendientes de perla, coloretes, rebeca morada abierta,
+    vestido rosa de flores y el delantal verde del kiosco.
+    Kiosk lady Charo in real pixel art (flat mode): a short, round old woman with round glasses on
+    a chain, a grey perm, pearl earrings, rosy cheeks, an open purple cardigan, a pink floral
+    dress and the kiosk's green apron."""
+    D1, D2, D3, FLW = "#a85a7a", "#d98aa6", "#f0b0c8", "#fbe8f0"
+    C1, C2, C3 = "#4f4290", "#6a5aa8", "#8a7ac8"
+    A1, A2, A3 = "#2f7e72", "#4fa89a", "#7fd0c0"
+    K1, K2 = "#4a2850", "#6a3a6e"
+    S, S1, CHEEK = "#f0cdb6", "#cfa898", "#f0a0a8"
+    H1, H2, H3 = "#a8a4be", "#d8d4e6", "#f4f2fa"
+    ST, ST1, SHO = "#d9b8a8", "#b8988a", "#5a3a2e"
+    FR, GOLD = "#7a2e4a", "#e0b860"
     b = ""
+    # Medias y zapatos / Stockings and shoes
     for x in (84, 104):
-        b += shaded("M%g,240 L%g,240 L%g,278 L%g,278 Z" % (x, x + 14, x + 14, x), "#d9b8a8", shade=0.35, rim=0.3)
-        b += shaded(ellipse_d(x + 7, 282, 12, 6), "#5a3a2e", shade=0.3, rim=0.4)
+        b += flat("M%g,240 L%g,240 L%g,278 L%g,278 Z" % (x, x + 13, x + 13, x), ST) + flat("M%g,240 L%g,240 L%g,278 L%g,278 Z" % (x + 9, x + 13, x + 13, x + 9), ST1)
+        b += flat(ellipse_d(x + 7, 282, 11, 6), SHO) + flat("M%g,279 L%g,279 L%g,281 L%g,281 Z" % (x + 1, x + 7, x + 7, x + 1), "#8a5a46")
     # Falda / Skirt
-    b += shaded("M58,186 L142,186 L152,248 L48,248 Z", "#6a3a6e", shade=0.45, rim=0.35)
-    # Vestido de flores y barriguita / Floral dress and round tummy
-    dots = "".join("<circle cx='%g' cy='%g' r='2.6' fill='#fbe8f0'/>" % (70 + (k * 17) % 62, 120 + (k * 23) % 70) for k in range(14))
-    b += shaded("M80,104 L120,104 Q162,126 162,172 Q162,204 136,206 L64,206 Q38,204 38,172 Q38,126 80,104 Z", "#d98aa6", shade=0.5, rim=0.4, extra=dots)
+    b += flat("M58,186 L142,186 L152,248 L48,248 Z", K2) + flat("M126,186 L142,186 L152,248 L134,248 Z", K1)
+    # Rebeca que envuelve todo el cuerpo (redondita) / Cardigan wrapping the whole (round) body
+    body = "M80,102 L120,102 Q162,124 162,172 Q162,204 136,206 L64,206 Q38,204 38,172 Q38,124 80,102 Z"
+    b += flat(body, C2)
+    b += flat("M126,110 Q162,128 162,172 Q162,204 136,206 L124,206 Q146,190 146,160 Q146,128 126,110 Z", C1)
+    b += flat("M52,132 Q58,118 72,108 L75,112 Q63,122 58,136 Z", C3)
+    # Vestido de flores asomando por la abertura de delante / Floral dress showing through the front opening
+    b += flat("M89,103 L111,103 L121,206 L79,206 Z", D2) + flat("M104,103 L111,103 L121,206 L112,206 Z", D1)
+    for (fx, fy) in ((95, 118), (104, 132), (92, 146), (108, 160), (97, 176), (112, 190), (88, 196)):
+        b += flat(ellipse_d(fx, fy, 2.6, 2.6), FLW)
+    # Bordes de la rebeca a los lados de la abertura, con botones / Cardigan edges either side of the opening, with buttons
+    b += "<path d='M89,103 L79,206 M111,103 L121,206' stroke='%s' stroke-width='3'/>" % C1
+    for y in (128, 150, 172):
+        b += flat(ellipse_d(85 - (y - 128) * 0.06, y, 2.6, 2.6), "#f4ecdc")
     # Delantal del kiosco con bolsillo / Kiosk apron with a pocket
-    b += shaded("M68,150 L132,150 L138,234 L62,234 Z", "#4fa89a", shade=0.4, rim=0.4,
-                extra="<rect x='84' y='190' width='32' height='18' fill='#3f8a7e'/><path d='M72,150 Q100,140 128,150' fill='none' stroke='#f4ecdc' stroke-width='2'/>")
-    # Rebeca abierta / Open cardigan
-    b += shaded("M78,102 L92,104 L82,204 L50,202 Q36,152 54,116 Z", "#7a6ab8", shade=0.45, rim=0.4)
-    b += shaded("M122,102 L108,104 L118,204 L150,202 Q164,152 146,116 Z", "#6a5aa8", shade=0.45, rim=0.3)
+    b += flat("M68,150 L132,150 L138,234 L62,234 Z", A2) + flat("M120,150 L132,150 L138,234 L126,234 Z", A1)
+    b += flat("M70,152 L76,152 L72,230 L66,230 Z", A3)
+    b += flat("M84,190 L116,190 L116,208 L84,208 Z", A1)
+    b += "<path d='M72,150 Q100,140 128,150' fill='none' stroke='#f4ecdc' stroke-width='2.4'/>"
     # Brazos regordetes con las manos juntas / Chubby arms with hands clasped
-    b += shaded("M50,118 L66,112 L84,166 L68,176 Z", "#7a6ab8", shade=0.4, rim=0.4)
-    b += shaded("M150,118 L134,112 L116,166 L132,176 Z", "#6a5aa8", shade=0.4, rim=0.3)
-    b += shaded(ellipse_d(92, 170, 10, 9), skin, shade=0.3, rim=0.3, sw=0.8) + shaded(ellipse_d(108, 170, 10, 9), shade_c, shade=0.3, rim=0.2, sw=0.8)
+    b += flat("M50,118 L66,112 L84,166 L68,176 Z", C2) + flat("M54,120 L60,118 L74,164 L70,168 Z", C3)
+    b += flat("M150,118 L134,112 L116,166 L132,176 Z", C1)
+    b += flat(ellipse_d(92, 170, 10, 9), S) + flat(ellipse_d(108, 170, 10, 9), S1)
+    b += "<path d='M100,163 L100,177' stroke='%s' stroke-width='2'/>" % S1
     # Cuello y cabeza / Neck and head
-    b += shaded("M92,94 L108,94 L108,108 L92,108 Z", shade_c, shade=0.3, rim=0.1, outline=False)
-    b += shaded(ellipse_d(100, 78, 25, 25), skin, shade=0.45, rim=0.4)
-    b += "<circle cx='84' cy='88' r='5' fill='#f0a0a8' opacity='0.6'/><circle cx='116' cy='88' r='5' fill='#f0a0a8' opacity='0.6'/>"
-    # Permanente gris / Grey perm
+    b += flat("M92,94 L108,94 L108,108 L92,108 Z", S1)
+    b += flat(ellipse_d(100, 78, 25, 25), S)
+    b += flat("M110,56 C120,62 125,70 125,78 C125,92 116,101 104,103 C113,96 118,88 118,78 C118,68 115,61 110,56 Z", S1)
+    b += flat(ellipse_d(84, 89, 5, 4), CHEEK) + flat(ellipse_d(116, 89, 5, 4), CHEEK)
+    # Permanente gris de rizos / Curly grey perm
     for cx_, cy_, r in ((78, 64, 10), (86, 52, 11), (100, 47, 12), (114, 52, 11), (122, 64, 10), (74, 76, 8), (126, 76, 8), (92, 50, 8), (108, 50, 8)):
-        b += shaded(ellipse_d(cx_, cy_, r, r), "#d8d4e6", shade=0.4, rim=0.5, rim_color="#ffffff", sw=0.8)
+        b += flat(ellipse_d(cx_, cy_, r, r), H2)
+    for cx_, cy_, r in ((118, 54, 7), (124, 68, 6), (127, 78, 5)):
+        b += flat(ellipse_d(cx_, cy_, r, r), H1)
+    for cx_, cy_, r in ((84, 48, 4), (97, 42, 4.5), (75, 60, 3.5)):
+        b += flat(ellipse_d(cx_, cy_, r, r), H3)
     # Pendientes de perla / Pearl earrings
-    b += "<circle cx='75' cy='86' r='2.6' fill='#fbf8ff'/><circle cx='125' cy='86' r='2.6' fill='#fbf8ff'/>"
-    # Gafas redondas con cadenita / Round glasses with a little chain
-    b += "<circle cx='91' cy='80' r='8' fill='#dfe6ff' fill-opacity='0.25' stroke='#7a2e4a' stroke-width='2.4'/>"
-    b += "<circle cx='109' cy='80' r='8' fill='#dfe6ff' fill-opacity='0.25' stroke='#7a2e4a' stroke-width='2.4'/>"
-    b += "<path d='M99,80 L101,80' stroke='#7a2e4a' stroke-width='2.4'/>"
-    b += "<path d='M83,82 Q76,100 88,106 M117,82 Q124,100 112,106' fill='none' stroke='#e0b860' stroke-width='1.2'/>"
+    b += flat(ellipse_d(75, 87, 3, 3), "#fbf8ff") + flat(ellipse_d(125, 87, 3, 3), "#fbf8ff")
+    # Gafas redondas con cadenita (en pequeño, solo dos lentes sin cadena)
+    # Round glasses with a little chain (small size: just two lenses, no chain)
     if small:
-        add("charo_small", 30, 34, 140, 258, b, px=PX_KROKER, colors=24, post=charo_face_small)
-    else:
-        add("npc_charo", 30, 34, 140, 258, b, px=PX_NPC, colors=32, post=npc_face(80, "#3a2a30", 1))
+        # Pensado para su tamaño real en la partida (unos 35 x 65 píxeles): rasgos más gruesos
+        # Designed for her real in-game size (about 35 x 65 pixels): chunkier features
+        b += flat(ellipse_d(75, 88, 4.5, 4.5), "#fbf8ff") + flat(ellipse_d(125, 88, 4.5, 4.5), "#fbf8ff")
+        b += flat(ellipse_d(90, 80, 9.5, 9), FR) + flat(ellipse_d(110, 80, 9.5, 9), FR)
+        b += flat(ellipse_d(90, 80, 5.5, 5), "#dfe6ff") + flat(ellipse_d(110, 80, 5.5, 5), "#dfe6ff")
+        b += "<path d='M81,86 Q74,100 86,108 M119,86 Q126,100 114,108' fill='none' stroke='%s' stroke-width='4'/>" % GOLD
+        b += flat(ellipse_d(82, 93, 5, 4), CHEEK) + flat(ellipse_d(118, 93, 5, 4), CHEEK)
+        b += "<path d='M94,96 Q100,100 106,96' fill='none' stroke='#a85a6a' stroke-width='4'/>"
+        add("charo_small", 30, 34, 140, 258, b, px=PX_KROKER, flat=True, post=charo_face_small)
+        return
+    b += "<circle cx='91' cy='80' r='8' fill='none' stroke='%s' stroke-width='2.6'/>" % FR
+    b += "<circle cx='109' cy='80' r='8' fill='none' stroke='%s' stroke-width='2.6'/>" % FR
+    b += "<path d='M99,80 L101,80' stroke='%s' stroke-width='2.6'/>" % FR
+    b += "<path d='M83,82 Q76,100 88,106 M117,82 Q124,100 112,106' fill='none' stroke='%s' stroke-width='1.8'/>" % GOLD
+    add("npc_charo", 30, 34, 140, 258, b, px=PX_NPC, flat=True, post=npc_face(80, "#3a2a30", 1))
 
 
 def charo_face_small(img, to_px):
+    """Ojos de la Charo pequeña: un píxel oscuro en el centro de cada lente.
+    Small Charo's eyes: one dark pixel in the middle of each lens."""
     pix = img.load()
     w, h = img.size
-    for cx in (91, 109):
+    for cx in (90, 110):
         x, y = to_px(cx, 80)
-        x, y = int(x), int(y)
+        x, y = int(round(x - 0.5)), int(round(y - 0.5))
         if 0 <= x < w and 0 <= y < h:
             pix[x, y] = (42, 30, 40, 255)
 
