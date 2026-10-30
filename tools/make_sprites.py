@@ -687,44 +687,51 @@ def sling():
 
 
 def skeleton():
-    bone, shade_c = "#e8e2d4", "#b9b0a0"
-    skull = shaded("M-13,-98 C-13,-108 -6,-113 2,-113 C11,-113 17,-107 17,-98 C17,-92 14,-89 11,-88 L11,-81 L-6,-81 L-6,-88 C-10,-90 -13,-93 -13,-98 Z",
-                   bone, shade=0.5, rim=0.45, deep="#6f6658")
-    for x in (-3, 8):
-        skull += "<path d='%s' fill='#1a1328'/>" % ellipse_d(x, -98, 4.6, 4.8)
-    skull += "<path d='M2,-93 L4,-89 L0,-89 Z' fill='#3a3040'/>"
-    for k in range(4):
-        skull += "<path d='M%.1f,-87 L%.1f,-81.5' stroke='#3a3040' stroke-width='1.1'/>" % (-3 + k * 4.5, -3 + k * 4.5)
-    skull += "<path d='M-8,-107 Q-2,-111 6,-110' fill='none' stroke='#ffffff' stroke-width='1.8' opacity='0.6' stroke-linecap='round'/>"
-    add("skel_skull", -16, -116, 36, 38, skull)
-    ribs = "<path d='M0,-84 L0,-44' stroke='%s' stroke-width='4.5' stroke-linecap='round'/>" % shade_c
-    for k in range(4):
-        y = -78 + k * 8
-        r = 13 - k * 1.5
+    """Esqueleto en pixel art de verdad (modo flat): cráneo grande y redondo de dibujo animado,
+    cuencas negras (los ojos brillan en el juego), dientes, costillas y huesos en tres tonos.
+    Skeleton in real pixel art (flat mode): a big round cartoon skull, black sockets (the eyes
+    glow in game), teeth, ribs and bones in three tones."""
+    B1, B2, B3, B4 = "#8f8574", "#c4b9a5", "#ece5d4", "#fffaf0"
+    HOLE = "#1a1328"
+    # --- Cráneo / Skull ---
+    k = flat(ellipse_d(2, -103, 17, 16), B3)
+    k += flat("M8,-117 C16,-114 20,-107 19,-99 C18,-93 15,-90 11,-89 C14,-94 15,-102 12,-109 C11,-112 10,-115 8,-117 Z", B2)
+    k += flat("M-12,-108 C-11,-114 -5,-118 1,-119 L1,-115 C-4,-114 -8,-111 -9,-107 Z", B4)
+    k += flat("M-8,-92 L13,-92 L13,-85 C9,-81 -4,-81 -8,-85 Z", B3) + flat("M8,-92 L13,-92 L13,-85 C11,-83 9,-82 7,-82 Z", B2)
+    k += "<path d='M-8,-89 L13,-89' stroke='%s' stroke-width='1.8'/>" % B1
+    k += "".join("<path d='M%g,-88 L%g,-83' stroke='%s' stroke-width='1.6'/>" % (x, x, B1) for x in (-3, 1.5, 6))
+    for x in (-4, 9):
+        k += flat(ellipse_d(x, -102, 5.4, 6), HOLE)
+    k += flat("M2.5,-97 L5,-93 L0,-93 Z", HOLE)
+    add("skel_skull", -20, -124, 44, 48, k, flat=True)
+    # --- Costillas: caja torácica de una pieza con huecos oscuros / Ribs: one-piece ribcage with dark gaps ---
+    r = flat("M-14,-86 Q0,-91 14,-86 L13,-55 Q6,-50 0,-50 Q-6,-50 -13,-55 Z", B3)
+    r += flat("M6,-89 Q11,-88 14,-86 L13,-55 Q10,-52 7,-51 Q9,-70 6,-89 Z", B2)
+    r += flat("M-12,-84 Q-9,-86 -6,-87 L-6,-58 L-11,-57 Z", B4)
+    for y in (-79, -71, -63):
         for sgn in (-1, 1):
-            ribs += ("<path d='M0,%.1f Q%.1f,%.1f %.1f,%.1f' fill='none' stroke='%s' stroke-width='3.4' stroke-linecap='round'/>"
-                     % (y - 2, sgn * r * 1.1, y - 4, sgn * r * 0.9, y + 5, bone))
-            ribs += ("<path d='M0,%.1f Q%.1f,%.1f %.1f,%.1f' fill='none' stroke='#ffffff' stroke-width='1' stroke-linecap='round' opacity='0.5'/>"
-                     % (y - 2.6, sgn * r * 1.0, y - 4.6, sgn * r * 0.7, y + 2))
-    for k in range(5):
-        ribs += "<path d='M-2,%d L2,%d' stroke='%s' stroke-width='1' opacity='0.7'/>" % (-50 - k * 7, -50 - k * 7, "#7d7464")
-    add("skel_ribs", -17, -87, 34, 46, ribs)
-    pelvis = shaded("M-12,-46 Q0,-49 12,-46 L8,-38 Q0,-35 -8,-38 Z", bone, shade=0.5, rim=0.4, deep="#6f6658", sw=0.8)
-    pelvis += "<circle cx='-5' cy='-42' r='1.6' fill='#5a5060'/><circle cx='5' cy='-42' r='1.6' fill='#5a5060'/>"
-    add("skel_pelvis", -14, -50, 28, 17, pelvis)
-    # Hueso de 20 de largo, de (0,0) a (20,0) / A 20-long bone, from (0,0) to (20,0)
-    bn = shaded("M1,-2.6 C-2,-4.6 -3.4,-1 -1.6,0 C-3.4,1 -2,4.6 1,2.6 L19,2.6 C22,4.6 23.4,1 21.6,0 C23.4,-1 22,-4.6 19,-2.6 Z",
-                bone, shade=0.45, rim=0.4, deep="#6f6658", sw=0.7)
-    add("skel_bone", -4, -5, 28, 10, bn)
+            r += "<path d='M%g,%g Q%g,%g %g,%g' fill='none' stroke='%s' stroke-width='2.4'/>" % (sgn * 3, y, sgn * 9, y - 2, sgn * 13, y + 3, HOLE)
+    r += flat("M-1.8,-88 L1.8,-88 L1.8,-46 L-1.8,-46 Z", B2)
+    r += "".join("<path d='M-2,%d L2,%d' stroke='%s' stroke-width='1.4'/>" % (yy, yy, B1) for yy in range(-50, -86, -6))
+    add("skel_ribs", -18, -90, 36, 50, r, flat=True)
+    # --- Pelvis ---
+    pv = flat("M-12,-47 Q0,-50 12,-47 L8,-38 Q0,-35 -8,-38 Z", B3) + flat("M5,-48 Q9,-48 12,-47 L8,-38 Q6,-37 4,-37 Z", B2)
+    pv += flat(ellipse_d(-5, -42, 2, 2), HOLE) + flat(ellipse_d(5, -42, 2, 2), HOLE)
+    add("skel_pelvis", -15, -52, 30, 20, pv, flat=True)
+    # --- Hueso de 20 de largo, de (0,0) a (20,0) / A 20-long bone, from (0,0) to (20,0) ---
+    bone_d = "M1,-2.8 C-2,-5 -3.6,-1 -1.8,0 C-3.6,1 -2,5 1,2.8 L19,2.8 C22,5 23.6,1 21.8,0 C23.6,-1 22,-5 19,-2.8 Z"
+    bn = flat(bone_d, B3) + flat("M1,1 L19,1 L19,2.8 C21,4 22.5,3 22.5,2 L22,2.8 L1,2.8 C-1,4 -2.5,3 -2.5,2 Z", B2)
+    add("skel_bone", -5, -6, 30, 12, bn, flat=True)
+    # --- Montón de huesos / Bone pile ---
     pile = ""
-    for k in range(6):
-        ang = k * 1.1
+    for n in range(6):
+        ang = n * 1.1
         cx, cy = math.cos(ang) * 14, -4 + math.sin(ang) * 4
         a = math.degrees(ang * 2)
         pile += "<g transform='translate(%.1f,%.1f) rotate(%.1f) translate(-10,0)'>%s</g>" % (cx, cy, a, bn)
-    pile += shaded(ellipse_d(4, -12, 11, 10), bone, shade=0.5, rim=0.4, deep="#6f6658")
-    pile += "<circle cx='1' cy='-12' r='3' fill='#1a1328'/><circle cx='8' cy='-12' r='3' fill='#1a1328'/>"
-    add("skel_pile", -28, -26, 56, 34, pile)
+    pile += flat(ellipse_d(4, -13, 11, 10), B3) + flat("M9,-21 C13,-19 15,-15 14,-11 C13,-8 11,-6 8,-5 C10,-9 11,-14 9,-21 Z", B2)
+    pile += flat(ellipse_d(0.5, -13, 3, 3.2), HOLE) + flat(ellipse_d(8, -13, 3, 3.2), HOLE)
+    add("skel_pile", -29, -27, 58, 36, pile, flat=True)
 
 
 # --- Jefe: muebles / Boss: furniture ----------------------------------------------

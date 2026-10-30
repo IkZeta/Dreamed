@@ -102,8 +102,8 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 		_bone(base, el, el + Vector2(16, -2 + walk * 3.0), mod)
 	draw_set_transform_matrix(base)
 	Sprites.draw(self, "skel_skull", mod)
-	for x in [-3.0, 8.0]:
-		draw_rect(Rect2(x - 1.5, -99.5, 3, 3), Color(EYES, a))
+	for x in [-4.0, 9.0]:
+		draw_rect(Rect2(x - 1.5, -103.5, 3, 3), Color(EYES, a))
 
 
 ## Un hueso de p1 a p2 (el sprite mide 20) / A bone from p1 to p2 (the sprite is 20 long)
@@ -133,4 +133,4 @@ func _ellipse(c: Vector2, r: Vector2, n := 18) -> PackedVector2Array:
 
 
 func head_top() -> Vector2:
-	return Vector2(2 * _facing, -112) if not _pile else Vector2(4 * _facing, -22)
+	return Vector2(2 * _facing, -120) if not _pile else Vector2(4 * _facing, -22)
