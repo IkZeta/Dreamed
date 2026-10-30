@@ -265,12 +265,12 @@ func save_progress() -> void:
 	cfg.set_value("achievements", "stats", stats)
 	cfg.set_value("achievements", "achieved", achieved)
 	cfg.set_value("friends", "levels", friendship)
-	cfg.save(PATH)
+	cfg.save(Demo.save_path(PATH))
 
 
 func load_progress() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(PATH) != OK:
+	if cfg.load(Demo.save_path(PATH)) != OK:
 		return
 	kills = cfg.get_value("bestiary", "kills", {})
 	cleared = cfg.get_value("acts", "cleared", {})

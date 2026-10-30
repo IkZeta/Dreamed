@@ -83,6 +83,7 @@ func _build() -> void:
 	_god = Button.new()
 	_god.custom_minimum_size = Vector2(300, 64)
 	_god.pressed.connect(_open_god)
+	_god.visible = not Demo.on()   # solo para pruebas / testing only
 	footer.add_child(_god)
 	_update_god_button()
 	var gap2 := Control.new()

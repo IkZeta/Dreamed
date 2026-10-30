@@ -102,6 +102,7 @@ func _ready() -> void:
 	unlock.text = "BESTIARY_UNLOCK_ALL"
 	unlock.custom_minimum_size = Vector2(0, 56)
 	unlock.pressed.connect(_unlock_all)
+	unlock.visible = not Demo.on()   # solo para pruebas / testing only
 	_list.add_child(unlock)
 	var back := Button.new()
 	back.text = "BTN_BACK"

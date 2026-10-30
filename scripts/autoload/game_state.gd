@@ -188,6 +188,8 @@ var god_upgrades2 := {}         # mejoras de la segunda arma / second weapon's u
 func start_run() -> void:
 	reset_run()
 	clear_saved_run()
+	if Demo.on():
+		god_mode = false
 	if god_mode:
 		dream_depth = clampi(god_depth, 1, WAVES.size())
 		upgrades = god_upgrades.duplicate()
@@ -206,7 +208,10 @@ func start_run() -> void:
 ## --- Continuar partida / Continue a run ---------------------------------------------
 ## Al empezar cada sueño se guarda cómo estaba todo; "Continuar" vuelve a ese momento.
 ## At the start of every dream the state is saved; "Continue" goes back to that moment.
-const RUN_SAVE := "user://run.cfg"
+const RUN_SAVE_BASE := "user://run.cfg"
+var RUN_SAVE: String:
+	get:
+		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
 	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped"]
 

@@ -32,3 +32,7 @@ locale/fallback="en"
 [rendering]
 
 anti_aliasing/quality/msaa_2d=2
+
+[dreamed]
+
+demo=false

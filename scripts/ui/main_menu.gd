@@ -83,10 +83,12 @@ func _build() -> void:
 	_bestiary = _entry(col, "MENU_BESTIARY", _on_bestiary)
 	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
-	_unlock = _entry(col, "MENU_UNLOCK_ALL", _on_unlock_all)
+	# Solo para pruebas: la demo no lo lleva / Testing only: not in the demo
+	if not Demo.on():
+		_unlock = _entry(col, "MENU_UNLOCK_ALL", _on_unlock_all)
 	_entry(col, "MENU_QUIT", _on_quit)
 
-	var version := UITheme.label("V 1.4", 16, Color(UITheme.ASH, 0.6), "caps")
+	var version := UITheme.label("V 1.4" + (" DEMO" if Demo.on() else ""), 16, Color(UITheme.ASH, 0.6), "caps")
 	version.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	add_child(version)
 	version.set_anchors_and_offsets_preset(PRESET_BOTTOM_LEFT, PRESET_MODE_MINSIZE, 40)
