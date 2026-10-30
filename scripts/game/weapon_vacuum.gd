@@ -14,10 +14,10 @@ extends Weapon
 ##  Stolk   — Turbo: +"pct" % de alcance, fuerza y daño.
 ##  Silly   — Error de memoria: lo absorbido recibe +"pct" % de daño durante "secs" segundos.
 
-const RANGE := 300.0
+const RANGE := 320.0
 const CONE := 0.42        # medio ángulo en radianes (~24°) / half angle in radians
 const PULL := 170.0       # px/s hacia Kroker / toward Kroker
-const DPS := 11.0
+const DPS := 13.0
 const TICK := 0.25
 
 var _tick := 0.0

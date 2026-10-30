@@ -14,14 +14,14 @@ extends Weapon
 ##  Doc    — vida máxima a cambio de −"pct" % de duración de la pelusa.
 
 const RANGE := 135.0
-const DAMAGE := 7.0
+const DAMAGE := 5.0
 const KNOCKBACK := 90.0
 const JUMP_RANGE := 240.0
 const FLUFF := Color("f4e9da")
 
 
 func _init() -> void:
-	cooldown = 0.85
+	cooldown = 0.7
 
 
 func attack() -> bool:

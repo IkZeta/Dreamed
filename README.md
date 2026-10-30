@@ -44,10 +44,10 @@ Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza
 
 | Pijama | Arma | Cómo ataca | Bonificación de serie |
 |---|---|---|---|
-| **El Bateador** | Bate | Golpe cuerpo a cuerpo al enemigo más cercano | +30 % de ataque y 3 de regeneración |
-| **El Guardián** | Escudo-almohada | Poco daño, pero empuja mucho en cono | +3 de defensa y 3 de regeneración |
-| **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −10 de suerte y 5 % de robo de salud |
-| **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña | +25 % de velocidad y 5 % de robo de salud |
+| **El Bateador** | Bate | Golpe cuerpo a cuerpo al enemigo más cercano | +20 % de ataque y 3 de regeneración |
+| **El Guardián** | Escudo-almohada | Poco daño, pero empuja mucho en cono | +4 de defensa, +5 de vida máxima, 5 de regeneración y algo más lento |
+| **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −15 de suerte, −5 de vida máxima y 5 % de robo de salud |
+| **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña | +25 % de velocidad, +5 de vida máxima y 5 % de robo de salud |
 | **El Pistolero** | Pistola de dedos | Rayos láser con un efecto al azar: normal, atraviesa, empuja (puede tirarlos por los agujeros), crítico x1,75, rebota hacia otro enemigo... o sale hacia atrás. La suerte hace más probables los buenos | +10 de suerte y 5 % de robo de salud |
 | **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: daño moderado y cada pelusa lo frena (dura 8 s). Los enemigos con pelusa que se tocan se quedan pegados y las bolas van creciendo, cada vez más lentas; una bola de 5 se aplasta y mueren todos | +6 de vida máxima y 3 de regeneración |
 

@@ -1,20 +1,20 @@
 class_name WeaponBat
 extends Weapon
-## Bate: golpe simple cuerpo a cuerpo al enemigo más cercano. (+30 % de ataque en Kroker)
-## Bat: a simple melee strike on the nearest enemy. (+30% attack on Kroker)
+## Bate: golpe simple cuerpo a cuerpo al enemigo más cercano. (+20 % de ataque en Kroker)
+## Bat: a simple melee strike on the nearest enemy. (+20% attack on Kroker)
 ##
 ## Mejoras (valores por nivel en GameState.UPGRADE_VALUES) / Upgrades (per-level values there):
 ##  Svinho — Carambola: el golpeado sale volando y golpea a "chain" enemigos más.
 ##  Stolk  — Bate de matón: +"pct" % de daño.
 ##  Silly  — Golpe corrupto: "chance" % de congelar "secs" segundos.
 
-const RANGE := 125.0
+const RANGE := 115.0
 const DAMAGE := 10.0
 const KNOCKBACK := 160.0
 
 
 func _init() -> void:
-	cooldown = 0.75
+	cooldown = 0.6
 
 
 func attack() -> bool:

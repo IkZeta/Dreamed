@@ -10,7 +10,7 @@ extends Weapon
 ##  Stolk   — Almohada de piedra: +"pct" % de daño y +"push" % de empuje.
 ##  Silly   — Desfase: "chance" % de dejar al enemigo a cámara lenta "secs" segundos.
 
-const RANGE := 115.0
+const RANGE := 100.0
 const DAMAGE := 4.0
 const KNOCKBACK := 720.0
 const CONE := 1.0  # medio ángulo en radianes / half angle in radians
@@ -23,7 +23,7 @@ var _projectile: Node2D
 
 
 func _init() -> void:
-	cooldown = 0.95
+	cooldown = 0.75
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -35,7 +35,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func toggle_mode() -> void:
 	throw_mode = not throw_mode
 	player.armor += -THROW_ARMOR_LOSS if throw_mode else THROW_ARMOR_LOSS
-	cooldown = uv("svinho", "cd") if throw_mode else 0.95
+	cooldown = uv("svinho", "cd") if throw_mode else 0.75
 	run.hud.set_special_mode(throw_mode)
 	run.fx.ring(origin(), 34.0, UITheme.GOLD, 0.4, 1.8)
 	Audio.play("chime", -8.0)

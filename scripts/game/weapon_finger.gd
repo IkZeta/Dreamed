@@ -15,8 +15,8 @@ extends Weapon
 ##  Silly  — Láser corrupto: "chance" % de ralentizar "secs" segundos.
 ##  Doc    — vida máxima a cambio de +"pct" % de recarga.
 
-const RANGE := 520.0
-const DAMAGE := 4.5
+const RANGE := 450.0
+const DAMAGE := 4.0
 const CRIT := 1.75
 ## Probabilidad base de cada tipo de disparo / Base weight of each kind of shot
 const KINDS := {"normal": 40.0, "pierce": 12.0, "push": 12.0, "crit": 12.0, "back": 12.0, "bounce": 12.0}
@@ -26,11 +26,11 @@ const COLORS := {"normal": Color("ff5f7a"), "pierce": Color("5ff2ff"), "push": C
 
 
 func _init() -> void:
-	cooldown = 0.55
+	cooldown = 0.6
 
 
 func _ready() -> void:
-	cooldown = 0.55 * (1.0 + uv("doc", "pct") / 100.0)
+	cooldown = 0.6 * (1.0 + uv("doc", "pct") / 100.0)
 
 
 ## Elige el efecto del disparo. La suerte sube los especiales y baja el "hacia atrás".
