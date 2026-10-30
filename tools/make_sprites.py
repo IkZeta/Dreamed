@@ -849,17 +849,39 @@ def boss():
         sh += flat("M-56,%g L56,%g L56,%g L-56,%g Z" % (bot + 3, bot + 3, bot + 6, bot + 6), W1)
     add("boss_shelf", -66, -177, 132, 180, sh, flat=True)
 
-    # Baúl de juguetes: caja y tapa / Toy chest: box and lid
-    box = shaded("M-60,-66 L60,-66 L60,0 L-60,0 Z", "#c0a0dc", shade=0.45, rim=0.45, sw=1.2)
-    box += shaded("M-60,-18 L60,-18 L60,0 L-60,0 Z", "#9e7fbf", shade=0.3, rim=0.2, sw=0.8)
-    box += "<path d='%s' fill='#f6d993' stroke='#c9a24e' stroke-width='1'/>" % star_d(0, -30, 11)
-    for x in (-44, 44):
-        box += shaded("M%g,-66 L%g,-66 L%g,0 L%g,0 Z" % (x - 4, x + 4, x + 4, x - 4), "#8f6aae", shade=0.3, rim=0.3, sw=0.6)
-    add("boss_chest_box", -63, -69, 126, 72, box)
-    lid = shaded("M-63,-16 Q0,-22 63,-16 L63,2 L-63,2 Z", "#a87fbf", shade=0.4, rim=0.5, sw=1.1)
-    lid += "<path d='M-60,-6 Q0,-11 60,-6' fill='none' stroke='#d7bdea' stroke-width='1.6' opacity='0.7'/>"
-    add("boss_chest_lid", -66, -24, 132, 28, lid)
-
+    # Baúl de juguetes en pixel art plano: tablones lilas, cantoneras metálicas con remaches,
+    # cierre dorado arriba y pegatinas de niño (cohete y corazón). Los ojos van en el frente.
+    # Toy chest in flat pixel art: lilac planks, riveted metal corners, a golden latch at the top
+    # and kid's stickers (a rocket and a heart). The eyes go on the front.
+    P0, P1, P2, P3 = "#5a3f86", "#8a68b8", "#b294d8", "#d2baf0"
+    MT, MT1, GOLD, GOLD1 = "#cfd6f6", "#8f96c4", "#f6d993", "#c9a24e"
+    box = flat("M-60,-66 L60,-66 L60,0 L-60,0 Z", P2)
+    box += flat("M48,-66 L60,-66 L60,0 L48,0 Z", P1)
+    for y in (-46, -24):
+        box += flat("M-60,%g L60,%g L60,%g L-60,%g Z" % (y, y, y + 2.6, y + 2.6), P1)
+    box += flat("M-56,-64 L-40,-64 L-40,-60 L-56,-60 Z", P3)
+    box += flat("M-60,-8 L60,-8 L60,0 L-60,0 Z", P0)
+    for x in (-60, 50):
+        box += flat("M%g,-66 L%g,-66 L%g,0 L%g,0 Z" % (x, x + 10, x + 10, x), MT1)
+        box += flat("M%g,-66 L%g,-66 L%g,0 L%g,0 Z" % (x + 1, x + 5, x + 5, x + 1), MT)
+        for y in (-58, -32, -8):
+            box += flat(ellipse_d(x + 5, y, 2, 2), P0)
+    # Cierre / Latch
+    box += flat("M-8,-66 L8,-66 L8,-54 L0,-50 L-8,-54 Z", GOLD) + flat("M2,-66 L8,-66 L8,-54 L2,-52 Z", GOLD1)
+    box += flat(ellipse_d(0, -59, 2, 2.4), P0)
+    # Pegatinas: cohete y corazón / Stickers: rocket and heart
+    box += flat("M-36,-14 L-30,-30 L-24,-14 Z", "#f2f2ff") + flat("M-33,-22 L-27,-22 L-27,-19 L-33,-19 Z", "#5fb8ff")
+    box += flat("M-36,-14 L-38,-10 L-34,-14 Z M-24,-14 L-22,-10 L-26,-14 Z", "#e2434f")
+    box += flat("M30,-22 C30,-27 37,-27 37,-22 C37,-27 44,-27 44,-22 C44,-17 37,-13 37,-12 C37,-13 30,-17 30,-22 Z", "#ff7fa8")
+    add("boss_chest_box", -63, -69, 126, 72, box, flat=True)
+    lid = flat("M-63,-16 Q0,-24 63,-16 L63,2 L-63,2 Z", P2)
+    lid += flat("M50,-17 Q57,-17 63,-16 L63,2 L50,2 Z", P1)
+    lid += flat("M-63,-4 L63,-4 L63,2 L-63,2 Z", P0)
+    lid += flat("M-56,-16 Q-20,-21 20,-20 L20,-17 Q-20,-18 -56,-13 Z", P3)
+    for x in (-63, 53):
+        lid += flat("M%g,-17 L%g,-17 L%g,2 L%g,2 Z" % (x, x + 10, x + 10, x), MT1) + flat("M%g,-17 L%g,-17 L%g,2 L%g,2 Z" % (x + 1, x + 5, x + 5, x + 1), MT)
+    lid += flat("M-8,-4 L8,-4 L8,2 L-8,2 Z", GOLD)
+    add("boss_chest_lid", -66, -26, 132, 30, lid, flat=True)
 
 # --- Proyectiles / Projectiles --------------------------------------------------------
 
@@ -1824,33 +1846,41 @@ def charo_kiosk(px, name):
 
 
 def act2_enemies():
-    # Mosquito: diminuto, a rayas, con trompa; las alas se dibujan en el juego
-    # Mosquito: tiny and striped, with a proboscis; the wings are drawn in game
+    # Mosquito en pixel art plano: abdomen a rayas, tórax, cabeza con ojo rojo, trompa larga y
+    # patas finas colgando; las alas se dibujan en el juego.
+    # Mosquito in flat pixel art: striped abdomen, thorax, head with a red eye, long proboscis and
+    # thin dangling legs; the wings are drawn in game.
+    D0, D1, D2, ST = "#1e1834", "#3a2e5a", "#5a4a86", "#a898d8"
     b = ""
-    for lx, ly in ((-2, -27), (2, -27), (5, -28)):
-        b += "<path d='M%g,%g L%g,%g L%g,%g' fill='none' stroke='#2a2040' stroke-width='1.6'/>" % (lx, ly, lx - 4, ly + 5, lx - 5, ly + 9)
-    stripes = "".join("<rect x='%g' y='-34' width='2.4' height='10' fill='#9a8ac8' opacity='0.8'/>" % x for x in (-14, -10, -6))
-    b += "<g transform='rotate(-12 -8 -29)'>%s</g>" % shaded(ellipse_d(-9, -29, 10, 4.6), "#4a3a66", shade=0.4, rim=0.5, sw=0.8, extra=stripes)
-    b += shaded(ellipse_d(2, -31, 5, 4.4), "#3a2e52", shade=0.35, rim=0.5, sw=0.8)
-    b += shaded(ellipse_d(8, -33, 3.6, 3.4), "#3a2e52", shade=0.3, rim=0.5, sw=0.7)
-    b += "<circle cx='9.5' cy='-34' r='1.6' fill='#ff5a7a'/>"
-    b += "<path d='M11,-32.5 L21,-28' stroke='#2a2040' stroke-width='1.4' stroke-linecap='round'/>"
-    add("mosquito_body", -22, -40, 46, 24, b)
+    for lx, ly in ((-3, -27), (1, -27), (5, -28)):
+        b += "<path d='M%g,%g L%g,%g L%g,%g' fill='none' stroke='%s' stroke-width='2.4'/>" % (lx, ly, lx - 4, ly + 6, lx - 6, ly + 10, D0)
+    ab = "".join(flat("M%g,-32.5 L%g,-32.5 L%g,-25.5 L%g,-25.5 Z" % (x, x + 2.6, x + 2.6, x), ST) for x in (-14, -7))
+    b += "<g transform='rotate(-12 -8 -29)'>%s%s%s</g>" % (flat(ellipse_d(-9, -29, 10, 5), D1), ab, flat("M-18,-28 C-14,-25 -6,-24 1,-26 L1,-24 C-6,-22 -14,-23 -18,-28 Z", D0))
+    b += flat(ellipse_d(2, -31, 5.4, 4.8), D2) + flat("M-1,-28 C1,-27 4,-27 7,-29 L7,-27 C4,-25 0,-25 -1,-28 Z", D1)
+    b += flat(ellipse_d(8, -33, 4, 3.8), D1)
+    b += flat(ellipse_d(9.5, -34, 2.2, 2.2), "#ff5a7a")
+    b += "<path d='M11,-32 L22,-27' stroke='%s' stroke-width='2.4'/>" % D0
+    add("mosquito_body", -22, -40, 48, 26, b, flat=True)
 
-    # Nido: montículo de barro y papel con agujeros de los que salen / Nest: mound of mud and paper with holes they come out of
+    # Nido en pixel art plano: montículo de barro y papel mascado por capas, con agujeros oscuros
+    # de los que salen los mosquitos y manchas de musgo.
+    # Nest in flat pixel art: a mound of mud and chewed paper in layers, with dark holes the
+    # mosquitoes come out of and patches of moss.
+    N0, N1, N2, N3 = "#3a2638", "#6a4a62", "#8e6c84", "#b08ea4"
+    HOLE, MOSS, MOSS1 = "#140c1a", "#6fbf98", "#3f8a6a"
     mound = "M-36,0 Q-40,-20 -22,-34 Q-4,-48 14,-40 Q36,-30 36,-8 Q36,0 30,2 L-30,2 Q-36,2 -36,0 Z"
-    rings = ""
+    b = flat(mound, N2)
+    b += flat("M14,-40 Q36,-30 36,-8 Q36,0 30,2 L18,2 Q28,-14 14,-40 Z", N1)
+    b += flat("M-22,-34 Q-4,-48 14,-40 Q-2,-42 -20,-30 Z", N3)
     for k, y in enumerate((-30, -20, -10)):
-        rings += "<path d='M%g,%g Q0,%g %g,%g' fill='none' stroke='#5a4458' stroke-width='2.2' opacity='0.7'/>" % (-30 + k * -2, y + 2, y - 6, 30 + k * 2, y + 2)
-    b = "<path d='%s' fill='#000000' opacity='0.25'/>" % ellipse_d(0, 2, 40, 7)
-    b += shaded(mound, "#8a6a7a", shade=0.5, rim=0.4, deep="#4a3048", extra=rings)
-    for hx, hy, r in ((-14, -18, 5), (8, -28, 4.5), (16, -10, 5.5)):
-        b += "<path d='%s' fill='#1a1020'/>" % ellipse_d(hx, hy, r, r * 0.8)
-        b += "<path d='M%g,%g A%g,%g 0 0 1 %g,%g' fill='none' stroke='#c9a8b8' stroke-width='1.4' opacity='0.8'/>" % (hx - r, hy, r, r * 0.8, hx + r, hy)
-    for mx, my in ((-30, -4), (-24, -12), (26, -2), (30, -14)):
-        b += "<circle cx='%g' cy='%g' r='4' fill='#5fa88a' opacity='0.9'/>" % (mx, my)
-    add("nest_body", -42, -50, 84, 60, b, colors=14)
-
+        b += "<path d='M%g,%g Q0,%g %g,%g' fill='none' stroke='%s' stroke-width='2.6'/>" % (-30 + k * -2, y + 2, y - 6, 30 + k * 2, y + 2, N1)
+    b += flat("M-36,-2 L34,-2 Q36,0 30,2 L-30,2 Q-36,2 -36,-2 Z", N0)
+    for hx, hy, r in ((-14, -18, 5.5), (8, -28, 5), (16, -10, 6)):
+        b += flat(ellipse_d(hx, hy - 1.5, r + 1.5, r * 0.8 + 1), N3)
+        b += flat(ellipse_d(hx, hy + 0.5, r, r * 0.8), HOLE)
+    for mx, my in ((-30, -4), (-25, -12), (26, -3), (30, -14)):
+        b += flat(ellipse_d(mx, my, 4.5, 3.5), MOSS) + flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (mx - 4, my + 1, mx + 4, my + 1, mx + 3, my + 3, mx - 3, my + 3), MOSS1)
+    add("nest_body", -42, -50, 84, 56, b, flat=True)
 
 def dot_painter(points, color):
     """Pinta píxeles sueltos (ojos) / Paints single pixels (eyes)."""
@@ -1869,82 +1899,101 @@ def dot_painter(points, color):
 def cyberpunk():
     """El Cyberpunk: chaqueta negra con luces de neón, cresta rosa y visor.
     The Cyberpunk: black jacket with neon lights, pink mohawk and a visor."""
-    jacket, jdark, neon, neon2, skin = "#262140", "#17142c", "#5ff2ff", "#ff5fd2", "#c9b3d9"
-    body = shaded("M-20,-86 Q0,-90 20,-86 L24,-40 Q0,-36 -24,-40 Z", jacket, shade=0.5, rim=0.5, rim_color="#8fe8ff")
-    body += "<path d='M-20,-84 L-14,-42 M20,-84 L14,-42' stroke='%s' stroke-width='2.2' opacity='0.9'/>" % neon
-    body += "<path d='M-8,-72 L8,-72 M-8,-64 L8,-64' stroke='%s' stroke-width='2' opacity='0.9'/>" % neon2
-    body += shaded("M-24,-46 Q0,-42 24,-46 L24,-38 Q0,-34 -24,-38 Z", jdark, shade=0.3, rim=0.3, sw=0.8)
-    add("cyber_body", -28, -92, 56, 58, body)
-    head = shaded(ellipse_d(0, -102, 15, 16), mix(skin, "#3a2a50", 0.35), shade=0.55, rim=0.3, sw=0.9)
-    head += shaded("M-4,-118 L-2,-134 L2,-130 L4,-138 L7,-128 L9,-134 L8,-116 Z", neon2, shade=0.3, rim=0.5, sw=0.8)
-    head += shaded("M-15,-108 L16,-108 L17,-99 L-15,-99 Z", "#101830", shade=0.2, rim=0.6, rim_color=neon, sw=0.8)
-    head += "<rect x='-12' y='-106' width='26' height='3' fill='%s' opacity='0.9'/>" % neon
-    head += "<path d='M10,-94 L14,-92' stroke='%s' stroke-width='1.6'/>" % neon2
-    add("cyber_head", -20, -140, 40, 58, head)
-    leg = shaded("M-6,-42 L6,-42 L5,-8 Q0,-6 -5,-8 Z", jdark, shade=0.5, rim=0.3, sw=0.8,
-                 extra="<rect x='-6' y='-26' width='12' height='2.4' fill='%s' opacity='0.8'/>" % neon)
-    leg += shaded("M-7,-9 L8,-9 L9,-2 L-7,-2 Z", "#e9e6f2", shade=0.3, rim=0.3, sw=0.7)
-    add("cyber_leg", -10, -45, 20, 45, leg)
-    arm = shaded("M-5,0 L5,0 L4,30 L-4,30 Z", jacket, shade=0.4, rim=0.4, sw=0.8,
-                 extra="<rect x='-5' y='18' width='10' height='3' fill='%s'/>" % neon)
-    arm += shaded(ellipse_d(0, 34, 5, 5), mix(skin, "#3a2a50", 0.35), shade=0.3, rim=0.3, sw=0.7)
-    add("cyber_arm", -8, -3, 16, 44, arm)
-
+    J0, J1, J2, J3 = "#0f0d1e", "#1e1a36", "#2e2850", "#463e72"
+    NEON, NEON2, SK, SK1 = "#5ff2ff", "#ff5fd2", "#a88fbf", "#7a6292"
+    VIS = "#101830"
+    body = flat("M-20,-86 Q0,-90 20,-86 L24,-40 Q0,-36 -24,-40 Z", J2)
+    body += flat("M12,-88 Q17,-87 20,-86 L24,-40 Q20,-39 16,-38 Q18,-62 12,-88 Z", J1)
+    body += flat("M-18,-84 L-12,-84 L-14,-60 L-20,-60 Z", J3)
+    body += "<path d='M-18,-84 L-13,-42 M18,-84 L13,-42' stroke='%s' stroke-width='2.6'/>" % NEON
+    body += "<path d='M-8,-72 L8,-72 M-8,-64 L8,-64' stroke='%s' stroke-width='2.6'/>" % NEON2
+    body += flat("M-2,-88 L2,-88 L2,-44 L-2,-44 Z", J0)
+    body += flat("M-24,-46 Q0,-42 24,-46 L24,-38 Q0,-34 -24,-38 Z", J0)
+    body += flat("M-4,-45 L4,-45 L4,-39 L-4,-39 Z", NEON)
+    add("cyber_body", -28, -92, 56, 58, body, flat=True)
+    head = flat(ellipse_d(0, -102, 15, 16), SK) + flat("M6,-116 C12,-112 15,-106 15,-100 C15,-93 11,-88 6,-87 C9,-92 10,-98 9,-104 C9,-109 8,-113 6,-116 Z", SK1)
+    head += flat("M-6,-116 L-4,-134 L0,-128 L3,-140 L6,-128 L10,-135 L9,-115 Z", NEON2)
+    head += flat("M3,-140 L6,-128 L10,-135 L9,-115 L4,-116 Z", "#c43aa4")
+    head += flat("M-16,-109 L17,-109 L18,-98 L-16,-98 Z", VIS)
+    head += flat("M-13,-106 L15,-106 L15,-102 L-13,-102 Z", NEON)
+    head += "<path d='M9,-93 L14,-91' stroke='%s' stroke-width='2.4'/>" % NEON2
+    add("cyber_head", -20, -144, 40, 62, head, flat=True)
+    leg = flat("M-6,-42 L6,-42 L5,-8 L-5,-8 Z", J1) + flat("M2,-42 L6,-42 L5,-8 L2,-8 Z", J0)
+    leg += flat("M-6,-27 L6,-27 L6,-24 L-6,-24 Z", NEON)
+    leg += flat("M-7,-10 L8,-10 L9,-2 L-7,-2 Z", "#e9e6f2") + flat("M-7,-4 L9,-4 L9,-2 L-7,-2 Z", "#a9a6c8")
+    add("cyber_leg", -10, -45, 20, 45, leg, flat=True)
+    arm = flat("M-5,0 L5,0 L4,30 L-4,30 Z", J2) + flat("M1,0 L5,0 L4,30 L1,30 Z", J1)
+    arm += flat("M-5,18 L5,18 L5,21 L-5,21 Z", NEON)
+    arm += flat(ellipse_d(0, 34, 5, 5), SK)
+    add("cyber_arm", -8, -3, 16, 44, arm, flat=True)
 
 def chef():
     """El Chef: Kroker de mayor, cocinero. Gafas, pelo negro, bigote, gorro alto y delantal.
     The Chef: grown-up Kroker as a cook. Glasses, black hair, moustache, tall hat and apron."""
-    white, shadew, apron, skin, hair = "#f4f1fa", "#b8b0d8", "#5b67c4", "#f1cfbb", "#16141f"
+    W1, W2, W3 = "#a9a6c8", "#dcdaee", "#f8f7ff"
+    A0, A1, A2 = "#2f3a8a", "#4652b0", "#5b68c8"
+    SK, SK1, HAIR, HAIR1 = "#f1cfbb", "#c99a86", "#16141f", "#3a3456"
+    PANT, PANT1, SHOE = "#2b2945", "#3a3866", "#121020"
     # Piernas / Legs
-    leg = shaded("M-11,-64 L11,-64 L10,-10 Q0,-7 -10,-10 Z", "#2b2945", shade=0.45, rim=0.3,
-                 extra="<path d='M-10,-50 L10,-50 M-10,-38 L10,-38' stroke='#3a3866' stroke-width='2'/>")
-    leg += shaded("M-12,-12 L14,-12 L16,-1 L-12,-1 Z", "#121020", shade=0.3, rim=0.4, sw=0.8)
-    add("chef_leg", -16, -67, 34, 68, leg)
-    # Torso: chaqueta cruzada de cocinero y delantal / Torso: double-breasted chef jacket and apron
-    body = shaded("M-34,-158 Q0,-166 34,-158 Q46,-150 44,-134 L40,-60 Q0,-54 -40,-60 L-44,-134 Q-46,-150 -34,-158 Z", white, shade=0.45, rim=0.3, deep="#6c64a8")
-    for y in (-140, -122, -104):
+    leg = flat("M-11,-64 L11,-64 L10,-10 L-10,-10 Z", PANT) + flat("M4,-64 L11,-64 L10,-10 L4,-10 Z", "#211f38")
+    leg += "<path d='M-10,-50 L10,-50 M-10,-38 L10,-38' stroke='%s' stroke-width='2.4'/>" % PANT1
+    leg += flat("M-12,-12 L13,-12 C16,-12 17,-6 16,-1 L-12,-1 Z", SHOE) + flat("M-10,-11 L-2,-11 L-2,-9 L-10,-9 Z", "#3a3456")
+    add("chef_leg", -16, -67, 34, 68, leg, flat=True)
+    # Torso: chaqueta cruzada y delantal / Torso: double-breasted jacket and apron
+    torso = "M-34,-158 Q0,-166 34,-158 Q46,-150 44,-134 L40,-60 Q0,-54 -40,-60 L-44,-134 Q-46,-150 -34,-158 Z"
+    body = flat(torso, W2)
+    body += flat("M26,-160 Q32,-159 34,-158 Q46,-150 44,-134 L40,-60 Q34,-59 28,-58 Q34,-110 26,-160 Z", W1)
+    body += flat("M-38,-150 Q-34,-156 -26,-158 L-26,-152 Q-32,-150 -36,-142 Z", W3)
+    for y in (-140, -122):
         for x in (-12, 12):
-            body += "<circle cx='%d' cy='%d' r='3' fill='#2b2945'/>" % (x, y)
-    body += "<path d='M-26,-158 L0,-142 L26,-158' fill='none' stroke='%s' stroke-width='2.4'/>" % shadew
-    body += shaded("M-30,-112 L30,-112 L34,-56 Q0,-50 -34,-56 Z", apron, shade=0.4, rim=0.3,
-                   extra="<path d='M-30,-112 L30,-112' stroke='#3e4892' stroke-width='3'/><rect x='-12' y='-92' width='24' height='16' fill='#4a55b0'/>")
-    body += "<path d='M-6,-162 Q0,-152 6,-162' fill='none' stroke='#e85d75' stroke-width='4'/>"
-    add("chef_body", -50, -168, 100, 118, body)
+            body += flat(ellipse_d(x, y, 3, 3), "#2b2945")
+    body += "<path d='M-26,-158 L0,-142 L26,-158' fill='none' stroke='%s' stroke-width='2.6'/>" % W1
+    body += flat("M-30,-112 L30,-112 L34,-56 Q0,-50 -34,-56 Z", A2)
+    body += flat("M20,-112 L30,-112 L34,-56 Q28,-55 24,-54 Q26,-80 20,-112 Z", A1)
+    body += flat("M-30,-114 L30,-114 L30,-109 L-30,-109 Z", A0)
+    body += flat("M-12,-92 L12,-92 L12,-76 L-12,-76 Z", A1) + flat("M-12,-92 L12,-92 L12,-89 L-12,-89 Z", A0)
+    body += flat("M-8,-164 Q0,-150 8,-164 L6,-158 Q0,-152 -6,-158 Z", "#e85d75")
+    add("chef_body", -50, -168, 100, 118, body, flat=True)
     # Cabeza con gorro, gafas y bigote / Head with hat, glasses and moustache
-    head = shaded(ellipse_d(0, -190, 26, 28), skin, shade=0.45, rim=0.4)
-    head += shaded("M-27,-196 Q-28,-216 -12,-220 L12,-220 Q28,-216 27,-196 Q22,-206 14,-204 L-14,-204 Q-22,-206 -27,-196 Z", hair, shade=0.4, rim=0.5, rim_color="#8a7aa8", sw=0.8)
-    head += "<path d='M-26,-196 L-26,-184 M26,-196 L26,-184' stroke='%s' stroke-width='4'/>" % hair
+    head = flat(ellipse_d(0, -190, 26, 28), SK)
+    head += flat("M12,-214 C22,-208 27,-198 26,-188 C25,-176 18,-166 8,-163 C15,-172 18,-182 18,-190 C18,-200 16,-208 12,-214 Z", SK1)
+    head += flat("M-27,-196 Q-28,-216 -12,-220 L12,-220 Q28,-216 27,-196 Q22,-206 14,-204 L-14,-204 Q-22,-206 -27,-196 Z", HAIR)
+    head += flat("M-20,-212 Q-14,-218 -4,-218 L-4,-215 Q-13,-215 -18,-209 Z", HAIR1)
+    head += flat("M-28,-196 L-24,-196 L-24,-182 L-28,-182 Z M24,-196 L28,-196 L28,-182 L24,-182 Z", HAIR)
     for cx in (-10, 10):
-        head += "<circle cx='%d' cy='-190' r='8' fill='#dfe6ff' fill-opacity='0.3' stroke='#2b2945' stroke-width='2.6'/>" % cx
-    head += "<path d='M-2,-190 L2,-190' stroke='#2b2945' stroke-width='2.6'/>"
-    head += "<path d='M-14,-174 Q-6,-180 0,-175 Q6,-180 14,-174 Q8,-170 0,-172 Q-8,-170 -14,-174 Z' fill='%s'/>" % hair
-    head += "<path d='M-8,-166 Q0,-162 8,-166' fill='none' stroke='#a3687a' stroke-width='2'/>"
+        head += flat(ellipse_d(cx, -190, 8, 8), "#2b2945") + flat(ellipse_d(cx, -190, 5.6, 5.6), "#e8eeff")
+    head += "<path d='M-3,-190 L3,-190' stroke='#2b2945' stroke-width='2.6'/>"
+    head += flat("M-15,-174 Q-7,-181 0,-176 Q7,-181 15,-174 Q8,-169 0,-171 Q-8,-169 -15,-174 Z", HAIR)
+    head += "<path d='M-7,-166 Q0,-162 7,-166' fill='none' stroke='#a3687a' stroke-width='2.4'/>"
     # Gorro alto / Tall chef's hat
-    hat = shaded("M-22,-222 L22,-222 L24,-208 L-24,-208 Z", white, shade=0.3, rim=0.3, sw=0.9)
-    hat += shaded("M-22,-222 Q-38,-236 -30,-256 Q-20,-276 0,-268 Q20,-278 30,-256 Q38,-236 22,-222 Z", white, shade=0.45, rim=0.4, deep="#8a84b8")
+    hat = flat("M-22,-222 Q-38,-236 -30,-256 Q-20,-276 0,-268 Q20,-278 30,-256 Q38,-236 22,-222 Z", W3)
+    hat += flat("M14,-270 Q24,-272 30,-256 Q38,-236 22,-222 L12,-222 Q30,-240 14,-270 Z", W2)
+    hat += "<path d='M-12,-226 Q-16,-244 -10,-258 M6,-226 Q8,-246 4,-262' fill='none' stroke='%s' stroke-width='2.6'/>" % W2
+    hat += flat("M-22,-224 L22,-224 L24,-208 L-24,-208 Z", W2) + flat("M-22,-224 L22,-224 L22,-220 L-22,-220 Z", W1)
     head = hat + head
-    add("chef_head", -40, -282, 80, 124, head, colors=20, post=dot_painter([(-10, -190), (10, -190)], (42, 30, 40, 254)))
+    add("chef_head", -40, -282, 80, 124, head, flat=True, post=dot_painter([(-10, -190), (10, -190)], (42, 30, 40, 254)))
     # Brazo con la mano / Arm with the hand
-    arm = shaded("M-8,0 L8,0 L7,50 L-7,50 Z", white, shade=0.45, rim=0.3, deep="#6c64a8")
-    arm += shaded(ellipse_d(0, 56, 8, 8), skin, shade=0.35, rim=0.3, sw=0.8)
-    add("chef_arm", -12, -4, 24, 70, arm)
+    arm = flat("M-8,0 L8,0 L7,50 L-7,50 Z", W2) + flat("M3,0 L8,0 L7,50 L3,50 Z", W1)
+    arm += flat("M-8,44 L8,44 L7,50 L-7,50 Z", W1)
+    arm += flat(ellipse_d(0, 56, 8, 8), SK) + flat("M3,50 C7,52 8,56 7,60 C5,63 2,64 0,64 C4,61 5,56 3,50 Z", SK1)
+    add("chef_arm", -12, -4, 24, 70, arm, flat=True)
     # Sartén (mango hacia la mano en el origen) / Frying pan (handle towards the hand at the origin)
-    pan = shaded("M-3,0 L3,0 L3,-34 L-3,-34 Z", "#6a4430", shade=0.3, rim=0.3, sw=0.8)
-    pan += shaded(ellipse_d(0, -56, 24, 24), "#3a3a52", shade=0.5, rim=0.6, rim_color="#cfd6f6")
-    pan += "<path d='%s' fill='#1e1e30'/>" % ellipse_d(0, -56, 17, 17)
-    add("chef_pan", -28, -84, 56, 88, pan, colors=10)
+    pan = flat("M-3,0 L3,0 L3,-34 L-3,-34 Z", "#6a4430") + flat("M1,0 L3,0 L3,-34 L1,-34 Z", "#4a2e22")
+    pan += flat(ellipse_d(0, -56, 24, 24), "#4a4a66") + flat(ellipse_d(0, -56, 18, 18), "#1e1e30")
+    pan += flat("M-14,-66 Q-8,-72 0,-73 L0,-70 Q-7,-69 -12,-64 Z", "#5a5a7a")
+    pan += flat("M-20,-70 Q-14,-78 -4,-80 L-4,-77 Q-12,-76 -18,-68 Z", "#cfd6f6")
+    add("chef_pan", -28, -84, 56, 88, pan, flat=True)
     # Cuchillo (apunta a la derecha) / Knife (points right)
-    knife = shaded("M-14,-3 L-2,-3 L-2,3 L-14,3 Z", "#4a2e22", shade=0.3, rim=0.3, sw=0.7)
-    knife += shaded("M-2,-4 L14,-1 L16,0 L14,1 L-2,4 Z", "#dfe6ff", shade=0.4, rim=0.7, rim_color="#ffffff", sw=0.7)
-    add("shot_knife", -17, -6, 35, 12, knife, colors=8)
-    plate = shaded(ellipse_d(0, 0, 18, 8), "#f4f1fa", shade=0.4, rim=0.6, deep="#8a84b8")
-    plate += "<path d='%s' fill='none' stroke='#5b67c4' stroke-width='1.6'/>" % ellipse_d(0, 0, 12, 5)
-    add("shot_plate", -21, -10, 42, 20, plate, colors=8)
+    knife = flat("M-14,-3 L-2,-3 L-2,3 L-14,3 Z", "#4a2e22")
+    knife += flat("M-2,-4 L14,-1 L16,0 L14,1 L-2,4 Z", "#dfe6ff") + flat("M-2,1 L14,1 L-2,4 Z", "#9aa2c0")
+    add("shot_knife", -17, -6, 35, 12, knife, flat=True)
+    plate = flat(ellipse_d(0, 0, 18, 8), "#f4f1fa") + flat("M-18,0 Q0,12 18,0 Q0,8 -18,0 Z", "#b8b0d8")
+    plate += "<path d='%s' fill='none' stroke='#5b67c4' stroke-width='2.4'/>" % ellipse_d(0, -0.5, 11, 4.5)
+    add("shot_plate", -21, -10, 42, 20, plate, flat=True)
     shards_ = ""
     for (x, y, r) in ((-22, -2, 20), (6, -6, -30), (20, 4, 50), (-6, 8, 10), (-30, 8, -60), (28, -8, 80)):
-        shards_ += "<g transform='translate(%d,%d) rotate(%d)'>%s</g>" % (x, y, r, shaded("M-6,-3 L6,-4 L2,4 Z", "#f4f1fa", shade=0.3, rim=0.6, sw=0.7))
-    add("plate_shards", -40, -16, 80, 32, shards_, colors=8)
-
+        shards_ += "<g transform='translate(%d,%d) rotate(%d)'>%s</g>" % (x, y, r, flat("M-6,-3 L6,-4 L2,4 Z", "#f4f1fa") + flat("M2,4 L6,-4 L4,-1 Z", "#b8b0d8"))
+    add("plate_shards", -40, -16, 80, 32, shards_, flat=True)
 
 def mr_ad():
     """Mr. Ad en pixel art de verdad (modo flat): un robot anunciante medio roto y demacrado. Cabeza
