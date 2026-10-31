@@ -28,6 +28,10 @@ var _hacks: VBoxContainer
 var _hp_box: VBoxContainer
 
 
+## Fila de estados alterados bajo la vida (run le pasa el jugador) / Status row under the health bar (run hands it the player)
+var status: StatusRow
+
+
 func _ready() -> void:
 	layer = 5
 	var root := Control.new()
@@ -54,6 +58,9 @@ func _ready() -> void:
 	_hp_text = UITheme.label("", 20, UITheme.BONE, "light")
 	_hp_text.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	hp_box.add_child(_hp_text)
+	# Estados alterados que tiene ahora mismo / Status effects he has right now
+	status = StatusRow.new()
+	hp_box.add_child(status)
 	# Nivel y trozos de estrella / Level and star shards
 	var xp_row := HBoxContainer.new()
 	xp_row.add_theme_constant_override("separation", 12)

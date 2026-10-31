@@ -153,6 +153,7 @@ func _ready() -> void:
 
 	hud = HUD.new()
 	add_child(hud)
+	hud.status.player = player
 	hud.visible = false
 	hud.set_hp(player.hp, player.max_hp)
 	hud.set_time(_time_left)

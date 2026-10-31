@@ -259,6 +259,8 @@ const STRINGS := {
 	"KW_LIFESTEAL_DESC": {"es": "Probabilidad de curarte 1 de vida cada vez que golpeas.", "en": "Chance to heal 1 health every time you hit."},
 	"KW_REALITY_NAME": {"es": "Realidad Fragmentada", "en": "Fragmented Reality"},
 	"KW_REALITY_DESC": {"es": "La moneda de los sueños: sirve para comprarle a Charo y para dar propinas. Solo dura una partida.", "en": "The currency of dreams: spend it at Charo's and on tips. It only lasts one run."},
+	"KW_ROOTED_NAME": {"es": "Inmovilizado", "en": "Rooted"},
+	"KW_ROOTED_DESC": {"es": "Te quedas clavado en el sitio un momento: no puedes moverte, pero tus armas siguen atacando.", "en": "You're stuck to the spot for a moment: you can't move, but your weapons keep attacking."},
 	"STENCH_LOST": {"es": "¡Qué peste!", "en": "What a stink!"},
 	"BEST_CYBER_DESC": {"es": "Esquiva de un salto justo cuando le voy a dar. Si se me queda cerca me hackea y me deja peor en algo, y si no lo derroto rápido, el virus me hace daño.", "en": "It dashes out of the way right when I'm about to hit it. If it stays close it hacks me and makes me worse at something, and if I don't beat it quickly, the virus hurts me."},
 	"HACK_VIRUS": {"es": "¡Virus!", "en": "Virus!"},
