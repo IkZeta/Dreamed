@@ -44,6 +44,8 @@ var craters: Array[Rect2] = []
 var _crater_t: Array[float] = []   # segundos que le quedan a cada agujero / seconds left on each hole
 const CRATER_LIFE := 25.0
 var scorches: Array[Vector2] = []
+## Timbre del recreo: 0 cerradas → 1 abiertas de par en par / School bell: 0 closed → 1 wide open
+var bell_open := 0.0
 var _piece := 999999          # trozo en el que está la cámara / piece the camera is in
 var _holes: Array[Rect2] = []
 var _doors: Array[Rect2] = []
@@ -112,6 +114,18 @@ func _refresh_lists(force := false) -> void:
 			_holes.append(c)
 
 
+## Puntos del suelo delante de cada puerta entre dos x del lienzo (por ahí salen los alumnos al sonar el timbre)
+## Floor points in front of each door between two canvas x (pupils pour out there when the bell rings)
+func door_points(x0: float, x1: float) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for i in range(piece_of(x0), piece_of(x1) + 1):
+		for d: Rect2 in PIECE_DOORS[posmod(i, 3)]:
+			var x := d.get_center().x + i * PERIOD
+			if x >= x0 and x <= x1:
+				out.append(Vector2(x, WALL_BOTTOM + 46))
+	return out
+
+
 ## El Ovni rompe el suelo: abre un agujero nuevo (los más viejos se cierran)
 ## The UFO breaks the floor: opens a new hole (the oldest ones close up)
 func add_crater(center: Vector2, sz := Vector2(150, 64)) -> void:
@@ -172,6 +186,8 @@ func _draw() -> void:
 		_draw_piece("hall_floor", off)
 		_draw_piece("hall_wall_%d" % posmod(i, 3), off)
 	_draw_scorches(k)
+	if bell_open > 0.0:
+		_draw_open_doors(k)
 	_draw_wall_holes()
 	_draw_holes()
 	_draw_wall_hole_floor()
@@ -188,6 +204,21 @@ func _draw() -> void:
 		_draw_dream_stars()
 	draw_set_transform(Vector2.ZERO)
 	_draw_edges(k)
+
+
+## Puertas abiertas con el timbre: hueco oscuro con luz de clase y la puerta girada
+## Doors open with the bell: a dark gap with classroom light and the door swung open
+func _draw_open_doors(k: int) -> void:
+	for i in range(k - 1, k + 2):
+		for d: Rect2 in PIECE_DOORS[posmod(i, 3)]:
+			var r := Rect2(d.position + Vector2(i * PERIOD, 0), d.size)
+			if _doors.has(r):
+				continue   # ya está rota / already broken
+			var w := r.size.x * bell_open
+			draw_rect(Rect2(r.position, Vector2(w, r.size.y)), Color("2a2238"))
+			draw_rect(Rect2(r.position + Vector2(6, 10), Vector2(maxf(0.0, w - 12), r.size.y - 10)), Color("f6d993", 0.35))
+			# Hoja de la puerta abierta hacia el pasillo / Door leaf swung out into the hallway
+			draw_colored_polygon(PackedVector2Array([r.position + Vector2(w, 0), r.position + Vector2(w + 26 * bell_open, -10), r.position + Vector2(w + 26 * bell_open, r.size.y + 14), r.position + Vector2(w, r.size.y)]), Color("8a5a3e"))
 
 
 ## Quemaduras del Ovni en la pared: mancha negra, taquillas abolladas y chispas

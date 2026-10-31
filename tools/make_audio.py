@@ -781,6 +781,19 @@ def sfx_laser():
     return mix(stereo(lp(tone, 2600)), lp(sweep_noise(0.12, 1500, 600, 2.0, 0.05), 3000))
 
 
+def sfx_bell():
+    # Timbre del cole, en suave: un "ding-dong-ding" de campanitas que se repite (nada de chicharra)
+    # School bell, soft version: a repeating "ding-dong-ding" of little bells (no buzzer)
+    out = np.zeros(int(SR * 2.4))
+    notes = [76, 72, 79, 76, 72, 79]
+    for i, n_ in enumerate(notes):
+        x = bar(midi(n_), 1.4, 0.3, "kalimba", 0.35)
+        at = int(SR * (i * 0.32))
+        end = min(len(out), at + len(x))
+        out[at:end] += x[:end - at]
+    return stereo(lp(out, 4000))
+
+
 def sfx_fluff():
     # Pelusa: un soplo blandito y un "pop" de algodón / Fluff: a soft breath and a cottony "pop"
     return mix(breath(0.22, 300, 1400, 1.0) * env_ar(int(0.22 * SR), 0.01, 0.18), np.pad(bar(midi(79), 0.35, 0.08, "kalimba", 0.2), (int(SR * 0.03), 0)))
@@ -834,7 +847,7 @@ if __name__ == "__main__":
         ("giver_charo", giver_charo, 0.4, 0.3), ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
         ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2), ("giver_ad", giver_ad, 0.4, 0.3),
         ("pan_clang", sfx_pan_clang, 0.45, 0.2), ("knife", sfx_knife, 0.3, 0.15), ("hack", sfx_hack, 0.3, 0.2),
-        ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("fluff", sfx_fluff, 0.3, 0.12),
+        ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("bell", sfx_bell, 0.35, 0.2), ("fluff", sfx_fluff, 0.3, 0.12),
         ("giver_pinche", giver_pinche, 0.4, 0.3),
     ]:
         if not only or name in only:

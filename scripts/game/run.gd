@@ -42,6 +42,14 @@ var event := ""
 var _tilt := Vector2.ZERO
 var _tilt_t := 0.0
 var _golden_t := -1.0
+## Timbre del colegio (Acto 3): espera hasta que suena y luego sale gente de las puertas un rato
+## School bell (Act 3): waits until it rings, then people pour out of the doors for a while
+const BELL_TIME := 10.0
+const BELL_EVERY := 0.45
+const BELL_MAX_ALIVE := 30
+var _bell_wait := -1.0
+var _bell_t := 0.0
+var _bell_cd := 0.0
 var _actors: Node2D
 ## Pantalla que tapa la partida (diálogo, kiosco, chimenea): mientras está, no se pausa
 ## Screen covering the run (dialogue, kiosk, fireplace): while it's up, pausing is disabled
@@ -1053,7 +1061,11 @@ func _roll_event(depth: int) -> void:
 	event = ""
 	if _wave.get("boss", false) or depth < 2 or randf() > 0.4:
 		return
-	event = ["dark", "tilt", "golden"][randi() % 3]
+	var pool := ["dark", "tilt", "golden"]
+	# En el colegio también puede sonar el timbre (y es lo más probable) / At school the bell can ring too (and it's the likeliest)
+	if room is Act3Room:
+		pool += ["bell", "bell"]
+	event = pool[randi() % pool.size()]
 	match event:
 		"dark":
 			var d := Darkness.new()
@@ -1061,6 +1073,8 @@ func _roll_event(depth: int) -> void:
 			world.add_child(d)
 		"golden":
 			_golden_t = randf_range(6.0, 14.0)
+		"bell":
+			_bell_wait = randf_range(8.0, 16.0)
 		"tilt":
 			var tf := TiltFloor.new()
 			tf.run = self
@@ -1085,6 +1099,8 @@ func _update_event(delta: float) -> void:
 			_camera.rotation = lerpf(_camera.rotation, -_tilt.x / 75.0 * 0.06, minf(1.0, delta * 2.0))
 			_camera.offset += _tilt * 0.35
 			hud.set_tilt(_tilt)
+		"bell":
+			_update_bell(delta)
 		"golden":
 			if _golden_t > 0.0:
 				_golden_t -= delta
@@ -1095,6 +1111,38 @@ func _update_event(delta: float) -> void:
 					enemies.add_child(g)
 					Audio.play("chime", -2.0)
 					fx.ring(g.position + Vector2(0, -20), 30.0, UITheme.GOLD, 0.8, 2.6)
+
+
+## Suena el timbre: las puertas se abren y salen enemigos sin parar durante un rato
+## The bell rings: the doors open and enemies keep pouring out for a while
+func _update_bell(delta: float) -> void:
+	var hall := room as Act3Room
+	if _bell_wait > 0.0:
+		_bell_wait -= delta
+		if _bell_wait <= 0.0:
+			_bell_t = BELL_TIME
+			Audio.play("bell", -2.0)
+			shake(5.0)
+			hud.show_event("bell_on")
+			fx.text(player.global_position + Vector2(0, -170), tr("BELL_RING"), UITheme.GOLD, 30)
+		return
+	if _bell_t > 0.0:
+		_bell_t -= delta
+		hall.bell_open = minf(1.0, hall.bell_open + delta * 3.0)
+		_bell_cd -= delta
+		if _bell_cd <= 0.0 and enemies.get_child_count() < BELL_MAX_ALIVE:
+			_bell_cd = BELL_EVERY
+			var v := view_rect()
+			var pts := hall.door_points((v.position.x - Bedroom.OFFSET.x) / Bedroom.S, (v.end.x - Bedroom.OFFSET.x) / Bedroom.S)
+			if not pts.is_empty():
+				var p := Bedroom.to_world(pts[randi() % pts.size()]) + Vector2(randf_range(-20, 20), randf_range(0, 20))
+				var kind: String = ["foox", "foox", "thug", "sling", "puppet"][randi() % 5]
+				fx.dissipate(p + Vector2(0, -30), Color("f6d993"))
+				_spawn_enemy(kind, p)
+		if _bell_t <= 0.0:
+			hud.show_event("")
+	else:
+		hall.bell_open = maxf(0.0, hall.bell_open - delta * 1.5)
 
 
 # --- Trozos de estrella y niveles / Star shards and levels ---------------------
