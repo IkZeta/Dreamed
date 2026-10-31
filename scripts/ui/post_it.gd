@@ -28,7 +28,7 @@ func _draw() -> void:
 	# One row per act: number, star (normal) and moon (nightmare)
 	var f := UITheme.font("body")
 	var off := Color(0.42, 0.36, 0.18, 0.25)
-	for act in [1, 2, 3]:
+	for act: int in [1, 2, 3]:
 		var y := -13.0 + (act - 1) * 13.0
 		draw_string(f, Vector2(-23, y + 4), ["I", "II", "III"][act - 1], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("6b5a2a"))
 		_star(Vector2(3, y), 5.0, Color("e8a33a") if Progress.has_cleared(weapon, "normal", act) else off)
