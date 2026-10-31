@@ -107,7 +107,9 @@ func _ready() -> void:
 	if elite:
 		max_hp *= 3.0
 		shards *= 4
-		scale = Vector2.ONE * 1.3
+		# Sin agrandarlo: escalar el pixel art a tamaños raros lo deforma; se distingue por el
+		# contorno, los cuernos y el aura / Not enlarged: scaling pixel art by odd amounts warps it;
+		# it stands out through the outline, the horns and the aura
 		if elite_power == "":
 			elite_power = ["split", "puddle", "haste"][randi() % 3]
 		# Aspecto demoníaco con el color de su habilidad / Demonic look in its ability's colour
@@ -523,6 +525,13 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, r, Color(elite_color().darkened(0.7), 0.45 * a))
 		draw_arc(Vector2.ZERO, r, 0, TAU, 28, Color(elite_color(), 0.8 * a), 3.0)
 		draw_set_transform(Vector2.ZERO)
+		# Ascuas de su color que suben alrededor / Embers in its colour rising around it
+		for i in 6:
+			var ph := fposmod(_t * 0.7 + i * 0.167 + _phase, 1.0)
+			var x := sin(i * 2.4 + _phase) * (radius + 8.0)
+			var y := -ph * aim_height * 3.0
+			var s := 4.0 if i % 2 == 0 else 2.0
+			draw_rect(Rect2(Vector2(x, y) - Vector2(s, s) / 2.0, Vector2(s, s)), Color(elite_color(), (1.0 - ph) * 0.9 * a))
 	if glitch_t > 0.0:
 		var j := Vector2(randf_range(-6, 6), randf_range(-2, 2))
 		_draw_body(Vector2(-5, bob) + j, Color(GLITCH_A, 0.5), a * 0.6)
@@ -551,14 +560,16 @@ func head_top() -> Vector2:
 	return Vector2(0, -aim_height * 2.2)
 
 
-## Cuernos de demonio con brillo rojo / Demon horns with a red glow
+## Cuernos de demonio en pixel art, con la punta brillando en el color del élite
+## Pixel-art demon horns, with the tip glowing in the elite's colour
 func _draw_horns(top: Vector2, a: float) -> void:
-	for side in [-1.0, 1.0]:
-		var base := top + Vector2(side * 9.0 * _facing, 4.0)
-		var tip := base + Vector2(side * 9.0, -16.0)
-		var pts := PackedVector2Array([base + Vector2(-4, 0), base + Vector2(4, 0), tip])
-		draw_colored_polygon(pts, Color(0.2, 0.02, 0.06, a))
-		draw_polyline(pts + PackedVector2Array([pts[0]]), Color(elite_color(), a), 2.0)
+	var glow := Color(elite_color(), (0.7 + 0.3 * sin(_t * 5.0)) * a)
+	for side: float in [-1.0, 1.0]:
+		var base := top + Vector2(side * 10.0, 6.0)
+		draw_set_transform(base, 0.0, Vector2(-side, 1.0))
+		Sprites.draw(self, "elite_horn", Color(1, 1, 1, a))
+		draw_rect(Rect2(Vector2(-22, -24), Vector2(4, 4)), glow)
+	draw_set_transform(Vector2.ZERO)
 
 
 ## Dibuja el cuerpo. "tint" es blanco normalmente y rosa/cian en las copias del glitch.

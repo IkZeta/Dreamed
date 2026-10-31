@@ -2101,6 +2101,23 @@ def ufo():
     add("ufo_body", -124, -66, 248, 104, b, flat=True)
 
 
+def elite_horn():
+    """Cuerno de demonio de los élites (el izquierdo; el derecho se dibuja reflejado): corto y
+    curvado hacia fuera, granate con anillos. La base está en el origen y la punta se ilumina con
+    el color del élite en el juego.
+    Elite demon horn (the left one; the right one is drawn mirrored): short and curving outwards,
+    maroon with rings. The base is at the origin and the tip glows in the elite's colour in game."""
+    H0, H1, H2, H3 = "#2a0c16", "#6a1c2c", "#9a3040", "#d8a890"
+    horn = "M-6,0 C-10,-4 -16,-6 -20,-12 C-22,-15 -22,-19 -20,-22 C-17,-17 -11,-14 -5,-12 C0,-10 4,-6 6,0 Z"
+    b = flat(horn, H1)
+    b += flat("M-5,-12 C0,-10 4,-6 6,0 L0,0 C0,-4 -2,-8 -6,-10 Z", H0)
+    b += flat("M-6,0 C-10,-4 -16,-6 -20,-12 L-18,-14 C-14,-9 -10,-6 -4,-3 Z", H2)
+    for x in (-6, -12):
+        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='2.4'/>" % (x, -2 + x * 0.6, x + 3, -10 + x * 0.3, H0)
+    b += flat("M-20,-22 C-21,-20 -21,-17 -20,-15 L-17,-17 C-18,-19 -19,-21 -20,-22 Z", H3)
+    add("elite_horn", -25, -26, 34, 30, b, flat=True)
+
+
 def dot_painter(points, color):
     """Pinta píxeles sueltos (ojos) / Paints single pixels (eyes)."""
     def paint(img, to_px):
@@ -2463,6 +2480,7 @@ def build():
     act2_enemies()
     act3_enemies()
     ufo()
+    elite_horn()
     cyberpunk()
     chef()
     mr_ad()
