@@ -7,7 +7,7 @@ extends Control
 
 const CHIP := 38.0
 const GAP := 8.0
-const COLORS := {"bleed": Color("e8455a"), "rooted": Color("f6d24a"), "paralysis": Color("8fe0ff"),
+const COLORS := {"bleed": Color("e8455a"), "rooted": Color("f6d24a"),
 	"slow": Color("6fa8ff"), "stench": Color("8fd14f"), "hack": Color("ff5fd2")}
 
 var player: Player
@@ -26,10 +26,8 @@ func _process(delta: float) -> void:
 	_t += delta
 	_chips.clear()
 	if is_instance_valid(player):
-		if player.shock_t > 0.0:
-			_add("paralysis", player.shock_t)
-		elif player.root_t > 0.0:
-			_add("rooted", player.root_t)
+		# Paralizado (descarga) e inmovilizado (sartenazo) son el mismo estado / Paralysed (zap) and rooted (pan) are the same state
+		_add("rooted", player.root_t)
 		_add("bleed", player.bleed_t)
 		_add("slow", player.slow_t)
 		if player.stench_t > 0.0 and player.stench_weapon:
@@ -107,8 +105,6 @@ func _icon(id: String, c: Vector2, col: Color) -> void:
 			for i in 3:
 				var a := _t * 4.0 + i * TAU / 3.0
 				DreamBackground.draw_star(self, c + Vector2(cos(a) * 9.0, sin(a) * 5.0), 4.0, col)
-		"paralysis":
-			draw_polyline(PackedVector2Array([c + Vector2(3, -12), c + Vector2(-5, 1), c + Vector2(2, 1), c + Vector2(-3, 12)]), col, 4.0)
 		"slow":
 			draw_arc(c + Vector2(2, 0), 7.0, 0, TAU, 16, col, 3.0)
 			draw_rect(Rect2(c + Vector2(-11, 5), Vector2(16, 4)), col)

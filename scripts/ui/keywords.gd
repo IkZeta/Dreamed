@@ -20,8 +20,8 @@ const PATTERNS := {
 	"fluff": {"es": "pelusas?", "en": "fluff"},
 	"stuck": {"es": "pegad[oa]s", "en": "stuck"},
 	"knockback": {"es": "empuj\\w*", "en": "push\\w*|shov\\w*"},
-	"paralysis": {"es": "paraliz\\w*", "en": "paraly\\w*"},
-	"rooted": {"es": "inmoviliz\\w*|clavad[oa]", "en": "rooted|immobili\\w*"},
+	# Paralizado e inmovilizado son lo mismo / Paralysed and rooted are the same thing
+	"rooted": {"es": "inmoviliz\\w*|clavad[oa]|paraliz\\w*", "en": "rooted|immobili\\w*|paraly\\w*"},
 	"stench": {"es": "mal olor|peste|huel\\w* tan mal", "en": "stench|stink\\w*|smell\\w*"},
 	"hack": {"es": "hacke\\w*", "en": "hack\\w*"},
 	"crit": {"es": "crític\\w*", "en": "critical|crits?"},
