@@ -41,6 +41,8 @@ const PIECE_PROPS := [
 ## UFO damage: new holes in the floor and scorch marks on the wall (on the canvas)
 const MAX_CRATERS := 10
 var craters: Array[Rect2] = []
+var _crater_t: Array[float] = []   # segundos que le quedan a cada agujero / seconds left on each hole
+const CRATER_LIFE := 25.0
 var scorches: Array[Vector2] = []
 var _piece := 999999          # trozo en el que está la cámara / piece the camera is in
 var _holes: Array[Rect2] = []
@@ -70,7 +72,15 @@ func _cam_x() -> float:
 
 
 func _process(delta: float) -> void:
-	_refresh_lists()
+	# Los agujeros del Ovni se cierran solos al rato / The UFO's holes close up after a while
+	var closed := false
+	for i in range(_crater_t.size() - 1, -1, -1):
+		_crater_t[i] -= delta
+		if _crater_t[i] <= 0.0:
+			_crater_t.remove_at(i)
+			craters.remove_at(i)
+			closed = true
+	_refresh_lists(closed)
 	super._process(delta)
 
 
@@ -109,8 +119,10 @@ func add_crater(center: Vector2, sz := Vector2(150, 64)) -> void:
 	var walk := Rect2(WALK.position + Vector2(0, 40), WALK.size - Vector2(0, 80))
 	r.position.y = clampf(r.position.y, walk.position.y, walk.end.y - sz.y)
 	craters.append(r)
+	_crater_t.append(CRATER_LIFE)
 	if craters.size() > MAX_CRATERS:
 		craters.remove_at(0)
+		_crater_t.remove_at(0)
 	_refresh_lists(true)
 
 

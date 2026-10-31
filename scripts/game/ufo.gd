@@ -10,11 +10,11 @@ extends Enemy
 
 signal defeated
 
-const HP := 600.0
+const HP := 480.0
 const SIZE := 1.6                # el platillo se dibuja más grande / the saucer is drawn bigger
 const ALTITUDE := 230.0          # altura a la que vuela / flying height
-const FLY_TIME := 11.0           # tiempo volando antes de estrellarse / flying time before crashing
-const GROUND_TIME := 6.0         # tiempo en el suelo, vulnerable / time on the ground, vulnerable
+const FLY_TIME := 9.0           # tiempo volando antes de estrellarse / flying time before crashing
+const GROUND_TIME := 8.0         # tiempo en el suelo, vulnerable / time on the ground, vulnerable
 const FALL_TIME := 0.7
 const RISE_TIME := 1.0
 const LASER_EVERY := 2.3

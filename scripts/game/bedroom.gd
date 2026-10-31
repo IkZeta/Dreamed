@@ -164,12 +164,21 @@ func wall_holes_list() -> Array[Rect2]:
 
 
 ## Todo lo que no se puede atravesar: muebles y agujeros / Everything you can't walk through: furniture and holes
+## Se calcula una vez por fotograma y se reutiliza (la piden todos los enemigos cada vez que se mueven)
+## Worked out once per frame and reused (every enemy asks for it every time it moves)
+var _blockers: Array[Rect2] = []
+var _blockers_frame := -1
+
+
 func blockers() -> Array[Rect2]:
-	var out := obstacles_list()
-	var holes := holes_list()
-	for i in hole_count():
-		out.append(holes[i].grow(-10))
-	return out
+	var frame := Engine.get_physics_frames()
+	if frame != _blockers_frame:
+		_blockers_frame = frame
+		_blockers = obstacles_list()
+		var holes := holes_list()
+		for i in hole_count():
+			_blockers.append(holes[i].grow(-10))
+	return _blockers
 
 
 ## Zonas donde pueden salir grietas: pared, tres muebles y suelo

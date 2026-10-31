@@ -41,11 +41,25 @@ func _ready() -> void:
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	# Vida (arriba a la izquierda) / Health (top left)
+	# Fondo suave detrás, para que se lea encima del escenario (en el pasillo pisa la pared)
+	# Soft backdrop behind it, so it reads over the stage (in the hallway it overlaps the wall)
+	var hp_bg := Panel.new()
+	hp_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.03, 0.12, 0.55)
+	sb.set_corner_radius_all(8)
+	hp_bg.add_theme_stylebox_override("panel", sb)
+	root.add_child(hp_bg)
 	var hp_box := VBoxContainer.new()
 	_hp_box = hp_box
 	hp_box.add_theme_constant_override("separation", 8)
 	root.add_child(hp_box)
 	hp_box.position = Vector2(56, 44)
+	var fit_bg := func() -> void:
+		hp_bg.position = hp_box.position - Vector2(18, 14)
+		hp_bg.size = hp_box.size + Vector2(36, 28)
+	hp_box.resized.connect(fit_bg)
+	hp_box.ready.connect(fit_bg)
 	var who := UITheme.label("Kroker", 14, UITheme.ASH, "caps")
 	who.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	hp_box.add_child(who)

@@ -58,8 +58,13 @@ func show_many(ids: Array[String], near: Rect2) -> void:
 	for id in ids:
 		names.append(tr("KW_%s_NAME" % id.to_upper()))
 		bodies.append("%s: %s" % [tr("KW_%s_NAME" % id.to_upper()), tr("KW_%s_DESC" % id.to_upper())])
-	_title.text = names[0] if ids.size() == 1 else " · ".join(names)
-	_body.text = tr("KW_%s_DESC" % ids[0].to_upper()) if ids.size() == 1 else "\n\n".join(bodies)
+	if ids.size() == 1:
+		_title.text = names[0]
+		_body.text = tr("KW_%s_DESC" % ids[0].to_upper())
+	else:
+		# Varias: un título general y cada palabra con su explicación / Several: a general title and each word with its explanation
+		_title.text = tr("KW_MANY_TITLE")
+		_body.text = "\n\n".join(bodies)
 	_panel.visible = true
 	_panel.reset_size()
 	_place()
