@@ -37,11 +37,14 @@ var bosses: Array[Enemy] = []
 var _boss_total := 0.0
 var _boss_step := 0
 var _level_screen: LevelUpScreen
-## Evento de este sueño: "", "dark", "tilt" o "golden" / This dream's event
+## Evento de este sueño: "", "dark", "tilt" o "bell" / This dream's event
 var event := ""
 var _tilt := Vector2.ZERO
 var _tilt_t := 0.0
-var _golden_t := -1.0
+## Foox dorado: ya no es un evento, es un enemigo muy raro (como mucho uno por sueño)
+## Golden Foox: no longer an event, just a very rare enemy (at most one per dream)
+const GOLDEN_CHANCE := 0.0012
+var _golden_done := false
 ## Timbre del colegio (Acto 3): espera hasta que suena y luego sale gente de las puertas un rato
 ## School bell (Act 3): waits until it rings, then people pour out of the doors for a while
 const BELL_TIME := 10.0
@@ -906,10 +909,19 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"puppet": e = Puppet.new()
 		"golem": e = Golem.new()
 		_: e = Foox.new()
+	# Muy de vez en cuando, en lugar del enemigo sale un Foox dorado (la suerte ayuda un poco)
+	# Every so often a golden Foox turns up instead (luck helps a little)
+	if not _golden_done and GameState.dream_depth >= 2 and not _wave.get("boss", false) \
+			and randf() < GOLDEN_CHANCE * (1.0 + maxf(0.0, GameState.stat("luck")) / 50.0):
+		_golden_done = true
+		e.free()
+		e = GoldenFoox.new()
+		Audio.play("chime", -2.0)
+		fx.ring(pos + Vector2(0, -20), 30.0, UITheme.GOLD, 0.8, 2.6)
 	e.setup(self)
 	e.position = pos
 	# Élites desde el Sueño 2 / Elites from Dream 2
-	if GameState.dream_depth >= 2 and randf() < (0.12 if GameState.difficulty == "nightmare" else 0.07):
+	if GameState.dream_depth >= 2 and not e is GoldenFoox and randf() < (0.12 if GameState.difficulty == "nightmare" else 0.07):
 		e.elite = true
 	enemies.add_child(e)
 
@@ -1061,7 +1073,7 @@ func _roll_event(depth: int) -> void:
 	event = ""
 	if _wave.get("boss", false) or depth < 2 or randf() > 0.4:
 		return
-	var pool := ["dark", "tilt", "golden"]
+	var pool := ["dark", "tilt"]
 	# En el colegio también puede sonar el timbre (y es lo más probable) / At school the bell can ring too (and it's the likeliest)
 	if room is Act3Room:
 		pool += ["bell", "bell"]
@@ -1071,8 +1083,6 @@ func _roll_event(depth: int) -> void:
 			var d := Darkness.new()
 			d.run = self
 			world.add_child(d)
-		"golden":
-			_golden_t = randf_range(6.0, 14.0)
 		"bell":
 			_bell_wait = randf_range(8.0, 16.0)
 		"tilt":
@@ -1101,16 +1111,6 @@ func _update_event(delta: float) -> void:
 			hud.set_tilt(_tilt)
 		"bell":
 			_update_bell(delta)
-		"golden":
-			if _golden_t > 0.0:
-				_golden_t -= delta
-				if _golden_t <= 0.0:
-					var g := GoldenFoox.new()
-					g.setup(self)
-					g.position = _spawn_point()
-					enemies.add_child(g)
-					Audio.play("chime", -2.0)
-					fx.ring(g.position + Vector2(0, -20), 30.0, UITheme.GOLD, 0.8, 2.6)
 
 
 ## Suena el timbre: las puertas se abren y salen enemigos sin parar durante un rato

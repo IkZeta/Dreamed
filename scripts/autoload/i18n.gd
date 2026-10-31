@@ -283,7 +283,6 @@ const STRINGS := {
 	# --- Eventos y objetos / Events and items ---
 	"EVENT_DARK": {"es": "Apagón", "en": "Blackout"},
 	"EVENT_TILT": {"es": "El suelo se inclina", "en": "The floor tilts"},
-	"EVENT_GOLDEN": {"es": "Un Foox dorado ronda", "en": "A golden Foox lurks"},
 	"EVENT_BELL": {"es": "Va a sonar el timbre", "en": "The bell is about to ring"},
 	"EVENT_BELL_ON": {"es": "¡Recreo!", "en": "Break time!"},
 	"BELL_RING": {"es": "¡RIIING!", "en": "RIIING!"},
