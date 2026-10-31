@@ -174,6 +174,10 @@ static func hand_of(weapon: String) -> String:
 ## Splits the two weapons between the hands: each in its own and, if both want the right one
 ## (the bat with the book, the vacuum or the finger gun), the bat moves to the left.
 static func hands(main: String, second: String) -> Dictionary:
+	if main == "":
+		# Sin arma principal (la ha soltado), la segunda va en su mano de siempre
+		# With no main weapon (dropped), the second one goes in its usual hand
+		return {"main": "", "second": hand_of(second)}
 	var hm := hand_of(main)
 	if second == "":
 		return {"main": hm, "second": ""}

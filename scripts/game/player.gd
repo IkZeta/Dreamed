@@ -307,11 +307,22 @@ func _draw_states() -> void:
 			var p := Vector2(randf_range(-26, 26), randf_range(-140, -20))
 			draw_line(p, p + Vector2(randf_range(-12, 12), randf_range(-12, 12)), Color("8fe0ff", 0.9), 2.0)
 	if stench_t > 0.0:
-		# Nubecillas verdes de peste / Little green stink clouds
-		for i in 4:
-			var ph := fposmod(_t * 0.6 + i * 0.25, 1.0)
-			var p := Vector2(sin(i * 2.1 + _t) * 26.0, -40.0 - ph * 110.0)
-			draw_circle(p, 6.0 + ph * 6.0, Color("9fd86a", 0.45 * (1.0 - ph)))
+		# Mal olor: líneas onduladas verdes que suben y dos moscas dando vueltas
+		# Stench: wavy green lines rising and two flies buzzing around
+		for i in 3:
+			var x0 := -18.0 + i * 18.0
+			var ph := fposmod(_t * 0.8 + i * 0.33, 1.0)
+			var pts := PackedVector2Array()
+			for kk in 7:
+				var y := -40.0 - ph * 60.0 - kk * 9.0
+				pts.append(Vector2(x0 + sin(_t * 6.0 + kk * 1.2 + i) * 5.0, y))
+			draw_polyline(pts, Color("8fd14f", 0.85 * (1.0 - ph * 0.6)), 3.0)
+		for f in 2:
+			var a := _t * (5.0 + f) + f * PI
+			var fp := Vector2(cos(a) * 30.0, -150.0 + sin(a * 2.0) * 10.0)
+			draw_rect(Rect2(fp - Vector2(2, 2), Vector2(4, 4)), Color("1a1328"))
+			draw_rect(Rect2(fp + Vector2(-4, -5), Vector2(3, 2)), Color(1, 1, 1, 0.7))
+			draw_rect(Rect2(fp + Vector2(1, -5), Vector2(3, 2)), Color(1, 1, 1, 0.7))
 	if bleed_t > 0.0:
 		for i in 3:
 			var y := -60.0 + fposmod(_t * 60.0 + i * 20.0, 50.0)
