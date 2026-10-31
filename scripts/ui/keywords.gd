@@ -87,7 +87,17 @@ static func label(text: String, font_size := 20, color := UITheme.BONE, role := 
 
 ## Cambia el texto (traducido) de una etiqueta hecha con label() / Sets the (translated) text of a label made with label()
 static func set_text(l: RichTextLabel, text: String) -> void:
-	l.text = markup(TranslationServer.translate(text))
+	var src := TranslationServer.translate(text)
+	l.text = markup(Settings.controls_text(src))
+	# Si habla de controles, se actualiza al cambiar entre teclado y mando
+	# If it mentions controls, it updates when switching between keyboard and gamepad
+	if "{" in src and not l.has_meta("controls"):
+		l.set_meta("controls", true)
+		Settings.input_device_changed.connect(func(_pad: bool) -> void:
+			if is_instance_valid(l):
+				l.text = markup(Settings.controls_text(String(l.get_meta("controls_src"))))
+		)
+	l.set_meta("controls_src", src)
 
 
 ## Hace que una RichTextLabel que ya existe muestre las tarjetas / Makes an existing RichTextLabel show the cards

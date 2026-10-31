@@ -25,6 +25,55 @@ var damage_numbers := true    # números de daño sobre los enemigos / damage nu
 var vibration := true         # vibración del mando / gamepad rumble
 
 
+## --- Teclado y ratón o mando / Keyboard & mouse or gamepad ------------------------------
+## Se cambia sola según lo último que se ha tocado; la interfaz enseña los controles de ese.
+## It switches by itself depending on what was touched last; the UI shows that device's controls.
+signal input_device_changed(pad: bool)
+var using_pad := false
+
+
+func _input(event: InputEvent) -> void:
+	var pad := using_pad
+	if event is InputEventJoypadButton and event.pressed:
+		pad = true
+	elif event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.5:
+		pad = true
+	elif (event is InputEventKey and event.pressed) or (event is InputEventMouseButton and event.pressed):
+		pad = false
+	elif event is InputEventMouseMotion and (event as InputEventMouseMotion).relative.length() > 6.0:
+		pad = false
+	if pad != using_pad:
+		using_pad = pad
+		# Con mando se esconde el puntero / With a gamepad the pointer hides
+		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if pad else Input.MOUSE_MODE_VISIBLE
+		input_device_changed.emit(pad)
+
+
+## Nombre del botón o tecla de una acción para el dispositivo en uso
+## Name of an action's button or key for the device in use
+func control_name(what: String) -> String:
+	if not using_pad:
+		return tr("CTRL_KB_" + what.to_upper())
+	var joy := Input.get_joy_name(0).to_lower() if not Input.get_connected_joypads().is_empty() else ""
+	var family := "XBOX"
+	if "ps" in joy or "dualshock" in joy or "dualsense" in joy or "sony" in joy or "playstation" in joy:
+		family = "PS"
+	elif "nintendo" in joy or "switch" in joy or "joy-con" in joy:
+		family = "NIN"
+	var key := "CTRL_PAD_%s_%s" % [family, what.to_upper()]
+	return tr(key) if tr(key) != key else tr("CTRL_PAD_" + what.to_upper())
+
+
+## Cambia {move}, {pause}, {special}, {accept} y {back} por los controles del dispositivo en uso
+## Replaces {move}, {pause}, {special}, {accept} and {back} with the controls of the device in use
+func controls_text(text: String) -> String:
+	if not "{" in text:
+		return text
+	for what in ["move", "pause", "special", "accept", "back"]:
+		text = text.replace("{%s}" % what, control_name(what))
+	return text
+
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_ensure_buses()
@@ -183,11 +232,13 @@ func _ensure_input() -> void:
 			k.physical_keycode = def[i]
 			InputMap.action_add_event(action, k)
 		var j := InputEventJoypadMotion.new()
+		j.device = -1
 		j.axis = def[2]
 		j.axis_value = def[3]
 		InputMap.action_add_event(action, j)
 		# Cruceta del mando / Gamepad d-pad
 		var d := InputEventJoypadButton.new()
+		d.device = -1
 		d.button_index = def[4]
 		InputMap.action_add_event(action, d)
 	if not InputMap.has_action("special"):
@@ -196,14 +247,27 @@ func _ensure_input() -> void:
 		e.physical_keycode = KEY_E
 		InputMap.action_add_event("special", e)
 		var y := InputEventJoypadButton.new()
+		y.device = -1
 		y.button_index = JOY_BUTTON_Y
 		InputMap.action_add_event("special", y)
+	# Aceptar con A y volver con B (Godot no los trae puestos) / Accept with A and go back with B (Godot doesn't set them)
+	for pair in [["ui_accept", JOY_BUTTON_A], ["ui_cancel", JOY_BUTTON_B]]:
+		var has := false
+		for ev in InputMap.action_get_events(pair[0]):
+			if ev is InputEventJoypadButton and (ev as InputEventJoypadButton).button_index == pair[1]:
+				has = true
+		if not has:
+			var jb := InputEventJoypadButton.new()
+			jb.button_index = pair[1]
+			jb.device = -1
+			InputMap.action_add_event(pair[0], jb)
 	if not InputMap.has_action("pause"):
 		InputMap.add_action("pause")
 		var esc := InputEventKey.new()
 		esc.physical_keycode = KEY_ESCAPE
 		InputMap.action_add_event("pause", esc)
 		var start := InputEventJoypadButton.new()
+		start.device = -1
 		start.button_index = JOY_BUTTON_START
 		InputMap.action_add_event("pause", start)
 

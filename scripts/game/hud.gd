@@ -157,7 +157,11 @@ func _ready() -> void:
 	center.add_child(_fire)
 
 	# Ayuda de controles / Controls hint
-	_hint = UITheme.label("RUN_CONTROLS", 18, Color(UITheme.ASH, 0.9), "light")
+	_hint = UITheme.label("", 18, Color(UITheme.ASH, 0.9), "light")
+	_hint.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_hint.text = Settings.controls_text(tr("RUN_CONTROLS"))
+	# Los controles cambian según se juegue con teclado o con mando / Controls change between keyboard and gamepad
+	Settings.input_device_changed.connect(_on_device_changed)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_hint)
 	_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
@@ -203,13 +207,22 @@ func start(depth: int) -> void:
 
 
 ## Muestra la tecla del modo especial (almohada de Svinho) / Shows the special-mode key (Svinho's pillow)
+func _on_device_changed(_pad: bool) -> void:
+	_hint.text = Settings.controls_text(tr("RUN_CONTROLS"))
+	if _special:
+		_special.text = Settings.controls_text(tr(String(_special.get_meta("key", "RUN_SPECIAL_DEFEND"))))
+
+
 func set_special_mode(throwing: bool) -> void:
 	if _special == null:
 		_special = UITheme.label("", 16, UITheme.GOLD, "caps")
+		_special.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		# Debajo de la vida y la moneda, encima de los hackeos / Under health and currency, above the hacks
 		_hp_box.add_child(_special)
 		_hp_box.move_child(_special, _hacks.get_index())
-	_special.text = "RUN_SPECIAL_THROW" if throwing else "RUN_SPECIAL_DEFEND"
+	var key := "RUN_SPECIAL_THROW" if throwing else "RUN_SPECIAL_DEFEND"
+	_special.set_meta("key", key)
+	_special.text = Settings.controls_text(tr(key))
 
 
 ## Barra de vida del jefe abajo en el centro / Boss health bar, bottom centre
