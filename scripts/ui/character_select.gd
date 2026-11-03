@@ -112,19 +112,24 @@ func _build() -> void:
 	footer.add_child(_start)
 
 
+const CARD_W := 396.0
+## Alto del hueco de la descripción (4 líneas; si hay más, se desplaza) / Height of the description box (4 lines; more scrolls)
+const DESC_H := 120.0
+
+
 func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	var locked := not GameState.weapon_unlocked(data["id"])
 	var card := Button.new()
 	card.toggle_mode = true
 	card.button_group = group
-	card.custom_minimum_size = Vector2(396, 676)
+	card.custom_minimum_size = Vector2(CARD_W, 676)
 	card.disabled = locked
 	# Post-it con los actos superados, como en The Binding of Isaac
 	# Post-it with the acts cleared, like in The Binding of Isaac
 	var note := PixelView.wrap(PostIt.new(data["id"]), 2)
 	note.custom_minimum_size = Vector2(120, 120)
 	note.size = Vector2(120, 120)
-	note.position = Vector2(396 - 118, -14)
+	note.position = Vector2(CARD_W - 118, -14)
 	note.visible = not locked
 	note.z_index = 2
 	card.add_child(note)
@@ -148,7 +153,7 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	var portrait := DreamerPortrait.new()
 	portrait.character_id = data["id"]
 	var portrait_px := PixelView.wrap(portrait, 3)
-	portrait_px.custom_minimum_size = Vector2(0, 186)
+	portrait_px.custom_minimum_size = Vector2(0, 176)
 	v.add_child(portrait_px)
 	_portraits[data["id"]] = portrait
 	# Bloqueado: solo la silueta y cómo se consigue / Locked: just the silhouette and how to get it
@@ -163,8 +168,14 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 		UITheme.ignore_mouse(content)
 		return card
 
-	var name_label := UITheme.label(data["name"], 36, UITheme.BONE, "display")
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# El nombre siempre en una línea (si no cabe, más pequeño) para que todas las cartas cuadren
+	# The name always on one line (smaller if it doesn't fit) so every card lines up
+	var name_size := 36
+	if UITheme.font("display").get_string_size(tr(data["name"]), HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.pixel_size(36)).x > CARD_W - 56:
+		name_size = 24
+	var name_label := UITheme.label(data["name"], name_size, UITheme.BONE, "display")
+	name_label.custom_minimum_size.y = 44
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	v.add_child(name_label)
 
 	var sep := Control.new()
@@ -173,15 +184,25 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.9)))
 	v.add_child(_pair("SELECT_WEAPON", data["weapon"], UITheme.BONE))
 
+	# Descripción en un hueco de alto fijo: si no cabe, se desplaza con la rueda del ratón.
+	# Así la ficha empieza a la misma altura en todas las cartas.
+	# Description in a fixed-height box: if it doesn't fit, it scrolls with the mouse wheel.
+	# That way the sheet starts at the same height on every card.
+	var desc_scroll := ScrollContainer.new()
+	desc_scroll.custom_minimum_size.y = DESC_H
+	desc_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(desc_scroll)
 	var desc := UITheme.label(data["desc"], 18, Color(UITheme.BONE, 0.8), "light")
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(desc)
+	desc.size_flags_horizontal = SIZE_EXPAND_FILL
+	desc_scroll.add_child(desc)
 
-	var push := Control.new()  # alinea las estadísticas abajo / pins stats to the bottom
-	push.size_flags_vertical = SIZE_EXPAND_FILL
-	v.add_child(push)
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 4
+	v.add_child(gap)
 	v.add_child(_profile(data))
 	UITheme.ignore_mouse(content)
+	desc_scroll.mouse_filter = MOUSE_FILTER_PASS
 	return card
 
 
