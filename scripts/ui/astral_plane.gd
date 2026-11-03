@@ -208,15 +208,16 @@ func _deal_card(v: VBoxContainer, fig: GiverFigure) -> void:
 	var title := UITheme.label("INVEST_TITLE", 26, UITheme.GOLD)
 	title.size_flags_horizontal = SIZE_EXPAND_FILL
 	up_row.add_child(title)
-	var stat_l := UITheme.label(GameState.stat_value_text(_deal["stat"], _deal["value"]), 14, GiverFigure.AURA["magnus"], "caps")
-	stat_l.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
-	up_row.add_child(stat_l)
 	v.add_child(up_row)
+	# Las mejoras que da, una por línea / The boosts it gives, one per line
+	var boosts := Keywords.label("", 18, GiverFigure.AURA["magnus"], "caps")
+	Keywords.set_text(boosts, GameState.deal_boosts_text(_deal, "\n"))
+	v.add_child(boosts)
 	var desc := Keywords.label("", 19, Color(UITheme.BONE, 0.85), "light")
 	desc.custom_minimum_size.y = 84
 	Keywords.set_text(desc, tr("INVEST_DESC").format({
 		"cost": _deal["cost"], "payout": _deal["payout"], "goal": GameState.deal_goal_text(_deal),
-		"stat": GameState.stat_value_text(_deal["stat"], _deal["value"])}))
+		"n": _deal["boosts"].size()}))
 	v.add_child(desc)
 	var b := Button.new()
 	b.text = tr("INVEST_ACCEPT").format({"cost": _deal["cost"]})

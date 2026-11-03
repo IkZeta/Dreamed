@@ -358,7 +358,7 @@ const STRINGS := {
 	"TALK_MAGNUS_5": {"es": "«Lo más valioso que tengo no cabe en una caja fuerte. Gástatelo en cosas que te hagan feliz, chaval.»", "en": "“The most valuable thing I own doesn't fit in a safe. Spend yours on things that make you happy, kid.”"},
 	"TALK_MAGNUS_THANKS": {"es": "«¿Una propina? ¿A mí? Lo apunto como inversión de futuro.»", "en": "“A tip? For me? I'll file it under long-term investments.”"},
 	"INVEST_TITLE": {"es": "Inversión", "en": "Investment"},
-	"INVEST_DESC": {"es": "Le pagas {cost} ◆ y ganas {stat} ahora mismo. Objetivo del próximo sueño: {goal}. Si lo cumples, te quedas la mejora y te devuelve {payout} ◆. Si no, te la quita y se queda el dinero.", "en": "Pay him {cost} ◆ and gain {stat} right now. Goal for the next dream: {goal}. Meet it and you keep the boost and get {payout} ◆ back. Miss it and he takes the boost away and keeps the money."},
+	"INVEST_DESC": {"es": "Le pagas {cost} ◆ y ganas estas {n} mejoras ahora mismo. Objetivo del próximo sueño: {goal}. Si lo cumples, te las quedas y te devuelve {payout} ◆. Si no, te las quita y se queda el dinero.", "en": "Pay him {cost} ◆ and gain these {n} boosts right now. Goal for the next dream: {goal}. Meet it and you keep them and get {payout} ◆ back. Miss it and he takes them away and keeps the money."},
 	"INVEST_GOAL_KILLS": {"es": "derrota a {n} enemigos", "en": "defeat {n} enemies"},
 	"INVEST_GOAL_FALLS": {"es": "tira a {n} enemigos por agujeros", "en": "push {n} enemies down holes"},
 	"INVEST_GOAL_ELITES": {"es": "derrota a {n} élites", "en": "defeat {n} elites"},

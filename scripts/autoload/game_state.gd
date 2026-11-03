@@ -593,9 +593,10 @@ func giver_unlocked(g: String) -> bool:
 ## Tamaños de inversión: coste, rareza de la estadística, cuánto devuelve y lo difícil del objetivo
 ## Investment sizes: cost, stat rarity, how much it pays back and how hard the goal is
 const INVEST_SIZES := [
-	{"cost": 6, "rarity": 1, "mult": 1.5, "hard": 0.75},
-	{"cost": 12, "rarity": 2, "mult": 1.75, "hard": 1.0},
-	{"cost": 20, "rarity": 3, "mult": 2.0, "hard": 1.3},
+	# "count" = cuántas estadísticas distintas sube / how many different stats it raises
+	{"cost": 6, "count": 2, "rarity": 1, "mult": 1.5, "hard": 0.75},
+	{"cost": 12, "count": 3, "rarity": 1, "mult": 1.75, "hard": 1.0},
+	{"cost": 20, "count": 4, "rarity": 2, "mult": 2.0, "hard": 1.3},
 ]
 ## Objetivos y su cantidad base (por acto se suma "per_act"). "hits" es al revés: como mucho N golpes.
 ## Goals and their base amount ("per_act" is added per act). "hits" is the other way round: at most N hits.
@@ -633,7 +634,12 @@ func roll_deal() -> Dictionary:
 		if reality >= int(INVEST_SIZES[i]["cost"]):
 			size = i
 	var sz: Dictionary = INVEST_SIZES[size]
-	var stat_id: String = STATS[_rng.randi_range(0, STATS.size() - 1)]
+	# Varias estadísticas distintas al azar / Several different random stats
+	var pool: Array[String] = STATS.duplicate()
+	var boosts := []
+	for i in int(sz["count"]):
+		var stat_id: String = pool.pop_at(_rng.randi_range(0, pool.size() - 1))
+		boosts.append({"stat": stat_id, "value": float(STAT_STEPS[stat_id][int(sz["rarity"])])})
 	var goals := INVEST_GOALS.keys()
 	var goal: String = goals[_rng.randi_range(0, goals.size() - 1)]
 	var g: Dictionary = INVEST_GOALS[goal]
@@ -646,8 +652,7 @@ func roll_deal() -> Dictionary:
 		target = maxi(1, roundi(amount * float(sz["hard"])))
 	var cost := int(sz["cost"])
 	return {
-		"size": size, "cost": cost, "stat": stat_id, "rarity": int(sz["rarity"]),
-		"value": float(STAT_STEPS[stat_id][int(sz["rarity"])]),
+		"size": size, "cost": cost, "rarity": int(sz["rarity"]), "boosts": boosts,
 		"goal": goal, "target": target,
 		# La amistad con Magnus sube lo que devuelve / Friendship with Magnus raises the payout
 		"payout": roundi(cost * float(sz["mult"]) * friend_mult("magnus")),
@@ -666,8 +671,9 @@ func _goal_counter(goal: String) -> int:
 ## Firma el trato: paga, sube la estadística y empieza a contar / Signs the deal: pays, raises the stat and starts counting
 func sign_deal(deal: Dictionary) -> void:
 	add_reality(-int(deal["cost"]))
-	apply_stat({"stat": deal["stat"], "rarity": deal["rarity"], "value": deal["value"]})
-	invest = deal.duplicate()
+	for b: Dictionary in deal["boosts"]:
+		apply_stat({"stat": b["stat"], "rarity": deal["rarity"], "value": b["value"]})
+	invest = deal.duplicate(true)
 	invest["base"] = _goal_counter(deal["goal"])
 
 
@@ -695,10 +701,28 @@ func settle_deal() -> String:
 	if result == "won":
 		add_reality(int(invest["payout"]))
 	else:
-		var id: String = invest["stat"]
-		stat_bonus[id] = float(stat_bonus.get(id, 0.0)) - float(invest["value"])
+		for b: Dictionary in _deal_boosts(invest):
+			var id: String = b["stat"]
+			stat_bonus[id] = float(stat_bonus.get(id, 0.0)) - float(b["value"])
 	invest = {}
 	return result
+
+
+## Mejoras de un trato (los guardados antes tenían una sola) / A deal's boosts (older saves had just one)
+func _deal_boosts(deal: Dictionary) -> Array:
+	if deal.has("boosts"):
+		return deal["boosts"]
+	if deal.has("stat"):
+		return [{"stat": deal["stat"], "value": deal["value"]}]
+	return []
+
+
+## Las mejoras del trato en texto, p. ej. "+8 % de daño, +6 de suerte" / The deal's boosts as text
+func deal_boosts_text(deal: Dictionary, sep := ", ") -> String:
+	var parts: Array[String] = []
+	for b: Dictionary in _deal_boosts(deal):
+		parts.append(stat_value_text(b["stat"], b["value"]))
+	return sep.join(parts)
 
 
 ## Texto del objetivo, p. ej. "Derrota a 30 enemigos" / Goal text, e.g. "Defeat 30 enemies"
