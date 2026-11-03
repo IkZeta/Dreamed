@@ -73,34 +73,47 @@ def build(ms):
     WH = ng("#f4f1e6", 0.15)
     NET = ng("#c8c4d8", 0.2)
     b = ""
-    # Portería de frente: el marco de delante y, detrás y algo más arriba, el de atrás, con la
-    # red entre los dos / Goal face-on: the front frame and, behind and a bit higher, the back one,
-    # with the net between them
-    GR = ng("#2f6a3a")
-    b += P([(-22, -10), (22, -10), (22, -34), (-22, -34)], ng("#1e3a26"), stroke=False, rim=0)   # fondo / back
+    # Portería de frente, en dos piezas: el fondo (sombra y marco de atrás) y el marco de delante.
+    # La red se pinta en el juego entre las dos, para que se hinche cuando entra el balón.
+    # Goal face-on, in two pieces: the back (shade and rear frame) and the front frame. The net
+    # is painted in game between them, so it bulges when the ball goes in.
+    b = P([(-22, -10), (22, -10), (22, -34), (-22, -34)], ng("#1e3a26"), stroke=False, rim=0)   # fondo / back
     b += P([(-27, -27), (27, -27), (22, -34), (-22, -34)], ng("#28452e"), stroke=False, rim=0)    # techo / roof
     b += P([(-27, 0), (-22, -10), (-22, -34), (-27, -27)], ng("#24402a"), stroke=False, rim=0)    # lado / side
     b += P([(27, 0), (22, -10), (22, -34), (27, -27)], ng("#24402a"), stroke=False, rim=0)
-    for x in range(-20, 22, 4):
-        b += "<path d='M%g,-10 L%g,-34' stroke='%s' stroke-width='0.9'/>" % (x, x, NET)
-    for y in range(-30, -10, 4):
-        b += "<path d='M-22,%g L22,%g' stroke='%s' stroke-width='0.9'/>" % (y, y, NET)
-    for k in range(1, 4):
-        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='0.9'/>" % (-27 + k * 1.25, -k * 2.5, -27 + k * 1.25, -27 - k * 1.75, NET)
-        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='0.9'/>" % (27 - k * 1.25, -k * 2.5, 27 - k * 1.25, -27 - k * 1.75, NET)
-    b += "<path d='M-22,-34 L22,-34 M-22,-10 L22,-10' stroke='%s' stroke-width='1.2'/>" % NET
-    b += R(-28.5, -28, 3, 28, WH)      # postes / posts
+    b += "<path d='M-22,-34 L22,-34 M-22,-10 L22,-10 M-22,-10 L-27,0 M22,-10 L27,0' stroke='%s' stroke-width='1.2'/>" % NET
+    b += F(-23, -34, 1.6, 24, ng("#d8d4e4", 0.3)) + F(21.4, -34, 1.6, 24, ng("#d8d4e4", 0.3))
+    put("hub_goal_back", -31, -38, 62, 40, b)
+    b = R(-28.5, -28, 3, 28, WH)      # postes / posts
     b += R(25.5, -28, 3, 28, WH)
     b += R(-28.5, -29, 57, 3, WH)      # larguero / crossbar
-    put("hub_goal", -31, -38, 62, 40, b)
+    put("hub_goal_front", -31, -38, 62, 40, b)
     b = R(-0.8, -18, 1.6, 18, ng("#e8e4f0"))
     b += P([(0.8, -18), (9, -15), (0.8, -12)], ng("#ffd23a"))
     put("hub_flag", -3, -20, 14, 22, b)
-    # Saco de balones / Ball bag
-    b = P([(-9, 0), (-11, -10), (-6, -16), (6, -16), (11, -10), (9, 0)], ng("#2b4fa8"))
-    for (x, y) in ((-4, -15), (3, -16), (0, -19)):
-        b += E(x, y, 4, 4, ng("#f4f1e6"))
-    put("hub_ballbag", -13, -24, 26, 26, b)
+    # Carro de balones: una cesta de alambre llena de balones de verdad (blancos con parches negros)
+    # Ball cart: a wire basket full of proper footballs (white with black patches)
+    BK = ng("#1e1f2e", 0.1)
+    MT, MT_D = ng("#9aa0c0"), ng("#4a4f72")
+
+    def ball(x, y, r=5.5):
+        out = E(x, y, r, r, WH, sh=0.5)
+        out += F(x - 1.5, y - 1.5, 3, 3, BK) + F(x + r - 2.2, y - 3, 1.4, 2.2, BK)
+        return out
+    b = ball(-6, -17) + ball(6, -17) + ball(0, -20)
+    b += P([(-13, -14), (13, -14), (11, -3), (-11, -3)], ng("#1c2040", 0.1), stroke=False, rim=0)
+    b += ball(-5, -9, 4.5) + ball(5, -8, 4.5)
+    for x in (-10, -5, 0, 5, 10):
+        b += F(x - 0.5, -14, 1.2, 11, MT)
+    b += R(-14, -16, 28, 2.5, MT) + R(-12, -5, 24, 2.5, MT_D)
+    for x in (-11, 11):
+        b += E(x, -1.5, 2, 2, MT_D)
+    put("hub_ballbag", -16, -28, 32, 30, b)
+    ORG = ng("#ff8a2a")
+    b = P([(-5, 0), (5, 0), (5, -1.5), (-5, -1.5)], ng("#c85a1a"), rim=0)
+    b += P([(-3.5, -1.5), (3.5, -1.5), (0.8, -10), (-0.8, -10)], ORG)
+    b += F(-2.3, -6, 4.6, 1.4, ng("#f4f1e6", 0.2))
+    put("hub_cone", -7, -12, 14, 14, b)
 
     # --- Stolk: gimnasio / gym ---
     MET, MET_D = ng("#9aa0c0"), ng("#4a4f72")

@@ -9,9 +9,9 @@ static var _ci: CanvasItem
 static var _xf: Transform2D
 
 
-## opts (plano astral): "kick" (Svinho chuta sin balón de toques), "lift" (Stolk levanta la barra, 0..1)
+## opts (plano astral): "kick" (Svinho chuta sin balón de toques; con "back", de espaldas), "lift" (Stolk levanta la barra, 0..1)
 ## y "lens" (Doc mira con la lupa ese punto del lienzo)
-## opts (astral plane): "kick" (Svinho kicks with no keepy-uppy ball), "lift" (Stolk lifts the bar, 0..1)
+## opts (astral plane): "kick" (Svinho kicks with no keepy-uppy ball; with "back", from behind), "lift" (Stolk lifts the bar, 0..1)
 ## and "lens" (Doc looks at that canvas point through the magnifier)
 static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float, opts := {}) -> void:
 	_ci = ci
@@ -47,6 +47,17 @@ static func _svinho(t: float, opts := {}) -> void:
 	kick = kick * kick * (3.0 - 2.0 * kick)
 	if opts.has("kick"):
 		kick = float(opts["kick"])
+	# De espaldas (plano astral): la pierna sale hacia delante, hacia la portería, así que se
+	# acorta y sube un poco / From behind (astral plane): the leg swings forward, towards the
+	# goal, so it gets shorter and lifts a little
+	if opts.get("back", false):
+		var hip := SVINHO_HIP + Vector2(2, 0)
+		_ci.draw_set_transform_matrix(_xf * Transform2D(0.12 * kick, Vector2(1.0, 1.0 - 0.38 * kick), 0.0, hip) * Transform2D(0.0, -hip))
+		Sprites.draw(_ci, "npc_svinho_back_leg")
+		_ci.draw_set_transform_matrix(_xf * Transform2D(-0.03 * kick, Vector2(0, 288)) * Transform2D(0.0, Vector2(0, -288)))
+		Sprites.draw(_ci, "npc_svinho_back")
+		_ci.draw_set_transform_matrix(_xf)
+		return
 	# Pierna que golpea (detrás del cuerpo) / Kicking leg (behind the body)
 	_ci.draw_set_transform_matrix(_xf * Transform2D(SVINHO_KICK * kick, SVINHO_HIP) * Transform2D(0.0, -SVINHO_HIP))
 	Sprites.draw(_ci, "npc_svinho_leg")

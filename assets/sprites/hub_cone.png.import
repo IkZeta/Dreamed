@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://p0ayh7oqcn2i"
-path="res://.godot/imported/hub_goal.png-2d68b64f1331b7f58be92dd8d4d1ff38.ctex"
+uid="uid://n7yvytmad7hd"
+path="res://.godot/imported/hub_cone.png-17e65c451caf02920c4cdeb16e6d2c4f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/hub_goal.png"
-dest_files=["res://.godot/imported/hub_goal.png-2d68b64f1331b7f58be92dd8d4d1ff38.ctex"]
+source_file="res://assets/sprites/hub_cone.png"
+dest_files=["res://.godot/imported/hub_cone.png-17e65c451caf02920c4cdeb16e6d2c4f.ctex"]
 
 [params]
 

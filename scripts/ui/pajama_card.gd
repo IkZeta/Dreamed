@@ -16,14 +16,16 @@ const PROFILE_H := 244.0
 ## "worn": it's the one Kroker is wearing (the card shows as picked)
 static func build(data: Dictionary, worn := false) -> Control:
 	var locked := not GameState.weapon_unlocked(data["id"])
-	var card := Button.new()
-	card.toggle_mode = true
-	card.button_pressed = worn
-	card.focus_mode = Control.FOCUS_NONE
+	# Fondo opaco que crece con lo que lleve dentro / Opaque backdrop that grows with its contents
+	var card := Control.new()
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.custom_minimum_size = Vector2(W, H)
-	card.size = Vector2(W, H)
-	card.disabled = locked
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.custom_minimum_size = Vector2(W, 0)
+	var edge := UITheme.GOLD if worn else (UITheme.ASH if locked else UITheme.LINE)
+	panel.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.97), Color(edge, 0.9), Color(edge, 0.14), 16, 12, 0))
+	card.add_child(panel)
+	panel.resized.connect(func() -> void: card.size = panel.size)
 	# Post-it con los actos superados, como en The Binding of Isaac
 	# Post-it with the acts cleared, like in The Binding of Isaac
 	var note := PixelView.wrap(PostIt.new(data["id"]), 2)
@@ -35,12 +37,11 @@ static func build(data: Dictionary, worn := false) -> Control:
 	card.add_child(note)
 
 	var content := MarginContainer.new()
-	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right"]:
 		content.add_theme_constant_override("margin_" + side, 28)
 	content.add_theme_constant_override("margin_top", 22)
 	content.add_theme_constant_override("margin_bottom", 26)
-	card.add_child(content)
+	panel.add_child(content)
 
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
@@ -90,18 +91,19 @@ static func build(data: Dictionary, worn := false) -> Control:
 	desc.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	v.add_child(desc)
 
-	# La ficha va abajo y mide lo mismo en todas las cartas; si no cabe, se desplaza por dentro
-	# The sheet sits at the bottom and is the same size on every card; if it doesn't fit, it scrolls inside
-	var push := Control.new()
-	push.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(push)
+	# La ficha mide lo mismo en todas las cartas; si no cabe, se desplaza sola, sin barra
+	# The sheet is the same size on every card; if it doesn't fit, it scrolls by itself, with no bar
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 6
+	v.add_child(gap)
 	var profile := _profile(data)
 	v.add_child(profile)
 	UITheme.ignore_mouse(content)
 	for sc: ScrollContainer in profile.find_children("*", "ScrollContainer", true, false):
 		sc.mouse_filter = Control.MOUSE_FILTER_PASS
-	# Con mando la ficha baja sola y el stick derecho la mueve / With a gamepad the sheet scrolls by itself and the right stick moves it
+	# La ficha baja sola (y con mando, el stick derecho la mueve) / The sheet scrolls by itself (and with a gamepad, the right stick moves it)
 	for pad: PadScroll in profile.find_children("*", "PadScroll", true, false):
+		pad.always = true
 		pad.active = true
 	return card
 
@@ -131,6 +133,7 @@ static func _profile(data: Dictionary) -> Control:
 	panel.add_child(outer)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer.add_child(scroll)
 	# Pista para el mando, solo si la ficha no cabe / Gamepad hint, only if the sheet doesn't fit

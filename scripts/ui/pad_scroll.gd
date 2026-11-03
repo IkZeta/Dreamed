@@ -15,6 +15,8 @@ const WAIT_END := 1.6         # segundos abajo antes de volver arriba / seconds 
 
 signal overflow_changed(overflows: bool)
 
+## Baja sola aunque no se use el mando (la carta del armario) / Scrolls by itself even without a gamepad (the wardrobe card)
+var always := false
 var active := false:
 	set(v):
 		if v != active:
@@ -47,8 +49,12 @@ static func right_stick() -> float:
 func max_scroll() -> float:
 	if not _scroll:
 		return 0.0
-	var bar := _scroll.get_v_scroll_bar()
-	return maxf(0.0, bar.max_value - bar.page)
+	# Lo que mide el contenido menos lo que se ve (vale también sin barra visible)
+	# The content's height minus what's visible (works without a visible bar too)
+	for c in _scroll.get_children():
+		if c is Control:
+			return maxf(0.0, (c as Control).size.y - _scroll.size.y)
+	return 0.0
 
 
 func _reset() -> void:
@@ -67,7 +73,7 @@ func _process(delta: float) -> void:
 	if over != _overflows:
 		_overflows = over
 		overflow_changed.emit(over)
-	if not active or not over or not Settings.using_pad:
+	if not active or not over or not (Settings.using_pad or always):
 		return
 	var stick := right_stick()
 	if stick != 0.0:

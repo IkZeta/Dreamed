@@ -1114,9 +1114,59 @@ def npcs():
     for (cx, cy) in ((90, 33), (102, 31), (80, 41)):
         b += flat(ellipse_d(cx, cy, 3.5, 3), HA2)
     add("npc_svinho", 50, 22, 100, 270, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 1))
+    # Svinho de espaldas, mirando a la portería del plano astral (la pierna derecha va aparte para chutar)
+    # Svinho from behind, facing the astral plane's goal (the right leg is separate so he can shoot)
+    def leg_back(x):
+        d = flat("M%g,196 L%g,196 L%g,236 L%g,236 Z" % (x, x + 15, x + 14, x + 1), S)
+        d += flat("M%g,196 L%g,196 L%g,236 L%g,236 Z" % (x + 10, x + 15, x + 14, x + 10), S1)
+        d += flat("M%g,214 C%g,220 %g,228 %g,234 L%g,234 C%g,226 %g,220 %g,214 Z" % (x + 3, x + 2, x + 2, x + 4, x + 7, x + 6, x + 6, x + 7), S2)
+        d += flat("M%g,232 L%g,232 L%g,274 L%g,274 Z" % (x - 1, x + 16, x + 15, x), SO)
+        d += flat("M%g,232 L%g,232 L%g,274 L%g,274 Z" % (x + 11, x + 16, x + 15, x + 11), SO1)
+        d += flat("M%g,240 L%g,240 L%g,245 L%g,245 Z" % (x - 1, x + 16, x + 16, x - 1), G)
+        # Bota vista desde el talón / Boot seen from the heel
+        d += flat("M%g,272 L%g,272 L%g,284 C%g,288 %g,288 %g,288 L%g,288 C%g,288 %g,288 %g,284 Z" % (x - 1, x + 16, x + 17, x + 17, x + 14, x + 12, x + 3, x + 1, x - 2, x - 2), BO)
+        d += flat("M%g,276 L%g,276 L%g,279 L%g,279 Z" % (x + 1, x + 14, x + 14, x + 1), G)
+        return d
+
+    add("npc_svinho_back_leg", 92, 192, 42, 100, leg_back(102), px=PX_NPC, flat=True)
+    b = leg_back(83)
+    b += flat("M72,168 L128,168 L130,204 L103,204 L100,194 L97,204 L70,204 Z", B2)
+    b += flat("M110,168 L128,168 L130,204 L112,204 C114,190 114,178 110,168 Z", B1)
+    b += "<path d='M72,170 L128,170' stroke='%s' stroke-width='2.6'/>" % SO
+    b += flat("M62,106 L76,110 L72,168 L58,166 Z", S) + flat("M68,110 L76,110 L72,168 L66,168 Z", S1)
+    b += flat("M138,106 L124,110 L128,168 L142,166 Z", S1)
+    b += flat(ellipse_d(65, 172, 7, 8), S) + flat(ellipse_d(135, 172, 7, 8), S1)
+    b += flat(shirt, Y2)
+    b += flat("M118,96 L140,106 L136,130 L128,128 L128,172 L114,172 C118,150 118,120 112,98 Z", Y1)
+    b += flat("M66,106 L80,99 L82,104 L70,110 Z", Y3)
+    b += "<path d='M60,106 L64,130 M140,106 L136,130' stroke='%s' stroke-width='2.6'/>" % G
+    # Cuello redondo por detrás y el 10 grande en la espalda / Round collar at the back and a big 10 on the back
+    b += "<path d='M86,97 C92,102 108,102 114,97' fill='none' stroke='%s' stroke-width='4'/>" % G
+    b += flat("M82,118 L90,114 L90,160 L82,160 Z", G)
+    b += flat("M96,114 L118,114 L118,160 L96,160 Z", G) + flat("M103,121 L111,121 L111,153 L103,153 Z", Y2)
+    # Nuca, orejas y cabeza llena de rizos / Nape, ears and a head full of curls
+    b += flat("M93,80 L107,80 L107,98 L93,98 Z", S1)
+    b += flat(ellipse_d(78, 62, 4, 7), S) + flat(ellipse_d(122, 62, 4, 7), S1)
+    b += flat(ellipse_d(100, 58, 22, 26), HA)
+    for (cx, cy) in ((82, 44), (92, 36), (104, 34), (116, 40), (122, 52), (78, 54), (98, 42), (110, 48), (86, 58),
+                     (100, 60), (114, 62), (84, 72), (96, 76), (108, 76), (118, 70), (90, 66)):
+        b += flat(ellipse_d(cx, cy, 9, 9), HA)
+    for (cx, cy) in ((90, 33), (102, 31), (80, 41), (94, 52), (108, 58), (88, 68), (104, 70)):
+        b += flat(ellipse_d(cx, cy, 3.5, 3), HA2)
+    add("npc_svinho_back", 50, 22, 100, 270, b, px=PX_NPC, flat=True)
     ball = flat(ellipse_d(0, 0, 13, 13), "#f7f3ea") + flat("M4,-12 C10,-9 13,-4 13,0 C13,7 8,12 2,13 C8,8 10,3 9,-3 C8,-7 6,-10 4,-12 Z", "#c8c4d8")
     ball += flat("M0,-5 L4.8,-1.5 L3,4 L-3,4 L-4.8,-1.5 Z", "#1e1f2e")
-    ball += flat("M-11,-6 L-7,-9 L-6,-4 Z", "#1e1f2e") + flat("M10,7 L7,10 L5,6 Z", "#1e1f2e")
+    # Cinco medios pentágonos en el borde, como un balón de verdad (si no, parece un ojo)
+    # Five half-pentagons on the rim, like a real ball (otherwise it looks like an eye)
+    import math
+    ball += "<clipPath id='ballclip'><path d='%s'/></clipPath><g clip-path='url(#ballclip)'>" % ellipse_d(0, 0, 13, 13)
+    for i in range(5):
+        a = math.radians(-90 + 72 * i + 36)
+        cx, cy = math.cos(a) * 10.2, math.sin(a) * 10.2
+        pts = [(cx + math.cos(a + math.radians(k)) * 3.0, cy + math.sin(a + math.radians(k)) * 3.0) for k in (0, 72, 144, 216, 288)]
+        ball += flat("M" + " L".join("%.1f,%.1f" % q for q in pts) + " Z", "#1e1f2e")
+        ball += "<path d='M%.1f,%.1f L%.1f,%.1f' stroke='#8a86a0' stroke-width='1.2'/>" % (math.cos(a) * 3.5, math.sin(a) * 3.5, cx - math.cos(a) * 4, cy - math.sin(a) * 4)
+    ball += "</g>"
     add("npc_ball", -15, -15, 30, 30, ball, px=PX_NPC, flat=True)
 
     # Stolk: el matón del cole, en pixel art de verdad (modo flat). Grandullón con sudadera roja,

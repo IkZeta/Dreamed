@@ -87,7 +87,6 @@ func _ready() -> void:
 	_card_slot = Control.new()
 	_card_slot.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(_card_slot)
-	_card_slot.position = Vector2(1920 - PajamaCard.W - 64, 150)
 	if not Progress.any_cleared():
 		GameState.difficulty = "normal"
 	modulate.a = 0.0
@@ -154,6 +153,7 @@ func _process(_delta: float) -> void:
 	var spot := _world.near_spot()
 	var busy := not _talking.is_empty() or _start_panel != null
 	_update_card(spot if not busy else {})
+	_place_card(spot)
 	var text := _prompt_text(spot)
 	_prompt.visible = not spot.is_empty() and not busy and text != ""
 	if _prompt.visible:
@@ -178,6 +178,20 @@ func _prompt_text(spot: Dictionary) -> String:
 				return tr("HUB_WORN")
 			return Settings.controls_text(tr("HUB_WEAR"))
 	return Settings.controls_text(tr("HUB_LOOK"))
+
+
+## La carta va al lado del soporte (a la derecha o, si no cabe, a la izquierda)
+## The card sits beside the stand (to the right or, if it doesn't fit, to the left)
+func _place_card(spot: Dictionary) -> void:
+	if _card_id == "" or spot.is_empty() or _card_slot.get_child_count() == 0:
+		return
+	var card: Control = _card_slot.get_child(_card_slot.get_child_count() - 1)
+	var at: Vector2 = _world.screen_of(spot["pos"]) * SHRINK
+	var x := at.x + 70.0
+	if x + PajamaCard.W > size.x - 16.0:
+		x = at.x - 70.0 - PajamaCard.W
+	var y := clampf(at.y - card.size.y * 0.62, 16.0, size.y - card.size.y - 16.0)
+	_card_slot.position = Vector2(x, y).round()
 
 
 ## La carta del pijama sale al acercarte a su soporte / The pajama card appears when you walk up to its stand
@@ -827,46 +841,121 @@ class HubWorld extends Control:
 
 	# --- Svinho: practica tiros a portería / practises shots at goal ---
 
-	const GOAL := Vector2(40, -60)
+	## Portería en la línea de fondo del medio campo; Svinho, de espaldas, tira desde la media luna
+	## Goal on the half-pitch's goal line; Svinho, from behind, shoots from the arc
+	const GOAL := Vector2(0, -63)
+	const SV_AT := Vector2(40, 34)
+	const SV_FOOT := Vector2(44, 25)
+	const SHOT := 2.8           # segundos entre tiro y tiro / seconds between shots
+	var _goal: Prop
+	var _net_hit := Vector2.ZERO   # dónde dio el balón en la red / where the ball hit the net
+	var _net_t := -9.0             # cuándo / when
 
 	func _build_svinho() -> void:
 		var c := _isle_pos("svinho")
-		# Portería al fondo del campo, de frente / Goal at the far end of the pitch, face-on
-		_piece(c + GOAL, "hub_goal", Vector2(30, 6), Vector2(0, -4))
-		_piece(c + Vector2(-122, -56), "hub_flag")
-		_piece(c + Vector2(122, -60), "hub_flag")
-		_piece(c + Vector2(-132, 20), "hub_ballbag", Vector2(12, 5))
-		var sv := _npc_prop("svinho", c + Vector2(-14, 30))
+		_blocks.append({"c": c + GOAL + Vector2(0, -4), "r": Vector2(30, 6)})
+		_goal = _prop(c + GOAL, _draw_goal)
+		_piece(c + Vector2(-131, -61), "hub_flag")
+		_piece(c + Vector2(131, -61), "hub_flag")
+		# Carro de balones y conos para los regates, fuera de las bandas
+		# Ball cart and cones for dribbling drills, beyond the touchlines
+		_piece(c + Vector2(-112, 50), "hub_ballbag", Vector2(14, 5))
+		for i in 4:
+			_piece(c + Vector2(62 + i * 16, 36 - i * 4), "hub_cone")
+		var sv := _npc_prop("svinho", c + SV_AT)
 		# Chuta justo cuando sale el balón / He kicks just as the ball leaves
 		sv.painter = func(ci: CanvasItem) -> void:
-			var ph := fmod(_t, 2.8) / 2.8
+			var ph := fmod(_t, SHOT) / SHOT
 			var k := clampf(1.0 - minf(ph + 0.03, 1.03 - ph) / 0.07, 0.0, 1.0)
-			_draw_npc(ci, "svinho", Vector2.ZERO, false, {"kick": k * k * (3.0 - 2.0 * k)})
-		_ball = _prop(c + Vector2(-2, 30), func(ci: CanvasItem) -> void:
-			var h: float = _ball.get_meta("h", 0.0)
-			_shadow(ci, Vector2.ZERO, Vector2(4, 1.5), 0.3)
-			ci.draw_set_transform(Vector2(0, -3.0 - h).round(), _t * 9.0, Vector2(0.45, 0.45))
-			Sprites.draw(ci, "npc_ball")
-			ci.draw_set_transform(Vector2.ZERO))
+			_draw_npc(ci, "svinho", Vector2.ZERO, false, {"kick": k * k * (3.0 - 2.0 * k), "back": true})
+		_ball = _prop(c + SV_FOOT, func(ci: CanvasItem) -> void:
+			if not _ball.get_meta("in_goal", false):
+				_paint_ball(ci, Vector2.ZERO))
+
+	func _paint_ball(ci: CanvasItem, at: Vector2) -> void:
+		var h: float = _ball.get_meta("h", 0.0)
+		_shadow(ci, at, Vector2(4, 1.5), 0.3)
+		ci.draw_set_transform((at + Vector2(0, -3.0 - h)).round(), _t * 9.0 * float(_ball.get_meta("spin", 1.0)), Vector2(0.36, 0.36))
+		Sprites.draw(ci, "npc_ball")
+		ci.draw_set_transform(Vector2.ZERO)
+
+	## La portería: el fondo, la red (que se hincha donde da el balón), el balón si está dentro y el marco
+	## The goal: the back, the net (which bulges where the ball hits), the ball if it's inside, and the frame
+	func _draw_goal(ci: CanvasItem) -> void:
+		Sprites.draw(ci, "hub_goal_back")
+		var dt := _t - _net_t
+		var push := 0.0
+		if dt >= 0.0 and dt < 1.2:
+			push = 7.0 * exp(-dt * 3.0) * (0.6 + 0.4 * cos(dt * 18.0))
+		var net := Color("c8c4d8", 0.55)
+		var bulge := func(q: Vector2) -> Vector2:
+			var d2 := q.distance_squared_to(_net_hit)
+			var f := exp(-d2 / 110.0) * push
+			return q + Vector2((q.x - _net_hit.x) * 0.06 * f, -f)
+		# Red del fondo: rejilla deformada / Back net: a warped grid
+		for x in range(-20, 22, 4):
+			var pts := PackedVector2Array()
+			for y in range(-34, -9, 2):
+				pts.append((bulge.call(Vector2(x, y)) as Vector2).round())
+			ci.draw_polyline(pts, net, 1.0)
+		for y in range(-30, -10, 4):
+			var pts := PackedVector2Array()
+			for x in range(-22, 23, 2):
+				pts.append((bulge.call(Vector2(x, y)) as Vector2).round())
+			ci.draw_polyline(pts, net, 1.0)
+		# Red del techo y de los lados (el balón también la sacude un poco) / Roof and side netting (the ball shakes it a little too)
+		var wob := push * 0.25
+		for k in range(1, 4):
+			var fx := 1.25 * k
+			ci.draw_line(Vector2(-27 + fx, -k * 2.5), Vector2(-27 + fx - wob, -27 - k * 1.75), net)
+			ci.draw_line(Vector2(27 - fx, -k * 2.5), Vector2(27 - fx + wob, -27 - k * 1.75), net)
+		for k in range(1, 5):
+			var y := -27.0 - k * 1.4
+			ci.draw_line(Vector2(-27 + k * 1.25, y - wob * 0.5), Vector2(27 - k * 1.25, y - wob * 0.5), net)
+		if is_instance_valid(_ball) and _ball.get_meta("in_goal", false):
+			_paint_ball(ci, _ball.position - _goal.position)
+		Sprites.draw(ci, "hub_goal_front")
 
 	func _tick_svinho() -> void:
 		var c := _isle_pos("svinho")
-		var foot := c + Vector2(-2, 30)
-		var goal := c + GOAL + Vector2(0, -4)
-		var ph := fmod(_t, 2.8) / 2.8
+		var foot := c + SV_FOOT
+		var n := int(_t / SHOT)
+		var ph := fmod(_t, SHOT) / SHOT
+		# Cada tiro a un sitio: a un palo, al otro, por arriba... / Each shot somewhere else: one post, the other, up high...
+		var aim_x: float = [-13.0, 11.0, -4.0, 15.0, 2.0, -16.0][n % 6]
+		var aim_h: float = [3.0, 7.0, 9.0, 2.0, 6.0, 8.0][n % 6]
+		var hit := c + GOAL + Vector2(aim_x, -9)
 		var h := 0.0
 		var p: Vector2
-		if ph < 0.3:
-			var k := ph / 0.3
-			p = foot.lerp(goal, k)
-			h = sin(k * PI) * 26.0
-		elif ph < 0.42:
-			p = goal + Vector2(0, -6)
+		var spin := 1.0
+		var in_goal := false
+		if ph < 0.2:
+			# Vuela hacia la red / Flies towards the net
+			var k := ph / 0.2
+			p = foot.lerp(hit, k)
+			h = lerpf(0.0, aim_h, k) + sin(k * PI) * 10.0
+			spin = 2.0
+			in_goal = p.y < c.y + GOAL.y + 1.0
+			_net_hit = Vector2(aim_x, -9.0 - aim_h)
+			_net_t = _t - (ph - 0.2) * SHOT
+		elif ph < 0.34:
+			# Se queda en la red y cae al suelo / Sits in the net and drops to the ground
+			var k := (ph - 0.2) / 0.14
+			p = hit + Vector2(0, 2.0 * k)
+			h = aim_h * (1.0 - k * k)
+			in_goal = true
+			spin = 0.3
 		else:
-			var k := (ph - 0.42) / 0.58
-			p = (goal + Vector2(0, -6)).lerp(foot, k * k * (3.0 - 2.0 * k))
+			# Vuelve rodando al pie de Svinho / Rolls back to Svinho's foot
+			var k := (ph - 0.34) / 0.66
+			k = k * k * (3.0 - 2.0 * k)
+			p = (hit + Vector2(0, 2)).lerp(foot, k)
+			in_goal = p.y < c.y + GOAL.y + 1.0
+			spin = -1.0
 		_ball.position = p
 		_ball.set_meta("h", h)
+		_ball.set_meta("spin", spin)
+		_ball.set_meta("in_goal", in_goal)
 
 	# --- Stolk: levanta pesas en su gimnasio / lifts weights in his gym ---
 

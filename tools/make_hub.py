@@ -68,7 +68,7 @@ ISLES = {
     "wardrobe": dict(pos=(0, -400), r=(170, 100), aura="#c9b8ff", seed=2, floor="bedroom", inset=(130, 72, 0, 4)),
     "charo": dict(pos=(-450, -380), r=(160, 98), aura="#7fe0d0", seed=3, floor="charo", inset=(118, 66, 0, 4)),
     "magnus": dict(pos=(450, -380), r=(165, 100), aura="#4fd39a", seed=4, floor="magnus", inset=(125, 70, 0, 4)),
-    "svinho": dict(pos=(-700, -80), r=(185, 108), aura="#9be38a", seed=5, floor="grass", inset=(150, 80, 0, 3)),
+    "svinho": dict(pos=(-700, -80), r=(185, 108), aura="#9be38a", seed=5, floor="grass", inset=(140, 74, 0, 3), shape="rect"),
     "stolk": dict(pos=(-710, 250), r=(165, 100), aura="#ff8f9e", seed=6, floor="gym", inset=(125, 70, 0, 4)),
     "doc": dict(pos=(700, -80), r=(170, 102), aura="#ffe3a3", seed=7, floor="clinic", inset=(130, 72, 0, 4)),
     "ad": dict(pos=(710, 250), r=(175, 104), aura="#ffb04a", seed=8, floor="street", inset=(140, 76, 0, 4)),
@@ -168,23 +168,41 @@ def voronoi_stone(img, mask, X, Y, rng, spacing=17, jitter=6.5):
 # --- Suelos de cada personaje / Each character's floor ------------------------------------
 
 def floor_grass(lx, ly, rng, irx, iry):
+    """Medio campo visto desde detrás de Svinho: la portería arriba, con su área, el punto de
+    penalti y la media luna; abajo la línea de medio campo con medio círculo central. Franjas de
+    cortacésped paralelas a la portería.
+    Half a pitch seen from behind Svinho: the goal at the top, with its box, the penalty spot and
+    the arc; at the bottom the halfway line with half the centre circle. Mowing stripes parallel
+    to the goal."""
     G = [night("#3f9a4a"), night("#4aa856"), night("#357f3e"), night("#5bb866")]
     WH = night("#e8ecf0", 0.15)
-    out = np.where((((lx + 400) // 13) % 2 == 0)[..., None], G[0], G[1])
+    out = np.where((((ly + 400) // 12) % 2 == 0)[..., None], G[0], G[1])
     noise = np.random.default_rng(5).random(lx.shape)
     out[noise < 0.05] = G[2]
     out[noise > 0.975] = G[3]
-    line = (np.abs(lx) < 0.6)
-    rr = np.sqrt(lx ** 2 + (ly * 1.45) ** 2)
-    line |= np.abs(rr - 22) < 0.7
-    line |= (np.abs(lx) < 1.6) & (np.abs(ly) < 1.6)
-    for s in (-1, 1):
-        bx = s * (irx - 38)
-        box = (s * lx >= s * bx - 0.5) & (np.abs(ly) <= 30)
-        line |= box & ((np.abs(lx - bx) < 0.6) | (np.abs(np.abs(ly) - 30) < 0.6))
-        bx2 = s * (irx - 18)
-        box2 = (s * lx >= s * bx2 - 0.5) & (np.abs(ly) <= 15)
-        line |= box2 & ((np.abs(lx - bx2) < 0.6) | (np.abs(np.abs(ly) - 15) < 0.6))
+    T, B, S = -(iry - 8), iry - 8, irx - 9     # bandas / touchlines
+    on = lambda a, b: np.abs(a - b) < 0.6
+    within_x = np.abs(lx) <= S
+    within_y = (ly >= T) & (ly <= B)
+    line = (on(ly, T) | on(ly, B)) & within_x
+    line |= on(np.abs(lx), S) & within_y
+    # Área grande y área chica / Penalty box and six-yard box
+    for hw, d in ((70, 36), (36, 13)):
+        box = (np.abs(lx) <= hw) & (ly >= T) & (ly <= T + d)
+        line |= box & (on(np.abs(lx), hw) | on(ly, T + d))
+    # Punto de penalti y media luna / Penalty spot and arc
+    spot = T + 25
+    line |= (np.abs(lx) < 1.2) & (np.abs(ly - spot) < 1.2)
+    rr = np.sqrt(lx ** 2 + ((ly - spot) * 1.45) ** 2)
+    line |= (np.abs(rr - 24) < 0.7) & (ly > T + 36)
+    # Medio círculo central y punto / Half the centre circle and the spot
+    rc = np.sqrt(lx ** 2 + ((ly - B) * 1.45) ** 2)
+    line |= (np.abs(rc - 30) < 0.7) & (ly < B)
+    line |= (np.abs(lx) < 1.2) & (np.abs(ly - B) < 1.2)
+    # Esquinas / Corner arcs
+    for sx in (-1, 1):
+        rq = np.sqrt((lx - sx * S) ** 2 + ((ly - T) * 1.45) ** 2)
+        line |= (np.abs(rq - 7) < 0.6) & (sx * lx < S) & (ly > T)
     out[line] = WH
     return out
 
@@ -363,7 +381,7 @@ FLOORS = {"grass": floor_grass, "gym": floor_gym, "dark": floor_dark, "clinic": 
           "kitchen": floor_kitchen, "bedroom": floor_bedroom, "charo": floor_charo, "magnus": floor_magnus, "marble": floor_marble, "dojo": floor_dojo}
 
 
-def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flowers=True, nexus=False, crystals=True, thick=18, pad=30):
+def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flowers=True, nexus=False, crystals=True, thick=18, pad=30, shape=None):
     T = thick
     rng = random.Random(seed)
     D = int(ry * deep) + 6
@@ -516,12 +534,21 @@ def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flower
         inn = np.sqrt((lx / irx) ** 2 + (ly / iry) ** 2)
         iedge = edge_noise(random.Random(seed * 7 + 1), amp=1.4)
         ith = np.arctan2(ly / iry, lx / irx)
-        floor_mask = top & (inn < 1.0 + iedge(ith)) & (dist > 6)
+        if shape == "rect":
+            # Rectángulo de esquinas redondeadas y borde limpio (un campo de verdad)
+            # Rounded rectangle with a clean edge (a proper pitch)
+            cr = 22.0
+            qx = np.maximum(np.abs(lx) - (irx - cr), 0)
+            qy = np.maximum(np.abs(ly) - (iry - cr), 0)
+            floor_mask = top & (np.sqrt(qx ** 2 + qy ** 2) < cr) & (dist > 5)
+        else:
+            floor_mask = top & (inn < 1.0 + iedge(ith)) & (dist > 6)
         # Bordes desmigados / Crumbly edges
         fd = depth_from_edge(floor_mask, 3)
         crumble = np.random.default_rng(seed).random(top.shape)
-        floor_mask &= ~((fd == 1) & (crumble < 0.45))
-        floor_mask &= ~((fd == 2) & (crumble < 0.12))
+        if shape != "rect":
+            floor_mask &= ~((fd == 1) & (crumble < 0.45))
+            floor_mask &= ~((fd == 2) & (crumble < 0.12))
         fl = FLOORS[floor](lx.astype(np.int32), ly.astype(np.int32), rng, irx, iry)
         img[floor_mask] = fl[floor_mask]
         # Sombra fina alrededor del trozo de mundo / Thin shadow around the piece of world
@@ -534,7 +561,7 @@ def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flower
         # Algún trocito suelto fuera / The odd loose crumb outside
         r2 = np.random.default_rng(seed + 50)
         fy, fx = np.nonzero(fd == 1)
-        for i in r2.choice(len(fy), size=min(len(fy), 14), replace=False):
+        for i in (r2.choice(len(fy), size=min(len(fy), 14), replace=False) if shape != "rect" else []):
             ddx, ddy = r2.integers(-5, 6), r2.integers(-4, 5)
             yy, xx = fy[i] + ddy, fx[i] + ddx
             if 0 <= yy < H and 0 <= xx < W and top[yy, xx] and not floor_mask[yy, xx] and dist[yy, xx] > 4:
@@ -620,7 +647,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     data = {}
     for name, d in ISLES.items():
-        info = make_isle("hub_isle_" + name, d["r"][0], d["r"][1], d["aura"], d["seed"], d.get("floor"), d.get("inset"), nexus=(name == "nexus"))
+        info = make_isle("hub_isle_" + name, d["r"][0], d["r"][1], d["aura"], d["seed"], d.get("floor"), d.get("inset"), nexus=(name == "nexus"), shape=d.get("shape"))
         data[name] = info
         print(name, info["size"])
     # Islotes lejanos del fondo / Far-off islets in the background
