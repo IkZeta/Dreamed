@@ -272,6 +272,7 @@ PAJAMAS = {
     "vacuum": {"base": "#62a9a1", "pattern": "#f4f1e6", "piping": "#f4f1e6", "slippers": "#2f6e69", "print": "dots"},
     "finger": {"base": "#3a2457", "pattern": "#ff5f7a", "piping": "#7ff5ff", "slippers": "#ff5f7a", "print": "bolts"},
     "teddy": {"base": "#b8845e", "pattern": "#f4e2c8", "piping": "#f4e2c8", "slippers": "#6e432c", "print": "paws"},
+    "ball": {"base": "#f2c94c", "pattern": "#2f9e5b", "piping": "#2f9e5b", "slippers": "#2f5fb3", "print": "stripes"},
 }
 
 
@@ -489,6 +490,24 @@ def kroker_weapons():
     t += flat(ellipse_d(-6, -15, 2.6, 2.6), MZ) + flat(ellipse_d(6, -15, 2.6, 2.6), MZ)
     t += flat("M0,0 L-9,-5 L-9,5 Z M0,0 L9,-5 L9,5 Z", "#ff5f7a")
     add("weapon_teddy", -26, -32, 52, 66, t, px=PX_KROKER, flat=True)
+
+    # Balón de fútbol: blanco con pentágonos negros (centrado) / Football: white with black pentagons (centred)
+    R = 20.0
+    ball = ellipse_d(0, 0, R, R)
+    bl = flat(ball, "#f7f4ee") + clipped(ball, flat(ellipse_d(7, 7, R, R), "#cfc8d8"))
+    def pent(cx, cy, r, rot=0.0):
+        pts = []
+        for i in range(5):
+            a = rot + i * 2 * math.pi / 5 - math.pi / 2
+            pts.append("%.2f,%.2f" % (cx + r * math.cos(a), cy + r * math.sin(a)))
+        return "M" + " L".join(pts) + " Z"
+    pents = pent(0, 0, 7.5)
+    for i in range(5):
+        a = i * 2 * math.pi / 5 - math.pi / 2
+        pents += " " + pent(19 * math.cos(a), 19 * math.sin(a), 7.0, math.pi)
+    bl += clipped(ball, flat(pents, "#26222f"))
+    bl += flat(ellipse_d(-8, -9, 3.5, 2.5), "#ffffff")
+    add("weapon_ball", -22, -22, 44, 44, bl, px=PX_KROKER, flat=True)
 
 
 # --- Enemigos / Enemies --------------------------------------------------------

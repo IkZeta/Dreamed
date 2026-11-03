@@ -625,6 +625,7 @@ func _choose_second_weapon(then: Callable) -> void:
 		_modal = null
 		get_tree().paused = false
 		GameState.second_weapon = id
+		GameState.gift_ball()
 		then.call())
 
 

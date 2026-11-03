@@ -139,4 +139,7 @@ class WeaponIcon extends Control:
 			"teddy":
 				draw_set_transform(c, sin(_t) * 0.1, Vector2(s, s) * 1.4)
 				Sprites.draw(self, "weapon_teddy")
+			"ball":
+				draw_set_transform(c + Vector2(0, -absf(sin(_t * 2.0)) * 10.0), _t, Vector2(s, s) * 2.2)
+				Sprites.draw(self, "weapon_ball")
 		draw_set_transform(Vector2.ZERO)

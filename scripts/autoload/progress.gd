@@ -51,7 +51,11 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "finger", "flag": true, "goal": 1},
 	{"id": "teddy", "flag": true, "goal": 1},
 	{"id": "pinche", "flag": true, "goal": 1},
+	# La pelota: amistad 4 con Svinho / The ball: friendship 4 with Svinho
+	{"id": "ball", "check": "svinho4", "goal": 4},
 ]
+## Amistad con Svinho que desbloquea la pelota / Svinho friendship that unlocks the ball
+const BALL_FRIEND := 4
 
 ## Aviso de logro en pantalla / On-screen achievement notice
 var _toast: CanvasLayer
@@ -162,6 +166,8 @@ func achievement_progress(a: Dictionary) -> Array:
 				if has_cleared(w, "normal") or has_cleared(w, "nightmare"):
 					n += 1
 			return [n, goal]
+		"svinho4":
+			return [mini(friend_level("svinho"), BALL_FRIEND), BALL_FRIEND]
 		"bestiary":
 			for id in BESTIARY:
 				if not has_seen(id):
@@ -209,6 +215,7 @@ func mark_talked(id: String) -> void:
 func add_friend(id: String) -> void:
 	friendship[id] = mini(FRIEND_MAX, friend_level(id) + 1)
 	save_progress()
+	check_achievements()
 
 
 ## Botón «Desbloquear todo» del menú: logros (y con ellos pijamas, Mr. Ad, El Pinche y dibujos),

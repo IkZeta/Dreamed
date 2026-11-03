@@ -73,6 +73,11 @@ func setup(p_run: Node, p_outfit: String) -> void:
 		weapon2 = _make_weapon(second, false)
 
 
+## La pelota está en el aire (no se dibuja en la mano) / The ball is in the air (not drawn in the hand)
+func _ball_away(w: Weapon) -> bool:
+	return w is WeaponBall and not (w as WeaponBall).has_ball()
+
+
 func _make_weapon(id: String, primary: bool) -> Weapon:
 	var w: Weapon
 	match id:
@@ -81,6 +86,7 @@ func _make_weapon(id: String, primary: bool) -> Weapon:
 		"vacuum": w = WeaponVacuum.new()
 		"finger": w = WeaponFinger.new()
 		"teddy": w = WeaponTeddy.new()
+		"ball": w = WeaponBall.new()
 		_: w = WeaponBat.new()
 	w.id = id
 	w.primary = primary
@@ -308,10 +314,10 @@ func _draw() -> void:
 	var sy := ART_SCALE * (1.0 - squash)
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
 		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
-		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon), "lean": hurt_lean,
+		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
-		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2),
+		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),
 		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
 		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})
 	if alive and run.running and weapon and not weapon_stunk(weapon):
