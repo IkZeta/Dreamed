@@ -43,9 +43,15 @@ const CHARACTERS := [
 		"bonus": "CHAR_BALL_BONUS", "outfit": "CHAR_BALL_OUTFIT", "desc": "CHAR_BALL_DESC",
 		"stats": {"STAT_ATTACK": 4, "STAT_DEFENSE": 1, "STAT_SPEED": 4, "STAT_RANGE": 2},
 	},
+	# Se desbloquea al llegar a amistad 4 con Silly / Unlocked at friendship 4 with Silly
+	{
+		"id": "laptop", "name": "CHAR_LAPTOP_NAME", "tag": "CHAR_LAPTOP_TAG", "weapon": "CHAR_LAPTOP_WEAPON",
+		"bonus": "CHAR_LAPTOP_BONUS", "outfit": "CHAR_LAPTOP_OUTFIT", "desc": "CHAR_LAPTOP_DESC",
+		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 2, "STAT_SPEED": 2, "STAT_RANGE": 4},
+	},
 ]
 ## Logro que desbloquea cada pijama nuevo / Achievement that unlocks each new pajama
-const WEAPON_UNLOCK := {"finger": "finger", "teddy": "teddy", "ball": "ball"}
+const WEAPON_UNLOCK := {"finger": "finger", "teddy": "teddy", "ball": "ball", "laptop": "laptop"}
 ## Svinho le regala su mejora a nivel 3 a la pelota / Svinho gives the ball his upgrade at level 3
 const BALL_SVINHO := 3
 
@@ -64,6 +70,7 @@ const WEAPON_BONUS := {
 	"finger": {},                    # +10 de suerte (en BASE_LEVEL_STATS) / +10 luck (in BASE_LEVEL_STATS)
 	"teddy": {"max_hp": 6.0},        # +6 de vida máxima / +6 max health
 	"ball": {"armor": -2.0, "speed": 60.0, "damage_mult": 0.15},  # frágil, rápida y pega fuerte / fragile, fast and hits hard
+	"laptop": {"max_hp": 3.0},       # +3 de vida máxima / +3 max health
 }
 
 ## Definición de cada sueño del Acto 1 (la habitación). "mix" es el peso de cada enemigo al
@@ -73,7 +80,7 @@ const WEAPON_BONUS := {
 ## "shop_met": Charo opens her kiosk here, but only once you've met her in the living room.
 ## Every floor brings a new, more dangerous enemy; floor 5 is the boss.
 ## Qué hace El Pinche con cada arma / What the Kitchen Boy does with each weapon
-const PINCHE_KIND := {"bat": "bleed", "shield": "burn", "book": "burn", "vacuum": "bleed", "finger": "burn", "teddy": "bleed", "ball": "bleed"}
+const PINCHE_KIND := {"bat": "bleed", "shield": "burn", "book": "burn", "vacuum": "bleed", "finger": "burn", "teddy": "bleed", "ball": "bleed", "laptop": "bleed"}
 
 const WAVES := [
 	{"duration": 30.0, "spawn_every": 3.0, "group": [1, 2], "max_alive": 5, "mix": {"foox": 1}},
@@ -111,7 +118,7 @@ const ACT3_START := 11
 ## Armas cuerpo a cuerpo y a distancia: la segunda arma tiene que ser del otro tipo
 ## Melee and ranged weapons: the second weapon must be of the other kind
 const MELEE: Array[String] = ["bat", "shield", "teddy"]
-const RANGED: Array[String] = ["book", "vacuum", "finger", "ball"]
+const RANGED: Array[String] = ["book", "vacuum", "finger", "ball", "laptop"]
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
@@ -323,6 +330,7 @@ const BASE_LEVEL_STATS := {
 	"finger": {"luck": 10.0, "lifesteal": 5.0},
 	"teddy": {"regen": 3.0},
 	"ball": {"luck": -10.0, "parry": 6.0},
+	"laptop": {"attack_speed": -15.0, "luck": 5.0},   # torretas muy de tarde en tarde / turrets very rarely
 }
 ## Entre un sueño y otro solo se recupera un 5 % de la vida máxima
 ## Between one dream and the next only 5% of max health comes back
@@ -381,7 +389,7 @@ func stat(id: String) -> float:
 ## --- Mr. Ad: cuanta más Realidad Fragmentada ahorrada, más estadística ----------------
 ## --- Mr. Ad: the more Fragmented Reality saved, the higher the stat ------------------------
 ## Qué estadística sube Mr. Ad con cada arma / Which stat Mr. Ad raises with each weapon
-const AD_STAT := {"bat": "attack", "shield": "defense", "book": "attack_speed", "vacuum": "speed", "finger": "luck", "teddy": "regen", "ball": "parry"}
+const AD_STAT := {"bat": "attack", "shield": "defense", "book": "attack_speed", "vacuum": "speed", "finger": "luck", "teddy": "regen", "ball": "parry", "laptop": "attack_speed"}
 const AD_MAX_TIERS := 10   # cuenta hasta 100 de Realidad Fragmentada / counts up to 100 Fragmented Reality
 
 
@@ -755,6 +763,8 @@ const UPGRADE_VALUES := {
 		"teddy": {"extra": [1, 2, 3]},
 		# La pelota rebota en "extra" enemigos más (empieza a nivel 3)
 		"ball": {"extra": [1, 2, 3]},
+		# Cada disparo de torreta salta a "extra" enemigos más
+		"laptop": {"extra": [1, 2, 3]},
 	},
 	"stolk": {
 		"bat": {"pct": [30, 60, 100]},                    # +daño / +damage
@@ -764,6 +774,7 @@ const UPGRADE_VALUES := {
 		"finger": {"pct": [30, 60, 100]},                 # +daño / +damage
 		"teddy": {"pct": [30, 60, 100], "fluff": [1, 1, 2]},  # +daño y pelusa extra / +damage and extra fluff
 		"ball": {"pct": [30, 60, 100]},                   # +daño / +damage
+		"laptop": {"pct": [30, 60, 100]},                 # +daño de las torretas / +turret damage
 	},
 	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
 	## Doc: more max health in exchange for weakening another weapon stat
@@ -775,6 +786,9 @@ const UPGRADE_VALUES := {
 		"finger": {"hp": [10, 18, 28], "pct": [8, 12, 16]},    # +recarga / +cooldown
 		"teddy": {"hp": [10, 18, 28], "pct": [15, 25, 35]},    # −duración de la pelusa / −fluff duration
 		"ball": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
+		# +recarga y −daño, pero una torreta curativa que cura "heal" cada 4 s
+		# +cooldown and −damage, but a healing turret that heals "heal" every 4 s
+		"laptop": {"hp": [10, 18, 28], "pct": [8, 12, 16], "dmg": [10, 15, 20], "heal": [1, 1.5, 2]},
 	},
 	## Mr. Ad: "extra" = % de ganar 1 más de Realidad Fragmentada; "per10" = estadística por cada 10 ahorradas
 	## Mr. Ad: "extra" = % chance of 1 extra Fragmented Reality; "per10" = stat per 10 saved
@@ -786,6 +800,7 @@ const UPGRADE_VALUES := {
 		"finger": {"extra": [20, 35, 50], "per10": [2, 3, 5]},        # +suerte / +luck
 		"teddy": {"extra": [20, 35, 50], "per10": [0.2, 0.35, 0.5]},  # +regeneración / +regen
 		"ball": {"extra": [20, 35, 50], "per10": [0.3, 0.5, 0.8]},    # +parry
+		"laptop": {"extra": [20, 35, 50], "per10": [2, 4, 6]},        # +% velocidad de ataque / +% attack speed
 	},
 	"silly": {
 		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
@@ -795,6 +810,7 @@ const UPGRADE_VALUES := {
 		"finger": {"chance": [10, 18, 28], "secs": [1.0, 1.5, 2.0]},  # ralentizar / slow
 		"teddy": {"pct": [20, 35, 50]},                   # pegados reciben más daño / stuck ones take more damage
 		"ball": {"chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},  # congelar / freeze
+		"laptop": {"chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},  # congelar / freeze
 	},
 	## El Pinche: sangrado (daño residual fuerte) o quemadura (flojo, pero baja su daño y su defensa)
 	## The Kitchen Boy: bleed (strong damage over time) or burn (weak, but lowers its damage and defence)
@@ -806,6 +822,7 @@ const UPGRADE_VALUES := {
 		"finger": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
 		"teddy": {"dps": [2, 3, 4.5], "secs": [3, 3.5, 4]},               # sangrado / bleed
 		"ball": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},            # sangrado / bleed
+		"laptop": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},          # sangrado / bleed
 	},
 }
 
@@ -827,7 +844,7 @@ func _friendly(giver: String, key: String, v: float) -> float:
 	if key in COUNT_KEYS or (key == "extra" and giver != "ad"):
 		return v
 	var m := friend_mult(giver)
-	if key == "cd" or (giver == "doc" and key == "pct"):
+	if key == "cd" or (giver == "doc" and key in ["pct", "dmg"]):
 		return v / m
 	return v * m
 

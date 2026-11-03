@@ -29,6 +29,7 @@ const PAJAMAS := {
 	"finger": {"base": Color("3a2457"), "pattern": Color("ff5f7a"), "piping": Color("7ff5ff"), "slippers": Color("ff5f7a"), "print": "bolts"},
 	"teddy": {"base": Color("b8845e"), "pattern": Color("f4e2c8"), "piping": Color("f4e2c8"), "slippers": Color("6e432c"), "print": "paws"},
 	"ball": {"base": Color("f2c94c"), "pattern": Color("2f9e5b"), "piping": Color("2f9e5b"), "slippers": Color("2f5fb3"), "print": "stripes"},
+	"laptop": {"base": Color("2b2f45"), "pattern": Color("5ff2a0"), "piping": Color("5ff2a0"), "slippers": Color("4a4f72"), "print": "dots"},
 }
 
 ## Color de acento del arma / Weapon accent color
@@ -41,6 +42,7 @@ const ACCENT := {
 	"finger": Color("ff8fa2"),
 	"teddy": Color("f4e9da"),
 	"ball": Color("ffffff"),
+	"laptop": Color("5ff2a0"),
 }
 
 static var _ci: CanvasItem
@@ -100,7 +102,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 			a_l = attack if outfit in ["shield", "teddy", "bat"] else cast
 		else:
 			w_r = outfit
-			a_r = cast if outfit in ["book", "finger"] else attack
+			a_r = cast if outfit in ["book", "finger", "laptop"] else attack
 	if show2:
 		if hs["second"] == "r":
 			w_r = second
@@ -201,6 +203,7 @@ static func _arm_pose(w: String, base: float, a: float, swing: float) -> float:
 		"bat": return (base - 0.9 * a) * 0.5        # el bate pesa / the bat is heavy
 		"vacuum": return base * 0.5
 		"book": return base - 1.2 * a
+		"laptop": return base - 0.9 - 0.3 * a
 		"shield", "teddy": return base - 1.25 * a
 		"ball": return base - 0.8 * a
 		# Apunta con el dedo hacia delante y da un respingo al disparar / Points forward and kicks up when firing
@@ -220,6 +223,7 @@ static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: flo
 			finger_gun(ci, _xf, hand + arm_dir * 3.0, arm_dir, a, "weapon_finger", 1.0)
 		"teddy": _teddy(t, a, hand, mod)
 		"ball": _ball(t, a, hand, mod)
+		"laptop": _laptop(t, a, hand, mod)
 
 
 ## Gira una extremidad alrededor de su articulación / Rotates a limb around its joint
@@ -308,6 +312,20 @@ static func finger_gun(ci: CanvasItem, base: Transform2D, hand: Vector2, dir: Ve
 		ci.draw_circle(FINGER_TIP + Vector2(4, 0), 7.0 * k, Color(ACCENT["finger"], 0.8 * k))
 		ci.draw_circle(FINGER_TIP + Vector2(4, 0), 3.5 * k, Color(1, 1, 1, 0.9 * k))
 	ci.draw_set_transform_matrix(base)
+
+
+## El portátil abierto en la mano; al poner una torreta, la pantalla brilla
+## The open laptop in the hand; when placing a turret, the screen glows
+static func _laptop(t: float, cast: float, hand: Vector2, mod: Color) -> void:
+	_use(Transform2D(-0.08 - cast * 0.15, hand + Vector2(14, -4)))
+	var glow := 26.0 + cast * 30.0
+	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(-glow, -16 - glow, glow * 2, glow * 2), false, Color(ACCENT["laptop"], 0.18 + cast * 0.4))
+	Sprites.draw(_ci, "weapon_laptop", mod)
+	# Líneas de código que van subiendo / Lines of code scrolling up
+	for i in 4:
+		var y := -8.0 - fposmod(t * 18.0 + i * 6.0, 24.0)
+		var w := 8.0 + float((i * 7 + int(t * 3.0)) % 5) * 4.0
+		_ci.draw_rect(Rect2(-14, y, w, 2), Color(ACCENT["laptop"], 0.85))
 
 
 ## La pelota en la mano, botando un poco; al chutar sale de la mano / The ball in the hand, bobbing a little; when kicked it leaves the hand

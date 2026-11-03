@@ -273,6 +273,7 @@ PAJAMAS = {
     "finger": {"base": "#3a2457", "pattern": "#ff5f7a", "piping": "#7ff5ff", "slippers": "#ff5f7a", "print": "bolts"},
     "teddy": {"base": "#b8845e", "pattern": "#f4e2c8", "piping": "#f4e2c8", "slippers": "#6e432c", "print": "paws"},
     "ball": {"base": "#f2c94c", "pattern": "#2f9e5b", "piping": "#2f9e5b", "slippers": "#2f5fb3", "print": "stripes"},
+    "laptop": {"base": "#2b2f45", "pattern": "#5ff2a0", "piping": "#5ff2a0", "slippers": "#4a4f72", "print": "dots"},
 }
 
 
@@ -508,6 +509,16 @@ def kroker_weapons():
     bl += clipped(ball, flat(pents, "#26222f"))
     bl += flat(ellipse_d(-8, -9, 3.5, 2.5), "#ffffff")
     add("weapon_ball", -22, -22, 44, 44, bl, px=PX_KROKER, flat=True)
+
+    # Portátil abierto, visto de lado y un poco de frente (origen: donde lo agarra la mano)
+    # Open laptop, seen from the side and slightly front-on (origin: where the hand grips it)
+    lp = flat("M-24,0 L24,0 L22,6 L-22,6 Z", "#8f93b8") + flat("M-24,0 L24,0 L24,2 L-24,2 Z", "#c8cbe2")
+    lp += flat("M-20,0 L-24,-34 L20,-34 L22,0 Z", "#3a3f5c")
+    lp += flat("M-17,-4 L-20,-30 L17,-30 L19,-4 Z", "#10261e")
+    for i, w in enumerate((22, 14, 26, 10, 18)):
+        lp += flat("M-15,%g L%g,%g L%g,%g L-15,%g Z" % (-27 + i * 4.6, -15 + w, -27 + i * 4.6, -15 + w, -25.6 + i * 4.6, -25.6 + i * 4.6), "#5ff2a0" if i % 2 == 0 else "#3fbf7a")
+    lp += flat(ellipse_d(0, -32, 1.4, 1.4), "#5ff2a0")
+    add("weapon_laptop", -26, -38, 52, 46, lp, px=PX_KROKER, flat=True)
 
 
 # --- Enemigos / Enemies --------------------------------------------------------
@@ -867,6 +878,25 @@ def boss():
     add("boss_chest_lid", -66, -26, 132, 30, lid, flat=True)
 
 # --- Proyectiles / Projectiles --------------------------------------------------------
+
+def turrets():
+    """Torretas del portátil (en el suelo, origen en los pies). La pantalla y las luces de nivel
+    se pintan en el juego. / Laptop turrets (on the floor, origin at the feet). The screen and
+    level lights are painted in game."""
+    for name, body, body1, mark in (("turret", "#5b6390", "#3e4570", None), ("turret_heal", "#e8eaf4", "#b8bcd6", "#4fbf6a")):
+        t = ""
+        # Trípode / Tripod
+        t += "<path d='M0,-12 L-13,1 M0,-12 L13,1 M0,-12 L0,3' fill='none' stroke='#2b2945' stroke-width='3'/>"
+        # Cuerpo / Body
+        t += flat("M-11,-23 L11,-23 L11,-11 L-11,-11 Z", body) + flat("M5,-23 L11,-23 L11,-11 L5,-11 Z", body1)
+        if mark:
+            t += flat("M-2,-21 L2,-21 L2,-13 L-2,-13 Z", mark) + flat("M-5,-19 L5,-19 L5,-15 L-5,-15 Z", mark)
+        # Pantalla / Screen
+        t += flat("M-10,-35 L10,-35 L10,-21 L-10,-21 Z", "#2b2f45") + flat("M-8,-33 L8,-33 L8,-23 L-8,-23 Z", "#10261e")
+        # Antena / Antenna
+        t += "<path d='M7,-35 L10,-42' fill='none' stroke='#2b2945' stroke-width='1.6'/>" + flat(ellipse_d(10, -42, 1.6, 1.6), "#ff5f7a")
+        add(name, -16, -46, 32, 50, t, flat=True)
+
 
 def shots():
     bk = flat("M-16,-11 L16,-11 L16,11 L-16,11 Z", "#6a4fa8") + flat("M-13,-8 L13,-8 L13,8 L-13,8 Z", "#f1e6c8")
@@ -2575,6 +2605,7 @@ def build():
     mr_ad()
     pinche()
     magnus()
+    turrets()
     pickups()
     thug()
     sling()

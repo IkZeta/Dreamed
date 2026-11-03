@@ -87,6 +87,7 @@ func _make_weapon(id: String, primary: bool) -> Weapon:
 		"finger": w = WeaponFinger.new()
 		"teddy": w = WeaponTeddy.new()
 		"ball": w = WeaponBall.new()
+		"laptop": w = WeaponLaptop.new()
 		_: w = WeaponBat.new()
 	w.id = id
 	w.primary = primary

@@ -142,4 +142,7 @@ class WeaponIcon extends Control:
 			"ball":
 				draw_set_transform(c + Vector2(0, -absf(sin(_t * 2.0)) * 10.0), _t, Vector2(s, s) * 2.2)
 				Sprites.draw(self, "weapon_ball")
+			"laptop":
+				draw_set_transform(c + Vector2(0, 20), sin(_t) * 0.08, Vector2(s, s) * 2.6)
+				Sprites.draw(self, "weapon_laptop")
 		draw_set_transform(Vector2.ZERO)
