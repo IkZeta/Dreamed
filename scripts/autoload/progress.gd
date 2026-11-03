@@ -84,12 +84,18 @@ func clear_act(weapon: String, difficulty: String, act := 1) -> void:
 	if not cleared.has(weapon):
 		cleared[weapon] = {}
 	cleared[weapon][_act_key(difficulty, act)] = true
+	# Superarlo en pesadilla también cuenta como superado en normal / Clearing it on nightmare also counts as normal
+	if difficulty == "nightmare":
+		cleared[weapon][_act_key("normal", act)] = true
 	check_achievements()
 	save_progress()
 
 
 func has_cleared(weapon: String, difficulty: String, act := 1) -> bool:
-	return bool(cleared.get(weapon, {}).get(_act_key(difficulty, act), false))
+	var c: Dictionary = cleared.get(weapon, {})
+	if difficulty == "normal" and bool(c.get(_act_key("nightmare", act), false)):
+		return true   # partidas guardadas de antes / saves from before
+	return bool(c.get(_act_key(difficulty, act), false))
 
 
 func _act_key(difficulty: String, act: int) -> String:

@@ -57,7 +57,7 @@ func _act(delta: float) -> void:
 	if _shot_t <= AIM_TIME:
 		if _aim_dir == Vector2.ZERO:
 			# Fija hacia dónde va a disparar y lo avisa / Locks where it will shoot and shows it
-			_aim_dir = (run.player.global_position + Vector2(0, -44) - _shot_from()).normalized()
+			_aim_dir = (run.player.global_position + Player.HURT - _shot_from()).normalized()
 			_facing = signf(_aim_dir.x) if absf(_aim_dir.x) > 0.05 else _facing
 		_aiming = 1.0 - maxf(0.0, _shot_t) / AIM_TIME
 	if _shot_t <= 0.0:
@@ -88,7 +88,7 @@ func _fire() -> void:
 	shot.run = run
 	shot.position = from
 	if _aim_dir == Vector2.ZERO:
-		_aim_dir = (run.player.global_position + Vector2(0, -44) - from).normalized()
+		_aim_dir = (run.player.global_position + Player.HURT - from).normalized()
 	shot.velocity = _aim_dir * SHOT_SPEED
 	_aim_dir = Vector2.ZERO
 	shot.damage = SHOT_DAMAGE * atk_mult()

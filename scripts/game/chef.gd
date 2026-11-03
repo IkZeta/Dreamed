@@ -223,7 +223,7 @@ func _start_attack() -> void:
 	_next = (_next + 1) % 2
 	if _next == 0:
 		var count := 5 if _angry else 3
-		var base_dir: Vector2 = (run.player.global_position + Vector2(0, -44) - _hand_from()).normalized()
+		var base_dir: Vector2 = (run.player.global_position + Player.HURT - _hand_from()).normalized()
 		var dirs: Array[Vector2] = []
 		for i in count:
 			dirs.append(base_dir.rotated((i - (count - 1) / 2.0) * 0.22))

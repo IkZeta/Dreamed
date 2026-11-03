@@ -18,6 +18,9 @@ var attack_anim := 0.0  # 1 → 0 tras un golpe / after a strike
 var aim := Vector2(1, 0.5)   # hacia dónde apunta el arma / where the weapon points
 var sucking := false         # la aspiradora está absorbiendo / the vacuum is sucking
 var cast_anim := 0.0         # 1 → 0 al lanzar un rayo / after casting lightning
+## Zona donde le pueden dar: solo el cuerpo (la cabeza no cuenta) / Where he can be hit: only the body (the head doesn't count)
+const HURT := Vector2(0, -30)
+const HURT_R := 20.0
 var armed := true            # lleva el arma en la mano / holds the weapon
 var hurt_lean := 0.0         # retroceso al recibir daño / recoil when hit
 var hop := 0.0               # altura de un salto en píxeles / jump height in pixels

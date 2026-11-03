@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 	if kind == "knife":
 		position += velocity * delta
 		_life -= delta
-		if global_position.distance_to(player.global_position + Vector2(0, -44)) < 30.0:
+		if global_position.distance_to(player.global_position + Player.HURT) < Player.HURT_R + 8.0:
 			var before := player.hp
 			player.take_damage(KNIFE_DAMAGE * GameState.enemy_dmg_mult())
 			# Solo sangra si el cuchillo le ha hecho daño de verdad / Only bleeds if the knife really hurt him

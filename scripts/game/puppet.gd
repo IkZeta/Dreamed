@@ -133,7 +133,7 @@ func _act_gun(dt: float, to_player: Vector2) -> void:
 			_fire()
 		return
 	if _atk_cd <= 0.0 and to_player.length() < KEEP_MAX + 180.0:
-		_aim_dir = (run.player.global_position + Vector2(0, -44) - _muzzle()).normalized()
+		_aim_dir = (run.player.global_position + Player.HURT - _muzzle()).normalized()
 		_facing = signf(_aim_dir.x) if absf(_aim_dir.x) > 0.05 else _facing
 		_aiming = 0.01
 		Audio.play("throw", -12.0, 0.1)

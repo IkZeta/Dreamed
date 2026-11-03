@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 	_spin += delta * (12.0 if kind == "book" else 6.0)
 	position += velocity * delta
 	var player: Node2D = run.player
-	if run.running and global_position.distance_to(player.global_position + Vector2(0, -44)) < radius + 22.0:
+	if run.running and global_position.distance_to(player.global_position + Player.HURT) < radius + Player.HURT_R:
 		player.take_damage(damage * GameState.enemy_dmg_mult())
 		run.fx.ring(global_position, 14.0, UITheme.EMBER, 0.3, 2.0)
 		queue_free()

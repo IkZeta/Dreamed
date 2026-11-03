@@ -228,7 +228,7 @@ func _saucer() -> Vector2:
 
 func _fire_lasers() -> void:
 	var from := _saucer() + Vector2(0, 24)
-	var dir: Vector2 = (run.player.global_position + Vector2(0, -40) - from).normalized()
+	var dir: Vector2 = (run.player.global_position + Player.HURT - from).normalized()
 	for i in 3:
 		var s := EnemyShot.new()
 		s.run = run
