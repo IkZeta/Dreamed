@@ -398,7 +398,7 @@ const STRINGS := {
 	"ACH_LAPTOP_DESC": {"es": "Llega a amistad 4 con Silly. Desbloquea el pijama del portátil.", "en": "Reach friendship 4 with Silly. Unlocks the laptop pajamas."},
 	# Las botas steampunk / The steampunk boots
 	"SELECT_UNLOCK_BOOTS": {"es": "Llega a amistad 4 con Doc para desbloquear este pijama.", "en": "Reach friendship 4 with Doc to unlock these pajamas."},
-	"CHAR_BOOTS_NAME": {"es": "El Maquinista", "en": "The Tinkerer"},
+	"CHAR_BOOTS_NAME": {"es": "El del 47", "en": "The One from '47"},
 	"CHAR_BOOTS_TAG": {"es": "Pateador", "en": "Kicker"},
 	"CHAR_BOOTS_WEAPON": {"es": "Botas steampunk", "en": "Steampunk boots"},
 	"CHAR_BOOTS_BONUS": {"es": "+10 % de velocidad · +1 de defensa · +2 de recuperación de salud", "en": "+10% speed · +1 defence · +2 health recovery"},
