@@ -150,10 +150,12 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var aim_2: Vector2 = opts.get("aim2", Vector2(1, 0.5))
 	var suck_main: bool = opts.get("sucking", false)
 	var suck_2: bool = opts.get("sucking2", false)
-	var l_behind := w_l != "" and not w_l in ["shield", "teddy"]
+	var l_behind := w_l != "" and not w_l in ["shield", "teddy", "boots"]
 	if l_behind:
 		_weapon(ci, w_l, t, hand_l, arm_l, Vector2(-5, 53.3).rotated(arm_l).normalized(), a_l,
 			aim_2 * Vector2(facing, 1), suck_2, mod, true)
+		# Cada arma deja puesta su transformación: el torso va sin ella / Each weapon leaves its transform set: the torso goes without it
+		_use(Transform2D.IDENTITY)
 
 	# Pijama / Pajamas
 	Sprites.draw(ci, "kroker_torso_" + o, mod)
@@ -373,6 +375,7 @@ static func _ball(t: float, attack: float, hand: Vector2, mod: Color) -> void:
 	var y := absf(sin(t * 3.0)) * -5.0
 	_use(Transform2D(t * 0.6 + attack, hand + Vector2(16 + attack * 14.0, 10 + y)))
 	Sprites.draw(_ci, "weapon_ball", mod)
+	_use(Transform2D.IDENTITY)
 
 
 ## El osito en la mano izquierda; al atacar lo estira hacia delante / The teddy in the left hand; pushed forward to attack
