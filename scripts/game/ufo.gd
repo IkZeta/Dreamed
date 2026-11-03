@@ -10,11 +10,22 @@ extends Enemy
 
 signal defeated
 
-const HP := 480.0
+const HP := 720.0
 const SIZE := 1.6                # el platillo se dibuja más grande / the saucer is drawn bigger
 const ALTITUDE := 230.0          # altura a la que vuela / flying height
 const FLY_TIME := 9.0           # tiempo volando antes de estrellarse / flying time before crashing
-const GROUND_TIME := 8.0         # tiempo en el suelo, vulnerable / time on the ground, vulnerable
+const GROUND_TIME := 6.0         # tiempo en el suelo, vulnerable / time on the ground, vulnerable
+## En el suelo no se queda quieto: cada GROUND_BURST s suelta un anillo de láseres lentos
+## On the ground it doesn't sit still: every GROUND_BURST s it lets out a ring of slow lasers
+const GROUND_BURST := 1.5
+const BURST_SHOTS := 10
+const BURST_SPEED := 330.0
+## Al caer va a por Kroker y el golpe hace daño y empuja / When falling it goes for Kroker; the impact hurts and pushes
+const CRASH_RADIUS := 150.0
+const CRASH_DAMAGE := 6.0
+## Por debajo de esta vida se enfada: más láseres, dos rayos a la vez y suelta más enemigos
+## Below this health it gets angry: more lasers, two beams at once and drops more enemies
+const ANGRY_AT := 0.5
 const FALL_TIME := 0.7
 const RISE_TIME := 1.0
 const LASER_EVERY := 1.9
@@ -41,6 +52,10 @@ var _beam := 0.0                 # rayo tractor al soltar enemigos / tractor bea
 var _target := Vector2.ZERO
 var _wobble := 0.0
 var _dying := -1.0
+var _burst_cd := 0.8
+var _ray2 := {}                  # segundo rayo, enfadado / second beam, when angry
+var _crash_from := Vector2.ZERO
+var _crash_to := Vector2.ZERO
 
 
 func _init() -> void:
@@ -50,7 +65,7 @@ func _init() -> void:
 	mass = 80.0
 	contact_damage = 3.0
 	radius = 60.0
-	speed = 230.0
+	speed = 280.0
 	aim_height = 40.0
 	shards = 0
 
@@ -151,9 +166,14 @@ func _physics_process(delta: float) -> void:
 			_fly(delta)
 			if _phase_t > FLY_TIME:
 				_set_phase("fall")
+				# Se estrella donde está Kroker / It crashes where Kroker is
+				_crash_from = position
+				_crash_to = run.clamp_to_arena(run.player.position, radius)
 				Audio.play("glitch", -4.0)
 		"fall":
-			_alt = lerpf(ALTITUDE, 0.0, minf(1.0, _phase_t / FALL_TIME) ** 2)
+			var k := minf(1.0, _phase_t / FALL_TIME)
+			_alt = lerpf(ALTITUDE, 0.0, k ** 2)
+			position = _crash_from.lerp(_crash_to, k)
 			_wobble = sin(_t * 30.0) * 0.3 * (1.0 - _phase_t / FALL_TIME)
 			if _phase_t >= FALL_TIME:
 				_alt = 0.0
@@ -163,6 +183,10 @@ func _physics_process(delta: float) -> void:
 			_wobble = 0.18 + sin(_t * 2.0) * 0.02
 			if fmod(_t, 0.25) < delta:
 				run.fx.dissipate(global_position + Vector2(randf_range(-60, 60), -30), Color("6a6a7a"))
+			_burst_cd -= delta
+			if _burst_cd <= 0.0:
+				_burst_cd = GROUND_BURST * (0.75 if angry() else 1.0)
+				_ground_burst()
 			if _phase_t > GROUND_TIME:
 				_set_phase("rise")
 				Audio.play("dash", -4.0)
@@ -174,6 +198,32 @@ func _physics_process(delta: float) -> void:
 	_update_ray(delta)
 	_beam = maxf(0.0, _beam - delta)
 	queue_redraw()
+
+
+## Enfadado por debajo de la mitad de vida / Angry below half health
+func angry() -> bool:
+	return hp < max_hp * ANGRY_AT
+
+
+## Anillo de láseres lentos desde el suelo (con un hueco para esquivar)
+## Ring of slow lasers from the ground (with a gap to dodge through)
+func _ground_burst() -> void:
+	var from := global_position + Vector2(0, -40)
+	var spin := randf() * TAU
+	var gap := randi() % BURST_SHOTS
+	for i in BURST_SHOTS:
+		if i == gap:
+			continue
+		var s := EnemyShot.new()
+		s.run = run
+		s.kind = "laser"
+		s.position = from
+		s.velocity = Vector2.from_angle(spin + TAU * i / BURST_SHOTS) * BURST_SPEED
+		s.damage = LASER_DAMAGE * atk_mult()
+		s.radius = 9.0
+		s.life = 3.0
+		run.world.add_child(s)
+	Audio.play("laser", -8.0, 0.15)
 
 
 func _set_phase(p: String) -> void:
@@ -198,7 +248,7 @@ func _fly(delta: float) -> void:
 	# Láseres / Lasers
 	_laser_cd -= delta
 	if _laser_cd <= 0.0:
-		_laser_cd = LASER_EVERY + randf_range(-0.3, 0.4)
+		_laser_cd = (LASER_EVERY + randf_range(-0.3, 0.4)) * (0.75 if angry() else 1.0)
 		_fire_lasers()
 	# Rayo que rompe el suelo / Beam that breaks the floor
 	_ray_cd -= delta
@@ -206,6 +256,10 @@ func _fly(delta: float) -> void:
 		_ray_cd = RAY_EVERY + randf_range(-0.5, 0.8)
 		var at: Vector2 = player.position + Vector2(randf_range(-90, 90), randf_range(-40, 40))
 		_ray = {"pos": run.clamp_to_arena(at, 40.0), "t": 0.0}
+		# Enfadado, un segundo rayo donde Kroker va a ir / Angry, a second beam where Kroker is heading
+		if angry():
+			var ahead: Vector2 = player.position + player.velocity_hint() * 0.9 + Vector2(randf_range(-60, 60), randf_range(-30, 30))
+			_ray2 = {"pos": run.clamp_to_arena(ahead, 40.0), "t": 0.0}
 		Audio.play("zap", -8.0, 0.1)
 	# Suelta enemigos / Drops enemies
 	_drop_cd -= delta
@@ -229,12 +283,13 @@ func _saucer() -> Vector2:
 func _fire_lasers() -> void:
 	var from := _saucer() + Vector2(0, 24)
 	var dir: Vector2 = (run.player.global_position + Player.HURT - from).normalized()
-	for i in 3:
+	var n := 5 if angry() else 3
+	for i in n:
 		var s := EnemyShot.new()
 		s.run = run
 		s.kind = "laser"
 		s.position = from
-		s.velocity = dir.rotated((i - 1) * 0.18) * LASER_SPEED
+		s.velocity = dir.rotated((i - (n - 1) / 2.0) * 0.18) * LASER_SPEED
 		s.damage = LASER_DAMAGE * atk_mult()
 		s.radius = 9.0
 		s.life = 2.4
@@ -245,12 +300,17 @@ func _fire_lasers() -> void:
 ## El rayo avisa con un círculo, baja, hace daño y abre un agujero en el suelo
 ## The beam warns with a circle, comes down, deals damage and opens a hole in the floor
 func _update_ray(delta: float) -> void:
-	if _ray.is_empty():
-		return
-	_ray["t"] = float(_ray["t"]) + delta
-	if float(_ray["t"]) >= RAY_WARN and not _ray.has("done"):
-		_ray["done"] = true
-		var at: Vector2 = _ray["pos"]
+	_ray = _tick_ray(_ray, delta)
+	_ray2 = _tick_ray(_ray2, delta)
+
+
+func _tick_ray(ray: Dictionary, delta: float) -> Dictionary:
+	if ray.is_empty():
+		return ray
+	ray["t"] = float(ray["t"]) + delta
+	if float(ray["t"]) >= RAY_WARN and not ray.has("done"):
+		ray["done"] = true
+		var at: Vector2 = ray["pos"]
 		run.shake(7.0)
 		Audio.play("crack", -2.0)
 		run.fx.ring(at, RAY_RADIUS, Color("ff5f7a"), 0.5, 1.6)
@@ -260,14 +320,15 @@ func _update_ray(delta: float) -> void:
 			player.take_damage(RAY_DAMAGE * GameState.enemy_dmg_mult() * atk_mult())
 		if run.room is Act3Room:
 			(run.room as Act3Room).add_crater((at - Bedroom.OFFSET) / Bedroom.S)
-	if float(_ray["t"]) >= RAY_WARN + 0.45:
-		_ray = {}
+	if float(ray["t"]) >= RAY_WARN + 0.45:
+		return {}
+	return ray
 
 
 func _drop_enemies() -> void:
 	_beam = 1.2
 	Audio.play("spawn", -6.0, 0.1)
-	for i in randi_range(1, 2):
+	for i in randi_range(2, 3) if angry() else randi_range(1, 2):
 		var p: Vector2 = run.clamp_to_arena(global_position + Vector2(randf_range(-80, 80), randf_range(-30, 30)), 30.0)
 		run.fx.telegraph(p + Vector2(0, -16), 0.7)
 		run.spawn_enemy_soon(DROP_KINDS[randi() % DROP_KINDS.size()], p, 0.7)
@@ -281,24 +342,38 @@ func _crash() -> void:
 	run.fx.ring(global_position, 90.0, UITheme.BONE, 0.6, 2.4)
 	for i in 3:
 		run.fx.dissipate(global_position + Vector2(randf_range(-80, 80), -10), Color("cfc6b0"))
+	run.fx.ring(global_position, CRASH_RADIUS, Color(Settings.warning_color(), 0.8), 0.45, 3.0)
 	var player: Player = run.player
-	if player.global_position.distance_to(global_position) < radius + 40.0:
-		player.take_damage(RAY_DAMAGE * GameState.enemy_dmg_mult())
+	if player.global_position.distance_to(global_position) < CRASH_RADIUS:
+		player.take_damage(CRASH_DAMAGE * GameState.enemy_dmg_mult() * atk_mult(), self)
+	_burst_cd = 0.6
 	run.fx.text(global_position + Vector2(0, -120), tr("UFO_DOWN"), UITheme.GOLD, 26)
 
 
 func _draw() -> void:
-	if not preview and state == State.ALIVE and not _ray.is_empty():
-		var at: Vector2 = _ray["pos"] - global_position
-		var k: float = minf(1.0, float(_ray["t"]) / RAY_WARN)
-		# Aviso en el suelo / Floor warning
-		draw_colored_polygon(_ellipse(at, Vector2(RAY_RADIUS, RAY_RADIUS * 0.45)), Color(Settings.warning_color(), 0.15 + 0.25 * k))
-		draw_arc(at, RAY_RADIUS * k, 0, TAU, 32, Color(Settings.warning_color(), 0.8), 3.0)
-		if _ray.has("done"):
-			var top := Vector2(0, -_alt + 20)
-			draw_colored_polygon(PackedVector2Array([top + Vector2(-20, 0), top + Vector2(20, 0), at + Vector2(RAY_RADIUS * 0.7, 0), at + Vector2(-RAY_RADIUS * 0.7, 0)]), Color("ff5f7a", 0.55))
-			draw_colored_polygon(PackedVector2Array([top + Vector2(-8, 0), top + Vector2(8, 0), at + Vector2(RAY_RADIUS * 0.3, 0), at + Vector2(-RAY_RADIUS * 0.3, 0)]), Color(1, 1, 1, 0.7))
+	if not preview and state == State.ALIVE:
+		for ray: Dictionary in [_ray, _ray2]:
+			if not ray.is_empty():
+				_draw_ray(ray)
+		# Sombra de aviso donde va a estrellarse / Warning shadow where it's going to crash
+		if phase == "fall":
+			var at2 := _crash_to - global_position
+			var k2 := minf(1.0, _phase_t / FALL_TIME)
+			draw_colored_polygon(_ellipse(at2, Vector2(CRASH_RADIUS, CRASH_RADIUS * 0.4)), Color(Settings.warning_color(), 0.12 + 0.25 * k2))
+			draw_arc(at2, CRASH_RADIUS * k2, 0, TAU, 32, Color(Settings.warning_color(), 0.8), 3.0)
 	super._draw()
+
+
+func _draw_ray(ray: Dictionary) -> void:
+	var at: Vector2 = ray["pos"] - global_position
+	var k: float = minf(1.0, float(ray["t"]) / RAY_WARN)
+	# Aviso en el suelo / Floor warning
+	draw_colored_polygon(_ellipse(at, Vector2(RAY_RADIUS, RAY_RADIUS * 0.45)), Color(Settings.warning_color(), 0.15 + 0.25 * k))
+	draw_arc(at, RAY_RADIUS * k, 0, TAU, 32, Color(Settings.warning_color(), 0.8), 3.0)
+	if ray.has("done"):
+		var top := Vector2(0, -_alt + 20)
+		draw_colored_polygon(PackedVector2Array([top + Vector2(-20, 0), top + Vector2(20, 0), at + Vector2(RAY_RADIUS * 0.7, 0), at + Vector2(-RAY_RADIUS * 0.7, 0)]), Color("ff5f7a", 0.55))
+		draw_colored_polygon(PackedVector2Array([top + Vector2(-8, 0), top + Vector2(8, 0), at + Vector2(RAY_RADIUS * 0.3, 0), at + Vector2(-RAY_RADIUS * 0.3, 0)]), Color(1, 1, 1, 0.7))
 
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
