@@ -2797,6 +2797,8 @@ def build():
     thug()
     sling()
     skeleton()
+    import hub_props
+    hub_props.build(sys.modules[__name__])
 
 
 def pixelize(img, tw, th, colors, ghost):
@@ -2905,4 +2907,8 @@ def render(only=None):
 
 if __name__ == "__main__":
     build()
-    render(sys.argv[1:] or None)
+    args = sys.argv[1:]
+    # "hub" = solo las piezas del plano astral / "hub" = only the astral plane pieces
+    if args == ["hub"]:
+        args = [n for n in SPRITES if n.startswith("hub_")]
+    render(args or None)

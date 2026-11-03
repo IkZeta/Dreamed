@@ -221,11 +221,11 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 ## Más
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
-- **Plano astral (lobby):** opción del menú principal, al estilo de Hades. Kroker camina por una plataforma flotante donde viven los personajes que ya conoce, cada uno en su rincón y haciendo lo suyo: Svinho chuta a portería, Stolk levanta pesas en el gimnasio, Silly teclea rodeada de pantallas con números verdes, Doc examina un pie gigante en su clínica podológica, Mr. Ad sale en todas las teles de un escaparate, el Pinche corre con el extintor por una cocina en llamas, Charo teje en su sillón y Magnus trabaja en su despacho. Al acercarte puedes hablar con ellos (lore y lo que te cuentan según la amistad). También tiene:
+- **Plano astral (lobby):** opción del menú principal, al estilo de Hades. Es un archipiélago de islas flotantes de piedra astral unidas por puentes de piedras que flotan. En el centro está el cruce de los sueños, con una fuente de estrellas. A su alrededor aparece una isla por cada personaje que Kroker ya conoce, con un trozo de su mundo encima (césped, gimnasio, cocina, despacho...) y él haciendo lo suyo: Svinho chuta a portería, Stolk levanta pesas en el gimnasio, Silly teclea rodeada de pantallas con números verdes, Doc examina un pie gigante en su clínica podológica, Mr. Ad sale en todas las teles de un escaparate, el Pinche corre con el extintor por una cocina en llamas, Charo teje en su sillón y Magnus trabaja en su despacho. Al acercarte puedes hablar con ellos (lore y lo que te cuentan según la amistad). También tiene:
   - **el armario**, con un maniquí por pijama (los que aún no tienes, con el soporte vacío);
   - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
-- **Museo:** cada ficha del museo está escrita con la voz de Kroker.
+- **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
 - **Logros:** hay 24 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil y a Magnus). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
@@ -234,7 +234,9 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - vibración.
 - **Al morir**, Kroker se despierta de golpe en su cama. **Al ganar**, duerme tranquilo y ves el resumen de la partida.
 
-![Bestiario](docs/screenshots/bestiario.jpg)
+![El cruce de los sueños, en el plano astral](docs/screenshots/lobby.jpg)
+
+![El museo, con las estatuas de los enemigos](docs/screenshots/bestiario.jpg)
 
 ### Modo Dios (para probar)
 
@@ -297,12 +299,15 @@ Todo el arte y el sonido se generan con los scripts de `tools/`:
 | Script | Qué genera | Necesita |
 |---|---|---|
 | `make_sprites.py` | Dibuja cada pieza en SVG, la rasteriza con Chromium y la reduce a pixel art (paleta corta y contorno de 1 píxel). Crea `assets/sprites/*.png` y `scripts/visual/sprite_rects.gd` | Python 3, Pillow, Playwright con Chromium |
+| `make_hub.py` | El terreno del plano astral píxel a píxel: islas de piedra astral con losas irregulares, canto, panza de roca con cristales y el suelo de cada personaje. Crea `assets/sprites/hub_isle_*.png` y `scripts/visual/hub_layout.gd` (posiciones y zonas por las que se anda). Los muebles del plano astral están en `hub_props.py` y los dibuja `make_sprites.py` | Python 3, numpy, Pillow |
 | `make_audio.py` | Música y efectos con síntesis por modelado físico, siempre suaves | Python 3, numpy, scipy, ffmpeg (para .ogg) |
 | `make_font.py` | La fuente pixel art Dreampix en formato BMFont | Python 3, Pillow |
 
 ```bash
 python3 tools/make_sprites.py                     # todos los sprites
 python3 tools/make_sprites.py npc_charo nest_body # solo esos
+python3 tools/make_sprites.py hub               # solo los muebles del plano astral
+python3 tools/make_hub.py                         # islas del plano astral
 python3 tools/make_audio.py fire reality          # solo esos sonidos
 python3 tools/make_font.py
 godot --headless --path . --import                # que Godot importe lo nuevo
