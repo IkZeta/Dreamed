@@ -113,8 +113,9 @@ func _build() -> void:
 
 
 const CARD_W := 396.0
-## Alto del hueco de la descripción (4 líneas; si hay más, se desplaza) / Height of the description box (4 lines; more scrolls)
-const DESC_H := 120.0
+## Alto de la ficha de estadísticas (igual en todas; lo que no cabe se desplaza)
+## Height of the stats sheet (the same on all; whatever doesn't fit scrolls)
+const PROFILE_H := 256.0
 
 
 func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
@@ -184,25 +185,20 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.9)))
 	v.add_child(_pair("SELECT_WEAPON", data["weapon"], UITheme.BONE))
 
-	# Descripción en un hueco de alto fijo: si no cabe, se desplaza con la rueda del ratón.
-	# Así la ficha empieza a la misma altura en todas las cartas.
-	# Description in a fixed-height box: if it doesn't fit, it scrolls with the mouse wheel.
-	# That way the sheet starts at the same height on every card.
-	var desc_scroll := ScrollContainer.new()
-	desc_scroll.custom_minimum_size.y = DESC_H
-	desc_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	v.add_child(desc_scroll)
 	var desc := UITheme.label(data["desc"], 18, Color(UITheme.BONE, 0.8), "light")
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.size_flags_horizontal = SIZE_EXPAND_FILL
-	desc_scroll.add_child(desc)
+	v.add_child(desc)
 
-	var gap := Control.new()
-	gap.custom_minimum_size.y = 4
-	v.add_child(gap)
-	v.add_child(_profile(data))
+	# La ficha va abajo y mide lo mismo en todas las cartas; si no cabe, se desplaza por dentro
+	# The sheet sits at the bottom and is the same size on every card; if it doesn't fit, it scrolls inside
+	var push := Control.new()
+	push.size_flags_vertical = SIZE_EXPAND_FILL
+	v.add_child(push)
+	var profile := _profile(data)
+	v.add_child(profile)
 	UITheme.ignore_mouse(content)
-	desc_scroll.mouse_filter = MOUSE_FILTER_PASS
+	for sc: ScrollContainer in profile.find_children("*", "ScrollContainer", true, false):
+		sc.mouse_filter = MOUSE_FILTER_PASS
 	return card
 
 
@@ -225,9 +221,15 @@ func _profile(data: Dictionary) -> Control:
 	sb.content_margin_top = 10
 	sb.content_margin_bottom = 12
 	panel.add_theme_stylebox_override("panel", sb)
+	panel.custom_minimum_size.y = PROFILE_H
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size.y = PROFILE_H - 22.0
+	panel.add_child(scroll)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
-	panel.add_child(v)
+	v.size_flags_horizontal = SIZE_EXPAND_FILL
+	scroll.add_child(v)
 	# Valoraciones de 1 a 5, en dos columnas / Ratings 1 to 5, in two columns
 	var grid := GridContainer.new()
 	grid.columns = 2
