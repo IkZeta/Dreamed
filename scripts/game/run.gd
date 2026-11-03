@@ -724,6 +724,29 @@ func _play_wake_up(depth: int) -> void:
 		Audio.play("land")
 		fx.ring(wake + Vector2(0, -4), 22.0, UITheme.BONE, 0.4, 2.2))
 	tw.tween_interval(0.35)
+	# La pistola de dedos no hay que ir a buscarla: la "recarga" con la mano y sopla el humo
+	# The finger gun needn't be fetched: he "reloads" it with his hand and blows the smoke away
+	if outfit == "finger":
+		tw.tween_callback(func() -> void:
+			room.weapon_taken = true
+			player.armed = true
+			player.reload_anim = 1.0)
+		tw.tween_interval(Player.RELOAD_TIME * 0.27)
+		tw.tween_callback(Audio.play.bind("ui_click", -4.0))
+		tw.tween_interval(Player.RELOAD_TIME * 0.31)
+		tw.tween_callback(func() -> void:
+			Audio.play("ui_click", -2.0)
+			fx.ring(wake + Vector2(30, -110), 14.0, KrokerArt.ACCENT["finger"], 0.35, 2.0))
+		tw.tween_interval(Player.RELOAD_TIME * 0.15)
+		tw.tween_callback(Audio.play.bind("puff", -8.0))
+		tw.tween_interval(Player.RELOAD_TIME * 0.35)
+		tw.tween_property(player, "position", start, _walk_time(wake, start))
+		tw.tween_callback(func() -> void:
+			hud.visible = true
+			hud.start(depth)
+			hud.show_event(event)
+			running = true)
+		return
 	tw.tween_property(player, "position", pickup, _walk_time(wake, pickup))
 	tw.tween_callback(func() -> void:
 		room.weapon_taken = true

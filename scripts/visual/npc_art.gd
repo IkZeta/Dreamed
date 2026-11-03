@@ -25,7 +25,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float, opts :=
 		"doc": _doc(t, opts)
 		"charo": _charo(t)
 		"ad": _ad(t)
-		"pinche": _pinche(t)
+		"pinche": _pinche(t, opts)
 		"magnus": _magnus(t)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
@@ -165,7 +165,11 @@ static func _magnus(t: float) -> void:
 		_ci.draw_rect(Rect2(x, 226, 3, 12), Color(1, 1, 1, 0.55))
 
 
-static func _pinche(t: float) -> void:
+static func _pinche(t: float, opts := {}) -> void:
+	# Plano astral: con el extintor, sin soplete / Astral plane: with the extinguisher, no blowtorch
+	if opts.get("ext", false):
+		Sprites.draw(_ci, "npc_pinche_ext")
+		return
 	Sprites.draw(_ci, "npc_pinche")
 	var tip := Vector2(166, 131)
 	var flick := 1.0 + 0.25 * sin(t * 23.0) + 0.15 * sin(t * 37.0)

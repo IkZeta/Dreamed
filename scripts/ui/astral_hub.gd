@@ -1127,34 +1127,95 @@ class HubWorld extends Control:
 
 	# --- El Pinche: apaga su cocina en llamas / puts out his kitchen on fire ---
 
+	## Fuegos de la cocina (relativos a la isla); el Pinche va de uno a otro con el extintor
+	## Kitchen fires (relative to the island); the Kitchen Boy goes from one to the next with the extinguisher
+	const FIRES: Array[Vector2] = [Vector2(-96, 12), Vector2(72, 34), Vector2(-40, 46), Vector2(-46, -66), Vector2(30, -66)]
+	const PINCHE_RUN := 0.9      # segundos corriendo hasta el siguiente fuego / seconds running to the next fire
+	const PINCHE_SPRAY := 2.3    # segundos echando espuma / seconds spraying foam
+	var _fire_k: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
+	var _pinche_side := 1.0
+	var _pinche_spray := 0.0     # 0..1 cuánto echa ahora / 0..1 how much he's spraying now
+	var _pinche_fire := 0
+
 	func _build_pinche() -> void:
 		var c := _isle_pos("pinche")
 		var stove := c + Vector2(-8, -38)
 		_blocks.append({"c": stove + Vector2(0, -8), "r": Vector2(62, 10)})
 		_prop(stove, func(ci: CanvasItem) -> void:
 			Sprites.draw(ci, "hub_stove")
-			for x in [-38.0, 0.0, 38.0]:
-				_flames(ci, Vector2(x, -30), 1.0, x))
+			for i in 3:
+				var x := [-38.0, 0.0, 38.0][i] as float
+				# Los fuegos de los lados se pueden apagar; el del medio, no / The side burners can be put out; the middle one can't
+				var k := _fire_k[3] if i == 0 else (_fire_k[4] if i == 2 else 1.0)
+				_flames(ci, Vector2(x, -30), k, x))
 		_piece(c + Vector2(86, -40), "hub_fridge", Vector2(12, 4))
-		for p: Vector2 in [Vector2(-96, 12), Vector2(72, 34), Vector2(-40, 46)]:
-			var at := c + p
-			_prop(at, func(ci: CanvasItem) -> void: _flames(ci, Vector2.ZERO, 0.6, at.x))
-		_pinche = _npc_prop("pinche", c + Vector2(0, -2))
+		for i in 3:
+			var at := c + FIRES[i]
+			var idx := i
+			_prop(at, func(ci: CanvasItem) -> void: _flames(ci, Vector2.ZERO, 0.85 * _fire_k[idx], at.x))
+		# El soplete, tirado en el suelo y aún encendido: de ahí sale todo / The blowtorch, dropped on the floor and still lit: that's how it all started
+		var torch := c + Vector2(18, 54)
+		_prop(torch, func(ci: CanvasItem) -> void:
+			Sprites.draw(ci, "hub_torch")
+			var tip := Vector2(17, -5)
+			var flick := 1.0 + 0.25 * sin(_t * 23.0) + 0.15 * sin(_t * 37.0)
+			ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(tip - Vector2(10, 10), Vector2(20, 20)), false, Color("ff9a3a", 0.35))
+			ci.draw_colored_polygon(PackedVector2Array([tip + Vector2(0, -2), tip + Vector2(9 * flick, 0), tip + Vector2(0, 2)]), Color("ff9a3a", 0.9))
+			ci.draw_colored_polygon(PackedVector2Array([tip + Vector2(0, -1), tip + Vector2(5 * flick, 0), tip + Vector2(0, 1)]), Color("8fd8ff", 0.95)))
+		_pinche = _npc_prop("pinche", c + FIRES[0] + Vector2(-30, 6))
 		_blocks.pop_back()   # corre de un lado a otro: no estorba / he runs back and forth: he doesn't block
 		_pinche.painter = func(ci: CanvasItem) -> void:
-			var dir := cos(_t * 1.6)
-			_draw_npc(ci, "pinche", Vector2.ZERO, dir < 0.0)
-			# Nubecitas del extintor / Little extinguisher clouds
-			if fmod(_t, 1.9) < 0.7:
-				var s := 1.0 if dir >= 0.0 else -1.0
-				for k in 4:
-					var r := 3.0 + k + fmod(_t * 6.0, 2.0)
-					ci.draw_circle(Vector2((12 + k * 8) * s, -28 - k * 3), r, Color(1, 1, 1, 0.65 - k * 0.12))
+			_draw_npc(ci, "pinche", Vector2.ZERO, _pinche_side < 0.0, {"ext": true})
+			# Chorro de espuma desde la boquilla hasta el fuego / Foam jet from the nozzle to the fire
+			if _pinche_spray > 0.0:
+				var s := _pinche_side
+				var nozzle := Vector2(26 * s, -32)
+				var target: Vector2 = _isle_pos("pinche") + FIRES[_pinche_fire] - _pinche.position + Vector2(0, -8)
+				for k in 9:
+					var ph := fposmod(_t * 2.6 + k / 9.0, 1.0)
+					var p := nozzle.lerp(target, ph) + Vector2(0, -sin(ph * PI) * 6.0 + sin(_t * 9.0 + k) * 1.5)
+					ci.draw_circle(p, (2.0 + ph * 5.0) * _pinche_spray, Color(1, 1, 1, (0.85 - ph * 0.45) * _pinche_spray))
 
 	func _tick_pinche() -> void:
 		var c := _isle_pos("pinche")
-		var at := c + Vector2(sin(_t * 1.6) * 64.0, -2)
+		var cycle := PINCHE_RUN + PINCHE_SPRAY
+		var n := int(_t / cycle)
+		var ph := fmod(_t, cycle)
+		var order := [0, 3, 2, 4, 1]
+		var cur: int = order[n % order.size()]
+		var prev: int = order[(n + order.size() - 1) % order.size()]
+		# Se pone al lado del fuego, mirándolo / He stands beside the fire, facing it
+		var stand := func(i: int) -> Vector2:
+			var f: Vector2 = FIRES[i]
+			var side := 1.0 if f.x > -10.0 else -1.0
+			if f.y < -40.0:
+				return c + Vector2(f.x - 22.0 * side, -18.0)   # delante de los fogones / in front of the hob
+			return c + f + Vector2(-34.0 * side, 6.0)
+		var from: Vector2 = stand.call(prev)
+		var to: Vector2 = stand.call(cur)
+		var at: Vector2
+		if ph < PINCHE_RUN:
+			var k := ph / PINCHE_RUN
+			k = k * k * (3.0 - 2.0 * k)
+			at = from.lerp(to, k)
+			if absf(to.x - from.x) > 2.0:
+				_pinche_side = signf(to.x - from.x)
+			_pinche_spray = 0.0
+		else:
+			at = to
+			_pinche_side = signf((c + FIRES[cur]).x - at.x)
+			var u := (ph - PINCHE_RUN) / PINCHE_SPRAY
+			_pinche_spray = clampf(minf(u, 1.0 - u) * 8.0, 0.0, 1.0)
+		_pinche_fire = cur
 		_pinche.position = at
+		# El que apaga se encoge; los demás vuelven a prender poco a poco
+		# The one he's spraying shrinks; the others slowly flare up again
+		var dt := get_process_delta_time()
+		for i in _fire_k.size():
+			if i == cur and _pinche_spray > 0.5:
+				_fire_k[i] = maxf(0.25, _fire_k[i] - dt * 0.6)
+			else:
+				_fire_k[i] = minf(1.0, _fire_k[i] + dt * 0.12)
 		for s in _spots:
 			if s["id"] == "pinche":
 				s["pos"] = at

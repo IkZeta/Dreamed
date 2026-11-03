@@ -50,6 +50,10 @@ const ACCENT := {
 static var _ci: CanvasItem
 static var _xf: Transform2D
 static var _local := Transform2D.IDENTITY
+## Intro con la pistola de dedos: la levanta junto a la cara, hace girar el dedo, "recarga" y
+## sopla el humo (1 → 0) / Finger-gun intro: raises it by his face, twirls the finger, "reloads"
+## and blows the smoke away (1 → 0)
+static var _reload := 0.0
 
 
 ## Opciones de pose / Pose options:
@@ -69,6 +73,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var cast: float = opts.get("cast", 0.0)
 	var lean: float = opts.get("lean", 0.0)
 	var armed: bool = opts.get("armed", true)
+	_reload = opts.get("reload", 0.0)
 	var breath := 1.0 + sin(t * 1.8) * 0.008
 	_xf = xf * Transform2D(0.0, Vector2(facing, breath), 0.0, Vector2(100.0 - 100.0 * facing, 288.0 * (1.0 - breath)))
 	var o := outfit if PAJAMAS.has(outfit) and outfit != "" else "bat"
@@ -219,8 +224,17 @@ static func _arm_pose(w: String, base: float, a: float, swing: float) -> float:
 		"ball": return base - 0.8 * a
 		"boots": return base - 0.7 - 0.2 * a        # el mando, hacia delante / the remote, held forward
 		# Apunta con el dedo hacia delante y da un respingo al disparar / Points forward and kicks up when firing
-		"finger": return -1.3 + swing * 0.15 - 0.35 * a
+		"finger": return lerpf(-1.3 + swing * 0.15 - 0.35 * a, -2.6, _reload_pose())
 	return base
+
+
+## Cuánto tiene la mano levantada junto a la cara al recargar (0..1)
+## How far the hand is raised by his face while reloading (0..1)
+static func _reload_pose() -> float:
+	if _reload <= 0.0:
+		return 0.0
+	var u := 1.0 - _reload
+	return smoothstep(0.0, 0.16, u) * (1.0 - smoothstep(0.82, 1.0, u))
 
 
 ## Dibuja un arma en una mano / Draws a weapon in a hand
@@ -232,7 +246,10 @@ static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: flo
 		"vacuum": _vacuum_nozzle(t, aim, sucking, hand, mod)
 		"finger":
 			_use(Transform2D.IDENTITY)
-			finger_gun(ci, _xf, hand + arm_dir * 3.0, arm_dir, a, "weapon_finger", 1.0)
+			if _reload > 0.0:
+				_finger_reload(ci, t, hand, arm_dir)
+			else:
+				finger_gun(ci, _xf, hand + arm_dir * 3.0, arm_dir, a, "weapon_finger", 1.0)
 		"teddy": _teddy(t, a, hand, mod)
 		"ball": _ball(t, a, hand, mod)
 		"laptop": _laptop(t, a, hand, mod)
@@ -325,6 +342,27 @@ static func finger_gun(ci: CanvasItem, base: Transform2D, hand: Vector2, dir: Ve
 		ci.draw_circle(FINGER_TIP + Vector2(4, 0), 7.0 * k, Color(ACCENT["finger"], 0.8 * k))
 		ci.draw_circle(FINGER_TIP + Vector2(4, 0), 3.5 * k, Color(1, 1, 1, 0.9 * k))
 	ci.draw_set_transform_matrix(base)
+
+
+## Recarga de la pistola de dedos: el dedo da dos vueltas como un revólver, hace "clic" con un
+## fogonazo pequeño y Kroker sopla el humo de la punta
+## Finger-gun reload: the finger spins twice like a revolver, goes "click" with a small flash
+## and Kroker blows the smoke off the tip
+static func _finger_reload(ci: CanvasItem, t: float, hand: Vector2, arm_dir: Vector2) -> void:
+	var u := 1.0 - _reload
+	var k := clampf((u - 0.18) / 0.34, 0.0, 1.0)
+	var spin := TAU * 2.0 * (k * k * (3.0 - 2.0 * k))
+	var dir := arm_dir.rotated(spin)
+	var click := clampf(1.0 - absf(u - 0.58) / 0.06, 0.0, 1.0)
+	finger_gun(ci, _xf, hand + dir * 3.0, dir, click, "weapon_finger", 1.0)
+	# Humo que sale de la punta y se va al soplar / Smoke from the tip, blown away
+	if u > 0.58 and u < 0.95:
+		var tip := hand + arm_dir * 24.0 + arm_dir.orthogonal() * -3.0
+		var blow := clampf((u - 0.7) / 0.2, 0.0, 1.0)
+		for i in 3:
+			var ph := fposmod(t * 1.6 + i * 0.33, 1.0)
+			var p := tip + Vector2(sin(t * 5.0 + i * 2.0) * 3.0 + blow * 30.0 * ph, -ph * 26.0)
+			ci.draw_circle(p, 3.0 + ph * 5.0, Color(0.92, 0.9, 1.0, 0.5 * (1.0 - ph) * (1.0 - blow * 0.8)))
 
 
 ## El portátil abierto en la mano; al poner una torreta, la pantalla brilla

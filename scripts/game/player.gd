@@ -19,6 +19,8 @@ var attack_anim := 0.0  # 1 → 0 tras un golpe / after a strike
 var aim := Vector2(1, 0.5)   # hacia dónde apunta el arma / where the weapon points
 var sucking := false         # la aspiradora está absorbiendo / the vacuum is sucking
 var cast_anim := 0.0         # 1 → 0 al lanzar un rayo / after casting lightning
+var reload_anim := 0.0       # 1 → 0: intro de la pistola de dedos / finger-gun intro
+const RELOAD_TIME := 1.5
 ## Zona donde le pueden dar: solo el cuerpo (la cabeza no cuenta) / Where he can be hit: only the body (the head doesn't count)
 const HURT := Vector2(0, -30)
 const HURT_R := 20.0
@@ -143,6 +145,7 @@ func _physics_process(delta: float) -> void:
 	_flash = maxf(0.0, _flash - delta * 4.0)
 	attack_anim = maxf(0.0, attack_anim - delta * 4.0)
 	cast_anim = maxf(0.0, cast_anim - delta * 3.0)
+	reload_anim = maxf(0.0, reload_anim - delta / RELOAD_TIME)
 	hurt_lean = move_toward(hurt_lean, 0.0, delta * 1.5)
 	_land = move_toward(_land, 0.0, delta * 4.0)
 	modulate.a = 1.0 if alive else 0.35
@@ -354,7 +357,7 @@ func _draw() -> void:
 	# Un saltito al girar / A little hop while spinning
 	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift)),
-		outfit, _t, {"facing": facing, "boots": boots != null, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
+		outfit, _t, {"facing": facing, "boots": boots != null and armed, "reload": reload_anim, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
 		"thrust": maxf(boots.thrust, 1.0 if _dash_t > 0.0 else 0.0) if boots else 0.0, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand

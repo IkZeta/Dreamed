@@ -271,6 +271,13 @@ def build(ms):
     b += R(-3, -27, 6, 5, "#2b2945")
     b += R(2, -27, 7, 2, "#2b2945")
     put("hub_extinguisher", -9, -30, 20, 32, b)
+    # El soplete tirado en el suelo, todavía encendido (la llamita azul se pinta en el juego)
+    # The blowtorch dropped on the floor, still lit (the little blue flame is painted in game)
+    b = P([(-10, -2), (4, -2), (4, -10), (-10, -10)], ng("#e2434f"))
+    b += R(4, -8, 4, 5, "#3a3a52")
+    b += P([(8, -7), (17, -6), (17, -4), (8, -4)], ng("#8f8fb8"))
+    b += E(-3, 0, 9, 1.6, "#000000", stroke=False, rim=0)
+    put("hub_torch", -12, -13, 32, 16, b)
 
     # --- Charo: sillón de tejer / knitting armchair ---
     TEAL, TEAL_D = ng("#4fa89a"), ng("#3f8a7e")

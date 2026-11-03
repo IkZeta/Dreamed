@@ -62,7 +62,16 @@ const PICKUP := {
 	"book": Vector2(1440, 430),
 	"vacuum": Vector2(1780, 440),
 	"teddy": Vector2(330, 560),      # el osito de la cama / the teddy on the bed
+	"ball": Vector2(1010, 482),
+	"laptop": Vector2(1676, 424),
+	"boots": Vector2(842, 402),
 }
+## Armas que esperan en el suelo (en su sitio en el lienzo) / Weapons waiting on the floor (their spot on the canvas)
+const BALL_AT := Vector2(1062, 460)
+const LAPTOP_AT := Vector2(1612, 292)
+const BOOTS_AT := Vector2(892, 360)
+## Los sprites de las armas están a la escala de Kroker / The weapon sprites are at Kroker's scale
+const ART_K := Player.ART_SCALE / S
 const WAKE_POINT := Vector2(440, 560)    # donde aterriza al bajar de la cama / where he lands
 const START_POINT := Vector2(960, 700)   # donde empieza a jugar / where play begins
 
@@ -423,7 +432,7 @@ func _draw_bed() -> void:
 		var feet := sitting_feet()
 		var rise := (1.0 - sit) * 90.0
 		KrokerArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, Vector2(feet.x - 100 * s, feet.y + rise - 288 * s)),
-			outfit, _t, {"armed": false, "glasses": not glasses_on_stand, "stretch": stretch, "yawn": stretch,
+			outfit, _t, {"armed": false, "boots": false, "glasses": not glasses_on_stand, "stretch": stretch, "yawn": stretch,
 				"lean": (1.0 - sit) * -0.3 + slide * 0.12, "facing": 1.0,
 				"walk": slide * 6.0, "moving": slide * (1.0 - slide) * 2.0})
 	elif bed_state == "empty":
@@ -651,6 +660,43 @@ func _draw_props() -> void:
 	# Aspiradora en la esquina / Vacuum in the corner
 	if not (outfit == "vacuum" and weapon_taken):
 		Sprites.draw(self, "room_vacuum")
+	# Las que se desbloquean, solo cuando ya son tuyas / The unlockable ones, only once they're yours
+	# Botas steampunk bajo la ventana, con el mando encima / Steampunk boots under the window, with the remote on top
+	if GameState.weapon_unlocked("boots") and not (outfit == "boots" and weapon_taken):
+		_floor_shadow(BOOTS_AT + Vector2(4, 2), Vector2(44, 9))
+		for side: String in ["l", "r"]:
+			var at := BOOTS_AT + Vector2(-16.0 if side == "l" else 18.0, 0)
+			var foot := Vector2(87.5 if side == "l" else 112.5, 288)
+			draw_set_transform(at - foot * ART_K * 1.5, 0.0, Vector2.ONE * ART_K * 1.5)
+			Sprites.draw(self, "weapon_boot_" + side)
+		# Hilillo de vapor del motor / Wisp of steam from the engine
+		var ph := fposmod(_t * 0.8, 1.0)
+		draw_set_transform(Vector2.ZERO)
+		draw_circle(BOOTS_AT + Vector2(-40 - ph * 8.0, -12 - ph * 34.0), 4.0 + ph * 6.0, Color(1, 1, 1, 0.28 * (1.0 - ph)))
+		draw_set_transform(BOOTS_AT + Vector2(46, 6), 1.35, Vector2.ONE * ART_K * 1.5)
+		Sprites.draw(self, "weapon_remote")
+		draw_set_transform(Vector2.ZERO)
+	# El portátil abierto encima del escritorio, con la pantalla encendida / The laptop open on top of the desk, screen on
+	if GameState.weapon_unlocked("laptop") and not (outfit == "laptop" and weapon_taken):
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(LAPTOP_AT - Vector2(70, 100), Vector2(140, 120)), false, Color("5ff2a0", 0.16 + 0.05 * sin(_t * 3.0)))
+		_floor_shadow(LAPTOP_AT + Vector2(0, 3), Vector2(34, 5))
+		draw_set_transform(LAPTOP_AT, 0.0, Vector2.ONE * ART_K * 1.5)
+		Sprites.draw(self, "weapon_laptop")
+		for i in 4:
+			var y := -8.0 - fposmod(_t * 18.0 + i * 6.0, 24.0)
+			var w := 8.0 + float((i * 7 + int(_t * 3.0)) % 5) * 4.0
+			draw_rect(Rect2(-14, y, w, 2), Color("5ff2a0", 0.85))
+		draw_set_transform(Vector2.ZERO)
+	# El balón de fútbol en el haz de luna / The football in the moonbeam
+	if GameState.weapon_unlocked("ball") and not (outfit == "ball" and weapon_taken):
+		_floor_shadow(BALL_AT + Vector2(2, 20), Vector2(26, 7))
+		draw_set_transform(BALL_AT, 0.4, Vector2.ONE * ART_K * 1.6)
+		Sprites.draw(self, "weapon_ball")
+		draw_set_transform(Vector2.ZERO)
+
+
+func _floor_shadow(c: Vector2, r: Vector2) -> void:
+	draw_colored_polygon(_ellipse(c, r), Color(0, 0, 0, 0.2))
 
 
 func _draw_zzz() -> void:

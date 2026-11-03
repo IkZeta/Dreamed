@@ -2780,6 +2780,9 @@ def pinche():
     # Brazos / Arms
     b += flat("M60,108 L74,112 L72,170 L58,168 Z", W2) + flat("M62,112 L66,112 L64,164 L60,164 Z", W3)
     b += flat("M140,108 L126,112 L130,156 L144,152 Z", W1)
+    body = b
+    # Cuchillo y soplete / Knife and blowtorch
+    b = ""
     # Cuchillo en la mano izquierda: la mano agarra el mango / Knife in the left hand: the hand grips the handle
     b += flat("M61,178 L69,178 L67,148 Q64,142 62,150 Z", BLADE) + flat("M65,178 L69,178 L67,148 Q66,146 65,148 Z", BLADE1)
     b += flat("M61,178 L69,178 L69,196 L61,196 Z", HANDLE)
@@ -2789,6 +2792,8 @@ def pinche():
     b += flat("M136,140 L146,140 L146,150 L136,150 Z", "#3a3a52")
     b += flat("M140,132 L160,128 L160,134 L142,140 Z", NOZ)
     b += flat(ellipse_d(138, 160, 7, 7), S) + flat("M138,167 C142,166 145,163 145,160 L141,160 C141,163 140,164 137,165 Z", S1)
+    tools = b
+    b = ""
     # Cuello y cabeza / Neck and head
     b += flat("M93,82 L107,82 L107,98 L93,98 Z", S1)
     b += flat(ellipse_d(100, 62, 22, 25), S)
@@ -2804,7 +2809,27 @@ def pinche():
     b += flat("M76,42 L124,42 L120,18 L80,18 Z", W2) + flat("M110,18 L120,18 L124,42 L114,42 Z", W1)
     b += flat("M80,20 L86,20 L83,40 L78,40 Z", W3)
     b += "<path d='M78,34 L122,34' stroke='%s' stroke-width='2.4'/>" % W1
-    add("npc_pinche", 50, 12, 116, 280, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 1))
+    head = b
+    add("npc_pinche", 50, 12, 116, 280, body + tools + head, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 1))
+    # Con el extintor (plano astral): lo sujeta con las dos manos y la manguera apunta hacia delante
+    # With the extinguisher (astral plane): he holds it with both hands and the hose points forward
+    EX, EX1, EX2 = "#e2434f", "#a82a36", "#ff8a90"
+    b = flat("M118,136 L144,136 C147,136 148,139 148,142 L148,196 C148,199 146,200 144,200 L118,200 C115,200 114,199 114,196 L114,142 C114,139 115,136 118,136 Z", EX)
+    b += flat("M138,136 L144,136 C147,136 148,139 148,142 L148,196 C148,199 146,200 144,200 L138,200 Z", EX1)
+    b += flat("M118,142 L122,142 L122,192 L118,192 Z", EX2)
+    b += flat("M120,160 L142,160 L142,174 L120,174 Z", "#f4f1e6") + flat("M124,164 L138,164 L138,166 L124,166 Z", EX1)
+    b += flat("M124,124 L138,124 L138,136 L124,136 Z", "#3a3a52")
+    b += flat("M120,120 L146,116 L146,122 L124,126 Z", "#8f8fb8")
+    # Manguera hasta la boquilla, que agarra la mano izquierda por delante / Hose to the nozzle, gripped by the left hand in front
+    b += "<path d='M136,124 C152,118 160,132 158,146 C156,156 164,160 172,158' fill='none' stroke='#2b2945' stroke-width='4.5' stroke-linecap='round'/>"
+    b += flat("M170,152 L184,149 L185,160 L171,163 Z", "#2b2945")
+    b += flat(ellipse_d(140, 150, 7, 7), S) + flat("M140,157 C144,156 147,153 147,150 L143,150 C143,153 142,154 139,155 Z", S1)
+    # La izquierda cruza por delante hasta la boquilla / The left arm crosses in front to the nozzle
+    b += flat("M60,160 C62,154 68,152 74,153 L160,153 L162,166 L74,170 C66,171 60,168 60,160 Z", W2)
+    b += flat("M74,164 L161,161 L162,166 L74,170 C68,170 63,168 61,164 Z", W1)
+    b += flat("M70,155 L120,154 L120,157 L70,158 Z", W3)
+    b += flat(ellipse_d(166, 160, 7, 7), S) + flat("M166,167 C170,166 173,163 173,160 L169,160 C169,163 168,164 165,165 Z", S1)
+    add("npc_pinche_ext", 50, 12, 140, 280, body + b + head, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 1))
 
 
 def magnus():
