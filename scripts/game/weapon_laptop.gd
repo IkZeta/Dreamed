@@ -281,6 +281,7 @@ class Turret extends Node2D:
 	var _pop := 0.0
 	var _punch := 0.0
 	var _broken := false
+	var _face := 1.0          # hacia dónde mira (los cañones apuntan a la derecha) / facing (the barrels point right)
 
 	func _ready() -> void:
 		z_index = 5
@@ -299,6 +300,17 @@ class Turret extends Node2D:
 		queue_redraw()
 		if not weapon.run.running or _broken:
 			return
+		# El nivel sigue al ataque de Kroker también en las que ya están puestas
+		# The level follows Kroker's attack on turrets already placed too
+		if kind == "gun" and fmod(_t, 0.5) < delta:
+			var lvl := WeaponLaptop.turret_level()
+			if lvl != level:
+				var up := lvl > level
+				level = lvl
+				if up:
+					weapon.run.fx.ring(global_position + Vector2(0, -20), 30.0, LEVEL_COLOR[level - 1], 0.4, 2.5)
+					weapon.run.fx.text(global_position + Vector2(0, -70), "Lv %d" % level, LEVEL_COLOR[level - 1], 20)
+					Audio.play("chime", -14.0, 0.1)
 		if kind == "dummy":
 			_pull(DUMMY_PULL_RADIUS, weapon.uv("stolk", "pull"))
 		if kind == "stove":
@@ -372,6 +384,8 @@ class Turret extends Node2D:
 			return
 		_fire = FIRE_EVERY
 		var from := global_position + Vector2(0, -27 * SIZE)
+		if absf(target.global_position.x - global_position.x) > 8.0:
+			_face = signf(target.global_position.x - global_position.x)
 		if kind == "ad":
 			var to: Vector2 = target.aim_point()
 			_beams.append([from - global_position, to - global_position, 0.1])
@@ -418,8 +432,18 @@ class Turret extends Node2D:
 		draw_circle(Vector2(0, 2), 14.0 * SIZE, Color(0.05, 0.02, 0.15, 0.3))
 		# El muñeco se echa hacia atrás y vuelve al dar un puñetazo / The dummy rocks back and forth when punching
 		var rock := sin(_punch * PI) * 0.25 if kind == "dummy" else 0.0
-		draw_set_transform(Vector2.ZERO, rock, Vector2(s, s))
-		Sprites.draw(self, SPRITE[kind])
+		var sprite: String = SPRITE[kind]
+		var lift := 0.0
+		if kind == "gun":
+			# Cada nivel, un modelo más futurista; el 4 flota / Each level, a more futuristic model; level 4 floats
+			sprite = "turret" if level <= 1 else "turret_%d" % level
+			if level >= 4:
+				lift = -8.0 + sin(_t * 2.5) * 3.0
+				draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-26, -12) * SIZE, Vector2(52, 24) * SIZE), false, Color(col, 0.35))
+			elif level == 3:
+				draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-20, -8) * SIZE, Vector2(40, 16) * SIZE), false, Color(col, 0.2))
+		draw_set_transform(Vector2(0, lift * SIZE), rock, Vector2(s * (_face if kind == "gun" and level >= 2 else 1.0), s))
+		Sprites.draw(self, sprite)
 		if kind == "stove":
 			# Llamas del fogón, más altas cuando está a punto / Stove flames, taller when it's ready
 			var ready := 1.0 if _boom <= BOOM_CHECK else 0.5
@@ -432,9 +456,14 @@ class Turret extends Node2D:
 			# Luz de la pantalla y del nivel / Screen and level light
 			var blink := 0.6 + 0.4 * sin(_t * 6.0)
 			draw_rect(Rect2(-7, -31, 14, 8), Color(col, 0.55 * blink))
-			if kind == "gun":
+			if kind == "gun" and level <= 2:
 				for i in level:
 					draw_rect(Rect2(-7 + i * 4, -18, 2, 2), col)
+			if kind == "gun" and level >= 4:
+				# Aro de energía que gira / Spinning energy ring
+				var ang := _t * 2.0
+				draw_arc(Vector2(0, -26), 20.0, ang, ang + PI * 1.3, 24, Color(col, 0.75), 1.5)
+				draw_arc(Vector2(0, -26), 20.0, ang + PI, ang + PI * 1.6, 12, Color(col, 0.4), 1.5)
 		if kind == "heal":
 			var r := 18.0 + fmod(_t * 20.0, 30.0)
 			draw_arc(Vector2(0, -6), r, 0, TAU, 24, Color(col, 0.35 * (1.0 - (r - 18.0) / 30.0)), 1.5)

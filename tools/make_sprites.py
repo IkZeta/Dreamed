@@ -896,6 +896,44 @@ def turrets():
         # Antena / Antenna
         t += "<path d='M7,-35 L10,-42' fill='none' stroke='#2b2945' stroke-width='1.6'/>" + flat(ellipse_d(10, -42, 1.6, 1.6), "#ff5f7a")
         add(name, -16, -46, 32, 50, t, flat=True)
+    # Torretas de disparo de nivel 2, 3 y 4: cada vez más futuristas (la pantalla/visor está siempre
+    # en -8..8, -33..-23, donde el juego pinta la luz del nivel)
+    # Level 2, 3 and 4 gun turrets: more futuristic each time (the screen/visor is always at
+    # -8..8, -33..-23, where the game paints the level light)
+    # Nivel 2: metálica, patas con pies, antena parabólica y un cañón / Level 2: metal, footed legs, dish antenna and a barrel
+    t = "<path d='M0,-12 L-12,0 M0,-12 L12,0' fill='none' stroke='#4a4f72' stroke-width='3'/>"
+    t += flat("M-15,-1 L-9,-1 L-9,2 L-15,2 Z", "#2b2945") + flat("M9,-1 L15,-1 L15,2 L9,2 Z", "#2b2945")
+    t += flat("M-11,-24 Q-11,-12 0,-11 Q11,-12 11,-24 Z", "#8fa3c8") + flat("M4,-24 Q11,-23 11,-24 Q11,-12 4,-11.5 Z", "#647aa6")
+    t += flat("M10,-20 L19,-20 L19,-16 L10,-16 Z", "#4a4f72") + flat("M17,-21 L20,-21 L20,-15 L17,-15 Z", "#5ff2ff")
+    t += flat("M-11,-36 Q-11,-38 -8,-38 L8,-38 Q11,-38 11,-35 L11,-21 L-11,-21 Z", "#c8d2ea") + flat("M-8,-33 L8,-33 L8,-23 L-8,-23 Z", "#10261e")
+    t += "<path d='M-8,-38 L-11,-44' fill='none' stroke='#4a4f72' stroke-width='1.6'/>" + flat("M-16,-46 Q-11,-41 -6,-46 Z", "#c8d2ea")
+    add("turret_2", -21, -48, 42, 52, t, flat=True)
+    # Nivel 3: cromo oscuro con franjas de neón violeta, visor y dos cañones, patas finas con almohadillas
+    # Level 3: dark chrome with violet neon stripes, a visor and twin barrels, thin legs with pads
+    t = "<path d='M-3,-12 L-10,0 M3,-12 L10,0' fill='none' stroke='#3e4570' stroke-width='2.4'/>"
+    t += flat(ellipse_d(-10, 0, 4, 1.6), "#b9a2ff") + flat(ellipse_d(10, 0, 4, 1.6), "#b9a2ff")
+    t += flat("M-12,-26 L12,-26 L9,-11 L-9,-11 Z", "#3a3f5c") + flat("M4,-26 L12,-26 L9,-11 L4,-11 Z", "#2b2f45")
+    t += flat("M-10,-19 L10,-19 L10,-17 L-10,-17 Z", "#b9a2ff")
+    for y in (-30, -25):
+        t += flat("M12,%g L22,%g L22,%g L12,%g Z" % (y, y, y + 3, y + 3), "#4a4f72") + flat("M20,%g L23,%g L23,%g L20,%g Z" % (y - 0.5, y - 0.5, y + 3.5, y + 3.5), "#b9a2ff")
+    t += flat("M-12,-37 L12,-37 L13,-24 L-13,-24 Z", "#4a4f72") + flat("M-8,-33 L8,-33 L8,-26 L-8,-26 Z", "#0d0b1e")
+    t += flat("M-12,-37 L12,-37 L12,-35 L-12,-35 Z", "#b9a2ff")
+    t += "<path d='M8,-37 L11,-45 M-8,-37 L-11,-45' fill='none' stroke='#3e4570' stroke-width='1.4'/>"
+    t += flat(ellipse_d(11, -45, 1.4, 1.4), "#b9a2ff") + flat(ellipse_d(-11, -45, 1.4, 1.4), "#b9a2ff")
+    add("turret_3", -16, -48, 41, 52, t, flat=True)
+    # Nivel 4: flota sin patas; casco hexagonal negro con bordes de neón rojo y un núcleo de energía
+    # (el aro y el brillo de debajo se dibujan en el juego)
+    # Level 4: floats with no legs; black hexagonal shell with red neon edges and an energy core
+    # (the ring and the glow underneath are drawn in game)
+    hexa = "M0,-42 L13,-35 L13,-19 L0,-11 L-13,-19 L-13,-35 Z"
+    t = flat(hexa, "#1e1f2e") + clipped(hexa, flat("M2,-44 L16,-44 L16,-9 L2,-9 Z", "#14151f"))
+    t += "<path d='%s' fill='none' stroke='#ff5f7a' stroke-width='1.6'/>" % hexa
+    t += flat("M-8,-33 L8,-33 L8,-26 L-8,-26 Z", "#0d0b1e")
+    t += flat(ellipse_d(0, -17, 3.2, 3.2), "#ff5f7a") + flat(ellipse_d(0, -17, 1.4, 1.4), "#ffe0e6")
+    for sx in (-1, 1):
+        t += flat("M%g,-28 L%g,-30 L%g,-24 L%g,-26 Z" % (13 * sx, 21 * sx, 21 * sx, 13 * sx), "#2b2945")
+        t += flat("M%g,-30.5 L%g,-30.5 L%g,-23.5 L%g,-23.5 Z" % (20 * sx, 22 * sx, 22 * sx, 20 * sx), "#ff5f7a")
+    add("turret_4", -24, -46, 48, 38, t, flat=True)
     # Torreta de cobro de Mr. Ad: dorada, con un símbolo de dinero / Mr. Ad's debt-collector turret: gold, with a money sign
     t = "<path d='M0,-12 L-13,1 M0,-12 L13,1 M0,-12 L0,3' fill='none' stroke='#2b2945' stroke-width='3'/>"
     t += flat("M-11,-23 L11,-23 L11,-11 L-11,-11 Z", "#f2c94c") + flat("M5,-23 L11,-23 L11,-11 L5,-11 Z", "#c9961e")

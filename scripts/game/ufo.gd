@@ -409,5 +409,11 @@ func _ellipse(c: Vector2, r: Vector2, n := 24) -> PackedVector2Array:
 	return pts
 
 
+## Pelusa, sangrado y quemadura van pegados al platillo, también cuando vuela
+## Fluff, bleeding and burning stick to the saucer, also while it flies
+func _draw_statuses(bob: float, a: float) -> void:
+	super._draw_statuses(bob - _alt, a)
+
+
 func head_top() -> Vector2:
 	return Vector2(0, -_alt - 110)
