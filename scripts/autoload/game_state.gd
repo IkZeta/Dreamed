@@ -825,8 +825,9 @@ const UPGRADE_VALUES := {
 		"finger": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
 		"teddy": {"dps": [2, 3, 4.5], "secs": [3, 3.5, 4]},               # sangrado / bleed
 		"ball": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},            # sangrado / bleed
-		# Con "count" enemigos al lado, la torreta explota con "boom" de daño / With "count" enemies beside it, the turret explodes for "boom" damage
-		"laptop": {"count": [5, 5, 4], "boom": [20, 30, 45]},
+		# Fogón: atrae con fuerza "pull"; con "count" enemigos al lado explota con "boom" de daño
+		# Stove: pulls with "pull" strength; with "count" enemies beside it, it explodes for "boom" damage
+		"laptop": {"count": [5, 5, 4], "boom": [20, 30, 45], "pull": [50, 70, 90]},
 	},
 }
 

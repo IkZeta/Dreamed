@@ -915,6 +915,21 @@ def turrets():
     for x in (-14, 14):
         d += flat(ellipse_d(x, -30, 5.5, 5), "#d6434f") + flat(ellipse_d(x + (2 if x > 0 else -2), -31, 2, 2), "#ff8f9e")
     add("turret_dummy", -20, -54, 40, 58, d, flat=True)
+    # Fogón del Pinche: hornillo de camping con su bombona, mandos y fuego (el fuego se anima en el juego)
+    # The Kitchen Boy's stove: a camping burner with its gas canister and knobs (the flames are animated in game)
+    f = flat(ellipse_d(0, 0, 15, 4), "#3e4570")
+    f += flat("M-14,-20 L14,-20 L14,-2 L-14,-2 Z", "#c9ccdf") + flat("M6,-20 L14,-20 L14,-2 L6,-2 Z", "#9a9eba")
+    f += flat("M-14,-20 L14,-20 L14,-17 L-14,-17 Z", "#e8eaf4")
+    for x in (-8, -2):
+        f += flat(ellipse_d(x, -9, 2.6, 2.6), "#2b2945") + flat(ellipse_d(x, -9.6, 1, 1), "#e2434f")
+    f += flat("M4,-12 L10,-12 L10,-6 L4,-6 Z", "#ff9a3a")
+    f += flat("M-12,-25 L12,-25 L12,-21 L-12,-21 Z", "#2b2945")
+    for x in (-8, 0, 8):
+        f += flat("M%g,-26 L%g,-26 L%g,-20 L%g,-20 Z" % (x - 1, x + 1, x + 1, x - 1), "#4a4f72")
+    # Bombona de gas al lado / Gas canister beside it
+    f += flat("M15,-14 L23,-14 L23,0 L15,0 Z", "#e2434f") + flat("M20,-14 L23,-14 L23,0 L20,0 Z", "#a82a36")
+    f += flat("M17,-17 L21,-17 L21,-14 L17,-14 Z", "#4a4f72")
+    add("turret_stove", -18, -30, 44, 34, f, flat=True)
 
 
 def shots():

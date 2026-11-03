@@ -20,16 +20,16 @@ extends Weapon
 ##  Doc   — torreta curativa / healing turret (+ vida máxima, a cambio de recarga y daño).
 ##  Stolk — muñeco de boxeo: atrae a los cercanos y da puñetazos con empuje / boxing dummy: pulls
 ##          nearby enemies and punches them away.
-##  Ad    — torreta de cobro: poco daño, pero remata a los que tienen menos del 25 % de vida y
-##          el remate da Realidad Fragmentada / debt-collector turret: low damage, but finishes off
-##          those under 25% health and each finish gives Fragmented Reality.
+##  Ad    — torreta de cobro: poco daño, apunta al que menos vida tiene y remata a los que tienen
+##          menos del 15 %; el remate da Realidad Fragmentada / debt-collector turret: low damage,
+##          aims at the weakest and finishes off those under 15%; each finish gives Fragmented Reality.
+##  Pinche — fogón: atrae a los cercanos y, si se juntan "count" a su lado, explota ("boom" de
+##          daño); al rato vuelve a aparecer / stove: pulls nearby enemies in and, if "count" crowd
+##          it, explodes ("boom" damage); a while later it appears again.
 ## Otras mejoras / Other upgrades:
 ##  Svinho — el disparo salta a "extra" enemigos más / the shot jumps to "extra" more enemies.
 ##  Silly  — "turrets" torretas más de máximo y "chance" % de congelar "secs" s /
 ##           "turrets" more turrets at most and "chance"% to freeze for "secs" s.
-##  Pinche — si se juntan "count" enemigos al lado de una torreta, explota ("boom" de daño), se
-##           rompe y Kroker pone otra al instante / if "count" enemies crowd a turret, it explodes
-##           ("boom" damage), breaks and Kroker places another one at once.
 
 const COOLDOWN := 6.0
 const PLACE_RANGE := 420.0      # solo pone torretas si hay enemigos cerca / only places turrets with enemies near
@@ -37,6 +37,7 @@ const MAX_TURRETS := 3
 const RELOCATE := 900.0         # más lejos que esto, la recoloca / further than this, he moves it back
 const SPECIAL_GAP := 380.0      # distancia mínima entre especiales / minimum distance between specials
 const GUN_GAP := 60.0           # separación entre torretas de disparo / gap between gun turrets
+const STOVE_BACK := 8.0         # segundos hasta que vuelve el fogón / seconds until the stove comes back
 const NO_BUILD := 170.0         # no se ponen torretas tan cerca de una especial / no turrets this close to a special
 ## Ataque de Kroker (en %) que hace falta para cada nivel de torreta / Kroker's attack (in %) needed for each turret level
 const LEVEL_ATTACK: Array[float] = [0.0, 10.0, 25.0, 45.0]
@@ -88,6 +89,8 @@ func _wanted_specials() -> Array[String]:
 		out.append("dummy")
 	if lv("ad") > 0:
 		out.append("ad")
+	if lv("pinche") > 0:
+		out.append("stove")
 	return out
 
 
@@ -187,19 +190,16 @@ func _place(kind: String, at: Vector2) -> Node2D:
 	return t
 
 
-## El Pinche: la torreta ha explotado; Kroker pone otra al instante
-## The Kitchen Boy: the turret exploded; Kroker places another one at once
-func turret_broken(t: Node2D) -> void:
-	var kind: String = t.kind
-	if kind == "gun":
-		_turrets.erase(t)
-		_turrets.append(_place("gun", _spot()))
-	else:
-		_special[kind] = _place(kind, _random_spot(t))
-	swung(true)
+## El fogón del Pinche ha explotado: al rato sale otro en otro sitio
+## The Kitchen Boy's stove exploded: a while later another one appears elsewhere
+func stove_broken(t: Node2D) -> void:
+	_special.erase("stove")
+	get_tree().create_timer(STOVE_BACK, false).timeout.connect(func() -> void:
+		if is_instance_valid(self) and run.running and not is_instance_valid(_special.get("stove")):
+			_special["stove"] = _place("stove", _random_spot()))
 
 
-## El Pinche ya no sangra con el portátil: sus torretas explotan / The Kitchen Boy doesn't bleed with the laptop: its turrets explode
+## El Pinche ya no sangra con el portátil: tiene su fogón / The Kitchen Boy doesn't bleed with the laptop: he has his stove
 func _pinche(_e: Node2D) -> void:
 	pass
 
@@ -267,8 +267,9 @@ class Turret extends Node2D:
 	const SIZE := 1.3               # escala del dibujo / drawing scale
 	## Color de cada nivel / Colour of each level
 	const LEVEL_COLOR: Array[Color] = [Color("5ff2ff"), Color("ffb06a"), Color("b9a2ff"), Color("ff5f7a")]
-	const KIND_COLOR := {"gun": Color("5ff2ff"), "heal": Color("9be38a"), "dummy": Color("ff8f9e"), "ad": Color("ffb04a")}
-	const SPRITE := {"gun": "turret", "heal": "turret_heal", "dummy": "turret_dummy", "ad": "turret_ad"}
+	const STOVE_PULL_RADIUS := 260.0
+	const KIND_COLOR := {"gun": Color("5ff2ff"), "heal": Color("9be38a"), "dummy": Color("ff8f9e"), "ad": Color("ffb04a"), "stove": Color("ff9a3a")}
+	const SPRITE := {"gun": "turret", "heal": "turret_heal", "dummy": "turret_dummy", "ad": "turret_ad", "stove": "turret_stove"}
 
 	var weapon: WeaponLaptop
 	var kind := "gun"
@@ -299,14 +300,14 @@ class Turret extends Node2D:
 		if not weapon.run.running or _broken:
 			return
 		if kind == "dummy":
-			_pull()
-		if weapon.lv("pinche") > 0:
+			_pull(DUMMY_PULL_RADIUS, weapon.uv("stolk", "pull"))
+		if kind == "stove":
+			_pull(STOVE_PULL_RADIUS, weapon.uv("pinche", "pull"))
 			_boom -= delta
 			if _boom <= 0.0:
 				_boom = BOOM_CHECK
 				_check_boom()
-				if _broken:
-					return
+			return
 		_fire -= delta * weapon.speed_mult()
 		if _fire > 0.0:
 			return
@@ -323,15 +324,14 @@ class Turret extends Node2D:
 			weapon.run.fx.ring(p.global_position + Vector2(0, -40), 30.0, KIND_COLOR["heal"], 0.4, 2.0)
 			Audio.play("pickup", -16.0, 0.2)
 
-	## Muñeco de boxeo: atrae a los de alrededor / Boxing dummy: pulls those around it
-	func _pull() -> void:
-		var force := weapon.uv("stolk", "pull")
+	## Muñeco y fogón: atraen a los de alrededor / Dummy and stove: pull those around them
+	func _pull(radius: float, force: float) -> void:
 		for e: Node2D in weapon.run.enemies.get_children():
 			if not e is Enemy or not e.is_targetable() or e.is_boss():
 				continue
 			var to := global_position - e.global_position
 			var d := to.length()
-			if d < DUMMY_PULL_RADIUS and d > DUMMY_REACH * 0.6:
+			if d < radius and d > DUMMY_REACH * 0.6:
 				(e as Enemy).external_pull += to.normalized() * force
 
 	## Puñetazo al que esté más cerca / Punch the closest one
@@ -391,7 +391,7 @@ class Turret extends Node2D:
 			cur = weapon.nearest(JUMP * weapon.range_mult(), from, hit) if jumps > 0 else null
 		Audio.play("laser", -18.0, 0.15)
 
-	## El Pinche: con muchos enemigos pegados, explota / The Kitchen Boy: with many enemies crowding it, it explodes
+	## Fogón del Pinche: con muchos enemigos pegados, explota / The Kitchen Boy's stove: with many enemies crowding it, it explodes
 	func _check_boom() -> void:
 		var near := 0
 		for e: Node2D in weapon.run.enemies.get_children():
@@ -409,7 +409,7 @@ class Turret extends Node2D:
 		weapon.run.fx.ring(global_position, BOOM_RADIUS * 0.5, Color("ffe08a"), 0.3, 3.0)
 		weapon.run.shake(10.0)
 		Audio.play("crack", -4.0, 0.1)
-		weapon.turret_broken(self)
+		weapon.stove_broken(self)
 		queue_free()
 
 	func _draw() -> void:
@@ -420,7 +420,15 @@ class Turret extends Node2D:
 		var rock := sin(_punch * PI) * 0.25 if kind == "dummy" else 0.0
 		draw_set_transform(Vector2.ZERO, rock, Vector2(s, s))
 		Sprites.draw(self, SPRITE[kind])
-		if kind != "dummy":
+		if kind == "stove":
+			# Llamas del fogón, más altas cuando está a punto / Stove flames, taller when it's ready
+			var ready := 1.0 if _boom <= BOOM_CHECK else 0.5
+			for i in 3:
+				var x := -6.0 + i * 6.0
+				var h := (6.0 + 3.0 * sin(_t * 14.0 + i * 2.1)) * ready
+				draw_colored_polygon(PackedVector2Array([Vector2(x - 2.5, -24), Vector2(x, -24 - h), Vector2(x + 2.5, -24)]), Color("ff9a3a"))
+				draw_colored_polygon(PackedVector2Array([Vector2(x - 1.2, -24), Vector2(x, -24 - h * 0.55), Vector2(x + 1.2, -24)]), Color("8fd8ff"))
+		elif kind != "dummy":
 			# Luz de la pantalla y del nivel / Screen and level light
 			var blink := 0.6 + 0.4 * sin(_t * 6.0)
 			draw_rect(Rect2(-7, -31, 14, 8), Color(col, 0.55 * blink))
@@ -431,12 +439,9 @@ class Turret extends Node2D:
 			var r := 18.0 + fmod(_t * 20.0, 30.0)
 			draw_arc(Vector2(0, -6), r, 0, TAU, 24, Color(col, 0.35 * (1.0 - (r - 18.0) / 30.0)), 1.5)
 		draw_set_transform(Vector2.ZERO)
-		if kind == "dummy":
+		if kind == "dummy" or kind == "stove":
 			# Zona de atracción, muy suave / Pull zone, very faint
-			draw_arc(Vector2.ZERO, DUMMY_PULL_RADIUS, 0, TAU, 48, Color(col, 0.12), 1.5)
-		# El Pinche: aviso cuando está cargada / The Kitchen Boy: hint when it's armed
-		if weapon and weapon.lv("pinche") > 0 and _boom <= BOOM_CHECK:
-			draw_circle(Vector2(10, -40) * SIZE, 2.5, Color("ff9a3a", 0.6 + 0.4 * sin(_t * 8.0)))
+			draw_arc(Vector2.ZERO, DUMMY_PULL_RADIUS if kind == "dummy" else STOVE_PULL_RADIUS, 0, TAU, 48, Color(col, 0.12), 1.5)
 		for b: Array in _beams:
 			var k := float(b[2]) / 0.1
 			draw_line(b[0], b[1], Color(col, 0.9 * k), 3.0)
