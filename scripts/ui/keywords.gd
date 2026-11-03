@@ -27,6 +27,7 @@ const PATTERNS := {
 	"crit": {"es": "crític\\w*", "en": "critical|crits?"},
 	"defense": {"es": "defensa", "en": "defen[cs]e"},
 	"luck": {"es": "suerte", "en": "luck"},
+	"parry": {"es": "parry", "en": "parry"},
 	"attack_speed": {"es": "velocidad de ataque", "en": "attack speed"},
 	"regen": {"es": "regeneración|recuperación de salud", "en": "regeneration|regen"},
 	"lifesteal": {"es": "robo de (?:salud|vida)", "en": "lifesteal|life steal"},

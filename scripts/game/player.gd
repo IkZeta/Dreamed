@@ -178,11 +178,16 @@ func set_facing(f: float) -> void:
 	_facing = f
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, source: Node2D = null) -> void:
 	if not alive or _invuln > 0.0 or not run.running:
 		return
 	if GameState.god_mode and GameState.god_invuln:
 		return  # modo Dios / god mode
+	# Parry: a veces lo esquiva y, con un chasquido de dedos, acaba con quien le atacaba y con los de alrededor
+	# Parry: sometimes he dodges it and, with a snap of his fingers, finishes off the attacker and those around
+	if randf() * 100.0 < GameState.parry_chance():
+		_parry(source)
+		return
 	if shield_charges > 0:
 		# La almohada recogida para el golpe / The picked-up pillow blocks the hit
 		shield_charges -= 1
@@ -203,6 +208,39 @@ func take_damage(amount: float) -> void:
 	if hp <= 0.0:
 		alive = false
 		run.on_player_died()
+
+
+const PARRY_RADIUS := 170.0
+const PARRY_EXTRA := 3         # cuántos más de alrededor caen / how many more around him fall
+const PARRY_BOSS_DAMAGE := 30.0
+
+
+func _parry(source: Node2D) -> void:
+	_invuln = HIT_INVULN
+	cast_anim = 1.0
+	Audio.play("snap", -2.0, 0.05)
+	run.shake(5.0)
+	run.fx.text(global_position + Vector2(0, -140), tr("PARRY_SNAP"), Color.WHITE, 26)
+	run.fx.ring(global_position + HURT, PARRY_RADIUS, Color.WHITE, 0.4, 1.2)
+	# Quién le atacaba (o el más cercano si fue un disparo) / Who attacked (or the nearest if it was a shot)
+	var victims: Array[Node2D] = []
+	if source is Enemy and source.is_targetable():
+		victims.append(source)
+	var near: Array = []
+	for e: Node in run.enemies.get_children():
+		if e is Enemy and e.is_targetable() and not victims.has(e) and (e as Node2D).global_position.distance_to(global_position) < PARRY_RADIUS:
+			near.append(e)
+	near.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.global_position.distance_to(global_position) < b.global_position.distance_to(global_position))
+	for e in near:
+		if victims.size() >= PARRY_EXTRA + 1:
+			break
+		victims.append(e)
+	for e in victims:
+		run.fx.ring(e.global_position + Vector2(0, -30), 24.0, Color.WHITE, 0.3, 2.0)
+		if e.is_boss():
+			e.hit(PARRY_BOSS_DAMAGE)
+		else:
+			e.die(true)
 
 
 ## Sangra: pierde 1 de vida cada 0,8 s (sin parpadeo de invulnerabilidad)

@@ -794,6 +794,15 @@ def sfx_bell():
     return stereo(lp(out, 4000))
 
 
+def sfx_snap():
+    # Chasquido de dedos suave: un clic seco y corto con un poco de cuerpo / Soft finger snap: a short dry click with a little body
+    n = int(SR * 0.18)
+    t = np.arange(n) / SR
+    click = bp(noise(0.18), 1800, 5200) * np.exp(-t * 60) * 0.9
+    body = np.sin(2 * np.pi * 900 * t) * np.exp(-t * 45) * 0.25
+    return stereo(lp(click + body, 6000))
+
+
 def sfx_fluff():
     # Pelusa: un soplo blandito y un "pop" de algodón / Fluff: a soft breath and a cottony "pop"
     return mix(breath(0.22, 300, 1400, 1.0) * env_ar(int(0.22 * SR), 0.01, 0.18), np.pad(bar(midi(79), 0.35, 0.08, "kalimba", 0.2), (int(SR * 0.03), 0)))
@@ -847,7 +856,7 @@ if __name__ == "__main__":
         ("giver_charo", giver_charo, 0.4, 0.3), ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
         ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2), ("giver_ad", giver_ad, 0.4, 0.3),
         ("pan_clang", sfx_pan_clang, 0.45, 0.2), ("knife", sfx_knife, 0.3, 0.15), ("hack", sfx_hack, 0.3, 0.2),
-        ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("bell", sfx_bell, 0.35, 0.2), ("fluff", sfx_fluff, 0.3, 0.12),
+        ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("bell", sfx_bell, 0.35, 0.2), ("snap", sfx_snap, 0.4, 0.15), ("fluff", sfx_fluff, 0.3, 0.12),
         ("giver_pinche", giver_pinche, 0.4, 0.3),
     ]:
         if not only or name in only:

@@ -301,7 +301,7 @@ func start_bounce(damage: float, chain: int, ignore: Array = []) -> void:
 func _touch_player() -> void:
 	var player: Node2D = run.player
 	if global_position.distance_to(player.global_position + Vector2(0, -28)) < radius + 22.0:
-		player.take_damage(contact_damage * atk_mult())
+		player.take_damage(contact_damage * atk_mult(), self)
 
 
 ## Lo que la quemadura le deja de daño (1 = todo) / What burning leaves of its damage (1 = all of it)

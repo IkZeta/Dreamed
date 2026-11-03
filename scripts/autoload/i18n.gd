@@ -135,6 +135,7 @@ const STRINGS := {
 	"STAT_NAME_REGEN": {"es": "Recuperación de salud", "en": "Health regeneration"},
 	"STAT_NAME_LIFESTEAL": {"es": "Robo de salud", "en": "Life steal"},
 	"STAT_NAME_LUCK": {"es": "Suerte", "en": "Luck"},
+	"STAT_NAME_PARRY": {"es": "Parry", "en": "Parry"},
 	"STATV_ATTACK": {"es": "+{v} % de daño", "en": "+{v}% damage"},
 	"STATV_DEFENSE": {"es": "+{v} de defensa", "en": "+{v} defense"},
 	"STATV_SPEED": {"es": "+{v} % de velocidad", "en": "+{v}% speed"},
@@ -143,6 +144,7 @@ const STRINGS := {
 	"STATV_REGEN": {"es": "+{v} de vida cada 5 s", "en": "+{v} health every 5 s"},
 	"STATV_LIFESTEAL": {"es": "+{v} % de curarte 1 al golpear", "en": "+{v}% chance to heal 1 on hit"},
 	"STATV_LUCK": {"es": "+{v} de suerte", "en": "+{v} luck"},
+	"STATV_PARRY": {"es": "+{v} % de parry", "en": "+{v}% parry"},
 	"STAT_DESC_ATTACK": {"es": "Todo lo que golpeas recibe más daño.", "en": "Everything you hit takes more damage."},
 	"STAT_DESC_DEFENSE": {"es": "Cada golpe que recibes te quita menos vida.", "en": "Every hit you take costs less health."},
 	"STAT_DESC_SPEED": {"es": "Kroker corre más deprisa.", "en": "Kroker runs faster."},
@@ -151,6 +153,7 @@ const STRINGS := {
 	"STAT_DESC_REGEN": {"es": "Recuperas vida poco a poco.", "en": "You slowly recover health."},
 	"STAT_DESC_LIFESTEAL": {"es": "A veces te curas al golpear.", "en": "Sometimes you heal when you hit."},
 	"STAT_DESC_LUCK": {"es": "Mejoras más raras, más objetos de los enemigos y vuelven más los personajes que ya te ayudaron.", "en": "Rarer upgrades, more items from enemies, and characters who already helped you return more often."},
+	"STAT_DESC_PARRY": {"es": "A veces esquivas un golpe y, con un chasquido de dedos, acabas con quien te atacaba y con algunos de alrededor.", "en": "Sometimes you dodge a hit and, with a snap of your fingers, finish off whoever attacked you and a few around."},
 	"ENEMY_FELL": {"es": "¡Al vacío!", "en": "Into the void!"},
 
 	# --- Modo Dios / God mode ---
@@ -278,6 +281,9 @@ const STRINGS := {
 	"CTRL_PAD_NIN_SPECIAL": {"es": "X", "en": "X"},
 	"CTRL_PAD_NIN_ACCEPT": {"es": "B", "en": "B"},
 	"CTRL_PAD_NIN_BACK": {"es": "A", "en": "A"},
+	"PARRY_SNAP": {"es": "¡Chas!", "en": "Snap!"},
+	"KW_PARRY_NAME": {"es": "Parry", "en": "Parry"},
+	"KW_PARRY_DESC": {"es": "Probabilidad de esquivar un golpe. Al hacerlo, chasqueas los dedos y caen quien te atacaba y hasta 3 enemigos cercanos (a los jefes solo les hace daño). Nunca pasa del 20 %.", "en": "Chance to dodge a hit. When you do, you snap your fingers and whoever attacked you plus up to 3 nearby enemies drop (bosses only take damage). It never goes above 20%."},
 	"STENCH_LOST": {"es": "¡Qué peste!", "en": "What a stink!"},
 	"BEST_CYBER_DESC": {"es": "Esquiva de un salto justo cuando le voy a dar. Si se me queda cerca me hackea y me deja peor en algo, y si no lo derroto rápido, el virus me hace daño.", "en": "It dashes out of the way right when I'm about to hit it. If it stays close it hacks me and makes me worse at something, and if I don't beat it quickly, the virus hurts me."},
 	"HACK_VIRUS": {"es": "¡Virus!", "en": "Virus!"},

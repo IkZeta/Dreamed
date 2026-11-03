@@ -126,7 +126,7 @@ var _rng := RandomNumberGenerator.new()
 ## elige una de 3 mejoras de estadística. Cuanto mejor es la rareza, mayor la subida.
 ## Enemies drop star shards; when the bar fills Kroker levels up and picks one of 3 stat
 ## upgrades. The better the rarity, the bigger the boost.
-const STATS: Array[String] = ["attack", "defense", "speed", "attack_speed", "range", "regen", "lifesteal", "luck"]
+const STATS: Array[String] = ["attack", "defense", "speed", "attack_speed", "range", "regen", "lifesteal", "luck", "parry"]
 const RARITIES: Array[String] = ["common", "uncommon", "rare", "epic", "legendary"]
 const RARITY_WEIGHT: Array[float] = [60.0, 25.0, 10.0, 4.0, 1.0]
 ## Subida de cada estadística en cada rareza (común → legendaria)
@@ -140,7 +140,14 @@ const STAT_STEPS := {
 	"regen": [0.5, 0.8, 1.2, 1.8, 2.5],         # vida cada 5 s / health every 5 s
 	"lifesteal": [2, 4, 6, 9, 13],              # % de curar 1 al golpear / % to heal 1 on hit
 	"luck": [5, 8, 12, 18, 25],                 # suerte / luck
+	"parry": [1, 1.5, 2, 3, 4],                 # % de esquivar y contraatacar con un chasquido / % to dodge and snap back
 }
+## El parry nunca pasa de aquí, para no romper el juego / Parry never goes above this, so it can't break the game
+const PARRY_MAX := 20.0
+
+
+func parry_chance() -> float:
+	return clampf(stat("parry"), 0.0, PARRY_MAX)
 var xp := 0
 var plevel := 1
 ## Subidas de nivel aún sin elegir / Level-ups not yet chosen

@@ -36,6 +36,7 @@ func _build(player: Player) -> void:
 		["STAT_NAME_REGEN", tr("STAT_REGEN_VALUE").format({"v": _num(s.stat("regen"))})],
 		["STAT_NAME_LIFESTEAL", "%s %%" % _num(s.stat("lifesteal"))],
 		["STAT_NAME_LUCK", _num(s.stat("luck"))],
+		["STAT_NAME_PARRY", "%s %%" % _num(s.parry_chance())],
 	]
 	if s.reality_on():
 		rows.append(["REALITY_NAME", "%d ◆" % s.reality])
