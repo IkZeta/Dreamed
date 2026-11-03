@@ -464,7 +464,6 @@ const STRINGS := {
 	"HUB_ZONE_TRAINING": {"es": "El tatami", "en": "The training mat"},
 	"TRAINING_TITLE": {"es": "Entrenamiento", "en": "Training"},
 	"TRAINING_DPS": {"es": "%s de daño por segundo", "en": "%s damage per second"},
-	"TRAINING_DOWN": {"es": "¡Al suelo!", "en": "Down it goes!"},
 	"PAUSE_LEAVE_TRAINING": {"es": "Volver al plano astral", "en": "Back to the astral plane"},
 	"BTN_TO_HUB": {"es": "Volver al plano astral", "en": "Back to the astral plane"},
 	"STENCH_LOST": {"es": "¡Qué peste!", "en": "What a stink!"},
