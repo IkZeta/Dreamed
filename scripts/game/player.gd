@@ -115,6 +115,20 @@ func refresh_stats() -> void:
 	armor = s["armor"]
 
 
+## El robo de salud cura como mucho 1 cada STEAL_GAP segundos (las armas rápidas lo disparaban)
+## Life steal heals at most 1 every STEAL_GAP seconds (fast weapons were spamming it)
+const STEAL_GAP := 0.5
+var _steal_t := 0.0
+
+
+func steal_ready() -> bool:
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _steal_t < STEAL_GAP:
+		return false
+	_steal_t = now
+	return true
+
+
 func heal(amount: float) -> void:
 	if not alive or hp >= max_hp:
 		return
@@ -130,7 +144,7 @@ func _physics_process(delta: float) -> void:
 	_t += delta
 	_heal_text = maxf(0.0, _heal_text - delta)
 	# Recuperación de salud: "regen" de vida cada 5 s / Health regeneration: "regen" health every 5 s
-	var regen := GameState.stat("regen")
+	var regen := GameState.regen_effective()
 	if regen > 0.0 and alive and run.running:
 		_regen_acc += regen / 5.0 * delta
 		if _regen_acc >= 0.5:
@@ -237,7 +251,8 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 		return
 	# La defensa resta daño, pero nunca quita más de la mitad del golpe y siempre se recibe al menos 1.
 	# Defense subtracts damage, but never more than half the hit, and at least 1 always gets through.
-	var dmg := maxf(maxf(1.0, amount * 0.5), amount - armor)
+	var def := armor * (Enemy.BLEED_DEFENSE if bleed_t > 0.0 else 1.0)
+	var dmg := maxf(maxf(1.0, amount * 0.5), amount - def)
 	hp = maxf(0.0, hp - dmg)
 	_invuln = HIT_INVULN
 	_flash = 1.0
@@ -283,11 +298,12 @@ func _parry(source: Node2D) -> void:
 			e.die(true)
 
 
-## Sangra: pierde 1 de vida cada 0,8 s (sin parpadeo de invulnerabilidad)
-## Bleeding: loses 1 health every 0.8 s (without invulnerability blinking)
+## Sangra: pierde 1 de vida cada 1,3 s (sin parpadeo de invulnerabilidad) y su defensa baja al 75 %
+## Bleeding: loses 1 health every 1.3 s (without invulnerability blinking) and his defence drops to 75%
+const BLEED_TICK := 1.3
 func start_bleed(seconds: float) -> void:
 	if bleed_t <= 0.0:
-		_bleed_tick = 0.8
+		_bleed_tick = BLEED_TICK
 	bleed_t = maxf(bleed_t, seconds)
 
 
@@ -298,7 +314,7 @@ func _update_bleed(delta: float) -> void:
 	_bleed_tick -= delta
 	if _bleed_tick > 0.0:
 		return
-	_bleed_tick = 0.8
+	_bleed_tick = BLEED_TICK
 	if GameState.god_mode and GameState.god_invuln:
 		return
 	hp = maxf(0.0, hp - 1.0)

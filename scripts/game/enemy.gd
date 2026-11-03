@@ -110,6 +110,8 @@ func _ready() -> void:
 	_phase = randf() * TAU
 	# Pesadilla: más vida y más daño / Nightmare: more health and damage
 	max_hp *= GameState.enemy_hp_mult()
+	if not is_boss():
+		max_hp *= GameState.late_hp_mult()
 	contact_damage *= GameState.enemy_dmg_mult()
 	if elite:
 		max_hp *= 3.0
@@ -427,6 +429,10 @@ func _unstick() -> void:
 
 # --- Sangrado y quemadura / Bleeding and burning -----------------------------------------
 
+## Defensa que le queda al que sangra (también a Kroker) / Defence left to whoever bleeds (Kroker too)
+const BLEED_DEFENSE := 0.75
+
+
 func bleed(dps: float, secs: float) -> void:
 	bleed_dps = maxf(bleed_dps if bleed_t > 0.0 else 0.0, dps)
 	bleed_t = maxf(bleed_t, secs)
@@ -496,6 +502,9 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	# Burning lowers its defence; stuck with Silly's virus it takes more
 	if burn_t > 0.0:
 		amount *= 1.0 + burn_pct / 100.0
+	# Sangrando, su defensa baja al 75 %: recibe un tercio más / Bleeding, its defence drops to 75%: takes a third more
+	if bleed_t > 0.0:
+		amount /= BLEED_DEFENSE
 	if is_stuck() and stuck_bonus > 0.0:
 		amount *= 1.0 + stuck_bonus / 100.0
 	hp -= amount

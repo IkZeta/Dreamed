@@ -30,6 +30,17 @@ func _desired_velocity() -> Vector2:
 	return (dir + side).normalized() * speed * burst
 
 
+## Su picadura hace sangrar / Its bite makes you bleed
+const BITE_BLEED := 2.0
+
+
+func _touch_player() -> void:
+	var before: float = run.player.hp
+	super()
+	if run.player.hp < before:
+		run.player.start_bleed(BITE_BLEED)
+
+
 func _death_sound() -> void:
 	Audio.play("hit", -16.0, 0.2)
 

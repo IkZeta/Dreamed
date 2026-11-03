@@ -175,8 +175,8 @@ const STAT_STEPS := {
 	"speed": [4, 6, 9, 13, 18],                 # +% velocidad / +% speed
 	"attack_speed": [5, 8, 12, 17, 25],         # +% velocidad de ataque / +% attack speed
 	"range": [6, 10, 15, 21, 30],               # +% alcance / +% range
-	"regen": [0.5, 0.8, 1.2, 1.8, 2.5],         # vida cada 5 s / health every 5 s
-	"lifesteal": [2, 4, 6, 9, 13],              # % de curar 1 al golpear / % to heal 1 on hit
+	"regen": [0.3, 0.5, 0.7, 1.0, 1.4],         # vida cada 5 s / health every 5 s
+	"lifesteal": [1, 2, 3, 4.5, 6.5],           # % de curar 1 al golpear / % to heal 1 on hit
 	"luck": [5, 8, 12, 18, 25],                 # suerte / luck
 	"parry": [1, 1.5, 2, 3, 4],                 # % de esquivar y contraatacar con un chasquido / % to dodge and snap back
 }
@@ -402,6 +402,16 @@ func enemy_hp_mult() -> float:
 	return (1.6 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.35, 1.7][act()]
 
 
+## Desde el sueño 13 los enemigos (no los jefes) aguantan cada vez más: +40 % por sueño
+## From dream 13 on, enemies (not bosses) get tougher and tougher: +40% per dream
+const LATE_DEPTH := 13
+const LATE_HP_STEP := 0.4
+
+
+func late_hp_mult() -> float:
+	return 1.0 + LATE_HP_STEP * maxi(0, dream_depth - LATE_DEPTH + 1) if not training else 1.0
+
+
 ## Los jefes atacan más a menudo y pegan más fuerte (en las dos dificultades)
 ## Bosses attack more often and hit harder (on both difficulties)
 const BOSS_POWER := 1.25
@@ -413,6 +423,16 @@ func enemy_dmg_mult() -> float:
 
 func shard_mult() -> float:
 	return 1.5 if difficulty == "nightmare" else 1.0
+
+
+## Regeneración que de verdad cura: a partir de 2 rinde la mitad, para no ser inmortal
+## Regeneration that actually heals: above 2 it's worth half, so you can't be immortal
+const REGEN_SOFT_CAP := 2.0
+
+
+func regen_effective() -> float:
+	var r := stat("regen")
+	return r if r <= REGEN_SOFT_CAP else REGEN_SOFT_CAP + (r - REGEN_SOFT_CAP) * 0.5
 
 
 func stat(id: String) -> float:
@@ -859,7 +879,7 @@ const UPGRADE_VALUES := {
 		"ball": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
 		# +recarga y −daño, pero una torreta curativa que cura "heal" cada 4 s
 		# +cooldown and −damage, but a healing turret that heals "heal" every 4 s
-		"laptop": {"hp": [10, 18, 28], "pct": [8, 12, 16], "dmg": [10, 15, 20], "heal": [1, 1.5, 2]},
+		"laptop": {"hp": [10, 18, 28], "pct": [8, 12, 16], "dmg": [10, 15, 20], "heal": [0.6, 0.9, 1.2]},
 		"boots": {"hp": [10, 18, 28], "pct": [8, 12, 16]},     # +recarga de las patadas / +kick cooldown
 	},
 	## Mr. Ad: "extra" = % de ganar 1 más de Realidad Fragmentada; "per10" = estadística por cada 10 ahorradas
@@ -870,7 +890,7 @@ const UPGRADE_VALUES := {
 		"book": {"extra": [20, 35, 50], "per10": [3, 5, 8]},          # +% velocidad de ataque / +% attack speed
 		"vacuum": {"extra": [20, 35, 50], "per10": [2, 4, 6]},        # +% velocidad / +% speed
 		"finger": {"extra": [20, 35, 50], "per10": [2, 3, 5]},        # +suerte / +luck
-		"teddy": {"extra": [20, 35, 50], "per10": [0.2, 0.35, 0.5]},  # +regeneración / +regen
+		"teddy": {"extra": [20, 35, 50], "per10": [0.1, 0.2, 0.3]},  # +regeneración / +regen
 		"ball": {"extra": [20, 35, 50], "per10": [0.3, 0.5, 0.8]},    # +parry
 		# Torreta de cobro: remata y da "cash" de Realidad Fragmentada / Debt-collector turret: finishes off and gives "cash"
 		"laptop": {"extra": [20, 35, 50], "per10": [0, 0, 0], "cash": [1, 2, 3]},
@@ -892,13 +912,13 @@ const UPGRADE_VALUES := {
 	## El Pinche: sangrado (daño residual fuerte) o quemadura (flojo, pero baja su daño y su defensa)
 	## The Kitchen Boy: bleed (strong damage over time) or burn (weak, but lowers its damage and defence)
 	"pinche": {
-		"bat": {"dps": [2, 3, 4.5], "secs": [3, 3.5, 4]},                 # sangrado / bleed
+		"bat": {"dps": [1.3, 2, 3], "secs": [3, 3.5, 4]},                 # sangrado / bleed
 		"shield": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
 		"book": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},    # quemadura / burn
-		"vacuum": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},          # sangrado / bleed
+		"vacuum": {"dps": [1, 1.6, 2.3], "secs": [2, 2.5, 3]},          # sangrado / bleed
 		"finger": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
-		"teddy": {"dps": [2, 3, 4.5], "secs": [3, 3.5, 4]},               # sangrado / bleed
-		"ball": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},            # sangrado / bleed
+		"teddy": {"dps": [1.3, 2, 3], "secs": [3, 3.5, 4]},               # sangrado / bleed
+		"ball": {"dps": [1, 1.6, 2.3], "secs": [2, 2.5, 3]},            # sangrado / bleed
 		# Fogón: atrae con fuerza "pull"; con "count" enemigos al lado explota con "boom" de daño
 		# Stove: pulls with "pull" strength; with "count" enemies beside it, it explodes for "boom" damage
 		"laptop": {"count": [5, 5, 4], "boom": [20, 30, 45], "pull": [50, 70, 90]},
@@ -996,7 +1016,7 @@ const WARES := {
 	"candy": {"tier": 1, "price": 4},         # +5 de suerte / +5 luck
 	"glasses": {"tier": 1, "price": 5},       # +10 % de alcance / +10% range
 	"sneakers": {"tier": 1, "price": 5},      # +6 % de velocidad / +6% speed
-	"plasters": {"tier": 1, "price": 4},      # +0,8 de regeneración / +0.8 regen
+	"plasters": {"tier": 1, "price": 4},      # +0,5 de regeneración / +0.5 regen
 	# Nivel 2 / Tier 2
 	"gum": {"tier": 2, "price": 8},           # estadística rara al azar / random rare stat
 	"soda": {"tier": 2, "price": 8},          # +12 % de velocidad de ataque / +12% attack speed
@@ -1123,7 +1143,7 @@ func apply_ware(id: String) -> void:
 		"sneakers":
 			_add_stat_bonus("speed", 6.0)
 		"plasters":
-			_add_stat_bonus("regen", 0.8)
+			_add_stat_bonus("regen", 0.5)
 		"soda":
 			_add_stat_bonus("attack_speed", 12.0)
 		"stickers":

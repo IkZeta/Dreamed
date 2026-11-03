@@ -123,7 +123,7 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0
 	_pinche(e)
 	# Robo de salud: probabilidad de curar 1 / Life steal: chance to heal 1
 	var ls := GameState.stat("lifesteal") * steal_k
-	if ls > 0.0 and randf() * 100.0 < ls:
+	if ls > 0.0 and randf() * 100.0 < ls and player.steal_ready():
 		player.heal(1.0)
 
 
