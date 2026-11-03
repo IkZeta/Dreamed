@@ -673,12 +673,6 @@ func _friendly(giver: String, key: String, v: float) -> float:
 	return v * m
 
 
-## Precio de un artículo del kiosco: la amistad con Charo lo rebaja un 6 % por nivel
-## Price of a kiosk ware: friendship with Charo cuts it by 6% per level
-func ware_price(id: String) -> int:
-	return maxi(1, roundi(float(WARES[id]) * (1.0 - FRIEND_BONUS * Progress.friend_level("charo"))))
-
-
 ## Valor de una mejora en un nivel (por defecto, el nivel que tienes). 0 si no la tienes.
 ## Value of an upgrade at a level (by default, your current level). 0 if you don't have it.
 func up_value(giver: String, key: String, lvl := -1, weapon := "") -> float:
@@ -702,14 +696,38 @@ func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
 
 
 ## --- Kiosco de Charo / Charo's kiosk ------------------------------------------------
+## Cada artículo tiene un nivel (1, 2 o 3) y un precio. En el Acto 1 solo hay cosas de nivel 1
+## (flojas y baratas); en el 2, sobre todo de nivel 2; en el 3, sobre todo de nivel 3 (las
+## mejores y más caras). La amistad con Charo no baja los precios: da cambios gratis,
+## ofertas y más huecos en el mostrador.
+## Each ware has a tier (1, 2 or 3) and a price. Act 1 only has tier 1 (weak and cheap); Act 2
+## mostly tier 2; Act 3 mostly tier 3 (the best and priciest). Friendship with Charo doesn't
+## lower prices: it gives free rerolls, offers and more slots on the counter.
 const WARES := {
-	"milk": 5,       # recupera un 40 % de la vida / restores 40% health
-	"candy": 6,      # +8 de suerte / +8 luck
-	"gum": 8,        # estadística rara al azar / random rare stat
-	"glasses": 8,    # +15 % de alcance / +15% range
-	"newspaper": 10, # sube de nivel una mejora / levels up an upgrade
-	"battery": 12,   # una subida de nivel / one level-up
+	# Nivel 1 / Tier 1
+	"milk": {"tier": 1, "price": 4},          # recupera un 40 % de la vida / restores 40% health
+	"candy": {"tier": 1, "price": 4},         # +5 de suerte / +5 luck
+	"glasses": {"tier": 1, "price": 5},       # +10 % de alcance / +10% range
+	"sneakers": {"tier": 1, "price": 5},      # +6 % de velocidad / +6% speed
+	"plasters": {"tier": 1, "price": 4},      # +0,8 de regeneración / +0.8 regen
+	# Nivel 2 / Tier 2
+	"gum": {"tier": 2, "price": 8},           # estadística rara al azar / random rare stat
+	"soda": {"tier": 2, "price": 8},          # +12 % de velocidad de ataque / +12% attack speed
+	"stickers": {"tier": 2, "price": 9},      # +2 de parry
+	"sandwich": {"tier": 2, "price": 7},      # recupera toda la vida / restores all health
+	"battery": {"tier": 2, "price": 10},      # una subida de nivel / one level-up
+	"newspaper": {"tier": 2, "price": 12},    # sube de nivel una mejora / levels up an upgrade
+	# Nivel 3 / Tier 3
+	"gold_sticker": {"tier": 3, "price": 16}, # estadística épica al azar / random epic stat
+	"cake": {"tier": 3, "price": 15},         # toda la vida y +5 de vida máxima / all health and +5 max health
+	"coin": {"tier": 3, "price": 15},         # +12 de suerte y +1 de parry / +12 luck and +1 parry
+	"batteries": {"tier": 3, "price": 18},    # dos subidas de nivel / two level-ups
+	"sunday_paper": {"tier": 3, "price": 24}, # dos mejoras suben de nivel / two upgrades level up
 }
+## Vida máxima que da cada tarta / Max health each cake gives
+const CAKE_HP := 5.0
+## Peso de cada nivel de artículo en cada acto / Weight of each ware tier in each act
+const WARE_TIER_WEIGHT := {1: {1: 1.0}, 2: {1: 1.0, 2: 3.0}, 3: {2: 1.0, 3: 3.0}}
 ## Lo comprado en esta partida: artículo → cuántos / Bought this run: ware → how many
 var bought := {}
 ## A quién se le ha dado propina en esta partida (solo una por personaje y partida)
@@ -717,7 +735,39 @@ var bought := {}
 var tipped := {}
 
 
-## Mejoras que aún pueden subir de nivel / Upgrades that can still level up
+func ware_price(id: String) -> int:
+	return int(WARES[id]["price"])
+
+
+## --- Ventajas de la amistad con Charo / Perks of Charo's friendship ---
+## Huecos del mostrador: 3, 4 con amistad 3 y 5 con amistad 5
+## Counter slots: 3, 4 at friendship 3 and 5 at friendship 5
+func shop_slots() -> int:
+	var lvl := Progress.friend_level("charo")
+	return 3 + (1 if lvl >= 3 else 0) + (1 if lvl >= 5 else 0)
+
+
+## Cambios gratis por visita: 1 con amistad 1 y 2 con amistad 4 / Free rerolls per visit: 1 at friendship 1, 2 at friendship 4
+func shop_free_rerolls() -> int:
+	var lvl := Progress.friend_level("charo")
+	return (1 if lvl >= 1 else 0) + (1 if lvl >= 4 else 0)
+
+
+## Probabilidad (en %) de que un artículo salga de oferta (a mitad de precio), desde amistad 2
+## Chance (in %) that a ware is on offer (half price), from friendship 2
+func shop_offer_chance() -> float:
+	var lvl := Progress.friend_level("charo")
+	return 0.0 if lvl < 2 else 5.0 + 5.0 * lvl
+
+
+const OFFER_MULT := 0.5
+
+
+## Precio de cambiar el mostrador, que sube cada vez / Price of rerolling the counter, which goes up each time
+func reroll_price(times: int) -> int:
+	return 1 + act() + times
+
+
 ## Mejoras que aún pueden subir de nivel: [[personaje, arma], ...] / Upgrades that can still level up: [[giver, weapon], ...]
 func upgradable() -> Array:
 	var out := []
@@ -728,39 +778,93 @@ func upgradable() -> Array:
 	return out
 
 
-## Tres artículos distintos para el kiosco / Three different wares for the kiosk
-func roll_wares() -> Array[String]:
-	var pool: Array[String] = []
+## Artículos distintos para el kiosco según el acto, sin repetir "avoid" si se puede
+## Different wares for the kiosk depending on the act, avoiding "avoid" if possible
+func roll_wares(n := 3, avoid: Array = []) -> Array[String]:
+	var weights: Dictionary = WARE_TIER_WEIGHT[clampi(act(), 1, 3)]
+	var pool := {}
 	for w: String in WARES:
-		if w == "newspaper" and upgradable().is_empty():
+		var t: int = WARES[w]["tier"]
+		if not weights.has(t):
 			continue
-		pool.append(w)
+		if w in ["newspaper", "sunday_paper"] and upgradable().is_empty():
+			continue
+		pool[w] = float(weights[t]) * (0.25 if avoid.has(w) else 1.0)
 	var out: Array[String] = []
-	for i in 3:
+	for i in n:
 		if pool.is_empty():
 			break
-		out.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+		var total := 0.0
+		for w: String in pool:
+			total += float(pool[w])
+		var r := _rng.randf() * total
+		var pick: String = pool.keys()[0]
+		for w: String in pool:
+			r -= float(pool[w])
+			if r <= 0.0:
+				pick = w
+				break
+		out.append(pick)
+		pool.erase(pick)
 	return out
 
 
-## Aplica un artículo comprado (lo que toca la vida lo hace la partida) / Applies a bought ware (health is handled by the run)
+## Tira la probabilidad de oferta de un artículo / Rolls a ware's offer chance
+func roll_offer() -> bool:
+	return _rng.randf() * 100.0 < shop_offer_chance()
+
+
+func _add_stat_bonus(id: String, v: float) -> void:
+	stat_bonus[id] = float(stat_bonus.get(id, 0.0)) + v
+
+
+func _level_random_upgrade() -> void:
+	var list := upgradable()
+	if not list.is_empty():
+		var pick: Array = list[_rng.randi_range(0, list.size() - 1)]
+		add_upgrade(pick[0], pick[1])
+
+
+## Aplica un artículo comprado (curar lo hace la partida) / Applies a bought ware (healing is done by the run)
 func apply_ware(id: String) -> void:
 	bought[id] = int(bought.get(id, 0)) + 1
 	match id:
 		"candy":
-			stat_bonus["luck"] = float(stat_bonus.get("luck", 0.0)) + 8.0
+			_add_stat_bonus("luck", 5.0)
 		"glasses":
-			stat_bonus["range"] = float(stat_bonus.get("range", 0.0)) + 15.0
-		"gum":
+			_add_stat_bonus("range", 10.0)
+		"sneakers":
+			_add_stat_bonus("speed", 6.0)
+		"plasters":
+			_add_stat_bonus("regen", 0.8)
+		"soda":
+			_add_stat_bonus("attack_speed", 12.0)
+		"stickers":
+			_add_stat_bonus("parry", 2.0)
+		"coin":
+			_add_stat_bonus("luck", 12.0)
+			_add_stat_bonus("parry", 1.0)
+		"gum", "gold_sticker":
+			var rarity := 2 if id == "gum" else 3
 			var stat_id: String = STATS[_rng.randi_range(0, STATS.size() - 1)]
-			apply_stat({"stat": stat_id, "rarity": 2, "value": float(STAT_STEPS[stat_id][2])})
+			apply_stat({"stat": stat_id, "rarity": rarity, "value": float(STAT_STEPS[stat_id][rarity])})
 		"newspaper":
-			var list := upgradable()
-			if not list.is_empty():
-				var pick: Array = list[_rng.randi_range(0, list.size() - 1)]
-				add_upgrade(pick[0], pick[1])
+			_level_random_upgrade()
+		"sunday_paper":
+			_level_random_upgrade()
+			_level_random_upgrade()
 		"battery":
 			pending_ups += 1
+		"batteries":
+			pending_ups += 2
+
+
+## Vida que cura un artículo, en fracción de la vida máxima / Health a ware heals, as a fraction of max health
+func ware_heal(id: String) -> float:
+	match id:
+		"milk": return 0.4
+		"sandwich", "cake": return 1.0
+	return 0.0
 
 
 ## Sacrificar en la chimenea: la mejora pierde un nivel / Sacrificing in the fireplace: the upgrade loses a level
@@ -794,6 +898,8 @@ func stats_for(id: String) -> Dictionary:
 	s["max_hp"] = maxf(5.0, float(s["max_hp"]) - STOLK_HP_COST * stolk)
 	# Doc: suma vida máxima; con la aspiradora cuesta velocidad / Doc: adds max health; with the vacuum it costs speed
 	s["max_hp"] = float(s["max_hp"]) + doc_hp()
+	# Tartas del kiosco / Kiosk cakes
+	s["max_hp"] = float(s["max_hp"]) + CAKE_HP * int(bought.get("cake", 0))
 	if "vacuum" in weapons():
 		s["speed"] = float(s["speed"]) * (1.0 - up_value("doc", "pct", -1, "vacuum") / 100.0)
 	# Estadísticas ganadas al subir de nivel / Stats gained by levelling up

@@ -375,8 +375,8 @@ func _on_ware(id: String) -> void:
 	player.refresh_stats()
 	if player.max_hp > before:
 		player.hp += player.max_hp - before
-	if id == "milk":
-		player.heal(player.max_hp * 0.4)
+	if GameState.ware_heal(id) > 0.0:
+		player.heal(player.max_hp * GameState.ware_heal(id))
 	hud.set_hp(player.hp, player.max_hp)
 	hud.set_reality()
 	hud.set_xp()
