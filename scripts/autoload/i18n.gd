@@ -369,6 +369,7 @@ const STRINGS := {
 	"INVEST_HUD_HITS": {"es": "Magnus: {p}/{n} golpes", "en": "Magnus: {p}/{n} hits"},
 	"INVEST_WON": {"es": "¡Trato cumplido! +{n} ◆", "en": "Deal done! +{n} ◆"},
 	"INVEST_LOST": {"es": "Trato fallido: Magnus se queda el dinero", "en": "Deal failed: Magnus keeps the money"},
+	"PAD_SCROLL_HINT": {"es": "Stick derecho: ver más", "en": "Right stick: see more"},
 	"STENCH_LOST": {"es": "¡Qué peste!", "en": "What a stink!"},
 	"BEST_CYBER_DESC": {"es": "Esquiva de un salto justo cuando le voy a dar. Si se me queda cerca me hackea y me deja peor en algo, y si no lo derroto rápido, el virus me hace daño.", "en": "It dashes out of the way right when I'm about to hit it. If it stays close it hacks me and makes me worse at something, and if I don't beat it quickly, the virus hurts me."},
 	"HACK_VIRUS": {"es": "¡Virus!", "en": "Virus!"},

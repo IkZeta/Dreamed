@@ -199,6 +199,11 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	UITheme.ignore_mouse(content)
 	for sc: ScrollContainer in profile.find_children("*", "ScrollContainer", true, false):
 		sc.mouse_filter = MOUSE_FILTER_PASS
+	# Con mando: al seleccionar la carta, la ficha baja sola y el stick derecho la mueve
+	# With a gamepad: when the card is selected, the sheet scrolls by itself and the right stick moves it
+	for pad: PadScroll in profile.find_children("*", "PadScroll", true, false):
+		card.focus_entered.connect(func() -> void: pad.active = true)
+		card.focus_exited.connect(func() -> void: pad.active = false)
 	return card
 
 
@@ -222,10 +227,25 @@ func _profile(data: Dictionary) -> Control:
 	sb.content_margin_bottom = 12
 	panel.add_theme_stylebox_override("panel", sb)
 	panel.custom_minimum_size.y = PROFILE_H
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 2)
+	panel.add_child(outer)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.custom_minimum_size.y = PROFILE_H - 22.0
-	panel.add_child(scroll)
+	scroll.size_flags_vertical = SIZE_EXPAND_FILL
+	outer.add_child(scroll)
+	# Pista para el mando, solo si la ficha no cabe / Gamepad hint, only if the sheet doesn't fit
+	var hint := UITheme.label("PAD_SCROLL_HINT", 12, Color(UITheme.ASH, 0.75), "caps")
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hint.visible = false
+	outer.add_child(hint)
+	var pad := PadScroll.new()
+	scroll.add_child(pad)
+	var update_hint := func() -> void:
+		if is_instance_valid(hint):
+			hint.visible = Settings.using_pad and pad.max_scroll() > 1.0
+	pad.overflow_changed.connect(func(_o: bool) -> void: update_hint.call())
+	Settings.input_device_changed.connect(func(_p: bool) -> void: update_hint.call())
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
 	v.size_flags_horizontal = SIZE_EXPAND_FILL
