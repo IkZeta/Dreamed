@@ -1320,11 +1320,10 @@ func _settle_deal() -> void:
 	match GameState.settle_deal():
 		"won":
 			fx.text(player.global_position + Vector2(0, -150), tr("INVEST_WON").format({"n": payout}), UITheme.GOLD, 26)
-			Audio.play("reality", -1.0)
-			Audio.play("giver_magnus", -4.0)
+			Audio.play("deal_won", -2.0)
 		"lost":
 			fx.text(player.global_position + Vector2(0, -150), tr("INVEST_LOST"), UITheme.EMBER, 24)
-			Audio.play("lose", -10.0)
+			Audio.play("deal_lost", -4.0)
 		_:
 			return
 	player.refresh_stats()

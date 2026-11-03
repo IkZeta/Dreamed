@@ -832,6 +832,81 @@ def giver_magnus():
     return x
 
 
+# --- Portátil, Magnus, muñeco, baúl y kiosco / Laptop, Magnus, dummy, chest and kiosk -------
+
+def sfx_turret():
+    # Disparo de torreta: un "pip" corto, agudo y flojito (distinto del láser del Ovni)
+    # Turret shot: a short, high, quiet "pip" (different from the UFO's laser)
+    n = int(SR * 0.12)
+    t = np.arange(n) / SR
+    f = 1500 - 500 * t / 0.12
+    tone = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 38) * 0.5
+    return stereo(lp(tone, 5000))
+
+
+def sfx_stove_boom():
+    # Fogón que explota: "fuuump" grave y apagado, como gas que prende / Exploding stove: a low muffled "whoomp", like gas igniting
+    body = thump(60, 0.6, 0.9, 4)
+    whoosh = lp(sweep_noise(0.55, 300, 1400, 1.5, 0.5), 1800) * env_ar(int(0.55 * SR), 0.04, 0.45)
+    return mix(body, whoosh)
+
+
+def sfx_typing():
+    # Kroker tecleando: cinco teclazos rápidos de portátil / Kroker typing: five quick laptop keystrokes
+    x = np.zeros((int(SR * 0.45), 2))
+    for i in range(5):
+        n = int(SR * 0.04)
+        t = np.arange(n) / SR
+        key = lp(bp(noise(0.04), 900 + RNG.uniform(-150, 150), 2600), 3200) * np.exp(-t * 110) * 0.6
+        place(x, stereo(key), i * 0.07 + RNG.uniform(0, 0.02), RNG.uniform(-0.3, 0.3), human=False)
+    return x
+
+
+def sfx_deal_won():
+    # Trato cumplido: caja registradora suave, "clin-clin" y una moneda / Deal done: soft cash register, "ching-ching" and a coin
+    x = np.zeros((int(SR * 1.2), 2))
+    place(x, bar(midi(88), 0.8, 0.3, "kalimba", 0.7), 0.0, -0.2, human=False)
+    place(x, bar(midi(93), 0.9, 0.3, "kalimba", 0.7), 0.09, 0.2, human=False)
+    place(x, bar(midi(100), 0.6, 0.12, "kalimba", 0.8), 0.25, 0.0, human=False)
+    place(x, stereo(lp(noise(0.06), 3000) * env_ar(int(0.06 * SR), 0.001, 0.05) * 0.3), 0.0, 0.0, human=False)
+    return x
+
+
+def sfx_deal_lost():
+    # Trato fallido: "uuh" de dos notas que bajan / Deal failed: a two-note falling "ooh"
+    x = np.zeros((int(SR * 1.2), 2))
+    place(x, bar(midi(64), 0.6, 0.3, "marimba", 0.3), 0.0, -0.1, human=False)
+    place(x, bar(midi(58), 0.9, 0.3, "marimba", 0.3), 0.22, 0.1, human=False)
+    return x
+
+
+def sfx_punch():
+    # Puñetazo del muñeco: "pof" de saco acolchado / Dummy punch: a padded bag "poff"
+    body = thump(110, 0.18, 0.7, 10)
+    pad = lp(noise(0.12), 900) * env_ar(int(0.12 * SR), 0.002, 0.1) * 0.5
+    return mix(body, pad)
+
+
+def sfx_pant():
+    # Baúl cansado: dos resoplidos cortos / Tired chest: two short huffs
+    x = np.zeros((int(SR * 0.9), 2))
+    for i in range(2):
+        h = breath(0.22, 300, 1300, 0.7) * env_ar(int(0.22 * SR), 0.03, 0.18)
+        place(x, stereo(h) if h.ndim == 1 else h, i * 0.38, 0.0, human=False)
+    return x
+
+
+def sfx_shuffle():
+    # Cambiar el mostrador: barajeo corto de cromos / Restocking the counter: a short shuffle of stickers
+    x = np.zeros((int(SR * 0.5), 2))
+    for i in range(6):
+        n = int(SR * 0.035)
+        t = np.arange(n) / SR
+        flick = lp(bp(noise(0.035), 1300, 3200), 3600) * np.exp(-t * 90) * 0.4
+        place(x, stereo(flick), i * 0.05, -0.3 + i * 0.12, human=False)
+    return x
+
+
 def sfx_plate_break():
     # Plato que se rompe, pero suave: tintineo de porcelana amortiguado / A plate breaking, but soft: muffled porcelain clink
     x = np.zeros((int(SR * 1.2), 2))
@@ -871,6 +946,9 @@ if __name__ == "__main__":
         ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("bell", sfx_bell, 0.35, 0.2), ("snap", sfx_snap, 0.4, 0.15), ("fluff", sfx_fluff, 0.3, 0.12),
         ("giver_pinche", giver_pinche, 0.4, 0.3),
         ("giver_magnus", giver_magnus, 0.4, 0.3),
+        ("turret", sfx_turret, 0.25, 0.1), ("stove_boom", sfx_stove_boom, 0.55, 0.25), ("typing", sfx_typing, 0.3, 0.08),
+        ("deal_won", sfx_deal_won, 0.4, 0.3), ("deal_lost", sfx_deal_lost, 0.35, 0.3), ("punch", sfx_punch, 0.45, 0.12),
+        ("pant", sfx_pant, 0.3, 0.15), ("shuffle", sfx_shuffle, 0.3, 0.12),
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)

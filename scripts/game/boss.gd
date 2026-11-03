@@ -21,6 +21,7 @@ const ORDER: Array[String] = ["bed", "shelf", "chest"]
 const CHEST_CYCLE := 6.5
 const CHEST_REST := 2.2
 const CHEST_SPEED := 0.75
+var _resting := false
 const HP_PER_PIECE := 225.0   # 5 matones de 45 / 5 thugs of 45
 const WAKE_TIME := 1.8
 const QUAKE_RADIUS := 105.0   # daño al caer la cama / damage where the bed lands
@@ -210,7 +211,12 @@ func _desired_velocity() -> Vector2:
 			# Runs away in bursts, then gets tired and stops for a moment; flees toward the middle
 			# instead of into corners, and barely moves if Kroker is far away.
 			if fmod(_t, CHEST_CYCLE) > CHEST_CYCLE - CHEST_REST:
+				# Resopla al pararse / Huffs when it stops
+				if not _resting:
+					_resting = true
+					Audio.play("pant", -6.0, 0.1)
 				return Vector2.ZERO
+			_resting = false
 			var r: Rect2 = run.arena_rect().grow(-radius)
 			var p := global_position
 			var edge := minf(minf(p.x - r.position.x, r.end.x - p.x), minf(p.y - r.position.y, r.end.y - p.y))

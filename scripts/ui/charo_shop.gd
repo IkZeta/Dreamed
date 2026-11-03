@@ -264,8 +264,8 @@ func _do_reroll() -> void:
 	have.assign(_wares)
 	var unsold := _unsold_wares().size()
 	_stock(GameState.roll_wares(unsold, have))
-	Audio.play("ui_click", -4.0)
-	Audio.play("reality", -8.0, 0.2)
+	Audio.play("shuffle", -4.0, 0.1)
+	Audio.play("reality", -10.0, 0.2)
 	_ready_t = 0.2
 	_refresh()
 	_focus_first()

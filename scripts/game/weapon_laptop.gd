@@ -115,7 +115,7 @@ func attack() -> bool:
 		far.position = _spot() if far.kind == "gun" else _random_spot(far)
 		run.fx.ring(far.position, 26.0, Color("5ff2ff"), 0.35, 2.0)
 	swung(true)
-	Audio.play("hack", -10.0, 0.15)
+	Audio.play("typing", -6.0, 0.1)
 	return true
 
 
@@ -357,7 +357,7 @@ class Turret extends Node2D:
 		var dir := (target.global_position - global_position).normalized()
 		weapon.deal(target, weapon.uv("stolk", "dmg"), dir * DUMMY_PUSH)
 		weapon.run.fx.ring(target.global_position + Vector2(0, -30), 18.0, KIND_COLOR["dummy"], 0.25, 2.0)
-		Audio.play("hit", -8.0, 0.15)
+		Audio.play("punch", -6.0, 0.12)
 
 	## Torreta de cobro: apunta al que menos vida le queda (en proporción) dentro de su alcance; los jefes, los últimos
 	## Debt-collector turret: aims at whoever has the least health left (proportionally) in range; bosses last
@@ -390,7 +390,7 @@ class Turret extends Node2D:
 			var to: Vector2 = target.aim_point()
 			_beams.append([from - global_position, to - global_position, 0.1])
 			weapon.on_ad_hit(target, (to - from).normalized())
-			Audio.play("laser", -20.0, 0.15)
+			Audio.play("turret", -10.0, 0.15)
 			return
 		var hit: Array = []
 		var jumps := 1 + int(weapon.uv("svinho", "extra"))
@@ -403,7 +403,7 @@ class Turret extends Node2D:
 			jumps -= 1
 			from = to
 			cur = weapon.nearest(JUMP * weapon.range_mult(), from, hit) if jumps > 0 else null
-		Audio.play("laser", -18.0, 0.15)
+		Audio.play("turret", -8.0, 0.15)
 
 	## Fogón del Pinche: con muchos enemigos pegados, explota / The Kitchen Boy's stove: with many enemies crowding it, it explodes
 	func _check_boom() -> void:
@@ -422,7 +422,7 @@ class Turret extends Node2D:
 		weapon.run.fx.ring(global_position, BOOM_RADIUS, Color("ff9a3a"), 0.45, 4.0)
 		weapon.run.fx.ring(global_position, BOOM_RADIUS * 0.5, Color("ffe08a"), 0.3, 3.0)
 		weapon.run.shake(10.0)
-		Audio.play("crack", -4.0, 0.1)
+		Audio.play("stove_boom", -2.0, 0.08)
 		weapon.stove_broken(self)
 		queue_free()
 
