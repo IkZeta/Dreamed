@@ -74,7 +74,7 @@ const STRINGS := {
 	"CHAR_VACUUM_WEAPON": {"es": "Aspiradora", "en": "Vacuum cleaner"},
 	"CHAR_VACUUM_BONUS": {"es": "+25 % de velocidad · +5 de vida", "en": "+25% speed · +5 health"},
 	"CHAR_VACUUM_OUTFIT": {"es": "Pijama de lunares", "en": "Polka-dot pajamas"},
-	"CHAR_VACUUM_DESC": {"es": "Apunta al enemigo más cercano y lo atrae hacia ti mientras lo daña. Arriesgado, pero rápido.", "en": "Aims at the nearest enemy and pulls it toward you while hurting it. Risky, but fast."},
+	"CHAR_VACUUM_DESC": {"es": "Apunta al enemigo más cercano y lo atrae hacia ti mientras lo daña. Si está a media vida y lo arrastras por un agujero, se cae. Arriesgado, pero rápido.", "en": "Aims at the nearest enemy and pulls it toward you while hurting it. If it's at half health and you drag it over a hole, it falls in. Risky, but fast."},
 
 	# --- Partida / Run ---
 	"RUN_DREAM": {"es": "Sueño %d", "en": "Dream %d"},

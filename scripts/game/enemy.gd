@@ -38,6 +38,11 @@ var preview := false       # solo se dibuja (bestiario) / only drawn (bestiary)
 var state := State.SPAWNING
 var knock := Vector2.ZERO
 var external_pull := Vector2.ZERO  # lo usa la aspiradora / used by the vacuum
+## Lo está aspirando la aspiradora este fotograma. Si está débil (la mitad de vida o menos) y lo
+## arrastra por encima de un agujero, se cae: así no se vacía la sala de enemigos sanos.
+## The vacuum is sucking it this frame. If it's weak (half health or less) and gets dragged over
+## a hole, it falls in: that way healthy enemies can't just be hoovered away.
+var vacuumed := false
 
 var stun_t := 0.0
 var slow_t := 0.0
@@ -208,11 +213,13 @@ func _move(delta: float) -> void:
 			vel += gap.normalized() * (gap.length() - want) * 6.0
 	position += vel * delta
 	# Empujado hacia un agujero: se cae y desaparece / Shoved into a hole: it falls in and is gone
-	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0):
-		var to: Vector2 = run.hole_at(position, radius, knock + vel)
+	var sucked_in := vacuumed and hp <= max_hp * 0.5
+	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0 or sucked_in):
+		var to: Vector2 = run.hole_at(position, radius, knock + vel if not sucked_in else external_pull * 2.0)
 		if to != Vector2.INF:
 			_start_fall(to)
 			return
+	vacuumed = false
 	knock = knock.move_toward(Vector2.ZERO, (500.0 if bounce_t > 0.0 else 1400.0) * delta)
 	external_pull = Vector2.ZERO
 	if absf(vel.x) > 5.0:

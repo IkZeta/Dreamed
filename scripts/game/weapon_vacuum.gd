@@ -73,6 +73,7 @@ func _physics_process(delta: float) -> void:
 			_spit(e)
 			continue
 		e.external_pull += -to_e.normalized() * PULL * _boost
+		e.vacuumed = true
 		if do_tick:
 			deal(e, DPS * TICK * _boost * speed_mult(), Vector2.ZERO, 0.3)
 			if lv("silly") > 0:
