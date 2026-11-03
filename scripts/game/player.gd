@@ -5,6 +5,7 @@ extends Node2D
 
 const ART_SCALE := 0.5
 const HIT_INVULN := 0.8
+const DASH_INVULN := 0.4     # invulnerable tras el dash de las botas / invulnerable after the boots dash
 
 var run: Node  # Run
 var outfit := "bat"
@@ -159,6 +160,8 @@ func _physics_process(delta: float) -> void:
 			_vel = _dash_vel
 			if _dash_t <= 0.0:
 				_vel = _dash_vel.normalized() * spd
+				# Un poco de invulnerabilidad al acabar (parpadea) / A little invulnerability when it ends (he blinks)
+				_invuln = maxf(_invuln, DASH_INVULN)
 		position = run.clamp_to_arena(position + _vel * delta, 24.0)
 		if absf(_vel.x) > 10.0:
 			_facing = signf(_vel.x)
