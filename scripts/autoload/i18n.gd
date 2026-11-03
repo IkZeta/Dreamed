@@ -403,7 +403,7 @@ const STRINGS := {
 	"CHAR_BOOTS_WEAPON": {"es": "Botas steampunk", "en": "Steampunk boots"},
 	"CHAR_BOOTS_BONUS": {"es": "+10 % de velocidad · +1 de defensa · +2 de recuperación de salud", "en": "+10% speed · +1 defence · +2 health recovery"},
 	"CHAR_BOOTS_OUTFIT": {"es": "Pijama de latón", "en": "Brass pajamas"},
-	"CHAR_BOOTS_DESC": {"es": "Patadas propulsadas por los motores de las botas, en combo: derecha, izquierda y un giro que golpea todo alrededor y devuelve los proyectiles. Pulsa dos veces seguidas una dirección para hacer un dash que arrolla a los enemigos.", "en": "Kicks powered by the boots' engines, in a combo: right, left and a spin that hits everything around and sends projectiles back. Tap a direction twice in a row to dash and plough through enemies."},
+	"CHAR_BOOTS_DESC": {"es": "Patadas con motor en combo: derecha, izquierda y un giro que golpea alrededor y devuelve los proyectiles. Doble toque en una dirección: dash que arrolla.", "en": "Engine-powered kicks in a combo: right, left and a spin that hits all around and sends shots back. Double-tap a direction to dash through enemies."},
 	"WEAPON_SHORT_BOOTS": {"es": "Botas", "en": "Boots"},
 	"UP_SVINHO_BOOTS_NAME": {"es": "Chilena", "en": "Bicycle kick"},
 	"UP_SVINHO_BOOTS_DESC": {"es": "Las patadas y el dash lanzan al enemigo contra {chain} enemigo(s) más, que reciben el {pct} % del daño.", "en": "Kicks and the dash send the enemy flying into {chain} more enemy(ies), which take {pct}% of the damage."},

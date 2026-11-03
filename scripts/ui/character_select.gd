@@ -268,6 +268,10 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 
 	var desc := UITheme.label(data["desc"], 18, Color(UITheme.BONE, 0.8), "light")
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# Como mucho 5 líneas, para que la ficha de abajo no se salga de la carta
+	# At most 5 lines, so the sheet below never spills out of the card
+	desc.max_lines_visible = 5
+	desc.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	v.add_child(desc)
 
 	# La ficha va abajo y mide lo mismo en todas las cartas; si no cabe, se desplaza por dentro
