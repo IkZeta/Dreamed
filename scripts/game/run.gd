@@ -43,7 +43,7 @@ var _tilt := Vector2.ZERO
 var _tilt_t := 0.0
 ## Foox dorado: ya no es un evento, es un enemigo muy raro (como mucho uno por sueño)
 ## Golden Foox: no longer an event, just a very rare enemy (at most one per dream)
-const GOLDEN_CHANCE := 0.0012
+const GOLDEN_CHANCE := 0.005
 var _golden_done := false
 ## Timbre del colegio (Acto 3): espera hasta que suena y luego sale gente de las puertas un rato
 ## School bell (Act 3): waits until it rings, then people pour out of the doors for a while
