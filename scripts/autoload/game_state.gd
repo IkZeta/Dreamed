@@ -160,10 +160,17 @@ const STAT_STEPS := {
 }
 ## El parry nunca pasa de aquí, para no romper el juego / Parry never goes above this, so it can't break the game
 const PARRY_MAX := 20.0
+## El Guardián (la almohada) para más golpes: empieza con más parry y su tope es más alto
+## The Guardian (the pillow) blocks more hits: starts with more parry and has a higher cap
+const PARRY_MAX_SHIELD := 30.0
+
+
+func parry_max() -> float:
+	return PARRY_MAX_SHIELD if selected_character == "shield" else PARRY_MAX
 
 
 func parry_chance() -> float:
-	return clampf(stat("parry"), 0.0, PARRY_MAX)
+	return clampf(stat("parry"), 0.0, parry_max())
 var xp := 0
 var plevel := 1
 ## Subidas de nivel aún sin elegir / Level-ups not yet chosen
@@ -324,7 +331,7 @@ func reset_run() -> void:
 ## steal health (and the book starts with −10 luck)
 const BASE_LEVEL_STATS := {
 	"bat": {"regen": 3.0},
-	"shield": {"regen": 2.0},
+	"shield": {"regen": 2.0, "parry": 8.0},
 	"book": {"luck": -15.0, "lifesteal": 5.0},
 	"vacuum": {"lifesteal": 5.0},
 	"finger": {"luck": 10.0, "lifesteal": 5.0},
@@ -1101,8 +1108,14 @@ func pajama_perks(id: String) -> Array:
 	for st: String in STATS:
 		if base.has(st):
 			vals.append(["CHIPV_" + st.to_upper() if st in ["regen", "lifesteal"] else "STATV_" + st.to_upper(), float(base[st])])
+	# La almohada tiene el tope de parry más alto / The pillow has the highest parry cap
+	if id == "shield":
+		vals.append(["CHIPV_PARRY_MAX", PARRY_MAX_SHIELD])
 	for pair: Array in vals:
 		var v: float = pair[1]
+		if pair[0] == "CHIPV_PARRY_MAX":
+			out.append({"text": tr(pair[0]).format({"v": int(v)}), "good": true})
+			continue
 		var num := str(int(absf(v))) if is_equal_approx(v, roundf(v)) else str(snappedf(absf(v), 0.1))
 		var text := tr(pair[0]).replace("+{v}", ("+" if v > 0.0 else "−") + num)
 		out.append({"text": text, "good": v > 0.0})

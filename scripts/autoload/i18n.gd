@@ -285,7 +285,7 @@ const STRINGS := {
 	"CTRL_PAD_NIN_BACK": {"es": "A", "en": "A"},
 	"PARRY_SNAP": {"es": "¡Chas!", "en": "Snap!"},
 	"KW_PARRY_NAME": {"es": "Parry", "en": "Parry"},
-	"KW_PARRY_DESC": {"es": "Probabilidad de esquivar un golpe. Al hacerlo, chasqueas los dedos y caen quien te atacaba y hasta 3 enemigos cercanos (a los jefes solo les hace daño). Nunca pasa del 20 %.", "en": "Chance to dodge a hit. When you do, you snap your fingers and whoever attacked you plus up to 3 nearby enemies drop (bosses only take damage). It never goes above 20%."},
+	"KW_PARRY_DESC": {"es": "Probabilidad de esquivar un golpe. Al hacerlo, chasqueas los dedos y caen quien te atacaba y hasta 3 enemigos cercanos (a los jefes solo les hace daño). Nunca pasa del 20 % (30 % con el pijama de la almohada).", "en": "Chance to dodge a hit. When you do, you snap your fingers and whoever attacked you plus up to 3 nearby enemies drop (bosses only take damage). It never goes above 20% (30% with the pillow pajamas)."},
 	# La pelota / The ball
 	"SELECT_UNLOCK_BALL": {"es": "Llega a amistad 4 con Svinho para desbloquear este pijama.", "en": "Reach friendship 4 with Svinho to unlock these pajamas."},
 	"CHAR_BALL_NAME": {"es": "El Crack", "en": "The Star Player"},
@@ -405,6 +405,7 @@ const STRINGS := {
 	"INVEST_TAKEN": {"es": "Te quita", "en": "He takes back"},
 	"INVEST_PAID": {"es": "Te devuelve {n} ◆ (pusiste {cost})", "en": "He pays you {n} ◆ (you put in {cost})"},
 	"INVEST_KEPT": {"es": "Se queda tus {cost} ◆", "en": "He keeps your {cost} ◆"},
+	"CHIPV_PARRY_MAX": {"es": "parry hasta el {v} %", "en": "parry up to {v}%"},
 	"STENCH_LOST": {"es": "¡Qué peste!", "en": "What a stink!"},
 	"BEST_CYBER_DESC": {"es": "Esquiva de un salto justo cuando le voy a dar. Si se me queda cerca me hackea y me deja peor en algo, y si no lo derroto rápido, el virus me hace daño.", "en": "It dashes out of the way right when I'm about to hit it. If it stays close it hacks me and makes me worse at something, and if I don't beat it quickly, the virus hurts me."},
 	"HACK_VIRUS": {"es": "¡Virus!", "en": "Virus!"},
