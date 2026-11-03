@@ -339,9 +339,18 @@ func _draw() -> void:
 	# Las botas: patadas, giro y llamas de los motores / The boots: kicks, spin and engine flames
 	var boots: WeaponBoots = weapon as WeaponBoots if weapon is WeaponBoots else (weapon2 as WeaponBoots if weapon2 is WeaponBoots else null)
 	var facing := _facing
+	var spin_a := 0.0
 	if boots and boots.spin > 0.0:
-		facing = 1.0 if fmod(boots.spin * 6.0, 2.0) < 1.0 else -1.0
-	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
+		# Vuelta de 360°: se estrecha y se da la vuelta como una peonza, con la pierna estirada
+		# 360° turn: he narrows and flips round like a spinning top, leg stretched out
+		spin_a = (1.0 - boots.spin) * TAU
+		var c := cos(spin_a)
+		facing = _facing * (1.0 if c >= 0.0 else -1.0)
+		sx *= maxf(0.4, absf(c))
+		_draw_spin_trail(spin_a, false)
+	# Un saltito al girar / A little hop while spinning
+	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
+	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift)),
 		outfit, _t, {"facing": facing, "boots": boots != null, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
 		"thrust": maxf(boots.thrust, 1.0 if _dash_t > 0.0 else 0.0) if boots else 0.0, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean,
@@ -350,6 +359,8 @@ func _draw() -> void:
 		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),
 		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
 		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})
+	if spin_a > 0.0:
+		_draw_spin_trail(spin_a, true)
 	if alive and run.running and weapon and not weapon_stunk(weapon):
 		_ring_a = _draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor(), _ring_a)
 	if alive and run.running and weapon2 and not weapon_stunk(weapon2):
@@ -357,6 +368,24 @@ func _draw() -> void:
 	_draw_hearth_ring()
 	_draw_shield_bubble()
 	_draw_states()
+
+
+## Estela del giro de las botas: un arco a la altura de los pies que sigue a la bota
+## Trail of the boots' spin: an arc at foot height that follows the boot
+func _draw_spin_trail(a: float, front: bool) -> void:
+	var c := Vector2(0, -10)
+	var r := Vector2(62, 18)
+	for k in 10:
+		var a0 := a - k * 0.22
+		var a1 := a0 - 0.22
+		# La mitad de delante va por encima de Kroker / The front half goes over Kroker
+		if (sin(a0) > 0.0) != front:
+			continue
+		var p0 := c + Vector2(cos(a0) * r.x * _facing, sin(a0) * r.y)
+		var p1 := c + Vector2(cos(a1) * r.x * _facing, sin(a1) * r.y)
+		draw_line(p0, p1, Color("e0b860", 0.75 * (1.0 - k / 10.0)), 6.0 - k * 0.4)
+	if (sin(a) > 0.0) == front:
+		draw_line(c + Vector2(cos(a) * r.x * _facing, sin(a) * r.y) + Vector2(0, -2), c + Vector2(cos(a) * r.x * _facing, sin(a) * r.y) + Vector2(0, 2), Color("ffe8b0"), 8.0)
 
 
 ## Anillo naranja sobre la cabeza mientras carga el sacrificio en la chimenea

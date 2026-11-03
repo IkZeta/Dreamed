@@ -70,7 +70,7 @@ Cada pijama tiene un **post-it** con los actos que has superado con él (Actos I
 
 ### Las botas steampunk
 
-- **Combo de tres golpes:** patada con la derecha, patada con la izquierda y un **giro** que golpea a todo lo que hay alrededor y **devuelve los proyectiles** enemigos (vuelven dorados y dañan a los enemigos). Si pasa un rato sin atacar, el combo vuelve a empezar.
+- **Combo de tres golpes:** patada con la derecha, patada con la izquierda y un **giro** de 360° con la pierna estirada: es cuerpo a cuerpo como las patadas, hace poco daño pero **empuja mucho** a los que tiene al lado y **devuelve los proyectiles** que le llegan (vuelven dorados y dañan a los enemigos). Si pasa un rato sin atacar, el combo vuelve a empezar.
 - **Dash:** pulsa **espacio** (R1 / RB en el mando). Kroker sale disparado hacia donde se mueve (o hacia donde mira si está quieto) con los motores a tope, no le pueden dar mientras dura y, si arrolla a un enemigo, le hace mucho daño y lo empuja lejos (sirve para tirarlos por los agujeros). Tiene su propio anillo de recarga.
 - **Mejoras:** Svinho (Chilena: el pateado sale volando contra otros), Stolk (+daño), Silly (el dash se recarga antes y congela), Doc (vida máxima a cambio de patadas más lentas), Mr. Ad (+velocidad por cada 10 de Realidad Fragmentada) y el Pinche (las patadas queman).
 

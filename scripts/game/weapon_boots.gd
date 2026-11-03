@@ -22,9 +22,10 @@ extends Weapon
 const RANGE := 118.0
 const KICK_DAMAGE := 8.0
 const KICK_KNOCK := 230.0
-const SPIN_DAMAGE := 7.0
-const SPIN_RADIUS := 135.0
-const SPIN_KNOCK := 320.0
+const SPIN_DAMAGE := 3.0        # el giro casi no hace daño... / the spin barely hurts...
+const SPIN_RADIUS := 100.0      # ...es cuerpo a cuerpo, como las patadas... / ...it's melee, like the kicks...
+const SPIN_KNOCK := 600.0       # ...pero empuja mucho / ...but it shoves hard
+const SPIN_TIME := 0.42         # lo que tarda la vuelta entera / how long the full turn takes
 const COOLDOWN := 0.5
 const COMBO_RESET := 1.4       # sin atacar tanto tiempo, el combo vuelve a empezar / this long without attacking resets the combo
 const DASH_CD := 2.4
@@ -62,7 +63,9 @@ func _physics_process(delta: float) -> void:
 		combo = 0
 	kick_l = maxf(0.0, kick_l - delta * 4.0)
 	kick_r = maxf(0.0, kick_r - delta * 4.0)
-	spin = maxf(0.0, spin - delta * 2.6)
+	spin = maxf(0.0, spin - delta / SPIN_TIME)
+	if spin > 0.0:
+		kick_r = 1.0   # la pierna estirada barre en círculo / the stretched-out leg sweeps round
 	thrust = maxf(0.0, thrust - delta * 3.0)
 	_dash_cd = maxf(0.0, _dash_cd - delta)
 	if not run.running or not player.alive:
@@ -130,12 +133,7 @@ func _bounce(e: Node2D, dmg: float) -> void:
 func attack() -> bool:
 	cooldown = COOLDOWN * (1.0 + uv("doc", "pct") / 100.0)
 	if combo >= 2:
-		var any := false
-		for e: Node2D in run.enemies.get_children():
-			if e.is_targetable() and origin().distance_to(_body(e)) < SPIN_RADIUS * range_mult():
-				any = true
-				break
-		if not any and nearest(RANGE * range_mult()) == null:
+		if nearest(SPIN_RADIUS * range_mult()) == null:
 			return false
 		_spin_attack()
 		return true
@@ -170,8 +168,7 @@ func _spin_attack() -> void:
 	_since = 0.0
 	spin = 1.0
 	thrust = 1.0
-	kick_l = 0.8
-	kick_r = 0.8
+	kick_r = 1.0
 	var r := SPIN_RADIUS * range_mult()
 	var dmg := SPIN_DAMAGE * _dmg_mult()
 	for e: Node2D in run.enemies.get_children():
@@ -181,13 +178,12 @@ func _spin_attack() -> void:
 		if to.length() < r:
 			deal(e, dmg, to.normalized() * SPIN_KNOCK)
 	for s: Node in run.world.get_children():
-		if s is EnemyShot and not (s as EnemyShot).reflected and (s as EnemyShot).global_position.distance_to(origin()) < r + 30.0:
+		if s is EnemyShot and not (s as EnemyShot).reflected and (s as EnemyShot).global_position.distance_to(origin()) < r + 20.0:
 			(s as EnemyShot).reflect(nearest(600.0))
 	_timer = cooldown * 1.3
 	swung()
 	Audio.play("swing", -3.0, 0.1)
-	run.fx.ring(origin() + Vector2(0, 20), r, BRASS, 0.35, 4.0)
-	run.fx.ring(origin() + Vector2(0, 20), r * 0.6, Color("ffe8b0"), 0.25, 2.0)
+	Audio.play("kick", -8.0, 0.15)
 
 
 func charge_bars() -> Array:
