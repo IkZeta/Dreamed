@@ -59,6 +59,8 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "magnus", "check": "act3", "goal": 1, "drawing": "magnus"},
 	# El portátil: amistad 4 con Silly / The laptop: friendship 4 with Silly
 	{"id": "laptop", "check": "silly4", "goal": 4, "drawing": "laptop"},
+	# Las botas steampunk: amistad 4 con Doc / The steampunk boots: friendship 4 with Doc
+	{"id": "boots", "check": "doc4", "goal": 4, "drawing": "boots"},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4
@@ -181,6 +183,8 @@ func achievement_progress(a: Dictionary) -> Array:
 			return [mini(friend_level("silly"), BALL_FRIEND), BALL_FRIEND]
 		"svinho4":
 			return [mini(friend_level("svinho"), BALL_FRIEND), BALL_FRIEND]
+		"doc4":
+			return [mini(friend_level("doc"), BALL_FRIEND), BALL_FRIEND]
 		"bestiary":
 			for id in BESTIARY:
 				if not has_seen(id):

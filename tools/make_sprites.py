@@ -274,6 +274,7 @@ PAJAMAS = {
     "teddy": {"base": "#b8845e", "pattern": "#f4e2c8", "piping": "#f4e2c8", "slippers": "#6e432c", "print": "paws"},
     "ball": {"base": "#f2c94c", "pattern": "#2f9e5b", "piping": "#2f9e5b", "slippers": "#2f5fb3", "print": "stripes"},
     "laptop": {"base": "#2b2f45", "pattern": "#5ff2a0", "piping": "#5ff2a0", "slippers": "#4a4f72", "print": "dots"},
+    "boots": {"base": "#2f5450", "pattern": "#d8a040", "piping": "#e8c070", "slippers": "#3a2a22", "print": "plaid"},
 }
 
 
@@ -519,6 +520,41 @@ def kroker_weapons():
         lp += flat("M-15,%g L%g,%g L%g,%g L-15,%g Z" % (-27 + i * 4.6, -15 + w, -27 + i * 4.6, -15 + w, -25.6 + i * 4.6, -25.6 + i * 4.6), "#5ff2a0" if i % 2 == 0 else "#3fbf7a")
     lp += flat(ellipse_d(0, -32, 1.4, 1.4), "#5ff2a0")
     add("weapon_laptop", -26, -38, 52, 46, lp, px=PX_KROKER, flat=True)
+
+    # Mando de las botas: cajita de latón con dos botones, una ruedecita y la antena (origen: la mano)
+    # Boots remote: a little brass box with two buttons, a dial and the antenna (origin: the hand)
+    rm = flat("M-1,-26 L1,-26 L1,-14 L-1,-14 Z", "#2b2945")
+    rm += flat("M-9,-16 L9,-16 L9,6 L-9,6 Z", "#8a5a32") + flat("M4,-16 L9,-16 L9,6 L4,6 Z", "#6a4024")
+    rm += flat("M-7,-14 L7,-14 L7,-8 L-7,-8 Z", "#e0b860")
+    rm += flat(ellipse_d(-3, -2, 2.6, 2.6), "#e2434f") + flat(ellipse_d(4, -2, 2.6, 2.6), "#5b9ad6")
+    rm += flat(ellipse_d(0, 3, 2.2, 1.6), "#c9cce0")
+    add("weapon_remote", -11, -30, 22, 38, rm, px=PX_KROKER, flat=True)
+
+    # Botas steampunk: caña de cuero con banda de latón y remaches, puntera, suela gorda,
+    # un engranaje en el lado y el motor con su tubo de escape en el talón (en el lienzo de Kroker)
+    # Steampunk boots: leather shaft with a brass band and rivets, toecap, chunky sole, a gear
+    # on the side and the engine with its exhaust at the heel (on Kroker's canvas)
+    for side, cx in (("l", 87.5), ("r", 112.5)):
+        L1, L2 = ("#7a4a2c", "#5a3420") if side == "l" else ("#6a4026", "#4a2c1a")
+        BR, BR2 = ("#e0b860", "#a8803a") if side == "l" else ("#c8a050", "#8a6830")
+        bt = flat("M%g,282 L%g,264 L%g,264 L%g,281 C%g,281 %g,284 %g,290 L%g,290 Z" % (cx - 12, cx - 12, cx + 11, cx + 11, cx + 18, cx + 21, cx + 21, cx - 13), L1)
+        bt += flat("M%g,264 L%g,264 L%g,290 L%g,290 Z" % (cx + 4, cx + 11, cx + 11, cx + 4), L2)
+        bt += flat("M%g,268 L%g,268 L%g,272 L%g,272 Z" % (cx - 13, cx + 12, cx + 12, cx - 13), BR)
+        for rx in (cx - 8, cx, cx + 8):
+            bt += flat(ellipse_d(rx, 276, 1.4, 1.4), BR)
+        bt += flat("M%g,288 L%g,288 L%g,294 L%g,294 Z" % (cx - 15, cx + 22, cx + 22, cx - 15), "#2a1e1a")
+        bt += flat(ellipse_d(cx + 15, 286, 4, 3), BR2)
+        # Engranaje / Gear
+        g = ""
+        for k in range(8):
+            a = k * math.pi / 4
+            g += flat(ellipse_d(cx - 2 + math.cos(a) * 5.5, 280 + math.sin(a) * 5.5, 1.6, 1.6), BR)
+        bt += g + flat(ellipse_d(cx - 2, 280, 5, 5), BR) + flat(ellipse_d(cx - 2, 280, 2, 2), BR2)
+        # Motor del talón con su tubo / Heel engine with its pipe
+        bt += flat("M%g,270 L%g,270 L%g,288 L%g,288 Z" % (cx - 21, cx - 12, cx - 12, cx - 21), "#b0683a")
+        bt += flat("M%g,270 L%g,270 L%g,274 L%g,274 Z" % (cx - 21, cx - 12, cx - 12, cx - 21), BR)
+        bt += flat("M%g,282 L%g,282 L%g,290 L%g,290 Z" % (cx - 25, cx - 20, cx - 20, cx - 25), "#3a2a22")
+        add("weapon_boot_" + side, cx - 28, 260, 54, 36, bt, px=PX_KROKER, flat=True)
 
 
 # --- Enemigos / Enemies --------------------------------------------------------
@@ -1587,6 +1623,7 @@ DRAWING_TILT = {
     "foox": -4, "bed": 3, "moon": -3, "golden": 4, "star": -5, "no_hit": 3, "void": -4, "elites": -3,
     "chef": -3, "coin": -3, "mr_ad": 3, "shopper": -3, "pyro": 3, "finger": 4, "two_weapons": -4, "gift": 3,
     "teddy": -3, "ball": 4, "pinche": 3, "magnus": -3, "laptop": -4, "pajamas": 3, "kills": 3, "level10": -3,
+    "boots": 4,
 }
 
 # Colores de cera / Crayon colours
@@ -1703,6 +1740,14 @@ def drawing_pics():
     P["laptop"] = ground("#c8e8d8") + flat("M-20,-16 L20,-16 L20,8 L-20,8 Z", "#4a4f72") + flat("M-17,-13 L17,-13 L17,5 L-17,5 Z", "#10261e") \
         + crayon("M-13,-8 L-2,-8 M-13,-3 L6,-3 M-13,2 L0,2", "#5ff2a0", 2) + flat("M-24,8 L24,8 L20,14 L-20,14 Z", "#9aa0c0") \
         + flat(ellipse_d(10, -5, 2, 2), "#5ff2a0")
+    # Botas con llamas en los talones / Boots with flames at the heels
+    bts = ground("#e8dcc8")
+    for x0 in (-18, 6):
+        bts += flat("M%g,8 L%g,-12 L%g,-12 L%g,2 L%g,2 L%g,8 Z" % (x0, x0, x0 + 10, x0 + 10, x0 + 18, x0 + 18), CR_BRN2)
+        bts += flat("M%g,-8 L%g,-8 L%g,-5 L%g,-5 Z" % (x0, x0 + 10, x0 + 10, x0), CR_YEL2)
+        bts += flat("M%g,0 L%g,-3 L%g,6 Z" % (x0, x0 - 12, x0), "#ff9a3a") + flat("M%g,1 L%g,0 L%g,5 Z" % (x0, x0 - 6, x0), CR_YEL)
+    bts += crayon("M-20,-22 Q0,-30 20,-22", CR_INK, 1.6) + flat(star_d(22, -22, 4), CR_YEL)
+    P["boots"] = bts
     pj = ""
     for k, (c, c2) in enumerate(((CR_BLUE2, CR_WHITE), ("#b46e8f", "#7c4063"), ("#2b3d8f", CR_YEL), ("#62a9a1", CR_WHITE))):
         x = -24 + k * 16

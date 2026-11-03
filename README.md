@@ -54,6 +54,7 @@ Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza
 | **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: cada pelusa lo frena, los que se tocan se quedan pegados y una bola de 5 se aplasta | +6 de vida máxima y 3 de regeneración | Llegar al Acto 3 |
 | **El Crack** | Pelota | La chuta al enemigo más cercano (poco alcance); rebota de uno a otro y vuelve. Mientras está en el aire no puede chutar otra | +15 % de daño, +20 % de velocidad, +6 de parry, −2 de defensa y −10 de suerte. Empieza con la mejora de Svinho a nivel 3 | Amistad 4 con Svinho |
 | **El Ingeniero** | Portátil | Pone torretas que disparan solas y no desaparecen (ver abajo) | +3 de vida máxima, +5 de suerte y −15 % de velocidad de ataque | Amistad 4 con Silly |
+| **El Maquinista** | Botas steampunk | Patadas propulsadas por los motores de las botas, en combo (ver abajo). Kroker las maneja con un mando pequeño en la mano | +10 % de velocidad, +1 de defensa y 2 de regeneración | Amistad 4 con Doc |
 
 Cada pijama tiene un **post-it** con los actos que has superado con él (Actos I, II y III; estrella en normal, luna en pesadilla), al estilo de *The Binding of Isaac*. Superar un acto en pesadilla también marca el normal. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
 
@@ -66,6 +67,12 @@ Cada pijama tiene un **post-it** con los actos que has superado con él (Actos I
   - **Stolk:** muñeco de boxeo que atrae a los enemigos cercanos y les da puñetazos con mucho empuje.
   - **Mr. Ad:** torreta dorada que apunta al enemigo con menos vida y remata a los que tienen menos del 15 %; cada remate da Realidad Fragmentada.
   - **El Pinche:** fogón que atrae enemigos y, si se juntan muchos a su lado, explota; al rato vuelve a aparecer.
+
+### Las botas steampunk
+
+- **Combo de tres golpes:** patada con la derecha, patada con la izquierda y un **giro** que golpea a todo lo que hay alrededor y **devuelve los proyectiles** enemigos (vuelven dorados y dañan a los enemigos). Si pasa un rato sin atacar, el combo vuelve a empezar.
+- **Dash:** pulsa dos veces seguidas la misma dirección (A + A, por ejemplo). Kroker sale disparado con los motores a tope, no le pueden dar mientras dura y, si arrolla a un enemigo, le hace mucho daño y lo empuja lejos (sirve para tirarlos por los agujeros). Tiene su propio anillo de recarga.
+- **Mejoras:** Svinho (Chilena: el pateado sale volando contra otros), Stolk (+daño), Silly (el dash se recarga antes y congela), Doc (vida máxima a cambio de patadas más lentas), Mr. Ad (+velocidad por cada 10 de Realidad Fragmentada) y el Pinche (las patadas queman).
 
 ---
 
@@ -117,7 +124,7 @@ El resto del salón:
 
 ### Segunda arma
 
-Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate, almohada u oso), eliges una a distancia (libro, aspiradora, pistola de dedos, pelota o portátil), y al revés. Solo salen las que ya tengas desbloqueadas. Kroker lleva la segunda arma en la mano libre, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
+Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate, almohada, oso o botas), eliges una a distancia (libro, aspiradora, pistola de dedos, pelota o portátil), y al revés. Solo salen las que ya tengas desbloqueadas. Kroker lleva la segunda arma en la mano libre, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
 
 ### Acto 3: el pasillo del colegio (sueños 11–15)
 
@@ -192,7 +199,7 @@ La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
 - **Conversaciones:** cada personaje te cuenta algo distinto en cada nivel de amistad.
 - **Charo:** en el kiosco también se le puede dar propina, una por partida. Su amistad no baja precios: da cambios gratis del mostrador (1 desde amistad 1 y 2 desde amistad 4), ofertas a mitad de precio (desde amistad 2) y más huecos (4 con amistad 3 y 5 con amistad 5). También cambia lo que te dice al saludarte.
 - **Magnus:** con más amistad, sus tratos devuelven más dinero.
-- **Pijamas nuevos:** la amistad 4 con Svinho desbloquea la pelota y con Silly, el portátil.
+- **Pijamas nuevos:** la amistad 4 con Svinho desbloquea la pelota; con Silly, el portátil, y con Doc, las botas steampunk.
 - **Dónde verla:** la amistad sale con corazones en el menú Personajes, en las cartas del plano astral y en el kiosco.
 
 ### Niveles
@@ -226,7 +233,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
-- **Logros:** hay 24 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil y a Magnus). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 25 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas y a Magnus). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;

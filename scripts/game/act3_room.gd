@@ -223,7 +223,7 @@ func _draw() -> void:
 const HALL_DRAWINGS := {
 	0: {"teddy": Vector2(1065, 140), "ball": Vector2(1190, 140)},
 	1: {"pinche": Vector2(1090, 70), "magnus": Vector2(1180, 122)},
-	2: {"laptop": Vector2(580, 100), "pajamas": Vector2(690, 125), "kills": Vector2(1130, 110), "level10": Vector2(1380, 110)},
+	2: {"laptop": Vector2(580, 100), "pajamas": Vector2(690, 125), "kills": Vector2(1130, 110), "boots": Vector2(1255, 125), "level10": Vector2(1380, 110)},
 }
 
 

@@ -194,7 +194,7 @@ func _close() -> void:
 
 ## Dibujo animado del personaje; Kroker va cambiando de pijama / Animated drawing of the character; Kroker cycles pajamas
 class CharacterPreview extends Control:
-	const OUTFITS: Array[String] = ["bat", "shield", "book", "vacuum", "finger", "teddy", "ball", "laptop"]
+	const OUTFITS: Array[String] = ["bat", "shield", "book", "vacuum", "finger", "teddy", "ball", "laptop", "boots"]
 	var id := "kroker"
 	var hidden_shape := false
 	var aura := Color.WHITE

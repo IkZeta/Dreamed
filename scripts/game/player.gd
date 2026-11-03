@@ -36,6 +36,10 @@ var stench_t := 0.0
 var stench_weapon: Weapon = null
 var root_t := 0.0            # aturdido por el sartenazo: no se puede mover / dazed by the pan: can't move
 var _land := 0.0             # rebote al aterrizar / landing squash
+## Dash de las botas: velocidad y tiempo que le queda (mientras dura no le pueden dar)
+## Boots dash: velocity and time left (he can't be hit while it lasts)
+var _dash_vel := Vector2.ZERO
+var _dash_t := 0.0
 
 var _walk := 0.0
 var _moving := 0.0
@@ -88,6 +92,7 @@ func _make_weapon(id: String, primary: bool) -> Weapon:
 		"teddy": w = WeaponTeddy.new()
 		"ball": w = WeaponBall.new()
 		"laptop": w = WeaponLaptop.new()
+		"boots": w = WeaponBoots.new()
 		_: w = WeaponBat.new()
 	w.id = id
 	w.primary = primary
@@ -149,6 +154,11 @@ func _physics_process(delta: float) -> void:
 		slow_t = maxf(0.0, slow_t - delta)
 		var spd := speed * (0.6 if slow_t > 0.0 else 1.0)
 		_vel = _vel.lerp(input * spd + push, minf(1.0, delta * 14.0))
+		if _dash_t > 0.0:
+			_dash_t -= delta
+			_vel = _dash_vel
+			if _dash_t <= 0.0:
+				_vel = _dash_vel.normalized() * spd
 		position = run.clamp_to_arena(position + _vel * delta, 24.0)
 		if absf(_vel.x) > 10.0:
 			_facing = signf(_vel.x)
@@ -177,6 +187,19 @@ func velocity_hint() -> Vector2:
 	return _vel
 
 
+## Sale disparado en una dirección durante un momento (dash de las botas)
+## Shoots off in a direction for a moment (boots dash)
+func dash(vel: Vector2, seconds: float) -> void:
+	_dash_vel = vel
+	_dash_t = seconds
+	if absf(vel.x) > 1.0:
+		_facing = signf(vel.x)
+
+
+func dashing() -> bool:
+	return _dash_t > 0.0
+
+
 func land() -> void:
 	_land = 1.0
 
@@ -186,7 +209,7 @@ func set_facing(f: float) -> void:
 
 
 func take_damage(amount: float, source: Node2D = null) -> void:
-	if not alive or _invuln > 0.0 or not run.running:
+	if not alive or _invuln > 0.0 or not run.running or _dash_t > 0.0:
 		return
 	if GameState.god_mode and GameState.god_invuln:
 		return  # modo Dios / god mode
@@ -313,8 +336,14 @@ func _draw() -> void:
 	var squash := sin(_land * PI) * 0.12
 	var sx := ART_SCALE * (1.0 + squash)
 	var sy := ART_SCALE * (1.0 - squash)
+	# Las botas: patadas, giro y llamas de los motores / The boots: kicks, spin and engine flames
+	var boots: WeaponBoots = weapon as WeaponBoots if weapon is WeaponBoots else (weapon2 as WeaponBoots if weapon2 is WeaponBoots else null)
+	var facing := _facing
+	if boots and boots.spin > 0.0:
+		facing = 1.0 if fmod(boots.spin * 6.0, 2.0) < 1.0 else -1.0
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop)),
-		outfit, _t, {"facing": _facing, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
+		outfit, _t, {"facing": facing, "boots": boots != null, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
+		"thrust": maxf(boots.thrust, 1.0 if _dash_t > 0.0 else 0.0) if boots else 0.0, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,

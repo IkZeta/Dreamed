@@ -10,6 +10,19 @@ var radius := 10.0
 var kind := "stone"   # "stone" o "book"
 var life := 3.0
 var _spin := 0.0
+## Devuelto por el giro de las botas: ahora daña a los enemigos / Sent back by the boots' spin: now it hurts enemies
+var reflected := false
+
+
+## Lo devuelve hacia el enemigo más cercano (o por donde vino) / Sends it back towards the nearest enemy (or the way it came)
+func reflect(target: Node2D) -> void:
+	reflected = true
+	life = 2.0
+	var spd := velocity.length() * 1.3
+	if target:
+		velocity = (target.global_position + Vector2(0, -30) - global_position).normalized() * spd
+	else:
+		velocity = -velocity.normalized() * spd
 
 
 ## Aviso de trayectoria antes de disparar (como en Brotato): una franja que se llena.
@@ -47,7 +60,14 @@ func _physics_process(delta: float) -> void:
 	_spin += delta * (12.0 if kind == "book" else 6.0)
 	position += velocity * delta
 	var player: Node2D = run.player
-	if run.running and global_position.distance_to(player.global_position + Player.HURT) < radius + Player.HURT_R:
+	if reflected:
+		for e: Node in run.enemies.get_children():
+			if e is Enemy and (e as Enemy).is_targetable() and global_position.distance_to((e as Enemy).aim_point()) < radius + 26.0:
+				(e as Enemy).hit(damage * 3.0, velocity.normalized() * 200.0)
+				run.fx.ring(global_position, 18.0, Color("ffd27a"), 0.3, 2.0)
+				queue_free()
+				return
+	elif run.running and global_position.distance_to(player.global_position + Player.HURT) < radius + Player.HURT_R:
 		player.take_damage(damage * GameState.enemy_dmg_mult())
 		run.fx.ring(global_position, 14.0, UITheme.EMBER, 0.3, 2.0)
 		queue_free()
@@ -68,9 +88,10 @@ func _draw() -> void:
 		draw_line(tail, Vector2.ZERO, Color("ff5f7a"), 7.0)
 		draw_line(tail * 0.8, Vector2.ZERO, Color.WHITE, 3.0)
 		return
-	# Estela / Trail
+	# Estela (dorada si lo han devuelto) / Trail (golden if it was sent back)
+	var trail := Color("ffd27a") if reflected else UITheme.EMBER
 	for i in 4:
-		draw_circle(-velocity.normalized() * (8.0 + i * 8.0), radius * (0.7 - i * 0.15), Color(UITheme.EMBER, 0.15 - i * 0.03))
+		draw_circle(-velocity.normalized() * (8.0 + i * 8.0), radius * (0.7 - i * 0.15), Color(trail, 0.15 - i * 0.03))
 	draw_set_transform(Vector2.ZERO, _spin if kind == "book" else 0.0, Vector2.ONE)
 	Sprites.draw(self, "shot_book" if kind == "book" else "shot_stone")
 	draw_set_transform(Vector2.ZERO)

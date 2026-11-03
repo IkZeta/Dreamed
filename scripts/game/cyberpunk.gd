@@ -15,7 +15,7 @@ const DASH_SPEED := 900.0
 const VIRUS_TIME := 7.0       # segundos para matarlo antes de que el virus haga daño / seconds to kill it before the virus hurts
 const VIRUS_DAMAGE := 4.0
 ## Alcance de cada arma de Kroker, para saber si está a tiro / Reach of each of Kroker's weapons, to know if it's in range
-const REACH := {"bat": 115.0, "shield": 100.0, "teddy": 135.0, "book": 260.0, "finger": 450.0, "vacuum": 320.0, "ball": 230.0, "laptop": 420.0}
+const REACH := {"bat": 115.0, "shield": 100.0, "teddy": 135.0, "book": 260.0, "finger": 450.0, "vacuum": 320.0, "ball": 230.0, "laptop": 420.0, "boots": 118.0}
 const HACK_RANGE := 330.0
 const HACK_TIME := 0.9
 const NEON := Color("5ff2ff")

@@ -17,7 +17,7 @@ extends Control
 
 const MAIN_MENU := "res://scenes/main_menu.tscn"
 const SHRINK := 2
-const PAJAMAS: Array[String] = ["bat", "shield", "book", "vacuum", "finger", "teddy", "ball", "laptop"]
+const PAJAMAS: Array[String] = ["bat", "shield", "book", "vacuum", "finger", "teddy", "ball", "laptop", "boots"]
 
 var _world: HubWorld
 var _prompt: Label
@@ -546,7 +546,7 @@ class HubWorld extends Control:
 		_piece(c + Vector2(122, -24), "hub_mirror", Vector2(10, 4))
 		for i in PAJAMAS.size():
 			var o := PAJAMAS[i]
-			var at := c + Vector2(-112 + i * 32, 22)
+			var at := c + Vector2(-112 + i * 28, 22)
 			_blocks.append({"c": at, "r": Vector2(7, 3)})
 			_spots.append({"kind": "pajama", "id": o, "pos": at, "height": 70.0})
 			_prop(at, func(ci: CanvasItem) -> void:

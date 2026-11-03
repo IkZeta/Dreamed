@@ -30,6 +30,7 @@ const PAJAMAS := {
 	"teddy": {"base": Color("b8845e"), "pattern": Color("f4e2c8"), "piping": Color("f4e2c8"), "slippers": Color("6e432c"), "print": "paws"},
 	"ball": {"base": Color("f2c94c"), "pattern": Color("2f9e5b"), "piping": Color("2f9e5b"), "slippers": Color("2f5fb3"), "print": "stripes"},
 	"laptop": {"base": Color("2b2f45"), "pattern": Color("5ff2a0"), "piping": Color("5ff2a0"), "slippers": Color("4a4f72"), "print": "dots"},
+	"boots": {"base": Color("2f5450"), "pattern": Color("d8a040"), "piping": Color("e8c070"), "slippers": Color("3a2a22"), "print": "plaid"},
 }
 
 ## Color de acento del arma / Weapon accent color
@@ -43,6 +44,7 @@ const ACCENT := {
 	"teddy": Color("f4e9da"),
 	"ball": Color("ffffff"),
 	"laptop": Color("5ff2a0"),
+	"boots": Color("e0b860"),
 }
 
 static var _ci: CanvasItem
@@ -122,11 +124,18 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var hand_l := SH_L + Vector2(-5, 53.3).rotated(arm_l)
 	var hand_r := SH_R + Vector2(5, 53.3).rotated(arm_r)
 
-	# Piernas / Legs
-	_limb(swing, Vector2(87, 227))
+	# Piernas (con las botas steampunk, patadas y llamas de los motores)
+	# Legs (with the steampunk boots, kicks and engine flames)
+	var boots: bool = opts.get("boots", outfit == "boots")
+	var thrust: float = opts.get("thrust", 0.0)
+	_limb(swing - 1.25 * float(opts.get("kick_l", 0.0)), Vector2(87, 227))
 	Sprites.draw(ci, "kroker_leg_l_" + o, mod)
-	_limb(-swing, Vector2(113, 227))
+	if boots:
+		_boot("l", t, thrust, mod)
+	_limb(-swing - 1.25 * float(opts.get("kick_r", 0.0)), Vector2(113, 227))
 	Sprites.draw(ci, "kroker_leg_r_" + o, mod)
+	if boots:
+		_boot("r", t, thrust, mod)
 
 	# Brazos (detrás del torso) / Arms (behind the torso)
 	_limb(arm_l, SH_L)
@@ -206,6 +215,7 @@ static func _arm_pose(w: String, base: float, a: float, swing: float) -> float:
 		"laptop": return base - 0.9 - 0.3 * a
 		"shield", "teddy": return base - 1.25 * a
 		"ball": return base - 0.8 * a
+		"boots": return base - 0.7 - 0.2 * a        # el mando, hacia delante / the remote, held forward
 		# Apunta con el dedo hacia delante y da un respingo al disparar / Points forward and kicks up when firing
 		"finger": return -1.3 + swing * 0.15 - 0.35 * a
 	return base
@@ -224,6 +234,7 @@ static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: flo
 		"teddy": _teddy(t, a, hand, mod)
 		"ball": _ball(t, a, hand, mod)
 		"laptop": _laptop(t, a, hand, mod)
+		"boots": _remote(t, a, hand, mod)
 
 
 ## Gira una extremidad alrededor de su articulación / Rotates a limb around its joint
@@ -326,6 +337,35 @@ static func _laptop(t: float, cast: float, hand: Vector2, mod: Color) -> void:
 		var y := -8.0 - fposmod(t * 18.0 + i * 6.0, 24.0)
 		var w := 8.0 + float((i * 7 + int(t * 3.0)) % 5) * 4.0
 		_ci.draw_rect(Rect2(-14, y, w, 2), Color(ACCENT["laptop"], 0.85))
+
+
+## Bota steampunk sobre el pie (en el giro de la pierna); el motor del talón echa llamas al patear
+## Steampunk boot on the foot (in the leg's rotation); the heel engine blows flames when kicking
+static func _boot(side: String, t: float, thrust: float, mod: Color) -> void:
+	Sprites.draw(_ci, "weapon_boot_" + side, mod)
+	var cx := 87.5 if side == "l" else 112.5
+	var heel := Vector2(cx - 23, 286)
+	var puff := 0.25 + 0.15 * sin(t * 9.0 + cx)
+	var k := maxf(thrust, 0.0)
+	if k > 0.02:
+		var len := 10.0 + 22.0 * k * (1.0 + 0.2 * sin(t * 40.0))
+		_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(heel - Vector2(len + 10, 14), Vector2(len + 20, 28)), false, Color("ff9a3a", 0.4 * k))
+		_ci.draw_colored_polygon(PackedVector2Array([heel + Vector2(0, -5), heel + Vector2(-len, 0), heel + Vector2(0, 5)]), Color("ff9a3a", 0.9))
+		_ci.draw_colored_polygon(PackedVector2Array([heel + Vector2(0, -2.5), heel + Vector2(-len * 0.55, 0), heel + Vector2(0, 2.5)]), Color("ffe8a0"))
+	else:
+		# Un hilillo de vapor / A little wisp of steam
+		var ph := fposmod(t * 0.9 + cx * 0.01, 1.0)
+		_ci.draw_circle(heel + Vector2(-4 - ph * 6.0, -ph * 26.0), 3.0 + ph * 4.0, Color(1, 1, 1, puff * (1.0 - ph)))
+
+
+## El mando de las botas en la mano, con su antena y la luz que parpadea
+## The boots' remote in the hand, with its antenna and blinking light
+static func _remote(t: float, a: float, hand: Vector2, mod: Color) -> void:
+	_use(Transform2D(-0.15 - a * 0.2, hand + Vector2(4, -2)))
+	Sprites.draw(_ci, "weapon_remote", mod)
+	if fmod(t, 0.8) < 0.4 or a > 0.3:
+		_ci.draw_rect(Rect2(-2, -30, 4, 4), Color("ff5a3a"))
+	_use(Transform2D.IDENTITY)
 
 
 ## La pelota en la mano, botando un poco; al chutar sale de la mano / The ball in the hand, bobbing a little; when kicked it leaves the hand

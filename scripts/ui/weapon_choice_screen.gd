@@ -145,4 +145,9 @@ class WeaponIcon extends Control:
 			"laptop":
 				draw_set_transform(c + Vector2(0, 20), sin(_t) * 0.08, Vector2(s, s) * 2.6)
 				Sprites.draw(self, "weapon_laptop")
+			"boots":
+				var bs := s * 2.4
+				draw_set_transform(c - Vector2(100, 278) * bs + Vector2(0, -absf(sin(_t * 2.0)) * 6.0), 0.0, Vector2(bs, bs))
+				Sprites.draw(self, "weapon_boot_r")
+				Sprites.draw(self, "weapon_boot_l")
 		draw_set_transform(Vector2.ZERO)
