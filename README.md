@@ -9,7 +9,7 @@ Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada 
 
 - **Motor:** Godot 4.7, probado en **Godot 4.7.2**.
 - **Idiomas:** español e inglés, que se cambian en Ajustes.
-- **Controles:** teclado, ratón y mando.
+- **Controles:** teclado, ratón y mando. Los textos de controles cambian solos según uses teclado o mando.
 - **Arte y sonido:** todo hecho con código, desde los sprites y la fuente hasta la música y los efectos (ver [Herramientas](#herramientas)).
 
 ---
@@ -29,8 +29,10 @@ Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada 
 |---|---|---|
 | Moverse | WASD o flechas | Stick izquierdo o cruceta |
 | Modo especial (almohada de Svinho) | E | Y |
-| Avanzar diálogos | Intro, Espacio o clic | A |
+| Aceptar / avanzar diálogos | Intro, Espacio o clic | A |
+| Volver | Esc | B |
 | Pausa (con resumen de estadísticas y mejoras) | Esc | Start |
+| Ver más en una ficha que no cabe | Rueda del ratón | Stick derecho |
 
 El mando vibra al recibir golpes; se puede desactivar en *Ajustes → Accesibilidad*.
 
@@ -38,20 +40,32 @@ El mando vibra al recibir golpes; se puede desactivar en *Ajustes → Accesibili
 
 ## Los pijamas
 
-Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza con cuatro; la pistola de dedos se desbloquea al llegar por primera vez al Acto 2 y el oso de peluche al llegar al Acto 3. Los bloqueados salen en silueta en la selección.
+Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza con cuatro y otros cuatro se desbloquean jugando. En la selección salen en páginas de cuatro, con una flecha a cada lado; los bloqueados se ven en silueta, con cómo se consiguen. Cada carta tiene una ficha con sus valoraciones y todas sus bonificaciones de serie; si no caben, la ficha se desplaza (con la rueda o, con mando, sola y con el stick derecho).
 
 ![Selección de personaje](docs/screenshots/seleccion.jpg)
 
-| Pijama | Arma | Cómo ataca | Bonificación de serie |
-|---|---|---|---|
-| **El Bateador** | Bate | Golpe cuerpo a cuerpo al enemigo más cercano | +20 % de ataque y 3 de regeneración |
-| **El Guardián** | Escudo-almohada | Poco daño, pero empuja mucho en cono | +4 de defensa, +5 de vida máxima, 5 de regeneración y algo más lento |
-| **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −15 de suerte, −5 de vida máxima y 5 % de robo de salud |
-| **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña | +25 % de velocidad, +5 de vida máxima y 5 % de robo de salud |
-| **El Pistolero** | Pistola de dedos | Rayos láser con un efecto al azar: normal, atraviesa, empuja (puede tirarlos por los agujeros), crítico x1,75, rebota hacia otro enemigo... o sale hacia atrás. La suerte hace más probables los buenos | +10 de suerte y 5 % de robo de salud |
-| **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: daño moderado y cada pelusa lo frena (dura 8 s). Los enemigos con pelusa que se tocan se quedan pegados y las bolas van creciendo, cada vez más lentas; una bola de 5 se aplasta y mueren todos | +6 de vida máxima y 3 de regeneración |
+| Pijama | Arma | Cómo ataca | De serie | Cómo se desbloquea |
+|---|---|---|---|---|
+| **El Bateador** | Bate | Golpe cuerpo a cuerpo al enemigo más cercano | +20 % de daño y 3 de regeneración | Desde el principio |
+| **El Guardián** | Escudo-almohada | Poco daño, pero empuja mucho en cono | +4 de defensa, +5 de vida máxima, 2 de regeneración y algo más lento | Desde el principio |
+| **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −5 de vida máxima, −15 de suerte y 5 % de robo de salud | Desde el principio |
+| **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña. Si está a media vida o menos y lo arrastras por un agujero, se cae | +25 % de velocidad, +5 de vida máxima y 5 % de robo de salud | Desde el principio |
+| **El Pistolero** | Pistola de dedos | Rayos láser con un efecto al azar: normal, atraviesa, empuja, crítico x1,75, rebota... o sale hacia atrás. La suerte hace más probables los buenos | +10 de suerte y 5 % de robo de salud | Llegar al Acto 2 |
+| **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: cada pelusa lo frena, los que se tocan se quedan pegados y una bola de 5 se aplasta | +6 de vida máxima y 3 de regeneración | Llegar al Acto 3 |
+| **El Crack** | Pelota | La chuta al enemigo más cercano (poco alcance); rebota de uno a otro y vuelve. Mientras está en el aire no puede chutar otra | +15 % de daño, +20 % de velocidad, +6 de parry, −2 de defensa y −10 de suerte. Empieza con la mejora de Svinho a nivel 3 | Amistad 4 con Svinho |
+| **El Ingeniero** | Portátil | Pone torretas que disparan solas y no desaparecen (ver abajo) | +3 de vida máxima, +5 de suerte y −15 % de velocidad de ataque | Amistad 4 con Silly |
 
-Cada pijama tiene un **post-it** con los actos que has superado con él (Acto I y Acto II; estrella en normal, luna en pesadilla), al estilo de *The Binding of Isaac*. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
+Cada pijama tiene un **post-it** con los actos que has superado con él (Actos I, II y III; estrella en normal, luna en pesadilla), al estilo de *The Binding of Isaac*. Superar un acto en pesadilla también marca el normal. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
+
+### Las torretas del Portátil
+
+- Como mucho hay **3 torretas de disparo** (más con Silly). Salen de tarde en tarde y, una vez puestas, se quedan; si una se queda muy lejos en el pasillo infinito, Kroker la recoloca.
+- **Suben de nivel con el Ataque de Kroker**, también las que ya están puestas: nivel 2 con un 10 % (queman), 3 con un 25 % (empujan) y 4 con un 45 % (hacen sangrar). Cada nivel tiene un modelo más futurista; la de nivel 4 flota.
+- Algunas mejoras traen **torretas especiales**, una de cada, que aparecen solas al empezar el sueño en sitios al azar y separadas (cerca de ellas no se pueden poner torretas de disparo):
+  - **Doc:** torreta curativa que te dispara balas curativas si te falta vida.
+  - **Stolk:** muñeco de boxeo que atrae a los enemigos cercanos y les da puñetazos con mucho empuje.
+  - **Mr. Ad:** torreta dorada que apunta al enemigo con menos vida y remata a los que tienen menos del 15 %; cada remate da Realidad Fragmentada.
+  - **El Pinche:** fogón que atrae enemigos y, si se juntan muchos a su lado, explota; al rato vuelve a aparecer.
 
 ---
 
@@ -94,21 +108,38 @@ Con menos de la mitad de vida se enfada: ataca más a menudo y lanza más cosas.
 El resto del salón:
 
 - **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**. Una vez la conoces, también aparece tras el sueño 3 del Acto 1.
-- **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes. Tirar enemigos por los agujeros solo la da a veces (casi nunca durante un jefe), y los precios del kiosco van de 5 a 12 ◆.
+- **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes. Tirar enemigos por los agujeros solo la da a veces (casi nunca durante un jefe).
+- **El kiosco** tiene 16 artículos y mejora con cada acto: en el Acto 1 vende cosas flojas y baratas (4–5 ◆), en el 2 cosas medias (7–12 ◆) y en el 3 las mejores y más caras (14–24 ◆), como la tarta de cumpleaños (+5 de vida máxima), el pack de pilas (dos niveles) o el periódico del domingo (dos mejoras suben de nivel). Se puede pagar por **cambiar el mostrador**; los artículos ya comprados se quedan.
 - **En la pausa** se ve lo que has comprado en el kiosco, con cuántos de cada (por ejemplo, *Pila del despertador x2*).
 - **La chimenea:** en algunos sueños está encendida. Quédate delante y podrás echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada.
 
 ![El kiosco de Charo](docs/screenshots/kiosco.jpg)
 
-### Segunda arma y Acto 3 (provisional, sueños 11–13)
+### Segunda arma
 
-Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate, almohada u oso), eliges una a distancia (libro, aspiradora o pistola de dedos), y al revés. Solo salen las que ya tengas desbloqueadas. Kroker lleva la segunda arma en la mano libre (la almohada y el oso van en la izquierda; el resto, en la derecha), ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
+Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate, almohada u oso), eliges una a distancia (libro, aspiradora, pistola de dedos, pelota o portátil), y al revés. Solo salen las que ya tengas desbloqueadas. Kroker lleva la segunda arma en la mano libre, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
 
-El Acto 3 es por ahora un escenario **en obras**, pensado para probar las dos armas. La partida termina al acabar el sueño 13.
+### Acto 3: el pasillo del colegio (sueños 11–15)
+
+![El pasillo del colegio](docs/screenshots/pasillo.jpg)
+
+Un pasillo **infinito** hacia los lados, al estilo de la biblioteca de *Vampire Survivors*: la cámara sigue a Kroker entre taquillas, puertas de clase, baños, fuentes y vitrinas, todo con luz de anochecer. Las puertas se rompen y sirven de boquete para tirar enemigos.
+
+| Sueño | Novedad |
+|---|---|
+| 11 | **Marionetas**: cada una sale con un brazo distinto: cuchilla (te hace sangrar), barra eléctrica (te paraliza) o arcabuz (bala potente, la marioneta sale despedida hacia atrás) |
+| 13 | **Gólem de papel higiénico**: lento, con mucha vida y poca defensa. Si te pega, te deja **mal olor**: una de tus dos armas deja de atacar un rato |
+| 14 | Kiosco de Charo |
+| 15 | **Jefe: el Ovni** |
+
+**El Ovni** pasa por el pasillo dando tumbos y lo destroza: quema las paredes, dispara láseres, abre agujeros en el suelo con su rayo y deja caer enemigos. Mientras vuela no se le puede dar; cada cierto tiempo se estrella justo donde está Kroker (con aviso en el suelo) y ahí sí, pero en el suelo suelta anillos de láseres con un hueco para esquivar. A media vida se enfada: más láseres, dos rayos a la vez y más enemigos. Al vencerlo se acaba la partida.
 
 ### Jefes con tiempo límite
 
-Los jefes tienen cuenta atrás: 2:30 los muebles del Acto 1 y 2:00 El Chef. Si aguantas hasta el final, el jefe se retira y pasas igualmente. Si lo derrotas antes, te llevas **un nivel de regalo**.
+Los jefes tienen cuenta atrás: 2:30 los muebles del Acto 1, 2:00 El Chef y 2:30 el Ovni. Si aguantas hasta el final, el jefe se retira y pasas igualmente. Si lo derrotas antes, te llevas **un nivel de regalo**.
+
+- **La habitación despierta:** los muebles van uno detrás de otro y se mueven todo el rato. El baúl huye a ratos y luego se para, cansado y sudando: es el momento de pegarle.
+- Todos los jefes son un 25 % más duros (atacan más a menudo y pegan más) en las dos dificultades.
 
 ### Eventos
 
@@ -116,13 +147,15 @@ Desde el sueño 2, algunos sueños traen un evento al azar:
 
 - **Apagón:** solo ves alrededor de Kroker y, si la chimenea está encendida, alrededor del fuego.
 - **Suelo inclinado:** todo resbala hacia un lado y luego hacia otro.
-- **Foox dorado:** no hace daño y huye. Si lo pillas antes de que se esfume, te llueven estrellas.
+- **Timbre del colegio** (solo en el Acto 3, el más probable allí): avisa de que va a sonar, suena y durante un rato sale un montón de enemigos de las puertas.
+
+Además, muy de vez en cuando aparece un **Foox dorado**: no hace daño y huye. Si lo pillas antes de que se esfume, te llueven estrellas.
 
 ![Apagón con la chimenea encendida](docs/screenshots/apagon.jpg)
 
 ### Élites
 
-Son enemigos demoníacos, con cuernos, más grandes y con el triple de vida. El color del contorno dice qué hacen:
+Son enemigos demoníacos, con cuernos, un contorno que late, ascuas que suben y el triple de vida. El color del contorno dice qué hacen:
 
 - **Naranja:** al morir se parten en dos Foox.
 - **Azul:** dejan charcos que te frenan.
@@ -134,7 +167,7 @@ Son enemigos demoníacos, con cuernos, más grandes y con el triple de vida. El 
 
 ### Plano astral
 
-Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 de Kroker). Cada uno da un tipo de mejora que cambia según tu arma y que sube hasta el nivel 3. Al elegir, te quedas a solas con él y te habla.
+Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 de Kroker). Cada uno da un tipo de mejora que cambia según tu arma y que sube hasta el nivel 3. Al elegir, te quedas a solas con él y te habla. Las palabras que hay que explicar (sangrado, suerte, parry...) salen resaltadas: pasa el ratón por encima, o selecciónalas con el mando, y sale una tarjeta que las explica.
 
 | Personaje | Quién es | Tipo de mejora |
 |---|---|---|
@@ -144,6 +177,9 @@ Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 d
 | **Doc** | Un doctor | Más vida máxima a cambio de empeorar otra estadística |
 | **Mr. Ad** | Un humanoide cubierto de anuncios de chocolatinas y comida basura | Más Realidad Fragmentada y una estadística que sube cuanta más tengas ahorrada. Se desbloquea al llegar por primera vez al Acto 2 (con un logro) y desde entonces puede salir desde el principio |
 | **El Pinche** | El aprendiz de El Chef, con gorro de papel, cuchillo y soplete | Sangrado (daño residual fuerte) o quemadura (daño residual flojo, pero el enemigo hace menos daño y recibe más), según el arma. Se desbloquea al llegar por primera vez al Acto 3 |
+| **Magnus** | Un magnate de los negocios detrás de su escritorio | **Inversiones**: le pagas Realidad Fragmentada y te sube varias estadísticas al momento, con un objetivo para el siguiente sueño (derrotar enemigos, tirarlos por agujeros, derrotar élites o no recibir muchos golpes). Si lo cumples, te las quedas y te devuelve más dinero; si no, te las quita y se queda el dinero. Se desbloquea al superar el Acto 3 |
+
+![Magnus en el plano astral](docs/screenshots/magnus.jpg)
 
 ![Plano astral](docs/screenshots/plano-astral.jpg)
 
@@ -154,14 +190,19 @@ La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
 - **Propina:** desde la segunda vez, en la charla puedes darle propina con Realidad Fragmentada (10 ◆ para el nivel 1, 13 para el 2, 16, 19 y 22). Solo una por personaje y partida. Al dársela te da las gracias; lo nuevo que tenga que contarte lo dirá la próxima vez que lo veas.
 - **Mejores dones:** cada nivel de amistad mejora sus dones un 6 % (hasta un 30 %); en los de Doc, lo que empeora pesa menos y las recargas bajan.
 - **Conversaciones:** cada personaje te cuenta algo distinto en cada nivel de amistad.
-- **Charo:** en el kiosco también se le puede dar propina, una por partida. Cada nivel rebaja los precios un 6 % y cambia lo que te dice al saludarte.
+- **Charo:** en el kiosco también se le puede dar propina, una por partida. Su amistad no baja precios: da cambios gratis del mostrador (1 desde amistad 1 y 2 desde amistad 4), ofertas a mitad de precio (desde amistad 2) y más huecos (4 con amistad 3 y 5 con amistad 5). También cambia lo que te dice al saludarte.
+- **Magnus:** con más amistad, sus tratos devuelven más dinero.
+- **Pijamas nuevos:** la amistad 4 con Svinho desbloquea la pelota y con Silly, el portátil.
 - **Dónde verla:** la amistad sale con corazones en el menú Personajes, en las cartas del plano astral y en el kiosco.
 
 ### Niveles
 
 Los enemigos sueltan **trozos de estrella**; cuanto más duro es el enemigo, más sueltan. Al subir de nivel eliges 1 de 3 mejoras de estadística, cada una con su rareza: común, poco común, rara, épica o legendaria.
 
-Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud y suerte. La **suerte** hace más probables las rarezas altas, los consumibles y que vuelvan los personajes que ya te dieron un don. Puedes cambiar las tres opciones a cambio de 2 de suerte.
+Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud, suerte y parry.
+
+- La **suerte** hace más probables las rarezas altas, los consumibles y que vuelvan los personajes que ya te dieron un don. Puedes cambiar las tres opciones a cambio de 2 de suerte.
+- El **parry** es una probabilidad de esquivar un golpe: Kroker chasquea los dedos y el que le iba a pegar, y hasta 3 enemigos de alrededor, caen fulminados (a los jefes solo les hace daño). Nunca pasa del 20 %.
 
 ### Consumibles
 
@@ -171,19 +212,19 @@ A veces un enemigo suelta un objeto, y la suerte hace que pase más a menudo:
 - **Almohada:** para el siguiente golpe.
 - **Despertador:** congela a todos los enemigos.
 
-### La vida
+### La vida y los estados
 
-La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
+La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. Debajo de la vida, un indicador muestra los estados alterados que tienes en cada momento (sangrado, paralizado, mal olor, hackeado...). La hitbox de Kroker es solo el cuerpo: la cabeza no cuenta.
 
 ---
 
 ## Más
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
-- **Personajes:** menú con Kroker y sus pijamas, los personajes del plano astral (Mr. Ad y El Pinche incluidos) y Charo. Cada uno se desbloquea al conocerlo.
+- **Personajes:** menú con Kroker y sus pijamas, los personajes del plano astral (Mr. Ad, El Pinche y Magnus incluidos) y Charo. Cada uno se desbloquea al conocerlo.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Bestiario:** está en el menú principal y cada entrada está escrita con la voz de Kroker.
-- **Logros:** hay 21 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea y ahorrar 100 de Realidad Fragmentada). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 24 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil y a Magnus). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;
@@ -195,7 +236,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima.
 
 ### Modo Dios (para probar)
 
-Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–13), elegir una segunda arma y poner las mejoras de cada arma y las estadísticas que quieras. Desde el sueño 11, si no eliges segunda arma, se pone una de prueba. Las partidas en Modo Dios no se guardan. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
+Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–15), elegir una segunda arma y poner las mejoras de cada arma y las estadísticas que quieras. Desde el sueño 11, si no eliges segunda arma, se pone una de prueba. Las partidas en Modo Dios no se guardan. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
 
 Teclas durante la partida:
 
@@ -206,6 +247,16 @@ Teclas durante la partida:
 | **K** | Borra los enemigos |
 | **L** | Sube de nivel |
 
+### Demo
+
+Hay tres exportaciones de demo (Windows, Linux y macOS) en `export_presets.cfg`. La demo se activa con la etiqueta de característica `demo` (o, para probarla en el editor, con *Ajustes del proyecto → dreamed/demo*). En la demo:
+
+- no salen el Modo Dios ni los botones de desbloquear bestiario y personajes;
+- **sí** está el botón «Desbloquear todo» del menú principal;
+- el guardado va en archivos aparte (`*_demo.cfg`), para no mezclarse con el de las pruebas.
+
+Para hacer una demo nueva basta con volver a exportar con esos presets.
+
 ---
 
 ## Estructura del proyecto
@@ -213,8 +264,8 @@ Teclas durante la partida:
 ```
 scenes/                 escenas principales (menú, selección, partida, plano astral, ajustes)
 scripts/autoload/       I18n (textos ES/EN), Settings, GameState (datos y reglas), Progress (guardado y logros), Audio
-scripts/game/           la partida: run.gd, bedroom.gd, living_room.gd, Kroker, enemigos, armas, jefe, HUD, efectos
-scripts/ui/             menús, bestiario, logros, subida de nivel, plano astral, Charo y su kiosco, chimenea
+scripts/game/           la partida: run.gd, bedroom.gd, living_room.gd, act3_room.gd, Kroker, enemigos, armas, jefes, HUD, efectos
+scripts/ui/             menús, bestiario, logros, subida de nivel, plano astral, Charo y su kiosco, chimenea, tarjetas de palabras clave
 scripts/visual/         dibujo de los sprites (Sprites, SpriteRects), Kroker, personajes y PixelView
 assets/sprites/         sprites en pixel art (generados)
 assets/audio/           música (.ogg) y efectos (.wav) (generados)
@@ -230,7 +281,10 @@ docs/screenshots/       capturas de este README
 - **Estadísticas base:** `GameState.BASE_STATS` y `GameState.BASE_LEVEL_STATS`.
 - **Mejoras por nivel:** `GameState.UPGRADE_VALUES`.
 - **Subidas de nivel y rarezas:** `GameState.STAT_STEPS` y `GameState.RARITY_WEIGHT`.
-- **Kiosco y moneda:** `GameState.WARES` y `GameState.REALITY_*`.
+- **Kiosco y moneda:** `GameState.WARES` (nivel y precio de cada artículo), `GameState.WARE_TIER_WEIGHT` y `GameState.REALITY_*`.
+- **Dureza de los jefes:** `GameState.BOSS_POWER` (un solo multiplicador para todos).
+- **Tratos de Magnus:** `GameState.INVEST_SIZES` y `GameState.INVEST_GOALS`.
+- **Tope del parry:** `GameState.PARRY_MAX`.
 - **Daño, alcance y recarga de cada arma:** las constantes al principio de `scripts/game/weapon_*.gd`.
 - **Textos:** `scripts/autoload/i18n.gd`, con cada clave en `es` y `en`.
 
@@ -274,10 +328,12 @@ El informe queda en `user://balance_report.json`.
 **Dreamed** is a Brotato-style survival roguelite with Hades-style upgrades, made in Godot 4.7 (tested on 4.7.2), fully playable in **English and Spanish**.
 
 - **Kroker:** a boy with glasses who falls asleep. Every wave is a dream inside the previous one, each stranger than the last.
-- **Weapons:** pick a pajama, each with its own auto-attacking weapon: bat, pillow shield, storybook (lightning from the sky) or vacuum, plus two you unlock: a finger gun (Act 2; lasers that randomly pierce, push, crit, bounce or backfire) and a teddy bear (Act 3; sticky fluff that slows enemies and glues them together).
-- **Act 1, the bedroom:** Foox, thugs, slingshots and skeletons, then a living-furniture boss.
-- **Act 2, the living room:** mosquito nests, hacking Cyberpunks, a fireplace where you can sacrifice upgrades, *Karen the kiosk lady*, who trades in **Fragmented Reality**, and **The Chef**: a grown-up Kroker who climbs out of the TV throwing knives (bleeding), plates (shards on the floor) and swinging a frying pan (it roots you).
-- **Second weapon:** after The Chef you pick a second weapon of the other kind (melee or ranged). Kroker holds it in his free hand and it has its own upgrades; Act 3 is a placeholder stage to try it out.
-- **Upgrades:** between dreams, on the astral plane, Svinho, Stolk, Silly, Doc, Mr. Ad (unlocked in Act 2, all about Fragmented Reality) and the Kitchen Boy (unlocked in Act 3, bleeding and burning) each offer a different kind of upgrade; from Kroker's level 3 three of them show up. Star shards level Kroker up with stat boosts from common to legendary.
-- **Extras:** Nightmare difficulty, a bestiary, 21 achievements, accessibility options, full gamepad support and a God mode for testing.
+- **Eight pajamas, eight auto-attacking weapons:** bat, pillow shield, storybook (lightning from the sky) and vacuum from the start; a finger gun (Act 2) and a teddy bear (Act 3) unlocked by playing; a bouncing football (friendship 4 with Svinho) and a laptop that places permanent turrets which level up with your attack (friendship 4 with Silly). The character select shows them in pages of four, each card with a full stat sheet.
+- **Act 1, the bedroom:** Foox, thugs, slingshots and skeletons, then the living furniture: a bed, a bookshelf and a toy chest that runs away and gets tired.
+- **Act 2, the living room:** mosquito nests, hacking Cyberpunks, a fireplace where you can sacrifice upgrades, *Karen the kiosk lady*, who trades in **Fragmented Reality**, and **The Chef**, a grown-up Kroker who climbs out of the TV.
+- **Act 3, the endless school hallway at dusk:** puppets with random weapons, toilet-paper golems whose stench disables one of your weapons, a school-bell event, and **the UFO**, which wrecks the hallway, crashes down on you and fires rings of lasers.
+- **Second weapon:** after The Chef you pick a second weapon of the other kind (melee or ranged), with its own upgrades.
+- **Upgrades:** on the astral plane, Svinho, Stolk, Silly, Doc, Mr. Ad, the Kitchen Boy and **Magnus** (a magnate who lets you invest: pay for several stat boosts and keep them, with interest, if you meet his goal) each offer a different kind of upgrade. Star shards level Kroker up with stat boosts from common to legendary, including **parry**: a chance to dodge a hit and finger-snap the attacker and nearby enemies away.
+- **Karen's kiosk** sells better and pricier items each act; friendship with her gives free restocks, half-price offers and more slots.
+- **Extras:** Nightmare difficulty, a bestiary, 24 achievements, hover cards that explain keywords and status effects, accessibility options, full gamepad support (the UI adapts to keyboard or gamepad), a God mode for testing and demo builds for Windows, Linux and macOS.
 - **Running it:** open `project.godot` and press **F5**. All sprites, sounds and the font are generated by the scripts in `tools/`.
