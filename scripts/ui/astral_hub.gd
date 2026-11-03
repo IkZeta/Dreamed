@@ -320,6 +320,7 @@ class HubWorld extends Control:
 	var _silly_chair: Prop
 	var _motes: Array[Vector4] = []
 	var _statues: Array[Control] = []
+	var _stones: Array[Vector4] = []     # x, y, sprite, fase / x, y, sprite, phase
 
 	func _ready() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
@@ -385,6 +386,14 @@ class HubWorld extends Control:
 			var b := ring[(i + 1) % ring.size()]
 			if ring.size() > 2 or i == 0:
 				_add_bridge(a, b, false)
+		# Piedras ordenadas por altura para que las de delante tapen a las de detrás
+		# Stones sorted by height so the ones in front cover the ones behind
+		for br in _bridges:
+			var stones: Array = br["stones"]
+			for i in stones.size():
+				var st: Vector3 = stones[i]
+				_stones.append(Vector4(st.x, st.y, st.z, i * 0.45))
+		_stones.sort_custom(func(a: Vector4, b: Vector4) -> bool: return a.y < b.y)
 		_kroker = _prop(SPAWN, _draw_kroker)
 		# Dos farolillos a la entrada de cada isla, del color de su dueño
 		# Two little lanterns at the entrance of each island, in its owner's colour
@@ -1028,15 +1037,17 @@ class HubWorld extends Control:
 			var col: Color = b["aura"]
 			var a0: Vector2 = b["from"]
 			var a1: Vector2 = b["to"]
-			var stones: Array = b["stones"]
 			# Hilo de luz que une las piedras / Thread of light joining the stones
 			ci.draw_line(a0 + Vector2(0, 2), a1 + Vector2(0, 2), Color(col, 0.18), 1.0)
-			for i in stones.size():
-				var s: Vector3 = stones[i]
-				var p := Vector2(s.x, s.y)
-				var bob := roundf(sin(_t * 1.5 + i * 0.9) * 1.2)
-				var tex := Sprites.tex("hub_step_%d" % int(s.z))
-				ci.draw_texture(tex, (p - Vector2(tex.get_width() / 2.0, 4.0) + Vector2(0, bob)).round())
+		# Todas las piedras de todos los puentes, de atrás adelante / Every stone of every bridge, back to front
+		for s in _stones:
+			var bob := roundf(sin(_t * 1.5 + s.w) * 1.2)
+			var tex := Sprites.tex("hub_step_%d" % int(s.z))
+			ci.draw_texture(tex, (Vector2(s.x, s.y) - Vector2(tex.get_width() / 2.0, 4.0) + Vector2(0, bob)).round())
+		for b in _bridges:
+			var col: Color = b["aura"]
+			var a0: Vector2 = b["from"]
+			var a1: Vector2 = b["to"]
 			# Chispa que recorre el puente / Spark running along the bridge
 			var ph := fmod(_t * 0.35 + float(b["id"].length()) * 0.13, 1.0)
 			var sp := a0.lerp(a1, ph) + Vector2(0, -4)
