@@ -311,7 +311,7 @@ static func _superk(t: float, opts := {}) -> void:
 		Sprites.draw(_ci, "npc_superk_fly")
 		_ci.draw_set_transform_matrix(_xf)
 		return
-	var hover := -6.0 - sin(t * 2.0) * 4.0 if opts.get("hover", true) else 0.0
+	var hover := -6.0 - sin(t * 2.0) * 4.0 if opts.get("hover", false) else 0.0
 	_ci.draw_colored_polygon(_ellipse(Vector2(100, 286), Vector2(34 - hover * 0.6, 6)), Color(0, 0, 0, 0.15))
 	var flap := sin(t * 3.1) * 0.025
 	_ci.draw_set_transform_matrix(_xf * Transform2D(flap, Vector2(100, 100 + hover)) * Transform2D(0.0, Vector2(-100, -100)))

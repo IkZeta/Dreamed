@@ -2929,7 +2929,7 @@ def superk():
     GO, GO1, GO2 = "#c9961e", "#f2c94c", "#fff0a0"
     C1, C2, C3 = "#b8461a", "#ff7a3a", "#ffa86a"
     S, S1 = "#f0c4a2", "#c9937a"
-    HA1, HA2 = "#2a1a14", "#4a3024"
+    HA1, HA2 = "#5a3a2a", "#8a5c40"
     MASK = "#24123e"
 
     def cape(fly=False):
@@ -2979,6 +2979,7 @@ def superk():
         # Tupé hacia arriba / Swept-up quiff
         b += flat("M77,54 C76,36 86,26 100,25 C114,24 124,34 123,54 L118,44 C110,38 90,38 82,44 Z", HA1)
         b += flat("M84,34 C88,22 100,16 112,20 C104,22 98,28 96,36 Z", HA1) + flat("M90,30 C94,24 100,22 106,22 C100,26 96,30 94,34 Z", HA2)
+        b += "<path d='M82,44 C86,36 94,32 104,32' fill='none' stroke='%s' stroke-width='3'/>" % HA2
         # Mandíbula de héroe y sonrisa / Hero jaw and grin
         b += "<path d='M93,79 Q100,83 107,79' fill='none' stroke='#8a4a4a' stroke-width='2'/>"
         return b

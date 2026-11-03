@@ -1309,7 +1309,7 @@ class HubWorld extends Control:
 			var ph := fmod(_t, SK_CYCLE)
 			var fly := ph - (SK_CYCLE - SK_FLIGHT)
 			if fly < 0.0:
-				_draw_npc(ci, "superk", Vector2.ZERO)
+				_draw_npc(ci, "superk", Vector2.ZERO, false, {"hover": true})
 				return
 			# Vuelta a la isla en el aire / A loop round the island in the air
 			var k := fly / SK_FLIGHT
