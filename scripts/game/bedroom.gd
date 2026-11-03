@@ -533,6 +533,7 @@ func _draw_wall_decor() -> void:
 const BED_DRAWINGS := {
 	"foox": Vector2(78, 150), "bed": Vector2(256, 108), "moon": Vector2(472, 176), "golden": Vector2(1834, 150),
 	"star": Vector2(1446, 132), "no_hit": Vector2(1178, 80), "void": Vector2(350, 55), "elites": Vector2(1834, 48),
+	"superk": Vector2(1180, 192),
 }
 
 

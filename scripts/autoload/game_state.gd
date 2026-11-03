@@ -129,7 +129,22 @@ const RANGED: Array[String] = ["book", "vacuum", "finger", "ball", "laptop"]
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
-const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche"]
+const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey"]
+## SuperK y Lil Key no cambian el arma: aparecen en el mapa y ayudan. Cada arma tiene uno de sus
+## poderes (las armas del mismo poder comparten nombre y descripción).
+## SuperK and Lil Key don't change the weapon: they show up on the map and help. Each weapon gets
+## one of their powers (weapons with the same power share a name and description).
+const HELPER_POWER := {
+	"superk": {"bat": "punch", "boots": "punch", "shield": "guard", "teddy": "guard",
+		"book": "laser", "finger": "laser", "laptop": "laser", "vacuum": "throw", "ball": "throw"},
+	"lilkey": {"bat": "dance", "shield": "dance", "teddy": "dance", "boots": "dance",
+		"book": "sing", "vacuum": "sing", "finger": "sing", "ball": "sing", "laptop": "sing"},
+}
+
+
+## Poder de SuperK o Lil Key con esta arma ("" si no es uno de ellos) / SuperK's or Lil Key's power with this weapon ("" if it isn't one of them)
+static func helper_power(giver: String, weapon: String) -> String:
+	return HELPER_POWER.get(giver, {}).get(weapon, "")
 const MAX_UPGRADE_LEVEL := 3
 const STOLK_HP_COST := 5.0   # vida máxima que cuesta cada nivel de Stolk / max health each Stolk level costs
 
@@ -607,6 +622,8 @@ func giver_unlocked(g: String) -> bool:
 		"ad": return Progress.has_achieved("mr_ad")
 		"pinche": return Progress.has_achieved("pinche")
 		"magnus": return Progress.has_achieved("magnus")
+		"superk": return Progress.has_achieved("superk")
+		"lilkey": return Progress.has_achieved("lilkey")
 	return true
 
 
@@ -784,6 +801,9 @@ func deal_goal_text(deal: Dictionary) -> String:
 
 ## Clave de traducción del nombre o la descripción de una mejora / Translation key of an upgrade's name or description
 func upgrade_key(giver: String, weapon: String, part: String) -> String:
+	var power := helper_power(giver, weapon)
+	if power != "":
+		return "UP_%s_%s_%s" % [giver.to_upper(), power.to_upper(), part]
 	return "UP_%s_%s_%s" % [giver.to_upper(), weapon.to_upper(), part]
 
 
@@ -880,6 +900,37 @@ const UPGRADE_VALUES := {
 		# Stove: pulls with "pull" strength; with "count" enemies beside it, it explodes for "boom" damage
 		"laptop": {"count": [5, 5, 4], "boom": [20, 30, 45], "pull": [50, 70, 90]},
 		"boots": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
+	},	## SuperK: puñetazo (cada "cd" s baja volando y pega "dmg" con mucho empuje), escudo ("chance" % de
+	## parar un golpe, recarga "cd"), láser de los ojos ("dmg" en línea cada "cd" s) y lanzar (agarra a uno
+	## y lo tira a un agujero o contra los demás, "dmg")
+	## SuperK: punch (every "cd" s he swoops down and hits for "dmg" with a big shove), guard ("chance" %
+	## to stop a hit, "cd" cooldown), eye laser ("dmg" in a line every "cd" s) and throw (grabs one and
+	## hurls it down a hole or into the others, "dmg")
+	"superk": {
+		"bat": {"cd": [14.0, 11.0, 8.0], "dmg": [30, 45, 65]},
+		"shield": {"chance": [20, 30, 40], "cd": [8.0, 6.0, 4.5]},
+		"book": {"cd": [12.0, 9.0, 7.0], "dmg": [14, 20, 28]},
+		"vacuum": {"cd": [14.0, 11.0, 8.0], "dmg": [20, 30, 45]},
+		"finger": {"cd": [12.0, 9.0, 7.0], "dmg": [14, 20, 28]},
+		"teddy": {"chance": [20, 30, 40], "cd": [8.0, 6.0, 4.5]},
+		"ball": {"cd": [14.0, 11.0, 8.0], "dmg": [20, 30, 45]},
+		"laptop": {"cd": [12.0, 9.0, 7.0], "dmg": [14, 20, 28]},
+		"boots": {"cd": [14.0, 11.0, 8.0], "dmg": [30, 45, 65]},
+	},
+	## Lil Key: baile (cada "cd" s, los de alrededor bailan "secs" s sin hacer daño) o canto (se pone a
+	## cantar lejos de ti "secs" s: atrae a los enemigos y les hace "dmg" por segundo)
+	## Lil Key: dance (every "cd" s, those around you dance for "secs" s and do no damage) or song (he
+	## sings away from you for "secs" s: pulls enemies in and deals "dmg" per second)
+	"lilkey": {
+		"bat": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
+		"shield": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
+		"book": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
+		"vacuum": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
+		"finger": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
+		"teddy": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
+		"ball": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
+		"laptop": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
+		"boots": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
 	},
 }
 

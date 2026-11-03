@@ -27,6 +27,8 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float, opts :=
 		"ad": _ad(t)
 		"pinche": _pinche(t, opts)
 		"magnus": _magnus(t)
+		"superk": _superk(t, opts)
+		"lilkey": _lilkey(t, opts)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -298,3 +300,46 @@ static func _ellipse(c: Vector2, r: Vector2, n := 24) -> PackedVector2Array:
 		var a := TAU * i / n
 		pts.append(c + Vector2(cos(a) * r.x, sin(a) * r.y))
 	return pts
+
+
+## SuperK flota un poco sobre el suelo y la capa ondea; con "fly", va volando hacia la derecha
+## SuperK hovers a little off the ground and his cape ripples; with "fly", he flies to the right
+static func _superk(t: float, opts := {}) -> void:
+	if opts.get("fly", false):
+		var wob := sin(t * 14.0) * 1.5
+		_ci.draw_set_transform_matrix(_xf * Transform2D(0.0, Vector2(0, -150 + wob)))
+		Sprites.draw(_ci, "npc_superk_fly")
+		_ci.draw_set_transform_matrix(_xf)
+		return
+	var hover := -6.0 - sin(t * 2.0) * 4.0 if opts.get("hover", true) else 0.0
+	_ci.draw_colored_polygon(_ellipse(Vector2(100, 286), Vector2(34 - hover * 0.6, 6)), Color(0, 0, 0, 0.15))
+	var flap := sin(t * 3.1) * 0.025
+	_ci.draw_set_transform_matrix(_xf * Transform2D(flap, Vector2(100, 100 + hover)) * Transform2D(0.0, Vector2(-100, -100)))
+	Sprites.draw(_ci, "npc_superk")
+	_ci.draw_set_transform_matrix(_xf)
+
+
+## Lil Key canta con el micro y baila: se balancea, sube y baja, y el brazo libre señala arriba
+## al ritmo. "dance" (0..1) es lo fuerte que baila / Lil Key sings into the mic and dances: he
+## sways, bounces and points his free arm up to the beat. "dance" (0..1) is how hard he dances
+static func _lilkey(t: float, opts := {}) -> void:
+	var d: float = opts.get("dance", 0.5)
+	var beat := t * 4.2
+	var bounce := -absf(sin(beat)) * 8.0 * d
+	var sway := sin(beat * 0.5) * 0.06 * d
+	_ci.draw_set_transform_matrix(_xf * Transform2D(sway, Vector2(100, 288 + bounce)) * Transform2D(0.0, Vector2(-100, -288)))
+	Sprites.draw(_ci, "npc_lilkey")
+	var shoulder := Vector2(62, 110)
+	var arm := PI - 0.25 + sin(beat) * 0.35 * d
+	_ci.draw_set_transform_matrix(_xf * Transform2D(sway, Vector2(100, 288 + bounce)) * Transform2D(0.0, Vector2(-100, -288))
+		* Transform2D(arm, shoulder) * Transform2D(0.0, -shoulder))
+	Sprites.draw(_ci, "npc_lilkey_arm")
+	_ci.draw_set_transform_matrix(_xf)
+	# Notas musicales que salen del micro / Music notes coming out of the mic
+	for i in 3:
+		var ph := fposmod(t * 0.7 + i / 3.0, 1.0)
+		var p := Vector2(130 + ph * 40.0 + sin(ph * 9.0 + i) * 6.0, 76 - ph * 70.0)
+		var col := Color(["ff6a8a", "8fe0ff", "f6d993"][i], (1.0 - ph) * 0.9)
+		_ci.draw_circle(p, 4.0, col)
+		_ci.draw_line(p + Vector2(3.5, 0), p + Vector2(3.5, -13), col, 2.0)
+		_ci.draw_line(p + Vector2(3.5, -13), p + Vector2(9, -10), col, 2.0)

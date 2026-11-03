@@ -221,7 +221,7 @@ func _draw() -> void:
 ## Dónde van los dibujos en cada tipo de pared (0 taquillas y corcho, 1 baños y fuente, 2 ventanales y vitrina)
 ## Where the drawings go on each wall type (0 lockers and corkboard, 1 toilets and fountain, 2 windows and trophy case)
 const HALL_DRAWINGS := {
-	0: {"teddy": Vector2(1065, 140), "ball": Vector2(1190, 140)},
+	0: {"teddy": Vector2(1065, 140), "ball": Vector2(1190, 140), "lilkey": Vector2(1572, 150)},   # Lil Key, pegado en una taquilla / taped to a locker
 	1: {"pinche": Vector2(1090, 70), "magnus": Vector2(1180, 122), "boots": Vector2(250, 118)},   # las botas, pegadas en una taquilla / the boots, taped to a locker
 	2: {"laptop": Vector2(580, 100), "pajamas": Vector2(690, 125), "kills": Vector2(1130, 110), "level10": Vector2(1380, 110)},
 }

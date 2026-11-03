@@ -168,6 +168,8 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	# Cabeza (se inclina un poco al estirarse) / Head (tilts back when stretching)
 	_use(Transform2D(-0.12 * stretch, Vector2(100, 170)) * Transform2D(0.0, Vector2(-100, -170)))
 	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod)
+	if opts.get("shades", false):
+		_shades(t)
 	_use(Transform2D.IDENTITY)
 
 	# Armas en las manos / Weapons in the hands
@@ -271,6 +273,23 @@ static func _head(t: float, glasses: bool, yawn: float, mod: Color) -> void:
 	elif fposmod(t, 3.7) < 0.13 or yawn > 0.5:
 		face = "_blink"   # parpadea de vez en cuando / blinks now and then
 	Sprites.draw(_ci, "kroker_head" + face + ("_g" if glasses else ""), mod)
+
+
+## Gafas de sol de Lil Key encima de las suyas: cristales negros con un brillo rosa y cian
+## Lil Key's sunglasses over his own: black lenses with a pink and cyan shine
+static func _shades(t: float) -> void:
+	var ink := Color("15131f")
+	for cx in [90.0, 110.0]:
+		_ci.draw_rect(Rect2(cx - 9.0, 139.0, 18.0, 12.0), ink)
+		_ci.draw_rect(Rect2(cx - 7.0, 151.0, 14.0, 2.0), ink)
+		_ci.draw_rect(Rect2(cx - 6.0, 141.0, 5.0, 2.0), Color("ff8fb0") if cx < 100.0 else Color("8fe0ff"))
+	_ci.draw_rect(Rect2(99.0, 141.0, 2.0, 3.0), ink)
+	_ci.draw_rect(Rect2(76.0, 141.0, 5.0, 2.0), ink)
+	_ci.draw_rect(Rect2(119.0, 141.0, 5.0, 2.0), ink)
+	# Destello que cruza de vez en cuando / A glint that sweeps across now and then
+	var g := fposmod(t, 3.0)
+	if g < 0.25:
+		_ci.draw_rect(Rect2(82.0 + g * 120.0, 141.0, 3.0, 8.0), Color(1, 1, 1, 0.7))
 
 
 ## Cabeza dormida sobre la almohada (vista desde arriba) / Sleeping head on the pillow (top view)

@@ -61,6 +61,12 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "laptop", "check": "silly4", "goal": 4, "drawing": "laptop"},
 	# Las botas steampunk: amistad 4 con Doc / The steampunk boots: friendship 4 with Doc
 	{"id": "boots", "check": "doc4", "goal": 4, "drawing": "boots"},
+	# SuperK: tumbar los tres muebles a la vez en pesadilla (no vale aguantar hasta el final)
+	# SuperK: knock out all three pieces at once on nightmare (holding out till the end doesn't count)
+	{"id": "superk", "flag": true, "goal": 1, "drawing": "superk"},
+	# Lil Key: ponerle a Kroker las gafas de sol de la taquilla del colegio
+	# Lil Key: put the sunglasses from the school locker on Kroker
+	{"id": "lilkey", "flag": true, "goal": 1, "drawing": "lilkey"},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4
@@ -245,7 +251,7 @@ func unlock_everything() -> void:
 	for id in BESTIARY:
 		if not kills.has(id):
 			kills[id] = 0
-	for g in ["svinho", "stolk", "silly", "doc", "ad", "pinche"]:
+	for g in ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey"]:
 		stats["met_" + g] = 1
 	stats["charo_met"] = 1
 	stats["unlock_all"] = 1

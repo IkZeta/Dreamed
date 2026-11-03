@@ -6,9 +6,9 @@ extends Control
 
 signal closed
 
-const IDS: Array[String] = ["kroker", "svinho", "stolk", "silly", "doc", "ad", "pinche", "magnus", "charo"]
+const IDS: Array[String] = ["kroker", "svinho", "stolk", "silly", "doc", "ad", "pinche", "magnus", "superk", "lilkey", "charo"]
 const AURA := {"kroker": Color("f6d993"), "svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"),
-	"doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a"), "charo": Color("7fe0d0")}
+	"doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a"), "superk": Color("b48cff"), "lilkey": Color("ff6a8a"), "charo": Color("7fe0d0")}
 
 var _list: VBoxContainer
 var _preview_holder: Control
@@ -130,6 +130,8 @@ static func met(id: String) -> bool:
 	if id == "pinche" and Progress.has_achieved("pinche"):
 		return true
 	if id == "magnus" and Progress.has_achieved("magnus"):
+		return true
+	if id in ["superk", "lilkey"] and Progress.has_achieved(id):
 		return true
 	return Progress.stats.has("met_" + id)
 

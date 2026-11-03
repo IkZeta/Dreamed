@@ -1673,7 +1673,7 @@ DRAWING_TILT = {
     "foox": -4, "bed": 3, "moon": -3, "golden": 4, "star": -5, "no_hit": 3, "void": -4, "elites": -3,
     "chef": -3, "coin": -3, "mr_ad": 3, "shopper": -3, "pyro": 3, "finger": 4, "two_weapons": -4, "gift": 3,
     "teddy": -3, "ball": 4, "pinche": 3, "magnus": -3, "laptop": -4, "pajamas": 3, "kills": 3, "level10": -3,
-    "boots": 4,
+    "boots": 4, "superk": -4, "lilkey": 3,
 }
 
 # Colores de cera / Crayon colours
@@ -1798,6 +1798,21 @@ def drawing_pics():
         bts += flat("M%g,0 L%g,-3 L%g,6 Z" % (x0, x0 - 12, x0), "#ff9a3a") + flat("M%g,1 L%g,0 L%g,5 Z" % (x0, x0 - 6, x0), CR_YEL)
     bts += crayon("M-20,-22 Q0,-30 20,-22", CR_INK, 1.6) + flat(star_d(22, -22, 4), CR_YEL)
     P["boots"] = bts
+    # SuperK volando con la capa al viento / SuperK flying with his cape in the wind
+    sk = flat("M-36,-26 L36,-26 L36,26 L-36,26 Z", "#3a3478") + "".join(flat(star_d(x, y, r), CR_YEL) for x, y, r in ((-26, -18, 2.5), (22, 16, 2), (-12, 18, 2)))
+    sk += flat("M-24,-2 Q-34,-14 -30,6 Q-26,12 -8,6 Z", "#ff9a3a")
+    sk += flat("M-22,-4 L10,-6 L12,4 L-22,6 Z", CR_PUR2) + flat(ellipse_d(-6, 0, 4, 4), CR_YEL)
+    sk += flat(ellipse_d(18, -2, 7, 7), CR_SKIN) + flat("M12,-5 L24,-5 L24,-2 L12,-2 Z", CR_INK)
+    sk += crayon("M10,-6 L30,-14", CR_PUR2, 3) + flat(ellipse_d(31, -15, 2.6, 2.6), CR_YEL)
+    sk += crayon("M-22,4 L-30,10", CR_YEL2, 3)
+    P["superk"] = sk
+    # Lil Key cantando con el micro y notas / Lil Key singing with the mic and notes
+    lk = ground("#f2c8d8") + flat("M-14,-4 L6,-4 L8,14 L-16,14 Z", CR_RED) + flat(ellipse_d(-4, -12, 8, 8), "#c98a62")
+    lk += flat("M-12,-15 L4,-15 L4,-11 L-12,-11 Z", CR_INK) + flat("M-13,-19 Q-4,-26 5,-19 L5,-17 L-13,-17 Z", CR_INK)
+    lk += crayon("M-12,-2 Q-4,6 4,-2", CR_YEL, 1.8) + crayon("M6,-2 L10,-12", CR_RED, 3) + flat(ellipse_d(10, -14, 2.4, 2.4), "#9aa0c0")
+    lk += crayon("M18,-16 L18,-6 M24,-20 L24,-10 M18,-16 L24,-20", CR_PUR2, 1.8) + flat(ellipse_d(16, -6, 2.4, 2, ), CR_PUR2) + flat(ellipse_d(22, -10, 2.4, 2), CR_PUR2)
+    lk += crayon("M-30,-20 L-26,-14 M-30,-10 L-24,-10", CR_YEL2, 2)
+    P["lilkey"] = lk
     pj = ""
     for k, (c, c2) in enumerate(((CR_BLUE2, CR_WHITE), ("#b46e8f", "#7c4063"), ("#2b3d8f", CR_YEL), ("#62a9a1", CR_WHITE))):
         x = -24 + k * 16
@@ -2902,6 +2917,160 @@ def magnus():
     add("npc_magnus", 22, 30, 156, 262, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 2))
 
 
+
+def superk():
+    """SuperK: un superhéroe original del juego (no una copia de ninguno): traje morado con
+    franjas doradas, capa naranja, antifaz, guantes y botas dorados y una K dorada en un círculo
+    en el pecho. Dos sprites: de pie con los puños en la cintura y volando (hacia la derecha).
+    SuperK: an original superhero for the game (not a copy of anyone): a purple suit with gold
+    stripes, an orange cape, a domino mask, gold gloves and boots and a gold K in a circle on
+    his chest. Two sprites: standing with fists on his hips, and flying (to the right)."""
+    P1, P2, P3 = "#3a1f74", "#5a34a8", "#7f5ad6"
+    GO, GO1, GO2 = "#c9961e", "#f2c94c", "#fff0a0"
+    C1, C2, C3 = "#b8461a", "#ff7a3a", "#ffa86a"
+    S, S1 = "#f0c4a2", "#c9937a"
+    HA1, HA2 = "#2a1a14", "#4a3024"
+    MASK = "#24123e"
+
+    def cape(fly=False):
+        if fly:
+            return flat("M64,100 L136,100 C150,170 168,230 150,292 L132,280 L118,296 L100,282 L82,296 L68,280 L50,292 C32,230 50,170 64,100 Z", C2) \
+                + flat("M118,100 L136,100 C150,170 168,230 150,292 L132,280 C140,220 132,160 118,100 Z", C1)
+        b = flat("M62,98 L138,98 C150,160 160,220 164,272 L136,262 L118,276 L100,264 L82,276 L64,262 L36,272 C40,220 50,160 62,98 Z", C2)
+        b += flat("M120,98 L138,98 C150,160 160,220 164,272 L136,262 C138,200 132,140 120,98 Z", C1)
+        b += flat("M62,98 L74,98 C64,150 56,210 52,262 L36,272 C40,220 50,160 62,98 Z", C3)
+        return b
+
+    def legs():
+        b = ""
+        for x, col, sh in ((80, P2, P1), (102, P2, P1)):
+            b += flat("M%g,184 L%g,184 L%g,256 L%g,256 Z" % (x, x + 18, x + 17, x + 1), col)
+            b += flat("M%g,184 L%g,184 L%g,256 L%g,256 Z" % (x + 12, x + 18, x + 17, x + 12), sh)
+            b += flat("M%g,190 L%g,190 L%g,250 L%g,250 Z" % (x + 3, x + 6, x + 6, x + 3), P3)
+            # Botas doradas / Gold boots
+            b += flat("M%g,248 L%g,248 L%g,276 C%g,278 %g,282 %g,288 L%g,288 Z" % (x - 1, x + 19, x + 19, x + 24, x + 26, x + 26, x - 1), GO1)
+            b += flat("M%g,248 L%g,248 L%g,288 L%g,288 Z" % (x + 13, x + 19, x + 19, x + 13), GO)
+            b += flat("M%g,248 L%g,248 L%g,253 L%g,253 Z" % (x - 1, x + 19, x + 19, x - 1), GO2)
+        return b
+
+    def torso():
+        b = flat("M60,100 L140,100 L132,178 L68,178 Z", P2)
+        b += flat("M120,100 L140,100 L132,178 L116,178 C122,150 124,124 120,100 Z", P1)
+        b += flat("M64,104 L80,100 L78,120 L66,124 Z", P3)
+        # Franjas doradas en los costados / Gold stripes down the sides
+        b += flat("M66,124 L72,124 L74,176 L70,176 Z", GO1) + flat("M128,124 L134,124 L130,176 L126,176 Z", GO)
+        # Emblema: círculo dorado con la K / Emblem: gold circle with the K
+        b += flat(ellipse_d(100, 128, 17, 16), GO1) + flat(ellipse_d(100, 128, 13, 12), P1)
+        b += flat("M92,118 L97,118 L97,126 L104,118 L110,118 L101,128 L110,139 L104,139 L97,131 L97,139 L92,139 Z", GO2)
+        # Cinturón / Belt
+        b += flat("M68,172 L132,172 L132,182 L68,182 Z", GO) + flat("M68,172 L132,172 L132,175 L68,175 Z", GO1)
+        b += flat("M94,170 L106,170 L106,184 L94,184 Z", GO2)
+        b += flat("M70,182 L130,182 L128,192 L72,192 Z", P1)
+        return b
+
+    def head():
+        b = flat("M92,82 L108,82 L108,100 L92,100 Z", S1)
+        b += flat("M78,58 C78,42 88,36 100,36 C112,36 122,42 122,58 L121,74 C118,84 110,90 100,90 C90,90 82,84 79,74 Z", S)
+        b += flat("M112,40 C119,45 122,52 122,60 L121,74 C118,83 112,88 104,90 C112,80 115,70 115,60 C115,52 114,46 112,40 Z", S1)
+        b += flat(ellipse_d(77, 62, 4, 7), S) + flat(ellipse_d(123, 62, 4, 7), S1)
+        # Antifaz / Domino mask
+        b += flat("M80,56 L120,56 L118,68 L106,68 L100,63 L94,68 L82,68 Z", MASK)
+        b += flat("M86,59 L95,59 L94,64 L87,64 Z", "#f4f1ea") + flat("M105,59 L114,59 L113,64 L106,64 Z", "#f4f1ea")
+        # Tupé hacia arriba / Swept-up quiff
+        b += flat("M77,54 C76,36 86,26 100,25 C114,24 124,34 123,54 L118,44 C110,38 90,38 82,44 Z", HA1)
+        b += flat("M84,34 C88,22 100,16 112,20 C104,22 98,28 96,36 Z", HA1) + flat("M90,30 C94,24 100,22 106,22 C100,26 96,30 94,34 Z", HA2)
+        # Mandíbula de héroe y sonrisa / Hero jaw and grin
+        b += "<path d='M93,79 Q100,83 107,79' fill='none' stroke='#8a4a4a' stroke-width='2'/>"
+        return b
+
+    def hip_arms():
+        # Puños en la cintura: los brazos salen hacia fuera en jarra / Fists on the hips: arms akimbo
+        b = flat("M62,100 L76,108 L54,146 L36,138 Z", P2) + flat("M36,138 L54,146 L74,172 L62,182 Z", P2)
+        b += flat("M62,100 L68,103 L44,142 L38,139 Z", P3)
+        b += flat("M138,100 L124,108 L146,146 L164,138 Z", P1) + flat("M164,138 L146,146 L126,172 L138,182 Z", P1)
+        b += "<path d='M76,108 L54,146 L74,172 M124,108 L146,146 L126,172' fill='none' stroke='%s' stroke-width='1.6'/>" % "#1e0f40"
+        # Guantes dorados / Gold gloves
+        b += flat(ellipse_d(70, 176, 9, 9), GO1) + flat(ellipse_d(130, 176, 9, 9), GO)
+        b += flat("M50,136 L60,144 L56,150 L44,142 Z", GO1) + flat("M150,136 L140,144 L144,150 L156,142 Z", GO)
+        return b
+
+    b = cape() + legs() + torso() + hip_arms() + head()
+    add("npc_superk", 28, 14, 144, 278, b, px=PX_NPC, flat=True)
+    # Volando: un puño por delante, el otro brazo pegado y la capa al viento; se gira 90° hacia la derecha
+    # Flying: one fist out front, the other arm tucked in and the cape in the wind; turned 90° to the right
+    up = flat("M124,100 L140,104 L142,26 L128,24 Z", P1) + flat(ellipse_d(135, 20, 9, 9), GO1) + flat("M128,30 L142,30 L142,36 L128,36 Z", GO)
+    side = flat("M60,102 L72,106 L70,176 L58,176 Z", P2) + flat(ellipse_d(64, 180, 7, 7), GO1)
+    fly = cape(True) + legs() + side + torso() + head() + up
+    b = "<g transform='rotate(90 100 160)'>%s</g>" % fly
+    add("npc_superk_fly", -40, 80, 300, 160, b, px=PX_NPC, flat=True)
+
+
+def lilkey():
+    """Lil Key: cantante de dembow de barrio, chulo y simpático: gorra del revés, gafas de sol,
+    cadenas de oro con una llave, chándal rojo con rayas blancas, zapatillas blancas gordas y el
+    micro en la mano. El brazo libre va aparte para animarlo (señala arriba y baila).
+    Lil Key: a cocky, likeable dembow singer from the block: a backwards cap, sunglasses, gold
+    chains with a key, a red tracksuit with white stripes, chunky white trainers and the mic in
+    his hand. The free arm is separate so it can be animated (points up and dances)."""
+    R1, R2, R3 = "#9a1e2e", "#d8334a", "#ff6a7a"
+    W, W1 = "#f4f1ea", "#c8c4d8"
+    K1, K2 = "#1e1f2e", "#34364e"
+    GO, GO1, GO2 = "#c9961e", "#f2c94c", "#fff0a0"
+    S, S1 = "#c98a62", "#a06a4a"
+    b = ""
+    # Pantalón de chándal negro con rayas / Black track pants with stripes
+    for x in (80, 102):
+        b += flat("M%g,184 L%g,184 L%g,270 L%g,270 Z" % (x, x + 18, x + 19, x - 1), K2)
+        b += flat("M%g,184 L%g,184 L%g,270 L%g,270 Z" % (x + 12, x + 18, x + 19, x + 12), K1)
+        b += flat("M%g,186 L%g,186 L%g,268 L%g,268 Z" % (x + 2, x + 5, x + 4, x + 1), W)
+        # Zapatillas blancas gordas / Chunky white trainers
+        b += flat("M%g,268 L%g,268 C%g,268 %g,274 %g,280 L%g,288 L%g,288 Z" % (x - 4, x + 20, x + 26, x + 28, x + 28, x + 28, x - 4), W)
+        b += flat("M%g,282 L%g,282 L%g,288 L%g,288 Z" % (x - 4, x + 28, x + 28, x - 4), W1)
+        b += "<path d='M%g,274 L%g,276' stroke='%s' stroke-width='3'/>" % (x + 4, x + 18, R2)
+    # Chaqueta de chándal roja / Red tracksuit jacket
+    b += flat("M74,96 L126,96 L144,108 L140,192 L60,192 L56,108 Z", R2)
+    b += flat("M126,96 L144,108 L140,192 L124,192 C128,160 128,124 120,98 Z", R1)
+    b += flat("M60,112 C62,106 68,101 74,99 L74,104 C68,106 64,110 62,116 Z", R3)
+    b += flat("M60,184 L140,184 L140,192 L60,192 Z", R1)
+    b += "<path d='M100,100 L100,186' stroke='%s' stroke-width='2'/>" % W1
+    b += flat("M86,94 L114,94 L114,100 L86,100 Z", W)
+    # Brazo derecho con el micro junto a la boca / Right arm with the mic by his mouth
+    b += flat("M144,108 L156,114 L150,154 L136,150 Z", R1)
+    b += flat("M136,148 L150,154 L120,104 L108,108 Z", R3)
+    b += "<path d='M136,148 L108,108 M150,154 L120,104 M144,108 L136,150' fill='none' stroke='%s' stroke-width='1.6'/>" % "#5a0e1a"
+    b += "<path d='M146,112 L141,150 M142,150 L114,106' stroke='%s' stroke-width='2.4'/>" % W
+    # Cadenas de oro y la llave / Gold chains and the key
+    b += "<path d='M84,98 Q100,128 116,98' fill='none' stroke='%s' stroke-width='3'/>" % GO1
+    b += "<path d='M82,98 Q100,140 118,98' fill='none' stroke='%s' stroke-width='2.4'/>" % GO
+    b += flat(ellipse_d(100, 140, 6, 6), GO1) + flat(ellipse_d(100, 140, 2.4, 2.4), R1)
+    b += flat("M98,145 L102,145 L102,160 L98,160 Z", GO1) + flat("M102,152 L106,152 L106,155 L102,155 Z", GO1) + flat("M102,157 L105,157 L105,160 L102,160 Z", GO1)
+    # Cuello y cabeza / Neck and head
+    b += flat("M93,82 L107,82 L107,98 L93,98 Z", S1)
+    b += flat("M78,58 C78,42 88,36 100,36 C112,36 122,42 122,58 C122,76 113,88 100,88 C87,88 78,76 78,58 Z", S)
+    b += flat("M112,40 C119,45 122,52 122,60 C122,74 116,84 106,88 C113,79 115,70 115,60 C115,52 114,46 112,40 Z", S1)
+    b += flat(ellipse_d(77, 62, 4, 7), S) + flat(ellipse_d(123, 62, 4, 7), S1)
+    b += flat(ellipse_d(123, 70, 1.8, 1.8), GO1)
+    # Gafas de sol de espejo / Mirrored sunglasses
+    b += flat("M80,56 L120,56 L119,66 Q110,70 103,64 L97,64 Q90,70 81,66 Z", K1)
+    b += flat("M84,58 L94,58 L92,62 L85,62 Z", "#8fe0ff") + flat("M106,58 L116,58 L114,62 L107,62 Z", "#ff8fb0")
+    # Bigotillo y perilla / Thin moustache and goatee
+    b += flat("M92,74 L108,74 L107,76 L93,76 Z", K1) + flat("M97,82 L103,82 L102,88 L98,88 Z", K1)
+    # Gorra del revés / Backwards cap
+    b += flat("M77,52 C76,34 88,28 100,28 C112,28 124,34 123,52 L120,48 Q100,42 80,48 Z", K1)
+    b += flat("M77,46 Q72,46 66,52 L70,56 Q74,52 80,50 Z", K2)
+    b += flat(ellipse_d(100, 34, 6, 3), GO1)
+    # El micro, delante de la boca / The mic, in front of his mouth
+    b += flat(ellipse_d(114, 100, 7, 7), S)
+    b += flat("M110,84 L116,84 L118,98 L112,98 Z", K1) + flat(ellipse_d(112, 80, 6, 6), "#8a8fa8") + flat(ellipse_d(111, 79, 3, 3), "#c8cce0")
+    add("npc_lilkey", 44, 20, 120, 272, b, px=PX_NPC, flat=True)
+    # El brazo libre (izquierdo): hombro en (62,108), apuntando hacia abajo; se gira en el juego
+    # The free (left) arm: shoulder at (62,108), pointing down; rotated in game
+    a = flat("M56,108 L70,110 L68,166 L54,164 Z", R2) + flat("M62,112 L66,112 L64,160 L60,160 Z", R3)
+    a += "<path d='M57,110 L55,164' stroke='%s' stroke-width='2.4'/>" % W
+    a += flat(ellipse_d(61, 170, 7, 7), S) + flat("M58,176 L62,176 L62,186 L58,186 Z", S)
+    add("npc_lilkey_arm", 44, 100, 34, 92, a, px=PX_NPC, flat=True)
+
+
 def act2_npcs():
     charo_body(False)
     charo_body(True)
@@ -2941,6 +3110,8 @@ def build():
     mr_ad()
     pinche()
     magnus()
+    superk()
+    lilkey()
     turrets()
     pickups()
     thug()
