@@ -243,6 +243,16 @@ func _ensure_input() -> void:
 		d.device = -1
 		d.button_index = def[4]
 		InputMap.action_add_event(action, d)
+	# Dash de las botas: espacio o R1 / Boots dash: space or R1
+	if not InputMap.has_action("dash"):
+		InputMap.add_action("dash")
+		var sp := InputEventKey.new()
+		sp.physical_keycode = KEY_SPACE
+		InputMap.action_add_event("dash", sp)
+		var r1 := InputEventJoypadButton.new()
+		r1.device = -1
+		r1.button_index = JOY_BUTTON_RIGHT_SHOULDER
+		InputMap.action_add_event("dash", r1)
 	# Interactuar en el plano astral: F o A / Interact in the astral plane: F or A
 	if not InputMap.has_action("interact"):
 		InputMap.add_action("interact")

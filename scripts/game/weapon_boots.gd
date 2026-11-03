@@ -3,13 +3,13 @@ extends Weapon
 ## Botas steampunk: Kroker las lleva en los pies y las maneja con un mando pequeño en la mano.
 ## Ataque básico: patadas propulsadas por los motores, en combo de tres: derecha, izquierda y un
 ## giro que golpea a todo lo que hay alrededor y devuelve los proyectiles enemigos.
-## Dash: pulsar dos veces seguidas la misma dirección (A + A, por ejemplo). Si arrolla a un
+## Dash: espacio (R1 en el mando), hacia donde se mueve. Si arrolla a un
 ## enemigo le hace mucho daño y lo empuja lejos. Tiene su propia recarga (segundo anillo).
 ## (+10 % de velocidad y +1 de defensa en Kroker)
 ## Steampunk boots: Kroker wears them on his feet and drives them with a little remote in his hand.
 ## Basic attack: kicks powered by the engines, in a three-hit combo: right, left and a spin that
 ## hits everything around and sends enemy projectiles back.
-## Dash: tap the same direction twice in a row (A + A, for example). If it ploughs into an
+## Dash: space (R1 on the gamepad), in the direction he's moving. If it ploughs into an
 ## enemy it deals a lot of damage and knocks it far away. It has its own cooldown (second ring).
 ## (+10% speed and +1 defence on Kroker)
 ##
@@ -27,7 +27,6 @@ const SPIN_RADIUS := 135.0
 const SPIN_KNOCK := 320.0
 const COOLDOWN := 0.5
 const COMBO_RESET := 1.4       # sin atacar tanto tiempo, el combo vuelve a empezar / this long without attacking resets the combo
-const DOUBLE_TAP := 0.27       # tiempo máximo entre las dos pulsaciones / max time between the two taps
 const DASH_CD := 2.4
 const DASH_TIME := 0.17
 const DASH_DIST := 240.0
@@ -35,7 +34,6 @@ const DASH_DAMAGE := 24.0
 const DASH_KNOCK := 650.0
 const DASH_HIT_R := 46.0
 const BRASS := Color("e0b860")
-const DIRS := {"move_left": Vector2.LEFT, "move_right": Vector2.RIGHT, "move_up": Vector2.UP, "move_down": Vector2.DOWN}
 
 ## Animación para KrokerArt: patada de cada pierna, giro y llamas de los motores (1 → 0)
 ## Animation for KrokerArt: each leg's kick, the spin and the engine flames (1 → 0)
@@ -46,7 +44,6 @@ var thrust := 0.0
 var combo := 0
 var _since := 9.0
 var _clock := 0.0
-var _taps := {}
 var _dash_cd := 0.0
 var _dash_dir := Vector2.ZERO
 var _dash_hit: Array = []
@@ -79,17 +76,17 @@ func _physics_process(delta: float) -> void:
 			run.fx.dissipate(player.global_position + Vector2(randf_range(-8, 8), -6), Color("d8d0e8"))
 
 
-## Doble pulsación de la misma dirección: dash / Double tap of the same direction: dash
+## Espacio (o R1 en el mando): dash hacia donde se mueve, o hacia donde mira si está quieto
+## Space (or R1 on the gamepad): dash where he's moving, or where he faces if standing still
 func _check_taps() -> void:
-	for action: String in DIRS:
-		if not Input.is_action_just_pressed(action):
-			continue
-		var last: float = _taps.get(action, -9.0)
-		if _clock - last < DOUBLE_TAP and _dash_cd <= 0.0 and not player.weapon_stunk(self) and player.root_t <= 0.0:
-			_taps[action] = -9.0
-			_start_dash(DIRS[action])
-		else:
-			_taps[action] = _clock
+	if not Input.is_action_just_pressed("dash"):
+		return
+	if _dash_cd > 0.0 or player.weapon_stunk(self) or player.root_t > 0.0:
+		return
+	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if dir.length() < 0.2:
+		dir = Vector2(player._facing, 0)
+	_start_dash(dir.normalized())
 
 
 func _start_dash(dir: Vector2) -> void:
