@@ -812,7 +812,8 @@ const UPGRADE_VALUES := {
 		"finger": {"chance": [10, 18, 28], "secs": [1.0, 1.5, 2.0]},  # ralentizar / slow
 		"teddy": {"pct": [20, 35, 50]},                   # pegados reciben más daño / stuck ones take more damage
 		"ball": {"chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},  # congelar / freeze
-		"laptop": {"chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},  # congelar / freeze
+		# +"turrets" de máximo y congelar / +"turrets" maximum and freeze
+		"laptop": {"turrets": [1, 1, 2], "chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},
 	},
 	## El Pinche: sangrado (daño residual fuerte) o quemadura (flojo, pero baja su daño y su defensa)
 	## The Kitchen Boy: bleed (strong damage over time) or burn (weak, but lowers its damage and defence)
@@ -834,7 +835,7 @@ const UPGRADE_VALUES := {
 ## --- Friendship: each level improves that character's gifts by 6% (30% at the most) ---------
 const FRIEND_BONUS := 0.06
 ## Claves que son número de cosas (no se tocan) / Keys that are a count of things (left alone)
-const COUNT_KEYS: Array[String] = ["chain", "hits", "fluff", "count", "cash"]
+const COUNT_KEYS: Array[String] = ["chain", "hits", "fluff", "count", "cash", "turrets"]
 
 
 func friend_mult(giver: String) -> float:

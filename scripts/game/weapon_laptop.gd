@@ -13,7 +13,10 @@ extends Weapon
 ## empuja y el 4 hace sangrar. / Gun turret level: goes up with Kroker's attack, up to 4. Level 2
 ## burns, 3 pushes and 4 makes bleed.
 ##
-## Torretas especiales (una de cada, aparte del máximo) / Special turrets (one of each, besides the maximum):
+## Torretas especiales (una de cada, aparte del máximo): aparecen solas al empezar el sueño, en
+## sitios al azar y separadas entre sí; no se pueden poner torretas de disparo cerca de ellas.
+## Special turrets (one of each, besides the maximum): they appear by themselves when the dream
+## starts, at random spots and apart from each other; gun turrets can't be placed near them.
 ##  Doc   — torreta curativa / healing turret (+ vida máxima, a cambio de recarga y daño).
 ##  Stolk — muñeco de boxeo: atrae a los cercanos y da puñetazos con empuje / boxing dummy: pulls
 ##          nearby enemies and punches them away.
@@ -22,7 +25,8 @@ extends Weapon
 ##          those under 25% health and each finish gives Fragmented Reality.
 ## Otras mejoras / Other upgrades:
 ##  Svinho — el disparo salta a "extra" enemigos más / the shot jumps to "extra" more enemies.
-##  Silly  — "chance" % de congelar "secs" s / "chance"% to freeze for "secs" s.
+##  Silly  — "turrets" torretas más de máximo y "chance" % de congelar "secs" s /
+##           "turrets" more turrets at most and "chance"% to freeze for "secs" s.
 ##  Pinche — si se juntan "count" enemigos al lado de una torreta, explota ("boom" de daño), se
 ##           rompe y Kroker pone otra al instante / if "count" enemies crowd a turret, it explodes
 ##           ("boom" damage), breaks and Kroker places another one at once.
@@ -31,12 +35,16 @@ const COOLDOWN := 6.0
 const PLACE_RANGE := 420.0      # solo pone torretas si hay enemigos cerca / only places turrets with enemies near
 const MAX_TURRETS := 3
 const RELOCATE := 900.0         # más lejos que esto, la recoloca / further than this, he moves it back
+const SPECIAL_GAP := 380.0      # distancia mínima entre especiales / minimum distance between specials
+const GUN_GAP := 60.0           # separación entre torretas de disparo / gap between gun turrets
+const NO_BUILD := 170.0         # no se ponen torretas tan cerca de una especial / no turrets this close to a special
 ## Ataque de Kroker (en %) que hace falta para cada nivel de torreta / Kroker's attack (in %) needed for each turret level
 const LEVEL_ATTACK: Array[float] = [0.0, 10.0, 25.0, 45.0]
 const EXECUTE_PCT := 25.0       # Mr. Ad remata por debajo de este % de vida / Mr. Ad finishes off below this % health
 
 var _turrets: Array[Node2D] = []
 var _special := {}              # "heal" / "dummy" / "ad" → torreta / turret
+var _specials_done := false
 
 
 func _init() -> void:
@@ -57,6 +65,20 @@ static func turret_level() -> int:
 	return lvl
 
 
+## Máximo de torretas de disparo (Silly sube el máximo) / Gun turret maximum (Silly raises it)
+func max_turrets() -> int:
+	return MAX_TURRETS + int(uv("silly", "turrets"))
+
+
+func _physics_process(delta: float) -> void:
+	super._physics_process(delta)
+	# Al empezar el sueño aparecen las especiales / When the dream starts the specials appear
+	if not _specials_done and run.running:
+		_specials_done = true
+		for kind in _wanted_specials():
+			_special[kind] = _place(kind, _random_spot())
+
+
 ## Las torretas especiales que tocan con las mejoras que tiene / The special turrets due with the upgrades he has
 func _wanted_specials() -> Array[String]:
 	var out: Array[String] = []
@@ -73,19 +95,11 @@ func attack() -> bool:
 	if nearest(PLACE_RANGE * range_mult()) == null:
 		return false
 	_turrets = _turrets.filter(func(t: Node2D) -> bool: return is_instance_valid(t))
-	var placed := false
-	if _turrets.size() < MAX_TURRETS:
-		_turrets.append(_place("gun"))
-		placed = true
-	# Una especial que falte (de una en una) / One missing special (one at a time)
-	for kind in _wanted_specials():
-		if not is_instance_valid(_special.get(kind)):
-			_special[kind] = _place(kind)
-			placed = true
-			break
-	# Si no ha puesto nada, recoloca la que se haya quedado más lejos
-	# If nothing was placed, move back the one left furthest away
-	if not placed:
+	if _turrets.size() < max_turrets():
+		_turrets.append(_place("gun", _spot()))
+	else:
+		# Con el máximo puesto, recoloca la que se haya quedado más lejos (en el pasillo infinito)
+		# With the maximum placed, move back the one left furthest away (in the endless hallway)
 		var far: Node2D = null
 		var far_d := RELOCATE
 		for t in _all():
@@ -95,7 +109,7 @@ func attack() -> bool:
 				far = t
 		if far == null:
 			return false
-		far.position = _spot()
+		far.position = _spot() if far.kind == "gun" else _random_spot(far)
 		run.fx.ring(far.position, 26.0, Color("5ff2ff"), 0.35, 2.0)
 	swung(true)
 	Audio.play("hack", -10.0, 0.15)
@@ -113,17 +127,61 @@ func _all() -> Array[Node2D]:
 	return out
 
 
+## Sitio junto a Kroker para una torreta de disparo, lejos de las especiales
+## Spot beside Kroker for a gun turret, away from the specials
 func _spot() -> Vector2:
-	var side := Vector2.from_angle(randf() * TAU) * randf_range(50.0, 90.0)
-	return run.clamp_to_arena(player.global_position + side * Vector2(1.0, 0.6), 20.0)
+	var best := player.global_position
+	var best_d := -1.0
+	for i in 16:
+		var r := randf_range(50.0, 90.0) if i < 8 else randf_range(110.0, 240.0)
+		var side := Vector2.from_angle(randf() * TAU) * r
+		var p: Vector2 = run.clamp_to_arena(player.global_position + side * Vector2(1.0, 0.6), 20.0)
+		var d := _special_distance(p)
+		# Tampoco encima de otra torreta de disparo / Nor on top of another gun turret
+		var crowded := false
+		for t in _turrets:
+			if is_instance_valid(t) and t.global_position.distance_to(p) < GUN_GAP:
+				crowded = true
+		if d >= NO_BUILD and not crowded:
+			return p
+		if d > best_d:
+			best_d = d
+			best = p
+	return best
 
 
-func _place(kind: String) -> Node2D:
+## Distancia a la especial más cercana / Distance to the nearest special
+func _special_distance(p: Vector2, except: Node2D = null) -> float:
+	var best := INF
+	for t: Variant in _special.values():
+		if is_instance_valid(t) and t != except:
+			best = minf(best, (t as Node2D).global_position.distance_to(p))
+	return best
+
+
+## Sitio al azar en la zona visible, separado de las otras especiales y de Kroker
+## Random spot in the visible area, apart from the other specials and from Kroker
+func _random_spot(except: Node2D = null) -> Vector2:
+	var area: Rect2 = run.view_rect().grow(-140.0)
+	var best := player.global_position
+	var best_score := -1.0
+	for i in 30:
+		var p: Vector2 = run.clamp_to_arena(area.position + Vector2(randf(), randf()) * area.size, 30.0)
+		var score := minf(_special_distance(p, except) / SPECIAL_GAP, p.distance_to(player.global_position) / 200.0)
+		if score >= 1.0:
+			return p
+		if score > best_score:
+			best_score = score
+			best = p
+	return best
+
+
+func _place(kind: String, at: Vector2) -> Node2D:
 	var t := Turret.new()
 	t.weapon = self
 	t.kind = kind
 	t.level = turret_level()
-	t.position = _spot()
+	t.position = at
 	run.world.add_child(t)
 	run.fx.ring(t.position, 26.0, Turret.KIND_COLOR.get(kind, Color("5ff2ff")), 0.35, 2.0)
 	return t
@@ -135,9 +193,9 @@ func turret_broken(t: Node2D) -> void:
 	var kind: String = t.kind
 	if kind == "gun":
 		_turrets.erase(t)
-		_turrets.append(_place("gun"))
+		_turrets.append(_place("gun", _spot()))
 	else:
-		_special[kind] = _place(kind)
+		_special[kind] = _place(kind, _random_spot(t))
 	swung(true)
 
 
