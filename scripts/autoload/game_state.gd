@@ -774,7 +774,8 @@ const UPGRADE_VALUES := {
 		"finger": {"pct": [30, 60, 100]},                 # +daño / +damage
 		"teddy": {"pct": [30, 60, 100], "fluff": [1, 1, 2]},  # +daño y pelusa extra / +damage and extra fluff
 		"ball": {"pct": [30, 60, 100]},                   # +daño / +damage
-		"laptop": {"pct": [30, 60, 100]},                 # +daño de las torretas / +turret damage
+		# Muñeco de boxeo: puñetazos de "dmg" y atrae con fuerza "pull" / Boxing dummy: "dmg" punches, "pull" strength
+		"laptop": {"dmg": [6, 9, 13], "pull": [60, 90, 130]},
 	},
 	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
 	## Doc: more max health in exchange for weakening another weapon stat
@@ -800,7 +801,8 @@ const UPGRADE_VALUES := {
 		"finger": {"extra": [20, 35, 50], "per10": [2, 3, 5]},        # +suerte / +luck
 		"teddy": {"extra": [20, 35, 50], "per10": [0.2, 0.35, 0.5]},  # +regeneración / +regen
 		"ball": {"extra": [20, 35, 50], "per10": [0.3, 0.5, 0.8]},    # +parry
-		"laptop": {"extra": [20, 35, 50], "per10": [2, 4, 6]},        # +% velocidad de ataque / +% attack speed
+		# Torreta de cobro: remata y da "cash" de Realidad Fragmentada / Debt-collector turret: finishes off and gives "cash"
+		"laptop": {"extra": [20, 35, 50], "per10": [0, 0, 0], "cash": [1, 2, 3]},
 	},
 	"silly": {
 		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
@@ -822,7 +824,8 @@ const UPGRADE_VALUES := {
 		"finger": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
 		"teddy": {"dps": [2, 3, 4.5], "secs": [3, 3.5, 4]},               # sangrado / bleed
 		"ball": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},            # sangrado / bleed
-		"laptop": {"dps": [1.5, 2.5, 3.5], "secs": [2, 2.5, 3]},          # sangrado / bleed
+		# Con "count" enemigos al lado, la torreta explota con "boom" de daño / With "count" enemies beside it, the turret explodes for "boom" damage
+		"laptop": {"count": [5, 5, 4], "boom": [20, 30, 45]},
 	},
 }
 
@@ -831,7 +834,7 @@ const UPGRADE_VALUES := {
 ## --- Friendship: each level improves that character's gifts by 6% (30% at the most) ---------
 const FRIEND_BONUS := 0.06
 ## Claves que son número de cosas (no se tocan) / Keys that are a count of things (left alone)
-const COUNT_KEYS: Array[String] = ["chain", "hits", "fluff"]
+const COUNT_KEYS: Array[String] = ["chain", "hits", "fluff", "count", "cash"]
 
 
 func friend_mult(giver: String) -> float:

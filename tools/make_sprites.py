@@ -896,6 +896,25 @@ def turrets():
         # Antena / Antenna
         t += "<path d='M7,-35 L10,-42' fill='none' stroke='#2b2945' stroke-width='1.6'/>" + flat(ellipse_d(10, -42, 1.6, 1.6), "#ff5f7a")
         add(name, -16, -46, 32, 50, t, flat=True)
+    # Torreta de cobro de Mr. Ad: dorada, con un símbolo de dinero / Mr. Ad's debt-collector turret: gold, with a money sign
+    t = "<path d='M0,-12 L-13,1 M0,-12 L13,1 M0,-12 L0,3' fill='none' stroke='#2b2945' stroke-width='3'/>"
+    t += flat("M-11,-23 L11,-23 L11,-11 L-11,-11 Z", "#f2c94c") + flat("M5,-23 L11,-23 L11,-11 L5,-11 Z", "#c9961e")
+    t += flat("M-3,-21 L3,-21 L3,-19 L-1,-19 L-1,-18 L3,-18 L3,-14 L-3,-14 L-3,-16 L1,-16 L1,-17 L-3,-17 Z", "#5a3a10")
+    t += flat("M-0.6,-22.5 L0.6,-22.5 L0.6,-12.5 L-0.6,-12.5 Z", "#5a3a10")
+    t += flat("M-10,-35 L10,-35 L10,-21 L-10,-21 Z", "#2b2f45") + flat("M-8,-33 L8,-33 L8,-23 L-8,-23 Z", "#10261e")
+    t += "<path d='M7,-35 L10,-42' fill='none' stroke='#2b2945' stroke-width='1.6'/>" + flat(ellipse_d(10, -42, 1.6, 1.6), "#ffb04a")
+    add("turret_ad", -16, -46, 32, 50, t, flat=True)
+    # Muñeco de boxeo de Stolk: saco rojo sobre un muelle, con guantes / Stolk's punching dummy: red bag on a spring, with gloves
+    d = flat(ellipse_d(0, 0, 13, 4), "#3e4570")
+    d += "<path d='M0,-2 L-4,-5 L4,-8 L-4,-11 L4,-14 L0,-16' fill='none' stroke='#9aa2c0' stroke-width='2'/>"
+    bag = "M-10,-16 L10,-16 Q12,-30 10,-44 Q0,-50 -10,-44 Q-12,-30 -10,-16 Z"
+    d += flat(bag, "#d6434f") + clipped(bag, flat("M4,-52 L14,-52 L14,-14 L4,-14 Z", "#a82a36"))
+    d += flat("M-10,-22 L10,-22 L10,-19 L-10,-19 Z", "#f4f1ea")
+    d += flat(ellipse_d(-4, -38, 1.6, 1.6), "#2b1d22") + flat(ellipse_d(4, -38, 1.6, 1.6), "#2b1d22")
+    d += flat("M-4,-32 Q0,-29 4,-32", "#2b1d22")
+    for x in (-14, 14):
+        d += flat(ellipse_d(x, -30, 5.5, 5), "#d6434f") + flat(ellipse_d(x + (2 if x > 0 else -2), -31, 2, 2), "#ff8f9e")
+    add("turret_dummy", -20, -54, 40, 58, d, flat=True)
 
 
 def shots():
