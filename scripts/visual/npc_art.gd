@@ -196,12 +196,10 @@ static func _stolk_lift(up: float) -> void:
 		var hand := Vector2(100.0 + 54.0 * side, hy)
 		var elbow := (sh + hand) / 2.0 + Vector2(side * (6.0 + (1.0 - up) * 26.0), (1.0 - up) * 12.0)
 		var col := Color("a8323f") if side < 0.0 else Color("6e1f2a")
-		_ci.draw_line(sh, elbow, ink, 22.0)
-		_ci.draw_line(elbow, hand, ink, 19.0)
-		_ci.draw_circle(elbow, 10.5, ink)
-		_ci.draw_line(sh, elbow, col, 17.0)
-		_ci.draw_line(elbow, hand, col, 14.0)
-		_ci.draw_circle(elbow, 8.0, col)
+		_limb(sh, elbow, 22.0, ink)
+		_limb(elbow, hand, 19.0, ink)
+		_limb(sh, elbow, 17.0, col)
+		_limb(elbow, hand, 14.0, col)
 	# Barra con sus discos / Bar with its plates
 	_ci.draw_rect(Rect2(8, hy - 3, 184, 6), Color("c9cce0"))
 	for x in [8.0, 176.0]:
@@ -255,19 +253,26 @@ static func _doc_lens(lens: Vector2) -> void:
 	if elbow.y < mid.y:
 		elbow = mid + (hand - sh).normalized().orthogonal() * bend
 	var ink := Color("5a5878")
-	_ci.draw_line(sh, elbow, ink, 19.0)
-	_ci.draw_line(elbow, hand, ink, 17.0)
-	_ci.draw_circle(elbow, 9.5, ink)
-	_ci.draw_line(sh, elbow, Color("dcdaee"), 15.0)
-	_ci.draw_line(elbow, hand, Color("c9c6e0"), 13.0)
-	_ci.draw_circle(elbow, 7.5, Color("d4d2ea"))
+	_limb(sh, elbow, 20.0, ink)
+	_limb(elbow, hand, 18.0, ink)
+	_limb(sh, elbow, 15.0, Color("dcdaee"))
+	_limb(elbow, hand, 13.0, Color("c9c6e0"))
 	# Lupa / Magnifier
 	var lc := hand + Vector2(26, -20)
-	_ci.draw_line(hand, lc + (hand - lc).normalized() * 16.0, Color("4a2e22"), 7.0)
-	_ci.draw_circle(hand, 7.0, Color("e8c4a8"))
-	_ci.draw_circle(lc, 16.0, Color("dfe6ff", 0.3))
-	_ci.draw_arc(lc, 16.0, 0, TAU, 24, Color("8f8fb8"), 5.0)
-	_ci.draw_arc(lc, 10.0, -2.4, -1.4, 6, Color(1, 1, 1, 0.8), 3.0)
+	_limb(hand, lc + (hand - lc).normalized() * 20.0, 7.0, Color("4a2e22"))
+	_ci.draw_circle(hand, 8.0, Color("c2a092"))
+	_ci.draw_circle(hand + Vector2(-1, -1), 6.5, Color("e8c4a8"))
+	_ci.draw_circle(lc, 21.0, Color("8f8fb8"))
+	_ci.draw_circle(lc, 16.0, Color("dfe6ff", 0.45))
+	_ci.draw_arc(lc, 11.0, -2.4, -1.4, 6, Color(1, 1, 1, 0.9), 4.0)
+
+
+## Brazo macizo de "a" a "b" (un cuadrilátero con las puntas redondas) / Solid arm from "a" to "b" (a quad with round ends)
+static func _limb(a: Vector2, b: Vector2, w: float, col: Color) -> void:
+	var n := (b - a).normalized().orthogonal() * w / 2.0
+	_ci.draw_colored_polygon(PackedVector2Array([a + n, b + n, b - n, a - n]), col)
+	_ci.draw_circle(a, w / 2.0, col)
+	_ci.draw_circle(b, w / 2.0, col)
 
 
 # --- Utilidades / Helpers -----------------------------------------------------

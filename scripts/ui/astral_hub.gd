@@ -314,6 +314,8 @@ class HubWorld extends Control:
 	var _kroker: Prop
 	var _pinche: Prop
 	var _ball: Prop
+	var _silly: Prop
+	var _silly_chair: Prop
 	var _motes: Array[Vector4] = []
 	var _statues: Array[Control] = []
 
@@ -454,12 +456,16 @@ class HubWorld extends Control:
 		_spots.append({"kind": "npc", "id": id, "pos": at, "height": 84.0 - offset.y})
 		return _prop(at, func(ci: CanvasItem) -> void: _draw_npc(ci, id, offset))
 
-	func _draw_npc(ci: CanvasItem, id: String, offset := Vector2.ZERO, flip := false) -> void:
+	func _draw_npc(ci: CanvasItem, id: String, offset := Vector2.ZERO, flip := false, opts := {}) -> void:
 		var sx := -NPC_SCALE if flip else NPC_SCALE
 		var p := offset
 		if offset.y > -2.0:
 			ci.draw_colored_polygon(_ellipse(Vector2.ZERO, Vector2(10, 3)), Color(0, 0, 0, 0.3))
-		NpcArt.draw(ci, Transform2D(0.0, Vector2(sx, NPC_SCALE), 0.0, p + Vector2(-100.0 * sx, -288.0 * NPC_SCALE)), id, _t)
+		NpcArt.draw(ci, Transform2D(0.0, Vector2(sx, NPC_SCALE), 0.0, p + Vector2(-100.0 * sx, -288.0 * NPC_SCALE)), id, _t, opts)
+
+	## De coordenadas del mundo al lienzo de un personaje que está en "at" / From world coordinates to the canvas of a character standing at "at"
+	func _to_canvas(world: Vector2, at: Vector2) -> Vector2:
+		return (world - at) / NPC_SCALE + Vector2(100, 288)
 
 	func _shadow(ci: CanvasItem, c: Vector2, r: Vector2, a := 0.28) -> void:
 		ci.draw_colored_polygon(_ellipse(c, r), Color(0.03, 0.02, 0.1, a))
@@ -558,7 +564,12 @@ class HubWorld extends Control:
 		_piece(c + Vector2(-122, -56), "hub_flag")
 		_piece(c + Vector2(122, -60), "hub_flag")
 		_piece(c + Vector2(-132, 20), "hub_ballbag", Vector2(12, 5))
-		_npc_prop("svinho", c + Vector2(-60, 4))
+		var sv := _npc_prop("svinho", c + Vector2(-60, 4))
+		# Chuta justo cuando sale el balón / He kicks just as the ball leaves
+		sv.painter = func(ci: CanvasItem) -> void:
+			var ph := fmod(_t, 2.8) / 2.8
+			var k := clampf(1.0 - minf(ph + 0.03, 1.03 - ph) / 0.07, 0.0, 1.0)
+			_draw_npc(ci, "svinho", Vector2.ZERO, false, {"kick": k * k * (3.0 - 2.0 * k)})
 		_ball = _prop(c + Vector2(-48, 4), func(ci: CanvasItem) -> void:
 			var h: float = _ball.get_meta("h", 0.0)
 			_shadow(ci, Vector2.ZERO, Vector2(4, 1.5), 0.3)
@@ -593,17 +604,16 @@ class HubWorld extends Control:
 		_piece(c + Vector2(64, -38), "hub_bench", Vector2(20, 5))
 		_piece(c + Vector2(100, 34), "hub_bag", Vector2(8, 4), Vector2(4, 0))
 		var at := c + Vector2(-20, 18)
-		_npc_prop("stolk", at)
-		# La barra, delante de él / The barbell, in front of him
-		_prop(at + Vector2(0, 0.5), func(ci: CanvasItem) -> void:
-			var up := sin(_t * 2.4) * 0.5 + 0.5
-			var y := roundf(-50.0 - up * 16.0)
-			ci.draw_rect(Rect2(-26, y - 1, 52, 2), Color("c9cce0"))
-			for sx in [-1.0, 1.0]:
-				ci.draw_rect(Rect2(22 * sx - 3, y - 8, 6, 16), Color("2b2945"))
-				ci.draw_rect(Rect2(27 * sx - 2, y - 6, 4, 12), Color("d8434f"))
-			if up > 0.95 and fmod(_t, 2.6) < 1.3:
-				ci.draw_string(UITheme.font("caps"), Vector2(16, -86), "¡30!", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ff8f9e")))
+		var st := _npc_prop("stolk", at)
+		# Levanta la barra con los brazos y cuenta las repeticiones / Presses the bar with his arms and counts the reps
+		st.painter = func(ci: CanvasItem) -> void:
+			var ph := fmod(_t, 2.6) / 2.6
+			var up := 0.5 - 0.5 * cos(ph * TAU)
+			up = up * up * (3.0 - 2.0 * up)
+			_draw_npc(ci, "stolk", Vector2.ZERO, false, {"lift": up})
+			if up > 0.9:
+				var reps := 27 + int(_t / 2.6) % 4
+				ci.draw_string(UITheme.font("caps"), Vector2(16, -90), "¡%d!" % reps, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ff8f9e"))
 
 	# --- Silly: entre pantallas con código verde / among screens of green code ---
 
@@ -614,11 +624,21 @@ class HubWorld extends Control:
 		_prop(desk, func(ci: CanvasItem) -> void:
 			ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-70, -90), Vector2(140, 100)), false, Color("5ff2a0", 0.14))
 			Sprites.draw(ci, "hub_monitors")
-			for s: Rect2 in [Rect2(-31, -38, 16, 12), Rect2(-8, -44, 16, 14), Rect2(15, -38, 16, 12)]:
-				for row in int(s.size.y / 3):
-					var n := int(_t * 7.0 + row * 3 + s.position.x)
-					var w := 3.0 + float((n * 37) % int(s.size.x - 4))
-					ci.draw_rect(Rect2(s.position + Vector2(1, 1 + row * 3), Vector2(w, 1)), Color("5ff2a0", 0.85)))
+			var active := _silly_screen()
+			var screens: Array[Rect2] = [Rect2(-31, -38, 16, 12), Rect2(-8, -44, 16, 14), Rect2(15, -38, 16, 12)]
+			for i in 3:
+				var sc := screens[i]
+				var on := i == active
+				if on:
+					ci.draw_rect(sc, Color("0c2a1a"))
+				var speed := 14.0 if on else 3.0
+				for row in int(sc.size.y / 3):
+					var n := int(_t * speed + row * 3 + sc.position.x)
+					var w := 3.0 + float((n * 37) % int(sc.size.x - 4))
+					ci.draw_rect(Rect2(sc.position + Vector2(1, 1 + row * 3), Vector2(w, 1)), Color("7dffb0" if on else "2f9a6a", 0.9 if on else 0.6))
+				if on and fmod(_t, 2.4) > 1.9:
+					ci.draw_rect(Rect2(sc.position + Vector2(2, sc.size.y / 2.0 - 2), Vector2(sc.size.x - 4, 4)), Color("5ff2a0"))
+					ci.draw_rect(Rect2(sc.position + Vector2(3, sc.size.y / 2.0 - 1), Vector2(sc.size.x - 6, 2)), Color("0c2a1a")))
 		for x in [-74.0, 74.0]:
 			var at := c + Vector2(x, -44)
 			_blocks.append({"c": at, "r": Vector2(8, 3)})
@@ -627,8 +647,30 @@ class HubWorld extends Control:
 				for k in 6:
 					var on := fmod(_t * 3.0 + k * 1.7 + x, 2.0) < 1.0
 					ci.draw_rect(Rect2(Vector2(-4 + (k % 2) * 6, -30 + (k / 2) * 9), Vector2(1, 1)), Color("5ff2a0") if on else Color("1f6a4a")))
-		_piece(c + Vector2(40, -12), "hub_gamerchair", Vector2(8, 3))
-		_npc_prop("silly", c + Vector2(-6, -10))
+		# Silly, de espaldas en su silla, rueda de un monitor a otro / Silly, back to us in her chair, rolls from one monitor to another
+		_blocks.append({"c": desk + Vector2(0, 30), "r": Vector2(30, 7)})
+		_spots.append({"kind": "npc", "id": "silly", "pos": desk + Vector2(0, 46), "height": 70.0})
+		_silly = _prop(desk + Vector2(0, 30), func(ci: CanvasItem) -> void:
+			var s2 := NPC_SCALE
+			var bob := roundf(absf(sin(_t * 9.0)) * 0.6)
+			var tilt := sin(_t * 0.7) * 0.03
+			ci.draw_set_transform_matrix(Transform2D(tilt, Vector2(s2, s2), 0.0, Vector2(-100.0 * s2, -288.0 * s2 - 7.0 + bob)))
+			Sprites.draw(ci, "npc_silly_back")
+			ci.draw_set_transform(Vector2.ZERO))
+		_silly_chair = _prop(desk + Vector2(0, 36), func(ci: CanvasItem) -> void:
+			_shadow(ci, Vector2(0, -1), Vector2(13, 3))
+			Sprites.draw(ci, "hub_gamerchair_back"))
+
+	## Qué monitor está usando Silly (cambia cada poco) / Which monitor Silly is using (changes every so often)
+	func _silly_screen() -> int:
+		return [1, 0, 1, 2, 0, 2][int(_t / 2.4) % 6]
+
+	func _tick_silly() -> void:
+		var desk := _isle_pos("silly") + Vector2(0, -40)
+		var target: float = [-22.0, 0.0, 22.0][_silly_screen()]
+		var x := move_toward(_silly.position.x - desk.x, target, 40.0 * get_process_delta_time())
+		_silly.position.x = roundf(desk.x + x)
+		_silly_chair.position.x = _silly.position.x
 
 	# --- Doc: examina un pie gigante con la lupa / examines a giant foot with the magnifier ---
 
@@ -638,12 +680,19 @@ class HubWorld extends Control:
 		_piece(couch, "hub_couch", Vector2(30, 6), Vector2(0, -6))
 		_piece(c + Vector2(-96, -42), "hub_cabinet", Vector2(12, 4))
 		_piece(c + Vector2(-46, -50), "hub_poster", Vector2(9, 3))
-		_npc_prop("doc", c + Vector2(-6, -8))
-		_prop(couch + Vector2(0, 1), func(ci: CanvasItem) -> void:
-			var mg := Vector2(4 + sin(_t * 1.3) * 12.0, -30 + cos(_t * 1.7) * 4.0).round()
-			ci.draw_arc(mg, 6.0, 0, TAU, 16, Color("8f8fb8"), 2.0)
-			ci.draw_circle(mg, 5.0, Color("dfe6ff", 0.35))
-			ci.draw_line(mg + Vector2(4, 4), mg + Vector2(9, 9), Color("4a2e22"), 2.0))
+		var at := couch + Vector2(-28, 3)
+		var dc := _npc_prop("doc", at)
+		# Va pasando la lupa por el pie: tobillo, empeine, dedos y talón / He runs the magnifier over the foot: ankle, instep, toes and heel
+		dc.painter = func(ci: CanvasItem) -> void:
+			var pts: Array[Vector2] = [Vector2(-12, -34), Vector2(2, -30), Vector2(14, -25), Vector2(22, -21), Vector2(-18, -22)]
+			var u := _t / 1.6
+			var i := int(u) % pts.size()
+			var k := clampf((fmod(u, 1.0) - 0.55) / 0.45, 0.0, 1.0)
+			k = k * k * (3.0 - 2.0 * k)
+			var tgt := pts[i].lerp(pts[(i + 1) % pts.size()], k) + Vector2(sin(_t * 5.0), cos(_t * 4.0)) * 0.6
+			_draw_npc(ci, "doc", Vector2.ZERO, false, {"lens": _to_canvas(couch + tgt, at)})
+			if i == 3 and k == 0.0:
+				ci.draw_string(UITheme.font("caps"), Vector2(-12, -76), "¿Hmm?", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ffe3a3"))
 
 	# --- Mr. Ad: sale en todas las teles del escaparate / is on every TV in the window ---
 
@@ -654,23 +703,66 @@ class HubWorld extends Control:
 		_spots.append({"kind": "npc", "id": "ad", "pos": c + Vector2(0, 6), "height": 100.0})
 		_prop(shop, func(ci: CanvasItem) -> void:
 			Sprites.draw(ci, "hub_shopfront")
-			var glitch := fmod(_t, 5.0) < 0.25
-			for k in 6:
-				var tv := Vector2(-79 + (k % 3) * 56, -67 + (k / 3) * 27)
-				var scr := Rect2(tv, Vector2(46, 18))
-				ci.draw_rect(scr, Color("2a5a7a") if not glitch else Color("1e3a50"))
-				if glitch:
-					for s in 4:
-						ci.draw_rect(Rect2(tv + Vector2(0, s * 5), Vector2(46, 2)), Color(1, 1, 1, randf() * 0.5))
-				else:
-					# Mr. Ad pequeñito en cada tele, mirando hacia Kroker / Tiny Mr. Ad on each TV, looking towards Kroker
-					var flip := _pos.x < shop.x + tv.x + 23.0
-					var s := 0.06
-					var sx := -s if flip else s
-					var base := tv + Vector2(23, 18)
-					NpcArt.draw(ci, Transform2D(0.0, Vector2(sx, s), 0.0, base + Vector2(-100.0 * sx, -300.0 * s)), "ad", _t + k * 0.4)
-				ci.draw_rect(Rect2(tv, Vector2(46, 1)), Color(1, 1, 1, 0.12))
+			for k in 3:
+				_ad_tv(ci, k, Rect2(-80 + k * 57, -67, 46, 38), 1.0)
 			ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-110, -90), Vector2(220, 100)), false, Color("ffb04a", 0.08)))
+		for k in 2:
+			var at := c + Vector2(-132 + k * 264, 16)
+			_blocks.append({"c": at + Vector2(0, -4), "r": Vector2(12, 4)})
+			_prop(at, func(ci: CanvasItem) -> void:
+				_shadow(ci, Vector2(0, -1), Vector2(12, 3))
+				Sprites.draw(ci, "hub_tv")
+				_ad_tv(ci, 3 + k, Rect2(-9, -29, 16, 13), 0.42))
+
+	## En qué tele está Mr. Ad en el trozo de tiempo "n" (nunca dos veces seguidas en la misma)
+	## Which TV Mr. Ad is on during time slice "n" (never twice in a row on the same one)
+	func _ad_screen(n: int) -> int:
+		var s := absi(hash(n * 7919 + 13)) % 5
+		if s == absi(hash((n - 1) * 7919 + 13)) % 5:
+			s = (s + 1) % 5
+		return s
+
+	## Una tele del escaparate: Mr. Ad salta de una a otra, hiperactivo, con la cara en primer plano
+	## One TV in the window: Mr. Ad hops from one to the next, hyperactive, his face in close-up
+	func _ad_tv(ci: CanvasItem, idx: int, scr: Rect2, zoom: float) -> void:
+		const SLICE := 0.55
+		var n := int(_t / SLICE)
+		var u := fmod(_t, SLICE) / SLICE
+		var here := _ad_screen(n) == idx
+		ci.draw_rect(scr, Color("1e3a50"))
+		if here:
+			ci.draw_rect(scr, Color("2a5a7a"))
+			# Entra de golpe por un lado, tiembla y a veces se acerca muchísimo
+			# He bursts in from one side, shakes, and sometimes gets really close
+			var side := 1.0 if hash(n) % 2 == 0 else -1.0
+			var slide := maxf(0.0, 1.0 - u / 0.16)
+			var z := zoom * (1.55 if n % 4 == 0 else 1.0) * (1.0 + 0.06 * sin(_t * 30.0))
+			var jit := Vector2(sin(_t * 47.0), cos(_t * 39.0)).round()
+			var cpos := scr.get_center() + Vector2(side * slide * scr.size.x, 0) + jit + Vector2(0, scr.size.y * 0.08)
+			_ad_face(ci, scr, cpos, z)
+		elif _ad_screen(n - 1) == idx and u < 0.3:
+			# Nieve de la tele que acaba de dejar / Static on the TV he just left
+			var rng := RandomNumberGenerator.new()
+			rng.seed = int(_t * 40.0) + idx
+			for i in int(scr.size.x * scr.size.y / 10.0):
+				ci.draw_rect(Rect2(scr.position + Vector2(rng.randi_range(0, int(scr.size.x) - 1), rng.randi_range(0, int(scr.size.y) - 1)), Vector2(1, 1)), Color(1, 1, 1, rng.randf_range(0.3, 0.8)))
+		else:
+			# Mientras, un anuncio: «$» que parpadea / Meanwhile, an advert: a blinking "$"
+			if fmod(_t * 2.0 + idx, 2.0) < 1.2 and scr.size.x > 20.0:
+				ci.draw_string(UITheme.font("caps"), scr.get_center() + Vector2(-4, 4), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("ffb04a", 0.8))
+		var line := fposmod(_t * 20.0 + idx * 7.0, scr.size.y)
+		ci.draw_rect(Rect2(scr.position + Vector2(0, roundf(line)), Vector2(scr.size.x, 1)), Color(1, 1, 1, 0.08))
+		ci.draw_rect(Rect2(scr.position, Vector2(scr.size.x, 1)), Color(1, 1, 1, 0.14))
+
+	## La cabeza de Mr. Ad (del sprite) recortada a la pantalla / Mr. Ad's head (from the sprite) clipped to the screen
+	func _ad_face(ci: CanvasItem, scr: Rect2, centre: Vector2, zoom: float) -> void:
+		const SRC := Rect2(11, 1, 27, 37)
+		var fr := Rect2(centre - SRC.size * zoom / 2.0, SRC.size * zoom)
+		var d := fr.intersection(scr)
+		if d.size.x <= 0.5 or d.size.y <= 0.5:
+			return
+		var src := Rect2(SRC.position + (d.position - fr.position) / zoom, d.size / zoom)
+		ci.draw_texture_rect_region(Sprites.tex("npc_ad"), d, src)
 
 	# --- El Pinche: apaga su cocina en llamas / puts out his kitchen on fire ---
 
@@ -835,6 +927,8 @@ class HubWorld extends Control:
 			_tick_svinho()
 		if is_instance_valid(_pinche):
 			_tick_pinche()
+		if is_instance_valid(_silly):
+			_tick_silly()
 		_check_zone()
 		var off := _offset()
 		_ground.position = off
