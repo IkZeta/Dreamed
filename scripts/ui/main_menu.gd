@@ -83,9 +83,8 @@ func _build() -> void:
 	_bestiary = _entry(col, "MENU_BESTIARY", _on_bestiary)
 	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
-	# Solo para pruebas: la demo no lo lleva / Testing only: not in the demo
-	if not Demo.on():
-		_unlock = _entry(col, "MENU_UNLOCK_ALL", _on_unlock_all)
+	# «Desbloquear todo» también está en la demo / "Unlock everything" is in the demo too
+	_unlock = _entry(col, "MENU_UNLOCK_ALL", _on_unlock_all)
 	_entry(col, "MENU_QUIT", _on_quit)
 
 	var version := UITheme.label("V 1.4" + (" DEMO" if Demo.on() else ""), 16, Color(UITheme.ASH, 0.6), "caps")
