@@ -403,11 +403,13 @@ func _draw_spin_trail(a: float, front: bool) -> void:
 ## Prompt over his head in front of the fireplace: "F · Into the fire", with a little flame
 func _draw_hearth_ring() -> void:
 	var lr := run.room as LivingRoom
-	if lr == null or not lr.fire_near or not lr.can_sacrifice():
+	var ar := run.room as Act3Room
+	var locker := ar != null and ar.shades_near
+	if not locker and (lr == null or not lr.fire_near or not lr.can_sacrifice()):
 		return
 	var font := UITheme.font("caps")
 	var size := UITheme.pixel_size(14)
-	var text := Settings.controls_text(tr("HEARTH_PROMPT")).to_upper()
+	var text := Settings.controls_text(tr("SHADES_PROMPT" if locker else "HEARTH_PROMPT")).to_upper()
 	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var c := Vector2(0, -178 + sin(_t * 3.0) * 2.0)
 	draw_rect(Rect2(c + Vector2(-w / 2.0 - 30, -20), Vector2(w + 44, 30)), Color(0.05, 0.03, 0.18, 0.6))

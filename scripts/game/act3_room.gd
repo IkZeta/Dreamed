@@ -59,6 +59,65 @@ var _doors: Array[Rect2] = []
 var _props: Array[Rect2] = []
 
 
+## Taquilla abierta con las gafas de sol de Lil Key (a veces, hasta que se cogen por primera vez)
+## Open locker with Lil Key's sunglasses (sometimes, until they're taken for the first time)
+const SHADES_CHANCE := 0.1
+const LOCKER_W := 70.0
+## x de cada taquilla de la pared de taquillas (la 0) / x of each locker on the locker wall (wall 0)
+const LOCKERS: Array[float] = [40, 112, 184, 256, 328, 400, 472, 544, 616, 1320, 1392, 1464, 1608, 1680, 1752, 1824]
+var locker_x := INF          # x en el lienzo de la taquilla abierta (INF = ninguna) / canvas x of the open locker (INF = none)
+var shades_near := false
+
+
+## Decide si este sueño hay una taquilla abierta, en un trozo de taquillas cerca del principio
+## Decides whether there's an open locker this dream, on a locker piece near the start
+func roll_locker() -> void:
+	if Progress.has_achieved("lilkey") or GameState.run_shades or randf() >= SHADES_CHANCE:
+		return
+	var piece: int = [-3, 0, 3][randi() % 3]
+	locker_x = LOCKERS[randi() % LOCKERS.size()] + piece * PERIOD
+
+
+## Punto del suelo delante de la taquilla abierta (en la pantalla) / Floor point in front of the open locker (on screen)
+func locker_spot() -> Vector2:
+	return Bedroom.to_world(Vector2(locker_x + LOCKER_W / 2.0, 360.0))
+
+
+func take_shades() -> void:
+	locker_x = INF
+	shades_near = false
+
+
+func _draw_open_locker() -> void:
+	if locker_x == INF:
+		return
+	var x := locker_x
+	# Hueco oscuro, estante y las gafas colgadas / Dark inside, a shelf and the sunglasses hanging
+	draw_rect(Rect2(x + 2, 62, LOCKER_W - 4, 236), Color("141a3a"))
+	draw_rect(Rect2(x + 2, 62, LOCKER_W - 4, 10), Color("0c1028"))
+	draw_rect(Rect2(x + 4, 122, LOCKER_W - 8, 6), Color("4a5a8a"))
+	draw_rect(Rect2(x + 30, 72, 4, 26), Color("8a8fa8"))
+	var glow := 0.25 + 0.15 * sin(_t * 3.0) + (0.3 if shades_near else 0.0)
+	draw_texture_rect(DreamBackground.soft_texture(), Rect2(x - 20, 50, LOCKER_W + 40, 110), false, Color("ff6a8a", glow))
+	var g := Vector2(x + LOCKER_W / 2.0, 104 + sin(_t * 2.0) * 2.0)
+	for side in [-1.0, 1.0]:
+		draw_rect(Rect2(g + Vector2(-17 if side < 0.0 else 3, -6), Vector2(14, 10)), Color("15131f"))
+		draw_rect(Rect2(g + Vector2(-14 if side < 0.0 else 6, -4), Vector2(5, 3)), Color("ff8fb0") if side < 0.0 else Color("8fe0ff"))
+	draw_rect(Rect2(g + Vector2(-3, -5), Vector2(6, 3)), Color("15131f"))
+	# Una mochila y unos libros abajo / A backpack and some books at the bottom
+	draw_rect(Rect2(x + 10, 240, 26, 50), Color("3f9a6a"))
+	draw_rect(Rect2(x + 40, 262, 22, 28), Color("e0b53a"))
+	# La puerta abierta, en perspectiva a la izquierda / The open door, in perspective on the left
+	draw_colored_polygon(PackedVector2Array([Vector2(x, 60), Vector2(x - 34, 74), Vector2(x - 34, 288), Vector2(x, 300)]), Color("3f72b8"))
+	draw_colored_polygon(PackedVector2Array([Vector2(x - 30, 76), Vector2(x - 34, 74), Vector2(x - 34, 288), Vector2(x - 30, 288)]), Color("24467a"))
+	for y in [100.0, 110.0, 120.0]:
+		draw_line(Vector2(x - 26, y + 4), Vector2(x - 6, y), Color("24467a"), 3.0)
+	# Destellos / Sparkles
+	for i in 3:
+		var ph := fposmod(_t * 0.8 + i * 0.33, 1.0)
+		DreamBackground.draw_star(self, g + Vector2(-26 + i * 26, -20 - ph * 20.0), 3.0 * (1.0 - ph), Color(1, 1, 1, 1.0 - ph))
+
+
 func walkable() -> Rect2:
 	return WALK
 
@@ -196,6 +255,7 @@ func _draw() -> void:
 	# Act 3 achievement drawings, repeated on every piece of their wall type
 	for i: int in pieces:
 		draw_drawings(drawing_slots().get(posmod(i, 3), {}), Vector2(i * PERIOD, 0), DUSK)
+	_draw_open_locker()
 	_draw_dusk(k)
 	_draw_scorches(k)
 	if bell_open > 0.0:

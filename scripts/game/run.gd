@@ -123,6 +123,8 @@ func _ready() -> void:
 		# Acto 3 (provisional) / Act 3 (placeholder)
 		room = Act3Room.new()
 		room.weird = depth - GameState.ACT3_START + 1
+		if not boss_wave():
+			(room as Act3Room).roll_locker()
 	elif act >= 2:
 		# Acto 2: el salón, más raro desde el primer sueño / Act 2: the living room, stranger from the first dream
 		var lr := LivingRoom.new()
@@ -440,6 +442,27 @@ func gain_reality(n: int, pos: Vector2) -> void:
 
 
 # --- Chimenea del salón / Living-room fireplace ----------------------------------------
+
+## La taquilla abierta del pasillo: con la F, Kroker se pone las gafas de sol de Lil Key
+## The hallway's open locker: with F, Kroker puts on Lil Key's sunglasses
+func _update_locker() -> void:
+	if not room is Act3Room:
+		return
+	var ar := room as Act3Room
+	if ar.locker_x == INF:
+		return
+	var spot := ar.locker_spot()
+	ar.shades_near = absf(player.position.x - spot.x) < 70.0 and player.position.y - spot.y < 80.0 and _modal == null
+	if ar.shades_near and Input.is_action_just_pressed("interact"):
+		ar.take_shades()
+		GameState.run_shades = true
+		player.cast_anim = 1.0
+		Audio.play("pickup", -2.0)
+		fx.dissipate(player.global_position + Vector2(0, -110), Color("ff6a8a"))
+		fx.ring(player.global_position + Vector2(0, -110), 30.0, Color("ff6a8a"), 0.5, 2.0)
+		fx.text(player.global_position + Vector2(0, -170), tr("SHADES_GOT"), Color("ffb0c0"), 26)
+		Progress.flag("lilkey")
+
 
 func _update_hearth(_delta: float) -> void:
 	if not room is LivingRoom:
@@ -794,6 +817,7 @@ func _physics_process(delta: float) -> void:
 	if not GameState.invest.is_empty() and int(GameState.run_time * 4.0) != int((GameState.run_time - delta) * 4.0):
 		hud.set_invest()
 	_update_hearth(delta)
+	_update_locker()
 	if float(_wave.get("duration", 0.0)) > 0.0:
 		_time_left -= delta
 		hud.set_time(_time_left)
@@ -1471,6 +1495,10 @@ func _on_act_cleared(killed := true) -> void:
 			e.die(false)
 	Progress.clear_act(GameState.selected_character, GameState.difficulty)
 	Progress.add_stat("dreams")
+	# Los tres muebles tumbados en pesadilla (no vale aguantar): llega SuperK
+	# All three pieces knocked out on nightmare (holding out doesn't count): SuperK arrives
+	if killed and GameState.difficulty == "nightmare" and not GameState.training:
+		Progress.flag("superk")
 	# Sin un rasguño (no vale con la invulnerabilidad del modo Dios) / Not a scratch (god mode invulnerability doesn't count)
 	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
 		Progress.flag("no_hit")
