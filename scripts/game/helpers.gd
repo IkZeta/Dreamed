@@ -71,6 +71,15 @@ func _physics_process(delta: float) -> void:
 			continue
 		if _start(g, power, w):
 			_timers[key] = GameState.up_value(g, "cd", -1, w)
+			# Lil Key con las dos armas no sale el doble: comparten la recarga y se turnan
+			# (la otra arma sale en la siguiente, esta en la de después)
+			# Lil Key with both weapons doesn't come twice as often: they share the cooldown and
+			# take turns (the other weapon goes next, this one the time after)
+			if g == "lilkey":
+				for other: String in _timers:
+					if other != key and other.begins_with("lilkey:"):
+						_timers[other] = maxf(float(_timers[other]), GameState.up_value(g, "cd", -1, other.get_slice(":", 1)))
+						_timers[key] = float(_timers[key]) * 2.0
 		else:
 			_timers[key] = 1.0
 
