@@ -17,16 +17,18 @@ const RANGE := 230.0
 const DAMAGE := 7.0
 const BOUNCE_RANGE := 260.0
 const KNOCKBACK := 260.0
+## Recarga entre chut y chut (cuenta desde que la pelota vuelve) / Cooldown between kicks (counts from when the ball returns)
+const COOLDOWN := 0.6
 
 var _ball: Node2D
 
 
 func _init() -> void:
-	cooldown = 0.5
+	cooldown = COOLDOWN
 
 
 func _ready() -> void:
-	cooldown = 0.5 * (1.0 + uv("doc", "pct") / 100.0)
+	cooldown = COOLDOWN * (1.0 + uv("doc", "pct") / 100.0)
 
 
 ## ¿Tiene la pelota en los pies? / Does he have the ball at his feet?
@@ -90,6 +92,8 @@ class BallShot extends Node2D:
 		if _returning:
 			goal = weapon.player.global_position + Vector2(0, -8)
 			if global_position.distance_to(goal) < 26.0:
+				# La recarga empieza ahora, no al chutar / The cooldown starts now, not on the kick
+				weapon._timer = weapon.cooldown
 				queue_free()
 				return
 		else:
