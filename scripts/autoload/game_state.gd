@@ -649,6 +649,9 @@ func roll_deal() -> Dictionary:
 		var stat_id: String = pool.pop_at(_rng.randi_range(0, pool.size() - 1))
 		boosts.append({"stat": stat_id, "value": float(STAT_STEPS[stat_id][int(sz["rarity"])])})
 	var goals := INVEST_GOALS.keys()
+	# Tirar enemigos por agujeros solo si alguna de tus armas puede / Pushing enemies down holes only if one of your weapons can
+	if not can_push_into_holes():
+		goals.erase("falls")
 	var goal: String = goals[_rng.randi_range(0, goals.size() - 1)]
 	var g: Dictionary = INVEST_GOALS[goal]
 	var amount := float(g["base"]) + float(g["per_act"]) * (act() - 1)
@@ -665,6 +668,27 @@ func roll_deal() -> Dictionary:
 		# La amistad con Magnus sube lo que devuelve / Friendship with Magnus raises the payout
 		"payout": roundi(cost * float(sz["mult"]) * friend_mult("magnus")),
 	}
+
+
+## ¿Puede alguna de tus armas tirar enemigos por los agujeros? / Can any of your weapons push enemies down holes?
+## Empujan lo bastante: la almohada, la aspiradora (lo que arrastras), la pistola de dedos (sus rayos
+## que empujan) y la pelota; el bate solo con Svinho; el portátil con el muñeco de Stolk, con el
+## fogón del Pinche o con torretas de nivel 3. El libro y el oso no empujan.
+## Push hard enough: pillow, vacuum (what you drag), finger gun (its pushing beams) and ball; the bat
+## only with Svinho; the laptop with Stolk's dummy, the Kitchen Boy's stove or level-3 turrets.
+## The book and the teddy don't push.
+func can_push_into_holes() -> bool:
+	for w in weapons():
+		match w:
+			"shield", "vacuum", "finger", "ball":
+				return true
+			"bat":
+				if level("svinho", w) > 0:
+					return true
+			"laptop":
+				if level("stolk", w) > 0 or level("pinche", w) > 0 or WeaponLaptop.turret_level() >= 3:
+					return true
+	return false
 
 
 func _goal_counter(goal: String) -> int:
