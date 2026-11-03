@@ -222,7 +222,7 @@ func _act(delta: float) -> void:
 	if not _atk.is_empty():
 		_update_attack(delta)
 		return
-	_atk_cd -= delta * (0.5 if slow_t > 0.0 else 1.0) / attack_slow
+	_atk_cd -= delta * (0.5 if slow_t > 0.0 else 1.0) / attack_slow * GameState.BOSS_POWER
 	if _atk_cd <= 0.0:
 		_begin_attack()
 
@@ -292,7 +292,7 @@ func _land() -> void:
 	run.fx.dissipate(global_position, Color("cfc6e8"))
 	var player: Player = run.player
 	if player.global_position.distance_to(global_position) < QUAKE_RADIUS:
-		player.take_damage(5.0 * GameState.enemy_dmg_mult() * atk_mult())
+		player.take_damage(5.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult())
 	_waves.append({"r": 40.0, "hit": false})
 
 
@@ -307,7 +307,7 @@ func _update_waves(delta: float) -> void:
 		var dist := Vector2(d.x, d.y / 0.45).length()
 		if not w["hit"] and absf(dist - r) < 26.0 and r > QUAKE_RADIUS:
 			w["hit"] = true
-			player.take_damage(3.0 * GameState.enemy_dmg_mult() * atk_mult())
+			player.take_damage(3.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult())
 		if r > WAVE_REACH:
 			_waves.remove_at(i)
 
@@ -319,7 +319,7 @@ func _throw_books(n: int, dir: Vector2) -> void:
 		shot.run = run
 		shot.kind = "book"
 		shot.radius = 16.0
-		shot.damage = 3.0
+		shot.damage = 3.0 * GameState.BOSS_POWER
 		shot.position = from
 		shot.velocity = dir.rotated((i - (n - 1) / 2.0) * 0.22) * 470.0
 		run.world.add_child(shot)

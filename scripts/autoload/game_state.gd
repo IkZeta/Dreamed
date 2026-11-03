@@ -324,6 +324,11 @@ func enemy_hp_mult() -> float:
 	return (1.6 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.35, 1.7][act()]
 
 
+## Los jefes atacan más a menudo y pegan más fuerte (en las dos dificultades)
+## Bosses attack more often and hit harder (on both difficulties)
+const BOSS_POWER := 1.25
+
+
 func enemy_dmg_mult() -> float:
 	return (1.5 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.2, 1.4][act()]
 

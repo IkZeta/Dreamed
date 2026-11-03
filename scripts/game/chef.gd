@@ -222,7 +222,7 @@ func _start_attack() -> void:
 		return
 	_next = (_next + 1) % 2
 	if _next == 0:
-		var count := 5 if _angry else 3
+		var count := 6 if _angry else 4
 		var base_dir: Vector2 = (run.player.global_position + Player.HURT - _hand_from()).normalized()
 		var dirs: Array[Vector2] = []
 		for i in count:
@@ -234,7 +234,7 @@ func _start_attack() -> void:
 
 func _end_attack() -> void:
 	_atk = {}
-	_atk_cd = (1.1 if _angry else 1.6) + randf_range(-0.2, 0.3)
+	_atk_cd = ((1.1 if _angry else 1.6) + randf_range(-0.2, 0.3)) / GameState.BOSS_POWER
 
 
 func _plate_targets(n: int) -> Array[Vector2]:
@@ -259,7 +259,7 @@ func _pan_strike() -> void:
 	var d: Vector2 = player.global_position - global_position
 	if d.length() < PAN_RANGE and d.x * _facing > -40.0:
 		var before := player.hp
-		player.take_damage(PAN_DAMAGE * GameState.enemy_dmg_mult() * atk_mult())
+		player.take_damage(PAN_DAMAGE * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult())
 		if player.hp < before:
 			player.root(PAN_ROOT)
 
