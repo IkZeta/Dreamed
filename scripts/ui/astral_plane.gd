@@ -23,6 +23,8 @@ var _talk_buttons: HBoxContainer
 var _tip_button: Button
 var _hearts: FriendHearts
 var _first_talk := false
+## Trato que ofrece Magnus, si sale / Deal Magnus offers, if he shows up
+var _deal := {}
 
 
 func _ready() -> void:
@@ -132,6 +134,9 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	# Amistad con este personaje / Friendship with this character
 	v.add_child(FriendHearts.new(Progress.friend_level(giver), GiverFigure.AURA[giver], 14.0))
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.5)))
+	if giver == "magnus":
+		_deal_card(v, fig)
+		return col
 
 	# Con dos armas, pestañas para elegir a cuál va el don / With two weapons, tabs to pick which one gets the gift
 	var weapons := GameState.weapons()
@@ -196,11 +201,44 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	return col
 
 
+## Magnus no da mejora: propone un trato / Magnus gives no upgrade: he proposes a deal
+func _deal_card(v: VBoxContainer, fig: GiverFigure) -> void:
+	_deal = GameState.roll_deal()
+	var up_row := HBoxContainer.new()
+	var title := UITheme.label("INVEST_TITLE", 26, UITheme.GOLD)
+	title.size_flags_horizontal = SIZE_EXPAND_FILL
+	up_row.add_child(title)
+	var stat_l := UITheme.label(GameState.stat_value_text(_deal["stat"], _deal["value"]), 14, GiverFigure.AURA["magnus"], "caps")
+	stat_l.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	up_row.add_child(stat_l)
+	v.add_child(up_row)
+	var desc := Keywords.label("", 19, Color(UITheme.BONE, 0.85), "light")
+	desc.custom_minimum_size.y = 84
+	Keywords.set_text(desc, tr("INVEST_DESC").format({
+		"cost": _deal["cost"], "payout": _deal["payout"], "goal": GameState.deal_goal_text(_deal),
+		"stat": GameState.stat_value_text(_deal["stat"], _deal["value"])}))
+	v.add_child(desc)
+	var b := Button.new()
+	b.text = tr("INVEST_ACCEPT").format({"cost": _deal["cost"]})
+	b.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	b.custom_minimum_size = Vector2(0, 60)
+	b.pressed.connect(_choose.bind("magnus"))
+	Keywords.on_focus(b, desc)
+	b.mouse_entered.connect(b.grab_focus)
+	b.focus_entered.connect(func() -> void: fig.highlight = true)
+	b.focus_exited.connect(func() -> void: fig.highlight = false)
+	v.add_child(b)
+	_buttons.append(b)
+
+
 func _choose(giver: String) -> void:
 	if _chosen:
 		return
 	_chosen = true
-	GameState.add_upgrade(giver, _target.get(giver, ""))
+	if giver == "magnus":
+		GameState.sign_deal(_deal)
+	else:
+		GameState.add_upgrade(giver, _target.get(giver, ""))
 	GameState.dream_depth += 1
 	Audio.play("giver_" + giver, -1.0)
 	Audio.play("pickup", -4.0)
@@ -244,10 +282,14 @@ func _talk_scene(giver: String) -> void:
 	col.add_child(UITheme.label("GIVER_%s_ROLE" % giver.to_upper(), 24, UITheme.ASH, "caps"))
 	col.add_child(UITheme.rule(Color(aura, 0.5)))
 	var weapon: String = _target.get(giver, GameState.selected_character)
-	var gift_text := tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver, weapon)})
-	# Con dos armas se dice para cuál es / With two weapons, say which one it's for
-	if GameState.weapons().size() > 1:
-		gift_text += " · " + tr("WEAPON_SHORT_" + weapon.to_upper())
+	var gift_text: String
+	if giver == "magnus":
+		gift_text = tr("INVEST_SIGNED").format({"goal": GameState.deal_goal_text(_deal)})
+	else:
+		gift_text = tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver, weapon)})
+		# Con dos armas se dice para cuál es / With two weapons, say which one it's for
+		if GameState.weapons().size() > 1:
+			gift_text += " · " + tr("WEAPON_SHORT_" + weapon.to_upper())
 	var gift := UITheme.label(gift_text, 24, UITheme.GOLD, "caps")
 	gift.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	col.add_child(gift)
@@ -416,7 +458,7 @@ func _leave() -> void:
 
 ## Personaje sobre una roca flotante / A character standing on a floating rock
 class GiverFigure extends Control:
-	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a")}
+	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a")}
 	var who := "svinho"
 	var highlight := false
 	var _t := 0.0

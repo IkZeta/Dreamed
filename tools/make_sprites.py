@@ -2466,6 +2466,76 @@ def pinche():
     add("npc_pinche", 50, 12, 116, 280, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 1))
 
 
+def magnus():
+    """Magnus en pixel art (modo flat): magnate de los negocios detrás de su escritorio. Traje azul
+    marino de raya diplomática, pelo canoso engominado, corbata dorada, gemelos, y en la mesa una
+    placa con su nombre, montones de monedas y un teléfono. La moneda que lanza se anima en el juego.
+    Magnus in pixel art (flat mode): a business magnate behind his desk. Navy pinstripe suit,
+    slicked-back grey hair, gold tie, cufflinks, and on the desk a nameplate, stacks of coins and a
+    phone. The coin he flips is animated in game."""
+    SU1, SU2, SU3 = "#1b2147", "#2a3268", "#3c4790"
+    PIN = "#56609e"
+    SH, SH1 = "#f4f1ea", "#c8c4d8"
+    GO, GO1, GO2 = "#c9961e", "#f2c94c", "#fff0a0"
+    S, S1 = "#efc8a8", "#c9967e"
+    HA1, HA2, HA3 = "#8f8fa8", "#c8c8da", "#eeeef6"
+    WOOD, WOOD1, WOOD2, WOOD3 = "#5a2e22", "#7a3e2a", "#9a5436", "#3e1e18"
+    b = ""
+    # Respaldo del sillón / Chair back
+    b += flat("M58,70 Q58,52 76,50 L124,50 Q142,52 142,70 L146,180 L54,180 Z", "#4a1e2a")
+    b += flat("M124,50 Q142,52 142,70 L146,180 L132,180 L130,60 Z", "#33141e")
+    b += "".join(flat(ellipse_d(x, y, 1.8, 1.8), "#7a3a48") for x in (70, 100, 130) for y in (72, 100))
+    # Traje / Suit
+    b += flat("M74,96 L126,96 L150,110 L154,186 L46,186 L50,110 Z", SU2)
+    b += flat("M126,96 L150,110 L154,186 L134,186 C138,150 136,120 122,98 Z", SU1)
+    b += "".join(flat("M%g,100 L%g,100 L%g,186 L%g,186 Z" % (x, x + 1.2, x + 1.2, x), PIN) for x in range(56, 146, 8))
+    b += flat("M54,114 C56,108 62,103 70,100 L70,106 C64,108 60,112 58,118 Z", SU3)
+    # Camisa, corbata dorada y solapas / Shirt, gold tie and lapels
+    b += flat("M88,96 L112,96 L104,150 L96,150 Z", SH) + flat("M104,96 L112,96 L104,150 L102,150 Z", SH1)
+    b += flat("M97,100 L103,100 L106,144 L100,152 L94,144 Z", GO1) + flat("M100,100 L103,100 L106,144 L100,152 Z", GO)
+    b += flat("M97,100 L103,100 L102,106 L98,106 Z", GO2)
+    b += flat("M86,96 L94,96 L98,140 L84,112 Z", SU1) + flat("M114,96 L106,96 L102,140 L116,112 Z", SU3)
+    # Pañuelo en el bolsillo / Pocket square
+    b += flat("M122,118 L134,118 L134,124 L122,124 Z", SU1) + flat("M123,114 L127,118 L130,113 L133,118 L123,118 Z", GO1)
+    # Brazos apoyados en la mesa / Arms resting on the desk
+    b += flat("M50,110 L66,114 L76,168 L56,174 Z", SU2) + flat("M150,110 L134,114 L124,168 L144,174 Z", SU1)
+    b += flat("M60,166 L80,162 L82,172 L62,176 Z", SH) + flat("M120,162 L140,166 L138,176 L118,172 Z", SH1)
+    b += flat(ellipse_d(70, 170, 2.2, 2.2), GO1) + flat(ellipse_d(130, 170, 2.2, 2.2), GO1)
+    b += flat(ellipse_d(86, 172, 8, 6), S) + flat(ellipse_d(114, 172, 8, 6), S1)
+    # Anillo de oro / Gold ring
+    b += flat(ellipse_d(118, 170, 2, 2), GO1)
+    # Cuello y cabeza / Neck and head
+    b += flat("M93,82 L107,82 L107,98 L93,98 Z", S1)
+    b += flat(ellipse_d(100, 62, 23, 26), S)
+    b += flat("M111,38 C119,44 123,52 123,62 C123,76 116,85 106,88 C113,80 116,71 116,62 C116,52 114,45 111,38 Z", S1)
+    # Pelo canoso engominado hacia atrás / Slicked-back grey hair
+    b += flat("M77,56 Q76,36 98,34 Q122,34 124,54 L120,48 Q110,40 96,42 Q84,44 80,54 Z", HA2)
+    b += flat("M110,36 Q122,38 124,54 L120,48 Q116,42 108,40 Z", HA1)
+    b += "<path d='M84,44 Q96,38 112,40 M82,50 Q94,42 114,45' fill='none' stroke='%s' stroke-width='1.4'/>" % HA3
+    b += flat(ellipse_d(77, 62, 4, 10), HA1) + flat(ellipse_d(123, 62, 4, 10), HA1)
+    # Bigote fino / Thin moustache
+    b += flat("M90,74 L100,72 L110,74 L108,77 L100,75 L92,77 Z", HA1)
+    # Escritorio / Desk
+    b += flat("M24,176 L176,176 L176,186 L24,186 Z", WOOD2)
+    b += flat("M24,176 L176,176 L176,179 L24,179 Z", "#b86a44")
+    b += flat("M30,186 L170,186 L170,288 L30,288 Z", WOOD1)
+    b += flat("M140,186 L170,186 L170,288 L140,288 Z", WOOD)
+    b += flat("M40,198 L130,198 L130,278 L40,278 Z", WOOD)
+    b += flat("M44,202 L126,202 L126,274 L44,274 Z", WOOD1)
+    b += flat("M30,284 L170,284 L170,288 L30,288 Z", WOOD3)
+    # Placa con el nombre / Nameplate
+    b += flat("M70,224 L130,224 L130,240 L70,240 Z", GO) + flat("M72,226 L128,226 L128,238 L72,238 Z", GO1)
+    b += "".join(flat("M%g,230 L%g,230 L%g,234 L%g,234 Z" % (x, x + 4, x + 4, x), WOOD3) for x in range(78, 124, 7))
+    # Montones de monedas / Stacks of coins
+    for x0, n in ((36, 4), (46, 6), (152, 5)):
+        for k in range(n):
+            y = 174 - k * 3
+            b += flat(ellipse_d(x0, y, 6, 2.2), GO) + flat(ellipse_d(x0, y - 0.8, 6, 1.6), GO1)
+    # Teléfono / Phone
+    b += flat("M156,166 L170,166 L172,176 L154,176 Z", "#1e1f2e") + flat("M154,160 Q163,154 172,160 L170,164 Q163,160 156,164 Z", "#2a2b40")
+    add("npc_magnus", 22, 30, 156, 262, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a1d22", 2))
+
+
 def act2_npcs():
     charo_body(False)
     charo_body(True)
@@ -2504,6 +2574,7 @@ def build():
     chef()
     mr_ad()
     pinche()
+    magnus()
     pickups()
     thug()
     sling()

@@ -53,6 +53,8 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "pinche", "flag": true, "goal": 1},
 	# La pelota: amistad 4 con Svinho / The ball: friendship 4 with Svinho
 	{"id": "ball", "check": "svinho4", "goal": 4},
+	# Magnus: superar el Acto 3 / Magnus: clear Act 3
+	{"id": "magnus", "check": "act3", "goal": 1},
 ]
 ## Amistad con Svinho que desbloquea la pelota / Svinho friendship that unlocks the ball
 const BALL_FRIEND := 4
@@ -166,6 +168,11 @@ func achievement_progress(a: Dictionary) -> Array:
 				if has_cleared(w, "normal") or has_cleared(w, "nightmare"):
 					n += 1
 			return [n, goal]
+		"act3":
+			for w: String in cleared:
+				if has_cleared(w, "normal", 3):
+					return [1, 1]
+			return [0, 1]
 		"svinho4":
 			return [mini(friend_level("svinho"), BALL_FRIEND), BALL_FRIEND]
 		"bestiary":

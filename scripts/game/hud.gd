@@ -24,6 +24,7 @@ var _depth := 1
 var _reality_row: HBoxContainer
 var _reality: Label
 var _fire: Label
+var _invest: Label
 var _hacks: VBoxContainer
 var _hp_box: VBoxContainer
 
@@ -155,6 +156,12 @@ func _ready() -> void:
 	_fire.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_fire.visible = false
 	center.add_child(_fire)
+	# Objetivo del trato con Magnus / Goal of the deal with Magnus
+	_invest = UITheme.label("", 14, Color("4fd39a"), "caps")
+	_invest.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_invest.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	center.add_child(_invest)
+	set_invest()
 
 	# Ayuda de controles / Controls hint
 	_hint = UITheme.label("", 18, Color(UITheme.ASH, 0.9), "light")
@@ -274,6 +281,18 @@ func show_event(id: String) -> void:
 	_level_bubble.visible = id == "tilt"
 	if id != "":
 		_event.text = "EVENT_" + id.to_upper()
+
+
+## Cómo va el trato con Magnus (en verde si ya se cumple) / How the deal with Magnus is going (green if met so far)
+func set_invest() -> void:
+	var inv := GameState.invest
+	_invest.visible = not inv.is_empty()
+	if inv.is_empty():
+		return
+	var key := "INVEST_HUD_HITS" if inv["goal"] == "hits" else "INVEST_HUD"
+	_invest.text = tr(key).format({"p": GameState.invest_progress(), "n": inv["target"]})
+	var col := Color("4fd39a") if GameState.invest_met() else (UITheme.EMBER if inv["goal"] == "hits" else UITheme.ASH)
+	_invest.add_theme_color_override("font_color", col)
 
 
 ## La chimenea del salón está encendida / The living-room fireplace is lit

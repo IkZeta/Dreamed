@@ -737,6 +737,9 @@ func _physics_process(delta: float) -> void:
 		return
 	GameState.run_time += delta
 	_update_event(delta)
+	# El objetivo de Magnus, cuatro veces por segundo / Magnus's goal, four times a second
+	if not GameState.invest.is_empty() and int(GameState.run_time * 4.0) != int((GameState.run_time - delta) * 4.0):
+		hud.set_invest()
 	_update_hearth(delta)
 	if float(_wave.get("duration", 0.0)) > 0.0:
 		_time_left -= delta
@@ -1018,6 +1021,7 @@ func on_enemy_killed(e: Node) -> void:
 	if elite:
 		Progress.kill("elite")
 		Progress.add_stat("elites")
+		GameState.run_elites += 1
 		gain_reality(GameState.REALITY_ELITE, e.global_position)
 	if e.get("bestiary_id") == "golden_foox":
 		Progress.add_stat("golden")
@@ -1295,6 +1299,7 @@ func _on_wave_cleared() -> void:
 	dream_finished.emit()
 	Progress.add_stat("dreams")
 	running = false
+	_settle_deal()
 	GameState.saved_hp = player.hp
 	Progress.save_progress()
 	Audio.stop_loops()
@@ -1307,6 +1312,24 @@ func _on_wave_cleared() -> void:
 	for s in get_tree().get_nodes_in_group("shards"):
 		s.set("_magnet", true)
 	get_tree().create_timer(1.5, false).timeout.connect(_resolve_level_ups.bind(_after_dream))
+
+
+## Magnus cierra el trato al acabar el sueño / Magnus closes the deal when the dream ends
+func _settle_deal() -> void:
+	var payout := int(GameState.invest.get("payout", 0))
+	match GameState.settle_deal():
+		"won":
+			fx.text(player.global_position + Vector2(0, -150), tr("INVEST_WON").format({"n": payout}), UITheme.GOLD, 26)
+			Audio.play("reality", -1.0)
+			Audio.play("giver_magnus", -4.0)
+		"lost":
+			fx.text(player.global_position + Vector2(0, -150), tr("INVEST_LOST"), UITheme.EMBER, 24)
+			Audio.play("lose", -10.0)
+		_:
+			return
+	player.refresh_stats()
+	hud.set_reality()
+	hud.set_invest()
 
 
 ## Después de un sueño: a veces el kiosco de Charo; luego el plano astral o el final del acto

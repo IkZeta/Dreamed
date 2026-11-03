@@ -22,6 +22,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float) -> void
 		"charo": _charo(t)
 		"ad": _ad(t)
 		"pinche": _pinche(t)
+		"magnus": _magnus(t)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -120,6 +121,31 @@ static func _strip_window(u: float, screen: Rect2) -> void:
 
 ## El Pinche: la llama del soplete baila y el cuchillo destella
 ## The Kitchen Boy: the blowtorch flame dances and the knife glints
+## Magnus lanza una moneda con el pulgar y la recoge; de vez en cuando le brilla la placa
+## Magnus flips a coin with his thumb and catches it; now and then his nameplate gleams
+const MAGNUS_HAND := Vector2(116, 166)
+const MAGNUS_FLIP := 1.8   # segundos entre lanzamiento y lanzamiento / seconds between flips
+
+
+static func _magnus(t: float) -> void:
+	Sprites.draw(_ci, "npc_magnus")
+	var ph := fmod(t, MAGNUS_FLIP) / MAGNUS_FLIP
+	var air := clampf(ph / 0.6, 0.0, 1.0)
+	var h := 4.0 * 52.0 * air * (1.0 - air)
+	var coin := MAGNUS_HAND + Vector2(0, -6 - h)
+	var spin := absf(cos(t * 14.0)) if air < 1.0 else 1.0
+	_ci.draw_set_transform_matrix(_xf * Transform2D(0.0, Vector2(maxf(spin, 0.2), 1.0), 0.0, coin))
+	_ci.draw_circle(Vector2.ZERO, 5.0, Color("c9961e"))
+	_ci.draw_circle(Vector2.ZERO, 3.6, Color("f2c94c"))
+	_ci.draw_rect(Rect2(-1, -2, 2, 4), Color("c9961e"))
+	_ci.draw_set_transform_matrix(_xf)
+	# Brillo que cruza la placa / Gleam crossing the nameplate
+	var g := fposmod(t, 4.0)
+	if g < 0.5:
+		var x := 72.0 + g / 0.5 * 54.0
+		_ci.draw_rect(Rect2(x, 226, 3, 12), Color(1, 1, 1, 0.55))
+
+
 static func _pinche(t: float) -> void:
 	Sprites.draw(_ci, "npc_pinche")
 	var tip := Vector2(166, 131)

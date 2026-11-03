@@ -168,6 +168,8 @@ var difficulty := "normal"
 var run_time := 0.0
 var run_kills := 0
 var run_hits := 0
+var run_falls := 0      # enemigos tirados por agujeros / enemies pushed down holes
+var run_elites := 0     # élites derrotados / elites defeated
 ## Vida con la que acabó el último sueño (−1 = empezar con la vida llena)
 ## Health at the end of the last dream (−1 = start at full health)
 var saved_hp := -1.0
@@ -244,7 +246,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest"]
 
 
 func save_run() -> void:
@@ -298,6 +300,9 @@ func reset_run() -> void:
 	run_time = 0.0
 	run_kills = 0
 	run_hits = 0
+	run_falls = 0
+	run_elites = 0
+	invest = {}
 	stat_bonus = {}
 	reality = 0
 	bought = {}
@@ -537,6 +542,9 @@ func pick_offer() -> Array[String]:
 			if level(g, w) < MAX_UPGRADE_LEVEL:
 				pool.append(g)
 				break
+	# Magnus no da mejoras de arma: sale si se le puede pagar / Magnus gives no weapon upgrade: he shows up if you can pay him
+	if magnus_available():
+		pool.append("magnus")
 	# Con suerte es más fácil que vuelva alguien que ya te ha dado un don, para subirlo de nivel
 	# With luck, someone who already gave you a gift is likelier to return, to level it up
 	var out: Array[String] = []
@@ -559,6 +567,8 @@ func pick_offer() -> Array[String]:
 
 
 func _giver_weight(g: String) -> float:
+	if g == "magnus":
+		return 1.0
 	return 1.0 + (stat("luck") / 20.0 if best_level(g) > 0 else 0.0)
 
 
@@ -568,7 +578,132 @@ func giver_unlocked(g: String) -> bool:
 	match g:
 		"ad": return Progress.has_achieved("mr_ad")
 		"pinche": return Progress.has_achieved("pinche")
+		"magnus": return Progress.has_achieved("magnus")
 	return true
+
+
+## --- Magnus: inversiones / Magnus: investments -----------------------------------------
+## Magnus no da mejoras de arma: le pagas Realidad Fragmentada, te sube una estadística y te
+## pone un objetivo para el próximo sueño. Si lo cumples, te quedas la estadística y te devuelve
+## más de lo que pusiste; si no, te la quita y se queda el dinero.
+## Magnus doesn't give weapon upgrades: you pay him Fragmented Reality, he raises a stat and
+## sets you a goal for the next dream. Meet it and you keep the stat and get back more than you
+## put in; miss it and he takes the stat away and keeps the money.
+##
+## Tamaños de inversión: coste, rareza de la estadística, cuánto devuelve y lo difícil del objetivo
+## Investment sizes: cost, stat rarity, how much it pays back and how hard the goal is
+const INVEST_SIZES := [
+	{"cost": 6, "rarity": 1, "mult": 1.5, "hard": 0.75},
+	{"cost": 12, "rarity": 2, "mult": 1.75, "hard": 1.0},
+	{"cost": 20, "rarity": 3, "mult": 2.0, "hard": 1.3},
+]
+## Objetivos y su cantidad base (por acto se suma "per_act"). "hits" es al revés: como mucho N golpes.
+## Goals and their base amount ("per_act" is added per act). "hits" is the other way round: at most N hits.
+const INVEST_GOALS := {
+	"kills": {"base": 20, "per_act": 10},
+	"falls": {"base": 3, "per_act": 1},
+	"elites": {"base": 1, "per_act": 0.5},
+	"hits": {"base": 7, "per_act": -1},
+}
+## Inversión en curso (vacía si no hay) / Investment in progress (empty if none)
+var invest := {}
+
+
+## ¿Puede salir Magnus en el plano astral? Hace falta dinero para el trato más pequeño, no tener
+## otro en marcha, y que el próximo sueño no sea de jefe (no hay enemigos que contar).
+## Can Magnus show up on the astral plane? You need money for the smallest deal, no other deal
+## running, and the next dream mustn't be a boss one (no enemies to count).
+func magnus_available() -> bool:
+	if not giver_unlocked("magnus") or not invest.is_empty() or not reality_on():
+		return false
+	if reality < int(INVEST_SIZES[0]["cost"]):
+		return false
+	var next := dream_depth + 1
+	if next > WAVES.size():
+		return false
+	var w := wave_for(next)
+	return not w.get("boss", false) and not w.has("boss_kind")
+
+
+## Prepara el trato que ofrece Magnus: el más grande que puedas pagar
+## Prepares the deal Magnus offers: the biggest one you can afford
+func roll_deal() -> Dictionary:
+	var size := 0
+	for i in INVEST_SIZES.size():
+		if reality >= int(INVEST_SIZES[i]["cost"]):
+			size = i
+	var sz: Dictionary = INVEST_SIZES[size]
+	var stat_id: String = STATS[_rng.randi_range(0, STATS.size() - 1)]
+	var goals := INVEST_GOALS.keys()
+	var goal: String = goals[_rng.randi_range(0, goals.size() - 1)]
+	var g: Dictionary = INVEST_GOALS[goal]
+	var amount := float(g["base"]) + float(g["per_act"]) * (act() - 1)
+	var target: int
+	if goal == "hits":
+		# Más difícil = menos golpes permitidos / Harder = fewer hits allowed
+		target = maxi(1, roundi(amount / float(sz["hard"])))
+	else:
+		target = maxi(1, roundi(amount * float(sz["hard"])))
+	var cost := int(sz["cost"])
+	return {
+		"size": size, "cost": cost, "stat": stat_id, "rarity": int(sz["rarity"]),
+		"value": float(STAT_STEPS[stat_id][int(sz["rarity"])]),
+		"goal": goal, "target": target,
+		# La amistad con Magnus sube lo que devuelve / Friendship with Magnus raises the payout
+		"payout": roundi(cost * float(sz["mult"]) * friend_mult("magnus")),
+	}
+
+
+func _goal_counter(goal: String) -> int:
+	match goal:
+		"kills": return run_kills
+		"falls": return run_falls
+		"elites": return run_elites
+		"hits": return run_hits
+	return 0
+
+
+## Firma el trato: paga, sube la estadística y empieza a contar / Signs the deal: pays, raises the stat and starts counting
+func sign_deal(deal: Dictionary) -> void:
+	add_reality(-int(deal["cost"]))
+	apply_stat({"stat": deal["stat"], "rarity": deal["rarity"], "value": deal["value"]})
+	invest = deal.duplicate()
+	invest["base"] = _goal_counter(deal["goal"])
+
+
+## Cuánto llevas del objetivo / How far into the goal you are
+func invest_progress() -> int:
+	if invest.is_empty():
+		return 0
+	return _goal_counter(invest["goal"]) - int(invest["base"])
+
+
+func invest_met() -> bool:
+	if invest.is_empty():
+		return false
+	if invest["goal"] == "hits":
+		return invest_progress() <= int(invest["target"])
+	return invest_progress() >= int(invest["target"])
+
+
+## Al acabar el sueño se cierra el trato. Devuelve "won", "lost" o "" si no había trato.
+## When the dream ends the deal closes. Returns "won", "lost" or "" if there was no deal.
+func settle_deal() -> String:
+	if invest.is_empty():
+		return ""
+	var result := "won" if invest_met() else "lost"
+	if result == "won":
+		add_reality(int(invest["payout"]))
+	else:
+		var id: String = invest["stat"]
+		stat_bonus[id] = float(stat_bonus.get(id, 0.0)) - float(invest["value"])
+	invest = {}
+	return result
+
+
+## Texto del objetivo, p. ej. "Derrota a 30 enemigos" / Goal text, e.g. "Defeat 30 enemies"
+func deal_goal_text(deal: Dictionary) -> String:
+	return tr("INVEST_GOAL_" + String(deal["goal"]).to_upper()).format({"n": deal["target"]})
 
 
 ## Clave de traducción del nombre o la descripción de una mejora / Translation key of an upgrade's name or description

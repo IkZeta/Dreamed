@@ -820,6 +820,18 @@ def giver_pinche():
     return mix(x, np.pad(stereo(sizzle), ((int(SR * 0.4), 0), (0, 0)))[: len(x)])
 
 
+def giver_magnus():
+    # Magnus: jazz de despacho, un acorde de piano suave y dos monedas que tintinean
+    # Magnus: office jazz, a soft piano-like chord and two clinking coins
+    x = np.zeros((int(SR * 2.6), 2))
+    place(x, saw_pad([midi(n) for n in (50, 57, 60, 65)], 1.8, 0.06, 0.05, 1.0, 1100), 0.0, human=False)
+    for i, (n, at) in enumerate([(62, 0.0), (65, 0.2), (69, 0.4), (72, 0.7), (69, 0.95)]):
+        place(x, bar(midi(n), 1.2, 0.2, "marimba", 0.35), at, -0.25 + i * 0.12)
+    for i, at in enumerate([1.25, 1.38]):
+        place(x, bar(midi(96 + i * 3), 0.6, 0.07, "kalimba", 0.6), at, 0.3 - i * 0.2, human=False)
+    return x
+
+
 def sfx_plate_break():
     # Plato que se rompe, pero suave: tintineo de porcelana amortiguado / A plate breaking, but soft: muffled porcelain clink
     x = np.zeros((int(SR * 1.2), 2))
@@ -858,6 +870,7 @@ if __name__ == "__main__":
         ("pan_clang", sfx_pan_clang, 0.45, 0.2), ("knife", sfx_knife, 0.3, 0.15), ("hack", sfx_hack, 0.3, 0.2),
         ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("bell", sfx_bell, 0.35, 0.2), ("snap", sfx_snap, 0.4, 0.15), ("fluff", sfx_fluff, 0.3, 0.12),
         ("giver_pinche", giver_pinche, 0.4, 0.3),
+        ("giver_magnus", giver_magnus, 0.4, 0.3),
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)

@@ -246,6 +246,7 @@ func can_fall() -> bool:
 func _start_fall(to: Vector2) -> void:
 	_unstick()
 	Progress.add_stat("falls")
+	GameState.run_falls += 1
 	_fall_from = run.clamp_to_arena(position, radius)
 	position = _fall_from
 	_fall_to = to
