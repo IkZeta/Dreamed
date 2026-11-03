@@ -148,7 +148,7 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _leaving:
 		return
-	if event.is_action_pressed("ui_accept"):
+	if event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
 		if not _talking.is_empty():
 			_close_box()
@@ -284,13 +284,15 @@ class HubWorld extends Control:
 	const TALK_RANGE := 40.0
 	const NPC_SCALE := 0.25
 	const KROKER_SCALE := 0.25
-	const BRIDGE_HALF := 11.0
-	const STEP := 17.0
+	const BRIDGE_HALF := 17.0
+	const STEP := 15.0
 	const Statue := preload("res://scripts/ui/bestiary.gd").BestiaryPreview
 	const STATUE_SIZE := Vector2(44, 58)
 	const SPAWN := Vector2(0, 70)
 	## Islas que siempre están / Islands that are always there
 	const ALWAYS: Array[String] = ["nexus", "wardrobe", "museum"]
+	## Orden de las islas alrededor del centro (para los pasillos entre vecinas) / Order of the islands around the centre (for the walkways between neighbours)
+	const RING: Array[String] = ["wardrobe", "magnus", "doc", "ad", "pinche", "museum", "silly", "stolk", "svinho", "charo"]
 
 	var frozen := false
 	var _pos := SPAWN
@@ -371,11 +373,24 @@ class HubWorld extends Control:
 		_isles.sort_custom(func(a: String, b: String) -> bool: return _isle_pos(a).y < _isle_pos(b).y)
 		for id in _isles:
 			if id != "nexus":
-				_add_bridge(id)
+				_add_bridge("nexus", id)
+		# Pasillos entre islas vecinas, para no tener que volver siempre al centro
+		# Walkways between neighbouring islands, so you don't always have to go back to the centre
+		var ring: Array[String] = []
+		for id: String in RING:
+			if _isles.has(id):
+				ring.append(id)
+		for i in ring.size():
+			var a := ring[i]
+			var b := ring[(i + 1) % ring.size()]
+			if ring.size() > 2 or i == 0:
+				_add_bridge(a, b, false)
 		_kroker = _prop(SPAWN, _draw_kroker)
 		# Dos farolillos a la entrada de cada isla, del color de su dueño
 		# Two little lanterns at the entrance of each island, in its owner's colour
 		for b in _bridges:
+			if not b["lanterns"]:
+				continue
 			var to: Vector2 = b["to"]
 			var dir: Vector2 = (to - Vector2(b["from"])).normalized()
 			var col: Color = b["aura"]
@@ -408,11 +423,11 @@ class HubWorld extends Control:
 				"charo": _build_charo()
 				"magnus": _build_magnus()
 
-	## Puente de piedras flotantes del centro a una isla / Bridge of floating stones from the centre to an island
-	func _add_bridge(id: String) -> void:
-		var a := _isle_pos("nexus")
+	## Puente de piedras flotantes de una isla a otra / Bridge of floating stones from one island to another
+	func _add_bridge(from_id: String, id: String, lanterns := true) -> void:
+		var a := _isle_pos(from_id)
 		var b := _isle_pos(id)
-		var poly_a: PackedVector2Array = _walk_polys["nexus"]
+		var poly_a: PackedVector2Array = _walk_polys[from_id]
 		var poly_b: PackedVector2Array = _walk_polys[id]
 		var exit_t := 0.0
 		var enter_t := 1.0
@@ -429,13 +444,26 @@ class HubWorld extends Control:
 			k -= 0.002
 		var p0 := a.lerp(b, exit_t)
 		var p1 := a.lerp(b, enter_t)
+		# Un pasillo entre vecinas no puede cruzar por encima de otra isla / A walkway between neighbours can't cross over another island
+		if not lanterns:
+			for other: String in _walk_polys:
+				if other == from_id or other == id:
+					continue
+				for k2 in 21:
+					if Geometry2D.is_point_in_polygon(p0.lerp(p1, k2 / 20.0), _walk_polys[other]):
+						return
 		var dir := (p1 - p0).normalized()
 		var stones: Array[Vector3] = []
-		var n := int(p0.distance_to(p1) / STEP)
+		var n := maxi(1, int(p0.distance_to(p1) / STEP))
+		var side := dir.orthogonal()
 		for i in range(1, n + 1):
+			# Dos filas de piedras al tresbolillo: el camino es ancho / Two staggered rows of stones: a wide path
 			var q := p0.lerp(p1, (i - 0.5) / n)
-			stones.append(Vector3(q.x, q.y, float((i * 7 + id.length()) % 3)))
-		_bridges.append({"id": id, "a": p0 - dir * 14.0, "b": p1 + dir * 14.0, "from": p0, "to": p1, "stones": stones, "aura": HubLayout.ISLES[id]["aura"]})
+			for r in [-1.0, 1.0]:
+				var off: Vector2 = side * r * 7.0 + dir * (3.5 if r > 0.0 else -3.5)
+				stones.append(Vector3(q.x + off.x, q.y + off.y, float((i * 7 + int(r) + id.length()) % 3)))
+		_bridges.append({"id": id, "a": p0 - dir * 16.0, "b": p1 + dir * 16.0, "from": p0, "to": p1, "stones": stones,
+			"aura": HubLayout.ISLES[id]["aura"], "lanterns": lanterns})
 
 	func _prop(at: Vector2, painter: Callable) -> Prop:
 		var p := Prop.new(painter)
@@ -884,6 +912,25 @@ class HubWorld extends Control:
 				return false
 		return true
 
+	## Si el paso choca, prueba a desviarlo un poco hacia los lados (resbala por los bordes y sigue los puentes)
+	## If the step bumps into something, try turning it a little to either side (slides along edges and follows the bridges)
+	func _slide(step: Vector2) -> Vector2:
+		if walkable(_pos + step):
+			return step
+		# En un puente, avanza a lo largo de él / On a bridge, move along it
+		for br in _bridges:
+			var q := Geometry2D.get_closest_point_to_segment(_pos, br["a"], br["b"])
+			if q.distance_to(_pos) < BRIDGE_HALF + 2.0:
+				var along: Vector2 = (Vector2(br["b"]) - Vector2(br["a"])).normalized()
+				var s := along * step.dot(along)
+				if s.length() > step.length() * 0.2 and walkable(_pos + s):
+					return s
+		for ang in [0.35, -0.35, 0.7, -0.7, 1.1, -1.1]:
+			var s: Vector2 = step.rotated(ang) * cos(ang)
+			if walkable(_pos + s):
+				return s
+		return Vector2.ZERO
+
 	func screen_of(p: Vector2) -> Vector2:
 		return p + _offset()
 
@@ -910,12 +957,7 @@ class HubWorld extends Control:
 		var moved := 0.0
 		if step != Vector2.ZERO:
 			var before := _pos
-			if walkable(_pos + step):
-				_pos += step
-			elif walkable(_pos + Vector2(step.x, 0)):
-				_pos.x += step.x
-			elif walkable(_pos + Vector2(0, step.y)):
-				_pos.y += step.y
+			_pos += _slide(step)
 			moved = _pos.distance_to(before) / maxf(delta, 0.0001)
 		if absf(dir.x) > 0.1:
 			_facing = signf(dir.x)

@@ -54,6 +54,8 @@ func _input(event: InputEvent) -> void:
 func control_name(what: String) -> String:
 	if not using_pad:
 		return tr("CTRL_KB_" + what.to_upper())
+	if what == "interact":
+		what = "accept"   # en el mando, interactuar es el mismo botón que aceptar / on the gamepad, interact is the accept button
 	var joy := Input.get_joy_name(0).to_lower() if not Input.get_connected_joypads().is_empty() else ""
 	var family := "XBOX"
 	if "ps" in joy or "dualshock" in joy or "dualsense" in joy or "sony" in joy or "playstation" in joy:
@@ -69,7 +71,7 @@ func control_name(what: String) -> String:
 func controls_text(text: String) -> String:
 	if not "{" in text:
 		return text
-	for what in ["move", "pause", "special", "accept", "back"]:
+	for what in ["move", "pause", "special", "accept", "back", "interact"]:
 		text = text.replace("{%s}" % what, control_name(what))
 	return text
 
@@ -241,6 +243,16 @@ func _ensure_input() -> void:
 		d.device = -1
 		d.button_index = def[4]
 		InputMap.action_add_event(action, d)
+	# Interactuar en el plano astral: F o A / Interact in the astral plane: F or A
+	if not InputMap.has_action("interact"):
+		InputMap.add_action("interact")
+		var f := InputEventKey.new()
+		f.physical_keycode = KEY_F
+		InputMap.action_add_event("interact", f)
+		var a := InputEventJoypadButton.new()
+		a.device = -1
+		a.button_index = JOY_BUTTON_A
+		InputMap.action_add_event("interact", a)
 	if not InputMap.has_action("special"):
 		InputMap.add_action("special")
 		var e := InputEventKey.new()
