@@ -1,7 +1,8 @@
 class_name StarShard
 extends Node2D
 ## Trozo de estrella que sueltan los enemigos al disiparse. Salta, se queda en el suelo y
-## vuela hacia Kroker cuando pasa cerca. Llenan la barra de nivel.
+## vuela hacia Kroker cuando pasa cerca. Llenan la barra de nivel. Son cristalitos de colores
+## con picos (como los de Mario Galaxy), para no confundirlos con las estrellas del decorado.
 ## Star shard dropped by enemies as they fade. It pops out, rests on the floor and flies
 ## to Kroker when he passes nearby. Shards fill the level bar.
 
@@ -16,6 +17,9 @@ var _vz := 0.0
 var _t := 0.0
 var _rot := 0.0
 var _magnet := false
+## Colores de caramelo de los trozos / Candy colours for the shards
+const COLORS := [Color("ff6fb5"), Color("ffd84a"), Color("5fc8ff"), Color("7fe07a"), Color("b77bff")]
+var _col := Color.WHITE
 
 
 func _ready() -> void:
@@ -23,6 +27,7 @@ func _ready() -> void:
 	_vel = Vector2.from_angle(randf() * TAU) * randf_range(50.0, 170.0)
 	_vz = randf_range(180.0, 300.0)
 	_rot = randf() * TAU
+	_col = COLORS[randi() % COLORS.size()]
 
 
 func _physics_process(delta: float) -> void:
@@ -56,18 +61,29 @@ func _draw() -> void:
 	var c := Vector2(0, -8 - _hop + sin(_t * 3.0 + _rot) * 2.0)
 	var tw := 0.75 + 0.25 * sin(_t * 6.0 + _rot)
 	draw_colored_polygon(_ellipse(Vector2(0, 0), Vector2(7, 2.5)), Color(0.05, 0.02, 0.15, 0.3))
-	draw_circle(c, 13.0, Color(UITheme.GOLD, 0.12 * tw))
-	# Trozo de estrella: una punta rota de cuatro picos / Star shard: a broken four-pointed tip
+	draw_circle(c, 12.0, Color(_col, 0.14 * tw))
+	# Cristal con seis picos que gira / Crystal with six spikes that spins
+	var spin := _rot + _t * 2.2
 	var pts := PackedVector2Array()
-	for i in 8:
-		var a := _rot + _t * 1.2 + i * PI / 4.0
-		var r := 8.0 if i % 2 == 0 else 3.0
-		if i == 4:
-			r = 5.0  # la punta rota / the broken tip
+	var lower := PackedVector2Array()
+	for i in 12:
+		var a := spin + i * TAU / 12.0
+		var r := 9.0 if i % 2 == 0 else 5.0
 		pts.append(c + Vector2(cos(a), sin(a)) * r)
-	draw_colored_polygon(pts, Color("fff1c9"))
-	draw_polyline(pts + PackedVector2Array([pts[0]]), Color(UITheme.GOLD, 0.9), 1.2, true)
-	draw_circle(c, 1.8, Color(1, 1, 1, tw))
+	draw_colored_polygon(pts, _col)
+	# Media cara en sombra para que parezca facetado / Half the face in shadow so it looks faceted
+	lower.append(c)
+	for i in range(3, 10):
+		var a := spin + i * TAU / 12.0
+		var r := 9.0 if i % 2 == 0 else 5.0
+		lower.append(c + Vector2(cos(a), sin(a)) * r)
+	draw_colored_polygon(lower, _col.darkened(0.3))
+	draw_polyline(pts + PackedVector2Array([pts[0]]), _col.darkened(0.55), 1.0)
+	draw_rect(Rect2(c + Vector2(-3, -3), Vector2(2, 2)), Color(1, 1, 1, 0.9))
+	# Destello en cruz de vez en cuando / Occasional cross sparkle
+	if tw > 0.95:
+		draw_line(c + Vector2(-9, 0), c + Vector2(9, 0), Color(1, 1, 1, 0.8), 1.0)
+		draw_line(c + Vector2(0, -9), c + Vector2(0, 9), Color(1, 1, 1, 0.8), 1.0)
 
 
 func _ellipse(c: Vector2, r: Vector2, n := 14) -> PackedVector2Array:
