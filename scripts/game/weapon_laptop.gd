@@ -254,7 +254,7 @@ class Turret extends Node2D:
 	const AD_DAMAGE := 2.0
 	const PUSH := 300.0
 	const JUMP := 220.0
-	const HEAL_RADIUS := 170.0
+	const HEAL_RADIUS := 450.0      # alcance de las balas curativas / healing bullet range
 	const HEAL_EVERY := 4.0
 	const DUMMY_PULL_RADIUS := 240.0
 	const DUMMY_REACH := 80.0
@@ -328,13 +328,20 @@ class Turret extends Node2D:
 			"dummy": _box()
 			_: _shoot()
 
+	## Le dispara a Kroker una bala curativa si le falta vida y está a su alcance
+	## Fires a healing bullet at Kroker if he's missing health and within range
 	func _heal() -> void:
-		_fire = HEAL_EVERY
 		var p: Player = weapon.player
-		if p.global_position.distance_to(global_position) < HEAL_RADIUS and p.hp < p.max_hp:
-			p.heal(weapon.uv("doc", "heal"))
-			weapon.run.fx.ring(p.global_position + Vector2(0, -40), 30.0, KIND_COLOR["heal"], 0.4, 2.0)
-			Audio.play("pickup", -16.0, 0.2)
+		if p.global_position.distance_to(global_position) > HEAL_RADIUS or p.hp >= p.max_hp:
+			_fire = 0.3
+			return
+		_fire = HEAL_EVERY
+		var b := HealShot.new()
+		b.weapon = weapon
+		b.amount = weapon.uv("doc", "heal")
+		b.position = global_position + Vector2(0, -27 * SIZE)
+		weapon.run.world.add_child(b)
+		Audio.play("turret", -10.0, 0.05)
 
 	## Muñeco y fogón: atraen a los de alrededor / Dummy and stove: pull those around them
 	func _pull(radius: float, force: float) -> void:
@@ -475,3 +482,39 @@ class Turret extends Node2D:
 			var k := float(b[2]) / 0.1
 			draw_line(b[0], b[1], Color(col, 0.9 * k), 3.0)
 			draw_line(b[0], b[1], Color(1, 1, 1, 0.8 * k), 1.0)
+
+
+## Bala curativa: va siguiendo a Kroker y le cura al tocarle / Healing bullet: homes in on Kroker and heals him on touch
+class HealShot extends Node2D:
+	const SPEED := 520.0
+	var weapon: WeaponLaptop
+	var amount := 1.0
+	var _t := 0.0
+
+	func _ready() -> void:
+		z_index = 41
+
+	func _physics_process(delta: float) -> void:
+		if not is_instance_valid(weapon) or not is_instance_valid(weapon.player):
+			queue_free()
+			return
+		_t += delta
+		var p: Player = weapon.player
+		var goal := p.global_position + Player.HURT
+		var to := goal - global_position
+		if to.length() < 22.0 or _t > 3.0:
+			if to.length() < 22.0 and p.alive:
+				p.heal(amount)
+				weapon.run.fx.ring(goal, 30.0, Color("9be38a"), 0.4, 2.0)
+				Audio.play("pickup", -14.0, 0.2)
+			queue_free()
+			return
+		global_position += to.normalized() * minf(SPEED * delta, to.length())
+		queue_redraw()
+
+	func _draw() -> void:
+		var col := Color("9be38a")
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(-16, -16, 32, 32), false, Color(col, 0.5))
+		draw_circle(Vector2.ZERO, 6.0, col)
+		draw_rect(Rect2(-1.5, -4, 3, 8), Color.WHITE)
+		draw_rect(Rect2(-4, -1.5, 8, 3), Color.WHITE)
