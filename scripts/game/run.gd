@@ -1315,25 +1315,48 @@ func _on_wave_cleared() -> void:
 
 
 ## Magnus cierra el trato al acabar el sueño / Magnus closes the deal when the dream ends
+## Se apunta cómo acabó el trato; Magnus lo cuenta después del sueño (_magnus_verdict)
+## Notes how the deal ended; Magnus tells you after the dream (_magnus_verdict)
+var _deal_result := {}
+
+
 func _settle_deal() -> void:
-	var payout := int(GameState.invest.get("payout", 0))
-	match GameState.settle_deal():
-		"won":
-			fx.text(player.global_position + Vector2(0, -150), tr("INVEST_WON").format({"n": payout}), UITheme.GOLD, 26)
-			Audio.play("deal_won", -2.0)
-		"lost":
-			fx.text(player.global_position + Vector2(0, -150), tr("INVEST_LOST"), UITheme.EMBER, 24)
-			Audio.play("deal_lost", -4.0)
-		_:
-			return
+	if GameState.invest.is_empty():
+		return
+	var deal := GameState.invest.duplicate(true)
+	var progress := GameState.invest_progress()
+	var result := GameState.settle_deal()
+	_deal_result = {"result": result, "deal": deal, "progress": progress}
 	player.refresh_stats()
 	hud.set_reality()
 	hud.set_invest()
 
 
+## Magnus aparece a cerrar el trato, lo hayas cumplido o no / Magnus shows up to close the deal, met or not
+func _magnus_verdict(then: Callable) -> void:
+	if _deal_result.is_empty():
+		then.call()
+		return
+	get_tree().paused = true
+	var v := MagnusVerdict.new()
+	_modal = v
+	add_child(v)
+	v.build(_deal_result["result"], _deal_result["deal"], int(_deal_result["progress"]))
+	_deal_result = {}
+	v.closed.connect(func() -> void:
+		_modal = null
+		get_tree().paused = false
+		hud.set_reality()
+		then.call())
+
+
 ## Después de un sueño: a veces el kiosco de Charo; luego el plano astral o el final del acto
 ## After a dream: sometimes Charo's kiosk; then the astral plane or the end of the act
 func _after_dream() -> void:
+	# Primero Magnus, si había trato / First Magnus, if there was a deal
+	if not _deal_result.is_empty():
+		_magnus_verdict(_after_dream)
+		return
 	var next := _end_run_victory if _wave.get("act_end", false) else _flash_to_astral
 	# En el Acto 1 solo si ya conoces a Charo / In Act 1 only if you've already met Charo
 	if _wave.get("shop", false) or (_wave.get("shop_met", false) and Progress.stats.has("charo_met")):
