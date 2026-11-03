@@ -8,6 +8,7 @@ extends Node2D
 ## getting out of bed.
 
 const MAIN_MENU := "res://scenes/main_menu.tscn"
+const HUB := "res://scenes/astral_hub.tscn"
 const SETTINGS_SCENE := preload("res://scenes/settings_menu.tscn")
 
 ## Se emite al acabar cada sueño (lo usa el bot de equilibrio) / Emitted when each dream ends (used by the balance bot)
@@ -64,10 +65,17 @@ var _modal: Node
 func _ready() -> void:
 	var depth := GameState.dream_depth
 	_wave = GameState.wave_for(depth)
-	# Se guarda al empezar cada sueño (para "Continuar") / Saved at the start of every dream (for "Continue")
-	GameState.save_run()
 	var act := GameState.act_of(depth)
-	Audio.play_music(["", "music_dream1", "music_living", "music_dream1"][act], 2.5)
+	# Entrenamiento del plano astral: sin oleadas, solo el muñeco / Astral-plane training: no waves, just the dummy
+	if GameState.training:
+		_wave = {"duration": 0.0, "spawn_every": 99999.0}
+		_spawn_timer = INF
+		act = 0
+		Audio.play_music("music_astral", 1.5)
+	else:
+		# Se guarda al empezar cada sueño (para "Continuar") / Saved at the start of every dream (for "Continue")
+		GameState.save_run()
+		Audio.play_music(["", "music_dream1", "music_living", "music_dream1"][act], 2.5)
 	# Llegar al salón por primera vez desbloquea a Mr. Ad / Reaching the living room for the first time unlocks Mr. Ad
 	# El Acto 2 también desbloquea la pistola de dedos; el Acto 3, el oso de peluche y El Pinche
 	# Act 2 also unlocks the finger gun; Act 3, the teddy bear and the Kitchen Boy
@@ -108,7 +116,9 @@ func _ready() -> void:
 	back.add_child(sky)
 	sky.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	if act >= 3:
+	if GameState.training:
+		room = TrainingRoom.new()
+	elif act >= 3:
 		# Acto 3 (provisional) / Act 3 (placeholder)
 		room = Act3Room.new()
 		room.weird = depth - GameState.ACT3_START + 1
@@ -169,11 +179,31 @@ func _ready() -> void:
 	hud.set_time(_time_left)
 	if "shield" in GameState.weapons() and GameState.level("svinho", "shield") > 0:
 		hud.set_special_mode(false)
+	if GameState.training:
+		_begin_training()
+		return
 	_roll_event(depth)
 	if depth == 1:
 		_play_wake_up(depth)
 	else:
 		_drop_in(depth)
+
+
+## Entrenamiento: Kroker aparece en un resplandor junto al muñeco de pruebas
+## Training: Kroker appears in a glow next to the practice dummy
+func _begin_training() -> void:
+	var start := Bedroom.to_world(TrainingRoom.START_AT)
+	player.position = start
+	player.visible = true
+	var tw := _arrive_glow(start)
+	tw.tween_callback(func() -> void:
+		hud.visible = true
+		hud.start_training()
+		running = true
+		var d := TrainingDummy.new()
+		d.setup(self)
+		d.position = Bedroom.to_world(TrainingRoom.DUMMY_AT)
+		enemies.add_child(d))
 
 
 ## En los sueños siguientes Kroker llega de una de tres formas (solo estético): cae del cielo y
@@ -1234,7 +1264,7 @@ func _wake_scene(won: bool) -> void:
 	else:
 		tw.tween_callback(_startle)
 		tw.tween_interval(2.2)
-		tw.tween_callback(_show_end.bind("LOSE_TITLE", "", [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]]))
+		tw.tween_callback(_show_end.bind("LOSE_TITLE", "", [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]]))
 
 
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
@@ -1285,7 +1315,7 @@ func _show_victory() -> void:
 		tr("SUM_KILLS") % GameState.run_kills,
 		tr("SUM_DIFFICULTY") % tr("DIFF_" + GameState.difficulty.to_upper()),
 	]
-	_show_end("ACT%d_CLEAR_TITLE" % act, "ACT%d_CLEAR_SUB" % act, [["BTN_DREAM_AGAIN", _restart], ["BTN_MAIN_MENU", _to_menu]], lines)
+	_show_end("ACT%d_CLEAR_TITLE" % act, "ACT%d_CLEAR_SUB" % act, [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]], lines)
 	_overlay.add_side(PauseSummary.make(player))
 
 
@@ -1447,7 +1477,7 @@ func _open_pause() -> void:
 	_overlay.build("PAUSE_TITLE", "", [
 		["PAUSE_RESUME", _resume],
 		["MENU_SETTINGS", _open_settings],
-		["PAUSE_QUIT_RUN", _to_menu],
+		["PAUSE_LEAVE_TRAINING" if GameState.training else "PAUSE_QUIT_RUN", _to_menu],
 	])
 	_overlay.add_side(PauseSummary.make(player))
 
@@ -1471,8 +1501,12 @@ func _restart() -> void:
 	GameState.change_scene("res://scenes/run.tscn")
 
 
+## Al acabar (o abandonar) un sueño se vuelve al plano astral / After (or leaving) a dream you go back to the astral plane
 func _to_menu() -> void:
-	GameState.change_scene(MAIN_MENU)
+	get_tree().paused = false
+	GameState.hub_spawn = "training" if GameState.training else "fountain"
+	GameState.training = false
+	GameState.change_scene(HUB)
 
 
 func _exit_tree() -> void:

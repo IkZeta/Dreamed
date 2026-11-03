@@ -2,7 +2,9 @@ extends Control
 ## Menú principal: Jugar, Ajustes y Salir. / Main menu: Play, Settings and Quit.
 
 const SETTINGS_SCENE := preload("res://scenes/settings_menu.tscn")
-const CHARACTER_SELECT := "res://scenes/character_select.tscn"
+## Jugar lleva al plano astral: allí se elige pijama y se empieza a soñar en la fuente
+## Play takes you to the astral plane: there you pick a pajama and start dreaming at the fountain
+const HUB := "res://scenes/astral_hub.tscn"
 
 const BESTIARY_SCENE := preload("res://scripts/ui/bestiary.gd")
 const ACHIEVEMENTS_SCENE := preload("res://scripts/ui/achievements.gd")
@@ -79,8 +81,6 @@ func _build() -> void:
 		_entry(col, "MENU_PLAY", _on_play)
 	else:
 		_play = _entry(col, "MENU_PLAY", _on_play)
-	# El plano astral sustituye a Personajes y Bestiario / The astral plane replaces Characters and Bestiary
-	_entry(col, "MENU_ASTRAL", _on_astral)
 	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	# «Desbloquear todo» también está en la demo / "Unlock everything" is in the demo too
@@ -141,7 +141,7 @@ func _on_unlock_all() -> void:
 func _on_play() -> void:
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.4)
-	tw.tween_callback(GameState.change_scene.bind(CHARACTER_SELECT))
+	tw.tween_callback(GameState.change_scene.bind(HUB))
 
 
 func _on_continue() -> void:
@@ -152,10 +152,6 @@ func _on_continue() -> void:
 	tw.tween_callback(GameState.change_scene.bind("res://scenes/run.tscn"))
 
 
-func _on_astral() -> void:
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 0.0, 0.35)
-	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_hub.tscn"))
 
 
 func _on_characters() -> void:

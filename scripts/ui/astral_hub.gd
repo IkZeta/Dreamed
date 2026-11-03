@@ -16,6 +16,7 @@ extends Control
 ## 960 x 540 screen. Islands come from tools/make_hub.py and furniture from tools/hub_props.py.
 
 const MAIN_MENU := "res://scenes/main_menu.tscn"
+const RUN_SCENE := "res://scenes/run.tscn"
 const SHRINK := 2
 const PAJAMAS: Array[String] = ["bat", "shield", "book", "vacuum", "finger", "teddy", "ball", "laptop", "boots"]
 
@@ -31,6 +32,14 @@ var _box_text: RichTextLabel
 var _box_hearts: FriendHearts
 var _talking := {}
 var _leaving := false
+## Carta del pijama del soporte que tienes cerca / Card of the pajama on the stand you're near
+var _card_slot: Control
+var _card_id := ""
+var _card_worn := false
+## Ventana de empezar a soñar (en la fuente) / Start-dreaming window (at the fountain)
+var _start_panel: Control
+var _diff_btn: Button
+var _god_btn: Button
 ## Por personaje, qué frase toca la próxima vez / Per character, which line comes next time
 var _line_idx := {}
 
@@ -75,6 +84,12 @@ func _ready() -> void:
 	Settings.input_device_changed.connect(func(_p: bool) -> void: _refresh_hint())
 
 	_build_box()
+	_card_slot = Control.new()
+	_card_slot.mouse_filter = MOUSE_FILTER_IGNORE
+	add_child(_card_slot)
+	_card_slot.position = Vector2(1920 - PajamaCard.W - 64, 150)
+	if not Progress.any_cleared():
+		GameState.difficulty = "normal"
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.5)
 
@@ -135,18 +150,59 @@ func _build_box() -> void:
 
 
 func _process(_delta: float) -> void:
-	# Aviso de hablar encima de lo que tengas cerca / Talk prompt over whatever is close
+	# Aviso encima de lo que tengas cerca / Prompt over whatever is close
 	var spot := _world.near_spot()
-	_prompt.visible = not spot.is_empty() and _talking.is_empty()
+	var busy := not _talking.is_empty() or _start_panel != null
+	_update_card(spot if not busy else {})
+	var text := _prompt_text(spot)
+	_prompt.visible = not spot.is_empty() and not busy and text != ""
 	if _prompt.visible:
-		_prompt.text = Settings.controls_text(tr("HUB_TALK" if spot["kind"] == "npc" else "HUB_LOOK"))
+		_prompt.text = text
 		_prompt.reset_size()
 		var p: Vector2 = _world.screen_of(spot["pos"] + Vector2(0, -float(spot.get("height", 80.0)))) * SHRINK
 		_prompt.position = p - Vector2(_prompt.size.x / 2.0, _prompt.size.y)
 
 
+## Qué dice el aviso según lo que tengas cerca / What the prompt says depending on what's close
+func _prompt_text(spot: Dictionary) -> String:
+	if spot.is_empty():
+		return ""
+	match spot["kind"]:
+		"npc": return Settings.controls_text(tr("HUB_TALK"))
+		"fountain": return Settings.controls_text(tr("HUB_DREAM"))
+		"training": return Settings.controls_text(tr("HUB_TRAIN"))
+		"pajama":
+			if not GameState.weapon_unlocked(spot["id"]):
+				return ""
+			if GameState.selected_character == spot["id"]:
+				return tr("HUB_WORN")
+			return Settings.controls_text(tr("HUB_WEAR"))
+	return Settings.controls_text(tr("HUB_LOOK"))
+
+
+## La carta del pijama sale al acercarte a su soporte / The pajama card appears when you walk up to its stand
+func _update_card(spot: Dictionary) -> void:
+	var id: String = spot["id"] if not spot.is_empty() and spot["kind"] == "pajama" else ""
+	var worn := id != "" and GameState.selected_character == id
+	if id == _card_id and worn == _card_worn:
+		return
+	_card_id = id
+	_card_worn = worn
+	for c in _card_slot.get_children():
+		c.queue_free()
+	if id == "":
+		return
+	var card := PajamaCard.build(GameState.get_character(id), worn)
+	_card_slot.add_child(card)
+	card.modulate.a = 0.0
+	card.position.x = 30
+	var tw := card.create_tween().set_parallel()
+	tw.tween_property(card, "modulate:a", 1.0, 0.18)
+	tw.tween_property(card, "position:x", 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if _leaving:
+	if _leaving or _start_panel != null:
 		return
 	if event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
@@ -166,9 +222,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Abre la charla con un personaje, un pijama o una estatua / Opens the chat with a character, a pajama or a statue
 func _open(spot: Dictionary) -> void:
+	var id: String = spot["id"]
+	match spot["kind"]:
+		"pajama":
+			_wear(id)
+			return
+		"fountain":
+			_open_start()
+			return
+		"training":
+			_go_training()
+			return
 	_talking = spot
 	_world.frozen = true
-	var id: String = spot["id"]
 	_box_hearts.visible = false
 	match spot["kind"]:
 		"npc":
@@ -179,17 +245,6 @@ func _open(spot: Dictionary) -> void:
 			_box_hearts.set_level(Progress.friend_level(id))
 			Keywords.set_text(_box_text, _next_line(id))
 			Audio.play("giver_" + id, -8.0)
-		"pajama":
-			var data := GameState.get_character(id)
-			if GameState.weapon_unlocked(id):
-				_box_title.text = tr(data["name"])
-				_box_role.text = tr(data["weapon"])
-				Keywords.set_text(_box_text, tr(data["desc"]))
-			else:
-				_box_title.text = "???"
-				_box_role.text = ""
-				Keywords.set_text(_box_text, tr("SELECT_UNLOCK_" + id.to_upper()))
-			Audio.play("ui_click", -6.0)
 		"statue":
 			if Progress.has_seen(id):
 				_box_title.text = tr("BEST_%s_NAME" % id.to_upper())
@@ -227,6 +282,133 @@ func _close_box() -> void:
 	_talking = {}
 	_box.visible = false
 	_world.frozen = false
+
+
+## Ponerse un pijama del armario / Put on a pajama from the wardrobe
+func _wear(id: String) -> void:
+	if not GameState.weapon_unlocked(id) or GameState.selected_character == id:
+		return
+	GameState.selected_character = id
+	Audio.play("pickup", -6.0)
+	Audio.play("fluff", -10.0)
+	_world.poof()
+
+
+## La fuente: ventana para empezar a soñar con el pijama puesto, la dificultad y el modo Dios
+## The fountain: window to start dreaming in the pajama you're wearing, the difficulty and god mode
+func _open_start() -> void:
+	_world.frozen = true
+	Audio.play("chime", -8.0)
+	var dim := ColorRect.new()
+	dim.color = Color(UITheme.INK, 0.6)
+	add_child(dim)
+	dim.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_start_panel = dim
+	var center := CenterContainer.new()
+	dim.add_child(center)
+	center.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.96), Color(UITheme.GOLD, 0.7), Color(UITheme.GOLD, 0.12), 18, 28, 34))
+	center.add_child(box)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 14)
+	v.custom_minimum_size.x = 640
+	box.add_child(v)
+	v.add_child(UITheme.label("HUB_START_TITLE", 44, UITheme.BONE, "display"))
+	var data := GameState.get_character(GameState.selected_character)
+	var who := UITheme.label("", 22, UITheme.GOLD, "caps")
+	who.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	who.text = "%s  ·  %s" % [tr(data["name"]), tr(data["weapon"])]
+	v.add_child(who)
+	var change := UITheme.label("HUB_START_CHANGE", 18, Color(UITheme.ASH, 0.85), "italic")
+	change.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(change)
+	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.6)))
+	var buttons: Array[Button] = []
+	# Dificultad: la pesadilla se desbloquea al superar el Acto 1 / Difficulty: nightmare unlocks after clearing Act 1
+	if Progress.any_cleared():
+		_diff_btn = Button.new()
+		_diff_btn.custom_minimum_size = Vector2(0, 60)
+		_diff_btn.pressed.connect(func() -> void:
+			GameState.difficulty = "normal" if GameState.difficulty == "nightmare" else "nightmare"
+			_update_start_buttons())
+		v.add_child(_diff_btn)
+		buttons.append(_diff_btn)
+	# Modo Dios para probar (no en la demo) / God mode for testing (not in the demo)
+	if not Demo.on():
+		_god_btn = Button.new()
+		_god_btn.custom_minimum_size = Vector2(0, 60)
+		_god_btn.pressed.connect(func() -> void:
+			var panel := GodPanel.new()
+			panel.weapon = GameState.selected_character
+			panel.closed.connect(func() -> void:
+				_update_start_buttons()
+				_god_btn.grab_focus())
+			add_child(panel))
+		v.add_child(_god_btn)
+		buttons.append(_god_btn)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	v.add_child(row)
+	var cancel := Button.new()
+	cancel.text = "SAC_CANCEL"
+	cancel.custom_minimum_size = Vector2(240, 64)
+	cancel.pressed.connect(_close_start)
+	row.add_child(cancel)
+	var go := Button.new()
+	go.text = "BTN_START"
+	go.custom_minimum_size = Vector2(0, 64)
+	go.size_flags_horizontal = SIZE_EXPAND_FILL
+	go.pressed.connect(_start_dream)
+	row.add_child(go)
+	for b in buttons + [cancel, go]:
+		b.mouse_entered.connect(b.grab_focus)
+	_update_start_buttons()
+	go.grab_focus.call_deferred()
+
+
+func _update_start_buttons() -> void:
+	if is_instance_valid(_diff_btn):
+		_diff_btn.text = "DIFF_BUTTON_" + GameState.difficulty.to_upper()
+		_diff_btn.add_theme_color_override("font_color", UITheme.EMBER if GameState.difficulty == "nightmare" else UITheme.ASH)
+	if is_instance_valid(_god_btn):
+		_god_btn.text = "GOD_BUTTON_ON" if GameState.god_mode else "GOD_BUTTON"
+		_god_btn.add_theme_color_override("font_color", UITheme.GOLD if GameState.god_mode else UITheme.ASH)
+
+
+func _close_start() -> void:
+	if _start_panel:
+		_start_panel.queue_free()
+		_start_panel = null
+	_world.frozen = false
+
+
+func _input(event: InputEvent) -> void:
+	# Con la ventana de la fuente abierta, Esc la cierra / With the fountain window open, Esc closes it
+	if _start_panel != null and event.is_action_pressed("ui_cancel") and get_children().filter(func(c: Node) -> bool: return c is GodPanel).is_empty():
+		get_viewport().set_input_as_handled()
+		_close_start()
+
+
+func _start_dream() -> void:
+	_leaving = true
+	GameState.start_run()
+	Audio.play("astral", -4.0)
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
+
+
+## El muñeco de pruebas: una partida de entrenamiento con el pijama puesto
+## The practice dummy: a training run in the pajama you're wearing
+func _go_training() -> void:
+	_leaving = true
+	GameState.reset_run()
+	GameState.training = true
+	Audio.play("astral", -6.0)
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 0.0, 0.4)
+	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
 
 
 func _leave() -> void:
@@ -290,7 +472,7 @@ class HubWorld extends Control:
 	const STATUE_SIZE := Vector2(44, 58)
 	const SPAWN := Vector2(0, 70)
 	## Islas que siempre están / Islands that are always there
-	const ALWAYS: Array[String] = ["nexus", "wardrobe", "museum"]
+	const ALWAYS: Array[String] = ["nexus", "wardrobe", "museum", "training"]
 	## Orden de las islas alrededor del centro (para los pasillos entre vecinas) / Order of the islands around the centre (for the walkways between neighbours)
 	const RING: Array[String] = ["wardrobe", "magnus", "doc", "ad", "pinche", "museum", "silly", "stolk", "svinho", "charo"]
 
@@ -321,7 +503,8 @@ class HubWorld extends Control:
 	var _silly_chair: Prop
 	var _motes: Array[Vector4] = []
 	var _statues: Array[Control] = []
-	var _stones: Array[Vector4] = []     # x, y, sprite, fase / x, y, sprite, phase
+	var _stones: Array[Vector4] = []
+	var _poof_t := 0.0     # x, y, sprite, fase / x, y, sprite, phase
 
 	func _ready() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
@@ -381,8 +564,10 @@ class HubWorld extends Control:
 				_rims[id] = grown[0] if not grown.is_empty() else rim
 		_isles.sort_custom(func(a: String, b: String) -> bool: return _isle_pos(a).y < _isle_pos(b).y)
 		for id in _isles:
-			if id != "nexus":
+			if id != "nexus" and id != "training":
 				_add_bridge("nexus", id)
+		# El tatami de entrenamiento se alcanza desde el armario / The training mat is reached from the wardrobe
+		_add_bridge("wardrobe", "training")
 		# Pasillos entre islas vecinas, para no tener que volver siempre al centro
 		# Walkways between neighbouring islands, so you don't always have to go back to the centre
 		var ring: Array[String] = []
@@ -429,6 +614,14 @@ class HubWorld extends Control:
 		_build_nexus()
 		_build_wardrobe()
 		_build_museum()
+		_build_training()
+		# Al volver de un sueño o del entrenamiento, Kroker aparece donde toca
+		# Coming back from a dream or from training, Kroker appears where it belongs
+		if GameState.hub_spawn == "training":
+			_pos = _isle_pos("training") + Vector2(-90, 40)
+		GameState.hub_spawn = ""
+		_cam = _pos + Vector2(0, -24)
+		_kroker.position = _pos
 		for id in _isles:
 			match id:
 				"svinho": _build_svinho()
@@ -529,6 +722,8 @@ class HubWorld extends Control:
 
 	func _build_nexus() -> void:
 		var c := _isle_pos("nexus")
+		# La fuente: aquí se empieza a soñar / The fountain: this is where dreaming starts
+		_spots.append({"kind": "fountain", "id": "fountain", "pos": c + Vector2(0, 22), "height": 96.0})
 		_prop(c + Vector2(0, 2), _draw_fountain)
 		_blocks.append({"c": c + Vector2(0, -2), "r": Vector2(38, 14)})
 		for p: Vector2 in [Vector2(-150, -62), Vector2(150, -62), Vector2(-178, 62), Vector2(178, 62)]:
@@ -555,6 +750,25 @@ class HubWorld extends Control:
 		# Ondas en el agua / Ripples on the water
 		var r := fmod(_t * 8.0, 20.0)
 		ci.draw_arc(Vector2(0, -10), 6.0 + r, 0, TAU, 24, Color("9be3ff", 0.35 * (1.0 - r / 20.0)), 1.0)
+
+	# --- Tatami de entrenamiento / Training mat ---
+
+	func _build_training() -> void:
+		var c := _isle_pos("training")
+		var at := c + Vector2(30, -6)
+		_blocks.append({"c": at, "r": Vector2(14, 5)})
+		_spots.append({"kind": "training", "id": "training", "pos": at + Vector2(0, 12), "height": 100.0})
+		_prop(at, func(ci: CanvasItem) -> void:
+			_shadow(ci, Vector2.ZERO, Vector2(18, 4))
+			ci.draw_set_transform(Vector2.ZERO, sin(_t * 1.3) * 0.03, Vector2(0.5, 0.5))
+			Sprites.draw(ci, "dummy")
+			ci.draw_set_transform(Vector2.ZERO))
+		for x in [-150.0, 150.0]:
+			_piece(c + Vector2(x, -70), "hub_lantern", Vector2(6, 3))
+
+	## Nubecita al cambiarse de pijama / Little puff when changing pajamas
+	func poof() -> void:
+		_poof_t = 0.5
 
 	# --- Armario / Wardrobe ---
 
@@ -915,7 +1129,13 @@ class HubWorld extends Control:
 		ci.draw_colored_polygon(_ellipse(Vector2.ZERO, Vector2(11, 3)), Color(0, 0, 0, 0.3))
 		var outfit := GameState.selected_character if GameState.weapon_unlocked(GameState.selected_character) else "bat"
 		KrokerArt.draw(ci, Transform2D(0.0, Vector2(KROKER_SCALE, KROKER_SCALE), 0.0, Vector2(-100.0 * KROKER_SCALE, -288.0 * KROKER_SCALE)),
-			outfit, _t, {"facing": _facing, "walk": _walk, "moving": _moving, "armed": false})
+			outfit, _t, {"facing": _facing, "walk": _walk, "moving": _moving, "armed": true})
+		# Nubecita de cambiarse / Changing puff
+		if _poof_t > 0.0:
+			var k := 1.0 - _poof_t / 0.5
+			for i in 8:
+				var a := i * TAU / 8.0
+				ci.draw_circle(Vector2(cos(a) * (8.0 + k * 18.0), -36.0 + sin(a) * (10.0 + k * 22.0)), 6.0 * (1.0 - k) + 2.0, Color(1, 1, 1, 0.8 * (1.0 - k)))
 
 	# --- Movimiento / Movement ---
 
@@ -977,6 +1197,7 @@ class HubWorld extends Control:
 
 	func _process(delta: float) -> void:
 		_t += delta
+		_poof_t = maxf(0.0, _poof_t - delta)
 		var dir := Vector2.ZERO
 		if not frozen:
 			dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")

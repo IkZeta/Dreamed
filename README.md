@@ -17,7 +17,7 @@ Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada 
 ## Cómo jugar
 
 1. Abre `project.godot` con Godot 4.7.2 y pulsa **F5**.
-2. En el menú principal, pulsa **Jugar** y elige un pijama: cada uno trae un arma distinta.
+2. En el menú principal, pulsa **Jugar**: llegas al **plano astral**. Ve al armario, acércate a un pijama para ver su carta y pulsa **F** para ponértelo (cada uno trae un arma distinta). Luego ve a la fuente del centro y pulsa **F** para empezar a soñar.
 3. Sobrevive a cada sueño hasta que se acabe el tiempo. Tu arma ataca sola.
 4. Recoge los **trozos de estrella** que sueltan los enemigos para subir de nivel.
 5. Al acabar cada sueño, en el **plano astral**, elige uno de los dos dones que te ofrecen.
@@ -40,9 +40,9 @@ El mando vibra al recibir golpes; se puede desactivar en *Ajustes → Accesibili
 
 ## Los pijamas
 
-Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza con cuatro y otros cuatro se desbloquean jugando. En la selección salen en páginas de cuatro, con una flecha a cada lado; los bloqueados se ven en silueta, con cómo se consiguen. Cada carta tiene una ficha con sus valoraciones y todas sus bonificaciones de serie; si no caben, la ficha se desplaza (con la rueda o, con mando, sola y con el stick derecho).
+Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza con cuatro y los demás se desbloquean jugando. Están en el armario del plano astral: al acercarte a un soporte sale la carta de ese pijama, con su ficha de valoraciones y todas sus bonificaciones de serie (si no caben, la ficha se desplaza: con la rueda o, con mando, sola y con el stick derecho). Los bloqueados se ven en silueta, con cómo se consiguen.
 
-![Selección de personaje](docs/screenshots/seleccion.jpg)
+![El armario del plano astral con la carta de un pijama](docs/screenshots/seleccion.jpg)
 
 | Pijama | Arma | Cómo ataca | De serie | Cómo se desbloquea |
 |---|---|---|---|---|
@@ -228,8 +228,10 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 ## Más
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
-- **Plano astral (lobby):** opción del menú principal, al estilo de Hades. Es un archipiélago de islas flotantes de piedra astral unidas por puentes de piedras que flotan. En el centro está el cruce de los sueños, con una fuente de estrellas. A su alrededor aparece una isla por cada personaje que Kroker ya conoce, con un trozo de su mundo encima (césped, gimnasio, cocina, despacho...) y él haciendo lo suyo: Svinho chuta a portería, Stolk levanta la barra por encima de la cabeza en el gimnasio, Silly rueda en su silla de un monitor a otro con los cascos puestos, Doc pasa la lupa por un pie gigante en su clínica podológica, Mr. Ad salta hiperactivo de una tele a otra del escaparate con la cara en primer plano, el Pinche corre con el extintor por una cocina en llamas, Charo teje en su sillón y Magnus trabaja en su despacho. Las islas vecinas también están unidas entre sí por pasillos, así que no hace falta volver siempre al centro. Al acercarte puedes hablar con ellos con la **F** (o A en el mando): lore y lo que te cuentan según la amistad. También tiene:
-  - **el armario**, con un maniquí por pijama (los que aún no tienes, con el soporte vacío);
+- **Plano astral (lobby):** es adonde lleva **Jugar** y adonde vuelves al acabar cada partida, al estilo de Hades. Es un archipiélago de islas flotantes de piedra astral unidas por puentes de piedras que flotan. En el centro está el cruce de los sueños, con una fuente de estrellas. A su alrededor aparece una isla por cada personaje que Kroker ya conoce, con un trozo de su mundo encima (césped, gimnasio, cocina, despacho...) y él haciendo lo suyo: Svinho chuta a portería, Stolk levanta la barra por encima de la cabeza en el gimnasio, Silly rueda en su silla de un monitor a otro con los cascos puestos, Doc pasa la lupa por un pie gigante en su clínica podológica, Mr. Ad salta hiperactivo de una tele a otra del escaparate con la cara en primer plano, el Pinche corre con el extintor por una cocina en llamas, Charo teje en su sillón y Magnus trabaja en su despacho. Las islas vecinas también están unidas entre sí por pasillos, así que no hace falta volver siempre al centro. Al acercarte puedes hablar con ellos con la **F** (o A en el mando): lore y lo que te cuentan según la amistad. También tiene:
+  - **la fuente de estrellas**, en el centro: con la **F** se abre la ventana de empezar a soñar (con la dificultad y el Modo Dios);
+  - **el armario**, con un maniquí por pijama (los que aún no tienes, con el soporte vacío): al acercarte sale la carta del pijama y con la **F** te lo pones;
+  - **el tatami**, detrás del armario, con un **muñeco de pruebas** para probar el arma, como el esqueleto de Hades: con la **F** entras a entrenar. No se rompe nunca, no hace daño, se tambalea con los golpes y enseña el daño por segundo. Con **Esc** → *Volver al plano astral* sales;
   - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
@@ -243,11 +245,13 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 
 ![El cruce de los sueños, en el plano astral](docs/screenshots/lobby.jpg)
 
+![El tatami, con el muñeco de pruebas](docs/screenshots/tatami.jpg)
+
 ![El museo, con las estatuas de los enemigos](docs/screenshots/bestiario.jpg)
 
 ### Modo Dios (para probar)
 
-Se activa con el botón **Modo Dios** de la selección de personaje. Permite empezar en cualquier sueño (1–15), elegir una segunda arma y poner las mejoras de cada arma y las estadísticas que quieras. Desde el sueño 11, si no eliges segunda arma, se pone una de prueba. Las partidas en Modo Dios no se guardan. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
+Se activa con el botón **Modo Dios** de la ventana de la fuente del plano astral. Permite empezar en cualquier sueño (1–15), elegir una segunda arma y poner las mejoras de cada arma y las estadísticas que quieras. Desde el sueño 11, si no eliges segunda arma, se pone una de prueba. Las partidas en Modo Dios no se guardan. Si empiezas en el Acto 2, traes 30 ◆ para probar el kiosco.
 
 Teclas durante la partida:
 
@@ -273,7 +277,7 @@ Para hacer una demo nueva basta con volver a exportar con esos presets.
 ## Estructura del proyecto
 
 ```
-scenes/                 escenas principales (menú, selección, partida, plano astral, ajustes)
+scenes/                 escenas principales (menú, partida, plano astral, ajustes)
 scripts/autoload/       I18n (textos ES/EN), Settings, GameState (datos y reglas), Progress (guardado y logros), Audio
 scripts/game/           la partida: run.gd, bedroom.gd, living_room.gd, act3_room.gd, Kroker, enemigos, armas, jefes, HUD, efectos
 scripts/ui/             menús, bestiario, logros, subida de nivel, plano astral, Charo y su kiosco, chimenea, tarjetas de palabras clave

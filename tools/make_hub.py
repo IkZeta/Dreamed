@@ -75,6 +75,9 @@ ISLES = {
     "silly": dict(pos=(-520, 520), r=(160, 98), aura="#5ff2ff", seed=9, floor="dark", inset=(120, 68, 0, 4)),
     "museum": dict(pos=(0, 545), r=(285, 140), aura="#e8e4f6", seed=10, floor="marble", inset=(245, 108, 0, 4)),
     "pinche": dict(pos=(520, 520), r=(165, 100), aura="#ff9a3a", seed=11, floor="kitchen", inset=(125, 70, 0, 4)),
+    # Detrás del armario: el tatami de entrenamiento con el muñeco de pruebas
+    # Behind the wardrobe: the training mat with the practice dummy
+    "training": dict(pos=(-260, -690), r=(230, 112), aura="#ff8f6a", seed=12, floor="dojo", inset=(196, 90, 0, 4)),
 }
 
 
@@ -339,8 +342,25 @@ def floor_marble(lx, ly, rng, irx, iry):
     return out
 
 
+def floor_dojo(lx, ly, rng, irx, iry):
+    """Tatami: esteras de 2 x 1 al tresbolillo con ribete verde y un círculo rojo en medio
+    Tatami: staggered 2 x 1 mats with a green border and a red circle in the middle"""
+    A, B, E = night("#c8c08a"), night("#bab27c"), night("#3f6a4a")
+    row = (ly + 400) // 24
+    off = (row % 2) * 24
+    col = (lx + 400 + off) // 48
+    out = np.where(((col + row) % 2 == 0)[..., None], A, B)
+    out[((lx + 400 + off) % 48 == 0) | ((ly + 400) % 24 == 0)] = E
+    # Rayitas del junco / Rush weave lines
+    out[((ly + 400) % 3 == 0) & ((lx + 400 + off) % 48 != 0) & ((ly + 400) % 24 != 0)] = mix(out[((ly + 400) % 3 == 0) & ((lx + 400 + off) % 48 != 0) & ((ly + 400) % 24 != 0)], E, 0.12)
+    rr = np.sqrt(lx ** 2 + ((ly - 2) * 2.0) ** 2)
+    out[np.abs(rr - 52) < 1.6] = night("#c8464f")
+    out[np.abs(rr - 40) < 0.8] = night("#c8464f")
+    return out
+
+
 FLOORS = {"grass": floor_grass, "gym": floor_gym, "dark": floor_dark, "clinic": floor_clinic, "street": floor_street,
-          "kitchen": floor_kitchen, "bedroom": floor_bedroom, "charo": floor_charo, "magnus": floor_magnus, "marble": floor_marble}
+          "kitchen": floor_kitchen, "bedroom": floor_bedroom, "charo": floor_charo, "magnus": floor_magnus, "marble": floor_marble, "dojo": floor_dojo}
 
 
 def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flowers=True, nexus=False, crystals=True, thick=18, pad=30):

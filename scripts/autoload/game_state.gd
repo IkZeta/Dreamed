@@ -218,6 +218,11 @@ const REALITY_SACRIFICE := 4
 
 
 ## --- Modo Dios (para probar) / God mode (for testing) ----------------------------
+## Partida de entrenamiento con el muñeco del plano astral / Training run with the astral plane's dummy
+var training := false
+## Dónde aparece Kroker al volver al plano astral: "" (al entrar), "fountain" o "training"
+## Where Kroker appears when coming back to the astral plane: "" (on entering), "fountain" or "training"
+var hub_spawn := ""
 var god_mode := false
 var god_invuln := true          # con la F se cambia en partida / toggled in game with F
 var god_depth := 1              # sueño en el que empezar / dream to start in

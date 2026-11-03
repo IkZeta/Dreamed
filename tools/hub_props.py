@@ -352,3 +352,52 @@ def build(ms):
     put("hub_pedestal", -16, -22, 32, 24, b)
     b = E(0, -1, 3, 1.5, GOLD2) + R(-1, -13, 2, 12, GOLD2) + E(0, -14, 2, 2, GOLD2)
     put("hub_post", -4, -17, 8, 19, b)
+
+
+def dummy(ms):
+    """Muñeco de pruebas: saco de arpillera relleno, clavado en un poste con travesaño, cabeza
+    con ojos de botón cosidos y una diana en el pecho. En coordenadas del mundo de la partida
+    (pies en 0, 0); en el plano astral se dibuja a la mitad.
+    Practice dummy: a stuffed burlap sack on a post with a crossbar, a head with sewn button eyes
+    and a target on its chest. In run-world coordinates (feet at 0, 0); in the astral plane it's
+    drawn at half size."""
+    mix, dark, rect_d, ellipse_d = ms.mix, ms.dark, ms.rect_d, ms.ellipse_d
+
+    def ng(c, k=0.2):
+        return mix(c, NIGHT, k)
+
+    def hs(d, base, sh=0.42, rim=0.45):
+        i = ms.uid()
+        return ("<defs><clipPath id='c%s'><path d='%s'/></clipPath></defs><path d='%s' fill='%s'/>"
+                "<g clip-path='url(#c%s)'><path d='%s%s' transform='translate(-5,-4)' fill-rule='evenodd' fill='%s'/>"
+                "<path d='%s%s' transform='translate(2.5,2.5)' fill-rule='evenodd' fill='%s'/></g>"
+                "<path d='%s' fill='none' stroke='%s' stroke-width='2.2' stroke-linejoin='round'/>") % (
+            i, d, d, base, i, ms.BIG, d, mix(base, dark(base, 0.6), sh), ms.BIG, d, mix(base, "#e8e4ff", rim * 0.5), d, dark(base, 0.5))
+
+    WOOD, WOOD_D = ng("#8a5a3e"), ng("#5a3a2a")
+    SACK, SACK_D = ng("#c8a46a"), ng("#9a7a4a")
+    ROPE = ng("#e0c890")
+    b = hs(rect_d(-34, -10, 68, 10), WOOD_D)
+    b += hs(rect_d(-7, -156, 14, 150), WOOD)
+    b += hs(rect_d(-62, -118, 124, 12), WOOD)
+    # Brazos de trapo atados al travesaño / Rag arms tied to the crossbar
+    for s in (-1, 1):
+        b += hs("M%g,-122 L%g,-122 L%g,-100 L%g,-100 Z" % (s * 26, s * 62, s * 62, s * 26), SACK)
+        b += "<path d='M%g,-124 L%g,-98' stroke='%s' stroke-width='4'/>" % (s * 54, s * 54, ROPE)
+    # Cuerpo / Body
+    b += hs("M-30,-112 Q-34,-60 -24,-44 L24,-44 Q34,-60 30,-112 Q0,-120 -30,-112 Z", SACK)
+    for y in (-100, -86, -72, -58):
+        b += "<path d='M-26,%g L-20,%g M18,%g L24,%g' stroke='%s' stroke-width='2'/>" % (y, y - 3, y - 3, y, SACK_D)
+    b += "<path d='M-28,-62 Q0,-56 28,-62' fill='none' stroke='%s' stroke-width='5'/>" % ROPE
+    # Diana en el pecho / Target on the chest
+    b += "<path d='%s' fill='%s'/>" % (ellipse_d(0, -86, 14, 14), ng("#e8e4d8"))
+    b += "<path d='%s' fill='%s'/>" % (ellipse_d(0, -86, 10, 10), ng("#c8464f"))
+    b += "<path d='%s' fill='%s'/>" % (ellipse_d(0, -86, 5, 5), ng("#e8e4d8"))
+    # Cabeza de saco con ojos de botón y boca cosida / Sack head with button eyes and a stitched mouth
+    b += hs(ellipse_d(0, -140, 24, 22), SACK)
+    b += "<path d='M-14,-160 Q0,-170 14,-160' fill='none' stroke='%s' stroke-width='5'/>" % ROPE
+    for x in (-9, 9):
+        b += "<path d='%s' fill='#2b2945'/>" % ellipse_d(x, -142, 4.5, 4.5)
+        b += "<path d='M%g,-144 L%g,-140' stroke='%s' stroke-width='1.6'/>" % (x - 2, x + 2, SACK)
+    b += "<path d='M-10,-130 L10,-130 M-7,-133 L-7,-127 M0,-133 L0,-127 M7,-133 L7,-127' stroke='#2b2945' stroke-width='2'/>"
+    ms.add("dummy", -66, -172, 132, 176, b, px=0.5, flat=True, outline="#140e26")

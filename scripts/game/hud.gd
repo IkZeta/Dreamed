@@ -4,6 +4,7 @@ extends CanvasLayer
 ## In-game interface: health, dream timer and Foox dispelled.
 
 var _hp_bar: ProgressBar
+var _training := false
 var _hp_text: Label
 var _dream: Label
 var _timer: Label
@@ -359,8 +360,16 @@ func set_time(seconds: float) -> void:
 	_timer.add_theme_color_override("font_color", UITheme.GOLD if s <= 5 else UITheme.BONE)
 
 
+## Entrenamiento: sin cuenta atrás ni título de sueño / Training: no countdown and no dream title
+func start_training() -> void:
+	_training = true
+	_timer.visible = false
+	_intro.visible = false
+	_refresh_texts()
+
+
 func _refresh_texts() -> void:
-	_dream.text = tr("RUN_DREAM") % _depth
+	_dream.text = tr("TRAINING_TITLE") if _training else tr("RUN_DREAM") % _depth
 	_intro_title.text = tr("RUN_DREAM") % _depth
 	if _lvl:
 		_lvl.text = tr("HUD_LEVEL") % GameState.plevel
