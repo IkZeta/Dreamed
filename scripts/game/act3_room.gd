@@ -12,6 +12,13 @@ extends Bedroom
 ## doors that break open also repeat in every piece.
 
 const PERIOD := 1920.0
+## Luz de anochecer: todo el pasillo un poco más oscuro y azulado, con el techo en penumbra y
+## un último rastro de luz anaranjada a ras de suelo
+## Dusk light: the whole hallway a bit darker and bluer, the ceiling in shadow and a last trace
+## of orange light along the floor
+const DUSK := Color(0.68, 0.62, 0.84)
+const DUSK_TOP := Color(0.16, 0.08, 0.3, 0.45)
+const DUSK_GLOW := Color(1.0, 0.55, 0.3, 0.14)
 ## Mitad del ancho del pasillo (en el lienzo): de sobra para que nadie llegue al final
 ## Half the hallway's width (on the canvas): far more than anyone will ever walk
 const HALF := 60000.0
@@ -185,6 +192,7 @@ func _draw() -> void:
 		var off := Vector2(i * PERIOD, 0)
 		_draw_piece("hall_floor", off)
 		_draw_piece("hall_wall_%d" % posmod(i, 3), off)
+	_draw_dusk(k)
 	_draw_scorches(k)
 	if bell_open > 0.0:
 		_draw_open_doors(k)
@@ -195,7 +203,7 @@ func _draw() -> void:
 		var pr: Array = PIECE_PROPS[posmod(i, 2)]
 		var base: Vector2 = pr[1]
 		draw_colored_polygon(_ellipse(base + Vector2(i * PERIOD, 0), Vector2(30, 9)), Color(0, 0, 0, 0.3))
-		Sprites.draw(self, pr[0], Color.WHITE, base + Vector2(i * PERIOD, 0))
+		Sprites.draw(self, pr[0], DUSK, base + Vector2(i * PERIOD, 0))
 	# Lo que se repite en cada trozo: grietas, estrellas y cosas que flotan
 	# What repeats in each piece: cracks, stars and floating things
 	for i: int in pieces:
@@ -204,6 +212,27 @@ func _draw() -> void:
 		_draw_dream_stars()
 	draw_set_transform(Vector2.ZERO)
 	_draw_edges(k)
+
+
+## Penumbra de anochecer: el techo y lo alto de la pared más oscuros, y una franja de luz
+## anaranjada (la última del día) donde la pared toca el suelo
+## Dusk gloom: the ceiling and the top of the wall darker, and a band of orange light (the
+## last of the day) where the wall meets the floor
+func _draw_dusk(k: int) -> void:
+	var x0 := (k - 1) * PERIOD
+	var w := PERIOD * 3.0
+	var clear := Color(DUSK_TOP, 0.0)
+	draw_polygon(PackedVector2Array([Vector2(x0, -8), Vector2(x0 + w, -8), Vector2(x0 + w, WALL_BOTTOM * 0.75), Vector2(x0, WALL_BOTTOM * 0.75)]),
+		PackedColorArray([DUSK_TOP, DUSK_TOP, clear, clear]))
+	var glow0 := Color(DUSK_GLOW, 0.0)
+	draw_polygon(PackedVector2Array([Vector2(x0, WALL_BOTTOM - 60), Vector2(x0 + w, WALL_BOTTOM - 60), Vector2(x0 + w, WALL_BOTTOM), Vector2(x0, WALL_BOTTOM)]),
+		PackedColorArray([glow0, glow0, DUSK_GLOW, DUSK_GLOW]))
+	draw_polygon(PackedVector2Array([Vector2(x0, WALL_BOTTOM), Vector2(x0 + w, WALL_BOTTOM), Vector2(x0 + w, WALL_BOTTOM + 140), Vector2(x0, WALL_BOTTOM + 140)]),
+		PackedColorArray([DUSK_GLOW, DUSK_GLOW, glow0, glow0]))
+	# El suelo se oscurece un poco hacia delante / The floor darkens a little towards the front
+	var front := Color(0.08, 0.05, 0.18, 0.28)
+	draw_polygon(PackedVector2Array([Vector2(x0, WALL_BOTTOM + 200), Vector2(x0 + w, WALL_BOTTOM + 200), Vector2(x0 + w, FLOOR_BOTTOM), Vector2(x0, FLOOR_BOTTOM)]),
+		PackedColorArray([Color(front, 0.0), Color(front, 0.0), front, front]))
 
 
 ## Puertas abiertas con el timbre: hueco oscuro con luz de clase y la puerta girada
@@ -244,7 +273,7 @@ func _draw_scorches(k: int) -> void:
 func _draw_piece(sprite: String, off: Vector2) -> void:
 	var r: Rect2 = SpriteRects.RECTS[sprite]
 	r.position += off
-	draw_texture_rect(Sprites.tex(sprite), r.grow_individual(4, 0, 4, 0), false)
+	draw_texture_rect(Sprites.tex(sprite), r.grow_individual(4, 0, 4, 0), false, DUSK)
 
 
 ## El pasillo flota en el cielo: canto del suelo y del techo a lo largo
@@ -252,9 +281,9 @@ func _draw_piece(sprite: String, off: Vector2) -> void:
 func _draw_edges(k: int) -> void:
 	var x0 := (k - 1) * PERIOD
 	var w := PERIOD * 3.0
-	draw_rect(Rect2(x0, FLOOR_BOTTOM, w, 34), Color("5a5446"))
-	draw_rect(Rect2(x0, FLOOR_BOTTOM, w, 4), Color("a49c86"))
-	draw_rect(Rect2(x0, -8, w, 8), Color("8a7e66"))
+	draw_rect(Rect2(x0, FLOOR_BOTTOM, w, 34), Color("5a5446") * DUSK)
+	draw_rect(Rect2(x0, FLOOR_BOTTOM, w, 4), Color("a49c86") * DUSK)
+	draw_rect(Rect2(x0, -8, w, 8), Color("8a7e66") * DUSK)
 	# Sombra junto a la pared / Shadow along the wall
 	draw_polygon(PackedVector2Array([Vector2(x0, WALL_BOTTOM), Vector2(x0 + w, WALL_BOTTOM), Vector2(x0 + w, WALL_BOTTOM + 50), Vector2(x0, WALL_BOTTOM + 50)]),
 		PackedColorArray([Color(0.25, 0.2, 0.1, 0.3), Color(0.25, 0.2, 0.1, 0.3), Color(0.25, 0.2, 0.1, 0), Color(0.25, 0.2, 0.1, 0)]))
