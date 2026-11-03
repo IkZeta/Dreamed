@@ -146,6 +146,15 @@ func _physics_process(delta: float) -> void:
 	match state:
 		State.SPAWNING:
 			_fade = minf(1.0, _fade + delta / 0.6)
+			# Aún no camina, pero la aspiradora, el muñeco o un golpe sí lo mueven poco a poco
+			# (si no, el tirón se acumulaba y al acabar de aparecer daba un salto de golpe)
+			# It doesn't walk yet, but the vacuum, the dummy or a hit do move it bit by bit
+			# (otherwise the pull built up and it jumped all at once when it finished appearing)
+			if knock != Vector2.ZERO or external_pull != Vector2.ZERO:
+				position = run.clamp_to_arena(position + (knock + external_pull) * delta, radius)
+				knock = knock.move_toward(Vector2.ZERO, 1400.0 * delta)
+			external_pull = Vector2.ZERO
+			vacuumed = false
 			if _fade >= 1.0:
 				state = State.ALIVE
 		State.DYING:
