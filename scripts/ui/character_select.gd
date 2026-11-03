@@ -148,7 +148,7 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 	var portrait := DreamerPortrait.new()
 	portrait.character_id = data["id"]
 	var portrait_px := PixelView.wrap(portrait, 3)
-	portrait_px.custom_minimum_size = Vector2(0, 230)
+	portrait_px.custom_minimum_size = Vector2(0, 186)
 	v.add_child(portrait_px)
 	_portraits[data["id"]] = portrait
 	# Bloqueado: solo la silueta y cómo se consigue / Locked: just the silhouette and how to get it
@@ -163,47 +163,120 @@ func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
 		UITheme.ignore_mouse(content)
 		return card
 
-	var who := UITheme.label("Kroker", 14, UITheme.ASH, "caps")
-	who.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
-	v.add_child(who)
 	var name_label := UITheme.label(data["name"], 36, UITheme.BONE, "display")
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(name_label)
 
 	var sep := Control.new()
-	sep.custom_minimum_size.y = 8
+	sep.custom_minimum_size.y = 2
 	v.add_child(sep)
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.9)))
 	v.add_child(_pair("SELECT_WEAPON", data["weapon"], UITheme.BONE))
-	v.add_child(_pair("SELECT_BONUS", data["bonus"], UITheme.GOLD))
 
-	var desc := UITheme.label(data["desc"], 19, Color(UITheme.BONE, 0.8), "light")
+	var desc := UITheme.label(data["desc"], 18, Color(UITheme.BONE, 0.8), "light")
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(desc)
 
 	var push := Control.new()  # alinea las estadísticas abajo / pins stats to the bottom
 	push.size_flags_vertical = SIZE_EXPAND_FILL
 	v.add_child(push)
-
-	var stats := GridContainer.new()
-	stats.columns = 2
-	stats.add_theme_constant_override("h_separation", 16)
-	stats.add_theme_constant_override("v_separation", 8)
-	for key: String in data["stats"]:
-		var l := UITheme.label(key, 13, UITheme.ASH, "caps")
-		l.custom_minimum_size.x = 120
-		stats.add_child(l)
-		var bar := ProgressBar.new()
-		bar.max_value = 5
-		bar.value = data["stats"][key]
-		bar.show_percentage = false
-		bar.size_flags_horizontal = SIZE_EXPAND_FILL
-		bar.size_flags_vertical = SIZE_SHRINK_CENTER
-		stats.add_child(bar)
-	v.add_child(stats)
-
+	v.add_child(_profile(data))
 	UITheme.ignore_mouse(content)
 	return card
+
+
+## Ficha del pijama: valoraciones con rombos, tipo de arma y todo lo que trae de serie, junto
+## Pajama sheet: ratings with diamonds, weapon type and everything it comes with, all together
+func _profile(data: Dictionary) -> Control:
+	var id: String = data["id"]
+	var pj: Dictionary = KrokerArt.PAJAMAS.get(id, KrokerArt.PAJAMAS[""])
+	# El color más claro del pijama / The pajama's lightest colour
+	var accent: Color = pj["pattern"] if Color(pj["pattern"]).get_luminance() > Color(pj["piping"]).get_luminance() else pj["piping"]
+	var panel := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(UITheme.INK, 0.55)
+	sb.set_border_width_all(1)
+	sb.border_width_left = 4
+	sb.border_color = Color(accent, 0.8)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 12
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 12
+	panel.add_theme_stylebox_override("panel", sb)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	panel.add_child(v)
+	# Valoraciones de 1 a 5, en dos columnas / Ratings 1 to 5, in two columns
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 14)
+	grid.add_theme_constant_override("v_separation", 4)
+	v.add_child(grid)
+	for key: String in data["stats"]:
+		var cell := VBoxContainer.new()
+		cell.add_theme_constant_override("separation", 0)
+		cell.size_flags_horizontal = SIZE_EXPAND_FILL
+		cell.add_child(UITheme.label(key, 12, UITheme.ASH, "caps"))
+		var pips := Pips.new()
+		pips.value = int(data["stats"][key])
+		pips.color = UITheme.GOLD
+		cell.add_child(pips)
+		grid.add_child(cell)
+	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.4)))
+	# Tipo de arma y lo de serie, como etiquetas / Weapon type and the built-ins, as tags
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 6)
+	flow.add_theme_constant_override("v_separation", 6)
+	v.add_child(flow)
+	var ranged := id in GameState.RANGED
+	flow.add_child(_chip(tr("SELECT_RANGED" if ranged else "SELECT_MELEE"), Color(accent, 1.0), true))
+	for perk: Dictionary in GameState.pajama_perks(id):
+		flow.add_child(_chip(perk["text"], UITheme.MIST if perk["good"] else UITheme.EMBER, false))
+	return panel
+
+
+## Etiqueta redondeada (con palabras clave) / Rounded tag (with keywords)
+func _chip(text: String, color: Color, solid: bool) -> Control:
+	var chip := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(color, 0.85 if solid else 0.14)
+	sb.border_color = Color(color, 0.7)
+	sb.set_border_width_all(0 if solid else 1)
+	sb.set_corner_radius_all(10)
+	sb.content_margin_left = 8
+	sb.content_margin_right = 8
+	sb.content_margin_top = 2
+	sb.content_margin_bottom = 3
+	chip.add_theme_stylebox_override("panel", sb)
+	var l := Keywords.label(text, 15, UITheme.INK if solid else color.lightened(0.35), "body")
+	l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	l.fit_content = true
+	chip.add_child(l)
+	return chip
+
+
+## Cinco rombos, rellenos hasta el valor / Five diamonds, filled up to the value
+class Pips extends Control:
+	var value := 0
+	var color := Color.WHITE
+
+	func _ready() -> void:
+		custom_minimum_size = Vector2(0, 18)
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var r := 7.0
+		var step := minf(22.0, (size.x - r * 2.0) / 4.0)
+		for i in 5:
+			var c := Vector2(r + i * step, size.y / 2.0)
+			var pts := PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)])
+			if i < value:
+				draw_colored_polygon(pts, color)
+				draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r * 0.5, -r * 0.5), c + Vector2(0, 0), c + Vector2(-r * 0.5, -r * 0.5)]), Color(1, 1, 1, 0.35))
+			else:
+				pts.append(pts[0])
+				draw_polyline(pts, Color(color, 0.3), 1.5)
 
 
 func _pair(key: String, value_key: String, color: Color) -> Control:
