@@ -377,7 +377,7 @@ const STRINGS := {
 	"CHAR_LAPTOP_WEAPON": {"es": "Portátil", "en": "Laptop"},
 	"CHAR_LAPTOP_BONUS": {"es": "+3 de vida máxima, −15 % de velocidad de ataque", "en": "+3 max health, −15% attack speed"},
 	"CHAR_LAPTOP_OUTFIT": {"es": "Pijama de código", "en": "Code pajamas"},
-	"CHAR_LAPTOP_DESC": {"es": "Teclea y pone hasta 3 torretas a su lado que disparan solas y no desaparecen. Salen de tarde en tarde, pero con más ataque suben de nivel: queman, empujan y hacen sangrar.", "en": "Types away and places up to 3 turrets beside him that shoot by themselves and never go away. They come out rarely, but with more attack they level up: they burn, push and cause bleeding."},
+	"CHAR_LAPTOP_DESC": {"es": "Pone hasta 3 torretas que disparan solas y no desaparecen. Salen de tarde en tarde y suben de nivel con el ataque: queman, empujan y hacen sangrar.", "en": "Places up to 3 turrets that shoot by themselves and never go away. They come out rarely and level up with attack: they burn, push and cause bleeding."},
 	"WEAPON_SHORT_LAPTOP": {"es": "Portátil", "en": "Laptop"},
 	"UP_SVINHO_LAPTOP_NAME": {"es": "Wifi compartido", "en": "Shared wifi"},
 	"UP_SVINHO_LAPTOP_DESC": {"es": "Cada disparo de las torretas salta a {extra} enemigo(s) más.", "en": "Every turret shot jumps to {extra} more enemy(ies)."},

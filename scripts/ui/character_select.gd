@@ -11,6 +11,12 @@ var _start: Button
 var _god: Button
 var _diff: Button
 var _picked := ""
+## Páginas de cuatro pijamas, con flechas en pantalla / Pages of four pajamas, with on-screen arrows
+const PER_PAGE := 4
+var _page := 0
+var _prev: Button
+var _next: Button
+var _page_label: Label
 
 
 func _ready() -> void:
@@ -38,7 +44,7 @@ func _build() -> void:
 	add_child(margin)
 	margin.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	for side in ["left", "right"]:
-		margin.add_theme_constant_override("margin_" + side, 110)
+		margin.add_theme_constant_override("margin_" + side, 34)
 	margin.add_theme_constant_override("margin_top", 56)
 	margin.add_theme_constant_override("margin_bottom", 52)
 
@@ -46,22 +52,32 @@ func _build() -> void:
 	root.add_theme_constant_override("separation", 10)
 	margin.add_child(root)
 
-	root.add_child(UITheme.label("SELECT_TITLE", 70, UITheme.BONE, "display"))
+	var title_row := HBoxContainer.new()
+	root.add_child(title_row)
+	var indent := Control.new()
+	indent.custom_minimum_size.x = 76
+	title_row.add_child(indent)
+	title_row.add_child(UITheme.label("SELECT_TITLE", 70, UITheme.BONE, "display"))
 	var gap := Control.new()
 	gap.custom_minimum_size.y = 18
 	root.add_child(gap)
 
-	# Seis pijamas no caben a la vez: fila desplazable que sigue al foco
-	# Six pajamas don't fit at once: a scrolling row that follows the focus
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = SIZE_EXPAND_FILL
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.follow_focus = true
-	root.add_child(scroll)
+	# No caben todos a la vez: páginas de cuatro con una flecha a cada lado
+	# They don't all fit at once: pages of four with an arrow on each side
+	var row := HBoxContainer.new()
+	row.size_flags_vertical = SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 16)
+	root.add_child(row)
+	_prev = _arrow("<", -1)
+	row.add_child(_prev)
 	var cards := HBoxContainer.new()
 	cards.size_flags_vertical = SIZE_EXPAND_FILL
+	cards.size_flags_horizontal = SIZE_EXPAND_FILL
+	cards.alignment = BoxContainer.ALIGNMENT_BEGIN
 	cards.add_theme_constant_override("separation", 22)
-	scroll.add_child(cards)
+	row.add_child(cards)
+	_next = _arrow(">", 1)
+	row.add_child(_next)
 
 	var group := ButtonGroup.new()
 	for data: Dictionary in GameState.CHARACTERS:
@@ -69,13 +85,25 @@ func _build() -> void:
 		cards.add_child(card)
 		_cards.append(card)
 
+	_page_label = UITheme.label("", 18, UITheme.ASH, "caps")
+	_page_label.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_page_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_page_label.custom_minimum_size.x = 140
+
 	var footer := HBoxContainer.new()
 	root.add_child(footer)
+	var indent2 := Control.new()
+	indent2.custom_minimum_size.x = 76
+	footer.add_child(indent2)
 	var back := Button.new()
 	back.text = "BTN_BACK"
 	back.custom_minimum_size = Vector2(220, 64)
 	back.pressed.connect(_go.bind(MAIN_MENU))
 	footer.add_child(back)
+	# Página actual, junto a Volver / Current page, next to Back
+	footer.add_child(_page_label)
+	_show_page(0)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = SIZE_EXPAND_FILL
 	footer.add_child(spacer)
@@ -115,7 +143,60 @@ func _build() -> void:
 const CARD_W := 396.0
 ## Alto de la ficha de estadísticas (igual en todas; lo que no cabe se desplaza)
 ## Height of the stats sheet (the same on all; whatever doesn't fit scrolls)
-const PROFILE_H := 256.0
+const PROFILE_H := 244.0
+
+
+## Flecha para cambiar de página / Arrow to change page
+func _arrow(text: String, dir: int) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	b.custom_minimum_size = Vector2(60, 220)
+	b.size_flags_vertical = SIZE_SHRINK_CENTER
+	b.add_theme_font_size_override("font_size", UITheme.pixel_size(48))
+	b.pressed.connect(func() -> void: _turn(dir))
+	return b
+
+
+func _pages() -> int:
+	return int(ceil(_cards.size() / float(PER_PAGE)))
+
+
+func _turn(dir: int) -> void:
+	var p := clampi(_page + dir, 0, _pages() - 1)
+	if p == _page:
+		return
+	Audio.play("ui_click", -6.0)
+	_show_page(p)
+	# El foco pasa a la primera (o última) carta disponible de la página nueva; si no hay, a la flecha
+	# Focus moves to the first (or last) available card of the new page; if none, to the arrow
+	var ids := range(p * PER_PAGE, mini((p + 1) * PER_PAGE, _cards.size()))
+	if dir < 0:
+		ids.reverse()
+	for i: int in ids:
+		if not _cards[i].disabled:
+			_cards[i].grab_focus()
+			return
+	(_next if dir > 0 else _prev).grab_focus()
+
+
+## Enseña solo las cartas de esa página y engancha la navegación con teclado o mando a las flechas
+## Shows only that page's cards and hooks keyboard/gamepad navigation to the arrows
+func _show_page(p: int) -> void:
+	_page = p
+	var first := p * PER_PAGE
+	var last := mini(first + PER_PAGE, _cards.size()) - 1
+	for i in _cards.size():
+		_cards[i].visible = i >= first and i <= last
+		_cards[i].focus_neighbor_left = NodePath()
+		_cards[i].focus_neighbor_right = NodePath()
+	_cards[first].focus_neighbor_left = _cards[first].get_path_to(_prev)
+	_cards[last].focus_neighbor_right = _cards[last].get_path_to(_next)
+	_prev.disabled = p == 0
+	_next.disabled = p >= _pages() - 1
+	_prev.modulate.a = 0.35 if _prev.disabled else 1.0
+	_next.modulate.a = 0.35 if _next.disabled else 1.0
+	_page_label.text = "%d / %d" % [p + 1, _pages()]
 
 
 func _make_card(data: Dictionary, group: ButtonGroup) -> Button:
