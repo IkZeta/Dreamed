@@ -1069,7 +1069,7 @@ func pajama_perks(id: String) -> Array:
 		vals.append(["STATV_DEFENSE", float(bonus["armor"])])
 	if bonus.has("speed"):
 		vals.append(["STATV_SPEED", roundf(float(bonus["speed"]) / float(BASE_STATS["speed"]) * 100.0)])
-	for st: String in ["regen", "lifesteal", "luck", "parry"]:
+	for st: String in STATS:
 		if base.has(st):
 			vals.append(["CHIPV_" + st.to_upper() if st in ["regen", "lifesteal"] else "STATV_" + st.to_upper(), float(base[st])])
 	for pair: Array in vals:
