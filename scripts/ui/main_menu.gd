@@ -79,8 +79,8 @@ func _build() -> void:
 		_entry(col, "MENU_PLAY", _on_play)
 	else:
 		_play = _entry(col, "MENU_PLAY", _on_play)
-	_characters = _entry(col, "MENU_CHARACTERS", _on_characters)
-	_bestiary = _entry(col, "MENU_BESTIARY", _on_bestiary)
+	# El plano astral sustituye a Personajes y Bestiario / The astral plane replaces Characters and Bestiary
+	_entry(col, "MENU_ASTRAL", _on_astral)
 	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	# «Desbloquear todo» también está en la demo / "Unlock everything" is in the demo too
@@ -150,6 +150,12 @@ func _on_continue() -> void:
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.4)
 	tw.tween_callback(GameState.change_scene.bind("res://scenes/run.tscn"))
+
+
+func _on_astral() -> void:
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 0.0, 0.35)
+	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_hub.tscn"))
 
 
 func _on_characters() -> void:

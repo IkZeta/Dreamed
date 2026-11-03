@@ -221,9 +221,11 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 ## Más
 
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
-- **Personajes:** menú con Kroker y sus pijamas, los personajes del plano astral (Mr. Ad, El Pinche y Magnus incluidos) y Charo. Cada uno se desbloquea al conocerlo.
+- **Plano astral (lobby):** opción del menú principal, al estilo de Hades. Kroker camina por una plataforma flotante donde viven los personajes que ya conoce, cada uno en su rincón y haciendo lo suyo: Svinho chuta a portería, Stolk levanta pesas en el gimnasio, Silly teclea rodeada de pantallas con números verdes, Doc examina un pie gigante en su clínica podológica, Mr. Ad sale en todas las teles de un escaparate, el Pinche corre con el extintor por una cocina en llamas, Charo teje en su sillón y Magnus trabaja en su despacho. Al acercarte puedes hablar con ellos (lore y lo que te cuentan según la amistad). También tiene:
+  - **el armario**, con un maniquí por pijama (los que aún no tienes, con el soporte vacío);
+  - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
-- **Bestiario:** está en el menú principal y cada entrada está escrita con la voz de Kroker.
+- **Museo:** cada ficha del museo está escrita con la voz de Kroker.
 - **Logros:** hay 24 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil y a Magnus). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
