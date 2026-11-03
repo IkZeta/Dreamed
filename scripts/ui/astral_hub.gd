@@ -304,6 +304,7 @@ class HubWorld extends Control:
 	var _zone := ""
 	var _isles: Array[String] = []
 	var _walk_polys := {}
+	var _rims := {}
 	var _bridges: Array[Dictionary] = []
 	var _blocks: Array[Dictionary] = []     # {"c": Vector2, "r": Vector2}
 	var _spots: Array[Dictionary] = []
@@ -371,6 +372,13 @@ class HubWorld extends Control:
 				for p: Vector2 in HubLayout.ISLES[id]["walk"]:
 					poly.append(p + _isle_pos(id))
 				_walk_polys[id] = poly
+				# Borde de verdad de la isla, algo agrandado: ahí no se ponen piedras de puente
+				# The island's real edge, slightly grown: no bridge stones go there
+				var rim := PackedVector2Array()
+				for p: Vector2 in HubLayout.ISLES[id]["rim"]:
+					rim.append(p + _isle_pos(id))
+				var grown := Geometry2D.offset_polygon(rim, 7.0)
+				_rims[id] = grown[0] if not grown.is_empty() else rim
 		_isles.sort_custom(func(a: String, b: String) -> bool: return _isle_pos(a).y < _isle_pos(b).y)
 		for id in _isles:
 			if id != "nexus":
@@ -470,9 +478,19 @@ class HubWorld extends Control:
 			var q := p0.lerp(p1, (i - 0.5) / n)
 			for r in [-1.0, 1.0]:
 				var off: Vector2 = side * r * 7.0 + dir * (3.5 if r > 0.0 else -3.5)
-				stones.append(Vector3(q.x + off.x, q.y + off.y, float((i * 7 + int(r) + id.length()) % 3)))
+				var sp := q + off
+				if _on_island(sp):
+					continue
+				stones.append(Vector3(sp.x, sp.y, float((i * 7 + int(r) + id.length()) % 3)))
 		_bridges.append({"id": id, "a": p0 - dir * 16.0, "b": p1 + dir * 16.0, "from": p0, "to": p1, "stones": stones,
 			"aura": HubLayout.ISLES[id]["aura"], "lanterns": lanterns})
+
+	## ¿Este punto cae encima de alguna isla? / Does this point land on top of an island?
+	func _on_island(p: Vector2) -> bool:
+		for id: String in _rims:
+			if Geometry2D.is_point_in_polygon(p, _rims[id]):
+				return true
+		return false
 
 	func _prop(at: Vector2, painter: Callable) -> Prop:
 		var p := Prop.new(painter)

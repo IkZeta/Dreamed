@@ -585,13 +585,15 @@ def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flower
     Image.fromarray(out, "RGBA").save(os.path.join(OUT, name + ".png"))
     # Borde por el que se anda (un poco hacia dentro) / Walkable outline (pulled in a little)
     walk = []
+    rim = []
     for k in range(56):
         a = k * math.tau / 56
         r = 1.0 + float(edge(a))
         mx = max(0.0, r * rx - 9)
         my = max(0.0, r * ry - 7)
         walk.append((math.cos(a) * mx, math.sin(a) * my))
-    return dict(offset=(-cx, -cy), size=(W, H), walk=walk)
+        rim.append((math.cos(a) * r * rx, math.sin(a) * r * ry))
+    return dict(offset=(-cx, -cy), size=(W, H), walk=walk, rim=rim)
 
 
 def main():
@@ -615,8 +617,9 @@ def main():
         for name, d in ISLES.items():
             info = data[name]
             pts = ", ".join("Vector2(%.1f, %.1f)" % p for p in info["walk"])
-            f.write("\t\"%s\": {\"pos\": Vector2(%d, %d), \"r\": Vector2(%d, %d), \"offset\": Vector2(%d, %d), \"aura\": Color(\"%s\"),\n\t\t\"walk\": [%s]},\n"
-                    % (name, d["pos"][0], d["pos"][1], d["r"][0], d["r"][1], info["offset"][0], info["offset"][1], d["aura"], pts))
+            rim = ", ".join("Vector2(%.1f, %.1f)" % p for p in info["rim"])
+            f.write("\t\"%s\": {\"pos\": Vector2(%d, %d), \"r\": Vector2(%d, %d), \"offset\": Vector2(%d, %d), \"aura\": Color(\"%s\"),\n\t\t\"walk\": [%s],\n\t\t\"rim\": [%s]},\n"
+                    % (name, d["pos"][0], d["pos"][1], d["r"][0], d["r"][1], info["offset"][0], info["offset"][1], d["aura"], pts, rim))
         f.write("}\n")
 
 
