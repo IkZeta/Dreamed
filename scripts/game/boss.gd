@@ -16,6 +16,11 @@ extends Enemy
 signal defeated
 
 const ORDER: Array[String] = ["bed", "shelf", "chest"]
+## El baúl huye a ratos: cada CHEST_CYCLE s se para CHEST_REST s, cansado; y va más despacio que el resto
+## The chest flees in bursts: every CHEST_CYCLE s it stops for CHEST_REST s, tired; and it's slower than the rest
+const CHEST_CYCLE := 6.5
+const CHEST_REST := 2.2
+const CHEST_SPEED := 0.75
 const HP_PER_PIECE := 225.0   # 5 matones de 45 / 5 thugs of 45
 const WAKE_TIME := 1.8
 const QUAKE_RADIUS := 105.0   # daño al caer la cama / damage where the bed lands
@@ -200,17 +205,19 @@ func _desired_velocity() -> Vector2:
 				return (dir + side * 0.3).normalized() * speed
 			return side * speed * 0.7
 		"chest":
-			# Huye; si está contra una pared, se escurre de lado / Runs away; slides sideways along walls
-			var away := -dir
-			var r: Rect2 = run.arena_rect().grow(-radius - 40.0)
+			# Huye a ratos y luego se cansa y se para un momento; huye hacia el centro en vez de
+			# meterse en las esquinas, y si Kroker está lejos apenas se mueve.
+			# Runs away in bursts, then gets tired and stops for a moment; flees toward the middle
+			# instead of into corners, and barely moves if Kroker is far away.
+			if fmod(_t, CHEST_CYCLE) > CHEST_CYCLE - CHEST_REST:
+				return Vector2.ZERO
+			var r: Rect2 = run.arena_rect().grow(-radius)
 			var p := global_position
-			if p.x < r.position.x or p.x > r.end.x:
-				away.x *= -0.2
-				away.y += signf(away.y if away.y != 0.0 else 1.0)
-			if p.y < r.position.y or p.y > r.end.y:
-				away.y *= -0.2
-				away.x += signf(away.x if away.x != 0.0 else 1.0)
-			return away.normalized() * speed * (1.0 if d < 600.0 else 0.4)
+			var edge := minf(minf(p.x - r.position.x, r.end.x - p.x), minf(p.y - r.position.y, r.end.y - p.y))
+			var to_mid := (r.get_center() - p).normalized()
+			var wall := clampf(1.0 - edge / 320.0, 0.0, 1.0)
+			var away := (-dir * (1.0 - wall * 0.7) + to_mid * wall * 1.3).normalized()
+			return away * speed * CHEST_SPEED * (1.0 if d < 420.0 else 0.25)
 	return Vector2.ZERO
 
 
@@ -363,6 +370,14 @@ func _draw() -> void:
 		"shelf": _draw_shelf(wake_k, a, flash)
 		"chest": _draw_chest(wake_k, a, flash)
 	draw_set_transform(Vector2.ZERO)
+	# El baúl cansado suda: es el momento de pegarle / The tired chest sweats: time to hit it
+	if kind == "chest" and _wake <= 0.0 and _dying < 0.0 and fmod(_t, CHEST_CYCLE) > CHEST_CYCLE - CHEST_REST:
+		for i in 2:
+			var ph := fmod(_t * 1.6 + i * 0.5, 1.0)
+			var c := Vector2(-46.0 + i * 92.0, -140.0 + ph * 30.0 - _hop) * scale_k
+			var col := Color("8fd8ff", 0.9 * (1.0 - ph) * a)
+			draw_colored_polygon(PackedVector2Array([c + Vector2(0, -9), c + Vector2(5, 0), c + Vector2(-5, 0)]), col)
+			draw_circle(c, 5.0, col)
 	if is_targetable():
 		# Barra de carga del ataque / Attack charge bar
 		var top := {"bed": 250.0, "shelf": 230.0, "chest": 120.0}[kind] as float
