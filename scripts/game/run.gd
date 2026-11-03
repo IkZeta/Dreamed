@@ -59,7 +59,6 @@ var _actors: Node2D
 var _modal: Node
 ## Tras cancelar en la chimenea hay que apartarse para volver a cargarla
 ## After cancelling at the fireplace you have to step away before charging it again
-var _hearth_lock := false
 
 
 func _ready() -> void:
@@ -407,27 +406,22 @@ func gain_reality(n: int, pos: Vector2) -> void:
 
 # --- Chimenea del salón / Living-room fireplace ----------------------------------------
 
-func _update_hearth(delta: float) -> void:
+func _update_hearth(_delta: float) -> void:
 	if not room is LivingRoom:
 		return
 	var lr := room as LivingRoom
 	if not lr.can_sacrifice():
 		return
+	# Delante del fuego, con la F (o A) se abre el sacrificio / In front of the fire, F (or A) opens the sacrifice
 	var inside := Bedroom.rect_world(LivingRoom.HEARTH_ZONE).has_point(player.position)
-	if not inside:
-		_hearth_lock = false
-	if inside and not _hearth_lock:
-		lr.fire_charge = minf(1.0, lr.fire_charge + delta / 1.2)
-		if lr.fire_charge >= 1.0:
-			_open_sacrifice()
-	else:
-		lr.fire_charge = maxf(0.0, lr.fire_charge - delta * 2.0)
+	lr.fire_near = inside and _modal == null
+	if lr.fire_near and Input.is_action_just_pressed("interact"):
+		_open_sacrifice()
 
 
 func _open_sacrifice() -> void:
 	var lr := room as LivingRoom
-	lr.fire_charge = 0.0
-	_hearth_lock = true
+	lr.fire_near = false
 	get_tree().paused = true
 	var sc := SacrificeScreen.new()
 	_modal = sc
@@ -450,7 +444,7 @@ func _open_sacrifice() -> void:
 		var at := Bedroom.to_world(LivingRoom.FIREBOX.get_center())
 		fx.dissipate(at, Color("b98aff"))
 		fx.ring(at, 40.0, Color("b98aff"), 0.8, 3.0)
-		gain_reality(GameState.REALITY_SACRIFICE, at))
+		gain_reality(GameState.sacrifice_value(giver, weapon, true), at))
 	sc.cancelled.connect(func() -> void:
 		_modal = null
 		get_tree().paused = false)

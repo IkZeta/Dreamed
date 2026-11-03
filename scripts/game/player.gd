@@ -391,18 +391,20 @@ func _draw_spin_trail(a: float, front: bool) -> void:
 		draw_line(c + Vector2(cos(a) * r.x * _facing, sin(a) * r.y) + Vector2(0, -2), c + Vector2(cos(a) * r.x * _facing, sin(a) * r.y) + Vector2(0, 2), Color("ffe8b0"), 8.0)
 
 
-## Anillo naranja sobre la cabeza mientras carga el sacrificio en la chimenea
-## Orange ring over his head while the fireplace sacrifice charges
+## Aviso sobre la cabeza delante de la chimenea: «F · Echar al fuego», con una llamita
+## Prompt over his head in front of the fireplace: "F · Into the fire", with a little flame
 func _draw_hearth_ring() -> void:
 	var lr := run.room as LivingRoom
-	if lr == null or lr.fire_charge <= 0.0:
+	if lr == null or not lr.fire_near or not lr.can_sacrifice():
 		return
-	var c := Vector2(0, -170)
-	draw_circle(c, 15.0, Color(0.05, 0.03, 0.18, 0.5))
-	draw_arc(c, 11.0, 0, TAU, 28, Color("ffb06a", 0.2), 4.0, true)
-	draw_arc(c, 11.0, -PI / 2.0, -PI / 2.0 + TAU * lr.fire_charge, 28, Color("ffb06a"), 4.0, true)
-	# Llamita dentro / A little flame inside
-	draw_colored_polygon(PackedVector2Array([c + Vector2(-4, 5), c + Vector2(0, -7 - sin(_t * 12.0) * 1.5), c + Vector2(4, 5)]), Color("ffd07a"))
+	var font := UITheme.font("caps")
+	var size := UITheme.pixel_size(14)
+	var text := Settings.controls_text(tr("HEARTH_PROMPT")).to_upper()
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var c := Vector2(0, -178 + sin(_t * 3.0) * 2.0)
+	draw_rect(Rect2(c + Vector2(-w / 2.0 - 30, -20), Vector2(w + 44, 30)), Color(0.05, 0.03, 0.18, 0.6))
+	draw_colored_polygon(PackedVector2Array([c + Vector2(-w / 2.0 - 22, 4), c + Vector2(-w / 2.0 - 18, -12 - sin(_t * 12.0) * 2.0), c + Vector2(-w / 2.0 - 14, 4)]), Color("ffb06a"))
+	draw_string(font, c + Vector2(-w / 2.0 - 6, 2), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color("ffd07a"))
 
 
 ## Estrellitas de mareo, gotas de sangre y glitch del hackeo / Dizzy stars, blood drops and hack glitch

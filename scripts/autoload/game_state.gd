@@ -1095,6 +1095,14 @@ func ware_heal(id: String) -> float:
 	return 0.0
 
 
+## Realidad Fragmentada que da sacrificar una mejora: más cuanto más nivel tiene (8, 12, 16)
+## Fragmented Reality a sacrifice gives: more the higher its level (8, 12, 16)
+## "before" = el nivel ya se ha restado (se llama después de sacrificar) / the level was already taken away
+func sacrifice_value(giver: String, weapon := "", before := false) -> int:
+	var lvl := level(giver, weapon) + (1 if before else 0)
+	return REALITY_SACRIFICE + REALITY_SACRIFICE * maxi(1, lvl)
+
+
 ## Sacrificar en la chimenea: la mejora pierde un nivel / Sacrificing in the fireplace: the upgrade loses a level
 func sacrifice(giver: String, weapon := "") -> void:
 	var hp_before := doc_hp()

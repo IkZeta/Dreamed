@@ -51,8 +51,8 @@ var fire_lit := false
 ## Ya se ha sacrificado algo en este sueño: el fuego se ha apagado
 ## Something was already sacrificed this dream: the fire has gone out
 var fire_used := false
-## Carga del sacrificio (0 → 1) al quedarse delante del fuego / Sacrifice charge (0 → 1) while standing by the fire
-var fire_charge := 0.0
+## Kroker está delante del fuego (se puede pulsar la F) / Kroker is in front of the fire (F can be pressed)
+var fire_near := false
 var _flare := 0.0
 ## La tele se vuelve loca mientras sale El Chef / The TV goes wild while The Chef comes out
 var tv_burst := 0.0
@@ -93,7 +93,7 @@ func crack_zones() -> Array[Rect2]:
 func flare() -> void:
 	_flare = 1.0
 	fire_used = true
-	fire_charge = 0.0
+	fire_near = false
 
 
 func can_sacrifice() -> bool:
@@ -229,7 +229,7 @@ func _draw_hearth_charge() -> void:
 	if not can_sacrifice():
 		return
 	var c := HEARTH_ZONE.get_center()
-	var a := 0.25 + 0.15 * sin(_t * 3.0) + 0.4 * fire_charge
+	var a := 0.25 + 0.15 * sin(_t * 3.0) + (0.35 if fire_near else 0.0)
 	draw_colored_polygon(_ellipse(c, Vector2(100, 34)), Color("ffb06a", a * 0.25))
 	draw_polyline(_ellipse(c, Vector2(100, 34)) + PackedVector2Array([c + Vector2(100, 0)]), Color("ffb06a", a), 3.0)
 

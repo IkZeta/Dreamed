@@ -118,7 +118,7 @@ El resto del salón:
 - **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes. Tirar enemigos por los agujeros solo la da a veces (casi nunca durante un jefe).
 - **El kiosco** tiene 16 artículos y mejora con cada acto: en el Acto 1 vende cosas flojas y baratas (4–5 ◆), en el 2 cosas medias (7–12 ◆) y en el 3 las mejores y más caras (14–24 ◆), como la tarta de cumpleaños (+5 de vida máxima), el pack de pilas (dos niveles) o el periódico del domingo (dos mejoras suben de nivel). Se puede pagar por **cambiar el mostrador**; los artículos ya comprados se quedan.
 - **En la pausa** se ve lo que has comprado en el kiosco, con cuántos de cada (por ejemplo, *Pila del despertador x2*).
-- **La chimenea:** en algunos sueños está encendida. Quédate delante y podrás echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada.
+- **La chimenea:** en algunos sueños está encendida. Ponte delante y pulsa la **F** (A en el mando) para echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada, más cuanto más nivel tenga (8, 12 o 16).
 
 ![El kiosco de Charo](docs/screenshots/kiosco.jpg)
 

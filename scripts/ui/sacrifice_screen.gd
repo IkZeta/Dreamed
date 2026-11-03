@@ -34,7 +34,7 @@ func build() -> void:
 	var title := UITheme.label("SAC_TITLE", 66, Color("ffb06a"), "display")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(title)
-	var sub := UITheme.label(tr("SAC_SUB").format({"n": GameState.REALITY_SACRIFICE}), 24, UITheme.ASH, "italic")
+	var sub := UITheme.label(tr("SAC_SUB"), 24, UITheme.ASH, "italic")
 	sub.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -55,7 +55,7 @@ func build() -> void:
 			b.text = tr("SAC_ROW").format({
 				"giver": tr("GIVER_%s_NAME" % g.to_upper()),
 				"up": tr(GameState.upgrade_key(g, weapon, "NAME")),
-				"from": lvl, "to": lvl - 1, "n": GameState.REALITY_SACRIFICE,
+				"from": lvl, "to": lvl - 1, "n": GameState.sacrifice_value(g, weapon),
 			})
 			b.pressed.connect(_pick.bind(g, weapon))
 			b.mouse_entered.connect(b.grab_focus)
