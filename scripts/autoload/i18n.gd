@@ -462,6 +462,7 @@ const STRINGS := {
 	"HUB_START_TITLE": {"es": "¿A soñar?", "en": "Off to dream?"},
 	"HUB_START_CHANGE": {"es": "Para cambiar de pijama, ve al armario.", "en": "To change pajamas, go to the wardrobe."},
 	"HUB_ZONE_TRAINING": {"es": "El tatami", "en": "The training mat"},
+	"HUD_RUN_CLOCK": {"es": "Tiempo de partida", "en": "Run time"},
 	"TRAINING_TITLE": {"es": "Entrenamiento", "en": "Training"},
 	"TRAINING_DPS": {"es": "%s de daño por segundo", "en": "%s damage per second"},
 	"PAUSE_LEAVE_TRAINING": {"es": "Volver al plano astral", "en": "Back to the astral plane"},

@@ -783,6 +783,7 @@ func _physics_process(delta: float) -> void:
 		player.push = Vector2.ZERO
 		return
 	GameState.run_time += delta
+	hud.set_run_clock(GameState.run_time)
 	_update_event(delta)
 	# El objetivo de Magnus, cuatro veces por segundo / Magnus's goal, four times a second
 	if not GameState.invest.is_empty() and int(GameState.run_time * 4.0) != int((GameState.run_time - delta) * 4.0):

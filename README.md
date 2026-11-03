@@ -84,6 +84,8 @@ Cada pijama tiene un **post-it** con los actos que has superado con él (Actos I
 
 Kroker se despierta, se pone las gafas y va a por su arma: el bate en la pared, la almohada y el osito de la cama, el libro del escritorio, la aspiradora de la esquina y, cuando ya son suyas, las botas steampunk bajo la ventana, el portátil abierto encima del escritorio y el balón en el haz de luna. La pistola de dedos no hay que buscarla: la levanta junto a la cara, hace girar el dedo como un revólver, hace clic y sopla el humo. En cada sueño la habitación se corrompe un poco más: salen grietas, trozos de pared flotando y **agujeros** en el suelo y en la pared. Si empujas un enemigo a un agujero, cae y muere aunque le quede vida.
 
+Arriba en el centro hay un **cronómetro con el tiempo total de la partida**; solo cuenta mientras juegas (no en las mejoras, la tienda ni la pausa).
+
 | Sueño | Enemigo nuevo |
 |---|---|
 | 1 | **Foox**: zorro fantasma, lento y frágil |

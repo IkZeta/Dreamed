@@ -8,6 +8,8 @@ var _training := false
 var _hp_text: Label
 var _dream: Label
 var _timer: Label
+var _clock: Label
+var _clock_box: VBoxContainer
 var _intro: Control
 var _intro_title: Label
 var _hint: Label
@@ -118,7 +120,7 @@ func _ready() -> void:
 	root.add_child(god_box)
 	god_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	god_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	god_box.offset_top = 40
+	god_box.offset_top = 86
 	_god = UITheme.label("", 16, UITheme.GOLD, "caps")
 	_god.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	god_box.add_child(_god)
@@ -128,6 +130,22 @@ func _ready() -> void:
 	god_box.visible = GameState.god_mode
 	set_god()
 
+	# Cronómetro de la partida entera, arriba en el centro / Whole-run stopwatch, top centre
+	_clock_box = VBoxContainer.new()
+	_clock_box.add_theme_constant_override("separation", -2)
+	_clock_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_clock_box)
+	_clock_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_clock_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_clock_box.offset_top = 24
+	var cap := UITheme.label("HUD_RUN_CLOCK", 12, Color(UITheme.ASH, 0.85), "caps")
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_clock_box.add_child(cap)
+	_clock = UITheme.label("0:00", 36, Color(UITheme.BONE, 0.9), "display")
+	_clock.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_clock_box.add_child(_clock)
+	_clock_box.visible = false
 	# Sueño y tiempo (arriba en el centro) / Dream and timer (top center)
 	# Arriba a la derecha, para no tapar la ventana / Top right, clear of the window
 	var center := VBoxContainer.new()
@@ -354,6 +372,15 @@ func set_xp() -> void:
 	_lvl.text = tr("HUD_LEVEL") % GameState.plevel
 
 
+## El cronómetro de toda la partida (lo llama la run cada frame) / The whole-run stopwatch (the run calls it every frame)
+func set_run_clock(seconds: float) -> void:
+	var s := int(seconds)
+	var txt := "%d:%02d:%02d" % [s / 3600, (s / 60) % 60, s % 60] if s >= 3600 else "%d:%02d" % [s / 60, s % 60]
+	if _clock.text != txt:
+		_clock.text = txt
+	_clock_box.visible = not _training
+
+
 func set_time(seconds: float) -> void:
 	var s := ceili(maxf(0.0, seconds))
 	_timer.text = "%d:%02d" % [s / 60, s % 60]
@@ -364,6 +391,7 @@ func set_time(seconds: float) -> void:
 func start_training() -> void:
 	_training = true
 	_timer.visible = false
+	_clock_box.visible = false
 	_intro.visible = false
 	_refresh_texts()
 
