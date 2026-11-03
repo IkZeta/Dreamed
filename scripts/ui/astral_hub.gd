@@ -827,19 +827,22 @@ class HubWorld extends Control:
 
 	# --- Svinho: practica tiros a portería / practises shots at goal ---
 
+	const GOAL := Vector2(40, -60)
+
 	func _build_svinho() -> void:
 		var c := _isle_pos("svinho")
-		_piece(c + Vector2(128, 12), "hub_goal", Vector2(8, 16), Vector2(4, -10))
+		# Portería al fondo del campo, de frente / Goal at the far end of the pitch, face-on
+		_piece(c + GOAL, "hub_goal", Vector2(30, 6), Vector2(0, -4))
 		_piece(c + Vector2(-122, -56), "hub_flag")
 		_piece(c + Vector2(122, -60), "hub_flag")
 		_piece(c + Vector2(-132, 20), "hub_ballbag", Vector2(12, 5))
-		var sv := _npc_prop("svinho", c + Vector2(-60, 4))
+		var sv := _npc_prop("svinho", c + Vector2(-14, 30))
 		# Chuta justo cuando sale el balón / He kicks just as the ball leaves
 		sv.painter = func(ci: CanvasItem) -> void:
 			var ph := fmod(_t, 2.8) / 2.8
 			var k := clampf(1.0 - minf(ph + 0.03, 1.03 - ph) / 0.07, 0.0, 1.0)
 			_draw_npc(ci, "svinho", Vector2.ZERO, false, {"kick": k * k * (3.0 - 2.0 * k)})
-		_ball = _prop(c + Vector2(-48, 4), func(ci: CanvasItem) -> void:
+		_ball = _prop(c + Vector2(-2, 30), func(ci: CanvasItem) -> void:
 			var h: float = _ball.get_meta("h", 0.0)
 			_shadow(ci, Vector2.ZERO, Vector2(4, 1.5), 0.3)
 			ci.draw_set_transform(Vector2(0, -3.0 - h).round(), _t * 9.0, Vector2(0.45, 0.45))
@@ -848,8 +851,8 @@ class HubWorld extends Control:
 
 	func _tick_svinho() -> void:
 		var c := _isle_pos("svinho")
-		var foot := c + Vector2(-48, 4)
-		var goal := c + Vector2(134, 0)
+		var foot := c + Vector2(-2, 30)
+		var goal := c + GOAL + Vector2(0, -4)
 		var ph := fmod(_t, 2.8) / 2.8
 		var h := 0.0
 		var p: Vector2
@@ -858,10 +861,10 @@ class HubWorld extends Control:
 			p = foot.lerp(goal, k)
 			h = sin(k * PI) * 26.0
 		elif ph < 0.42:
-			p = goal + Vector2(4, 0)
+			p = goal + Vector2(0, -6)
 		else:
 			var k := (ph - 0.42) / 0.58
-			p = (goal + Vector2(4, 0)).lerp(foot, k * k * (3.0 - 2.0 * k))
+			p = (goal + Vector2(0, -6)).lerp(foot, k * k * (3.0 - 2.0 * k))
 		_ball.position = p
 		_ball.set_meta("h", h)
 

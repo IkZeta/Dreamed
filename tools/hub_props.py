@@ -73,18 +73,26 @@ def build(ms):
     WH = ng("#f4f1e6", 0.15)
     NET = ng("#c8c4d8", 0.2)
     b = ""
-    # Red: de lado, con fondo hacia la derecha / Net: side-on, going back to the right
-    b += P([(0, -24), (12, -14), (12, 0), (0, 0)], ng("#2a3a2e"), stroke=False, rim=0)
-    b += P([(0, -54), (12, -44), (12, -14), (0, -24)], ng("#26302a"), stroke=False, rim=0)
-    for k in range(1, 6):
-        b += "<path d='M0,%g L12,%g' stroke='%s' stroke-width='0.9'/>" % (-k * 9, -k * 9 + 10, NET)
-    for k in range(1, 3):
-        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='0.9'/>" % (k * 4, -54 + k * 3.3, k * 4, -k * 3.3 + 0, NET)
-    b += "<path d='M12,-44 L12,0' stroke='%s' stroke-width='1.2'/>" % NET
-    b += R(-1.5, -54, 3, 30, WH)       # poste de atrás / back post
-    b += R(-1.5, -24, 3, 24, WH)       # poste de delante / front post
-    b += R(-1.5, -56, 3, 4, WH)
-    put("hub_goal", -4, -58, 20, 60, b)
+    # Portería de frente: el marco de delante y, detrás y algo más arriba, el de atrás, con la
+    # red entre los dos / Goal face-on: the front frame and, behind and a bit higher, the back one,
+    # with the net between them
+    GR = ng("#2f6a3a")
+    b += P([(-22, -10), (22, -10), (22, -34), (-22, -34)], ng("#1e3a26"), stroke=False, rim=0)   # fondo / back
+    b += P([(-27, -27), (27, -27), (22, -34), (-22, -34)], ng("#28452e"), stroke=False, rim=0)    # techo / roof
+    b += P([(-27, 0), (-22, -10), (-22, -34), (-27, -27)], ng("#24402a"), stroke=False, rim=0)    # lado / side
+    b += P([(27, 0), (22, -10), (22, -34), (27, -27)], ng("#24402a"), stroke=False, rim=0)
+    for x in range(-20, 22, 4):
+        b += "<path d='M%g,-10 L%g,-34' stroke='%s' stroke-width='0.9'/>" % (x, x, NET)
+    for y in range(-30, -10, 4):
+        b += "<path d='M-22,%g L22,%g' stroke='%s' stroke-width='0.9'/>" % (y, y, NET)
+    for k in range(1, 4):
+        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='0.9'/>" % (-27 + k * 1.25, -k * 2.5, -27 + k * 1.25, -27 - k * 1.75, NET)
+        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='0.9'/>" % (27 - k * 1.25, -k * 2.5, 27 - k * 1.25, -27 - k * 1.75, NET)
+    b += "<path d='M-22,-34 L22,-34 M-22,-10 L22,-10' stroke='%s' stroke-width='1.2'/>" % NET
+    b += R(-28.5, -28, 3, 28, WH)      # postes / posts
+    b += R(25.5, -28, 3, 28, WH)
+    b += R(-28.5, -29, 57, 3, WH)      # larguero / crossbar
+    put("hub_goal", -31, -38, 62, 40, b)
     b = R(-0.8, -18, 1.6, 18, ng("#e8e4f0"))
     b += P([(0.8, -18), (9, -15), (0.8, -12)], ng("#ffd23a"))
     put("hub_flag", -3, -20, 14, 22, b)
