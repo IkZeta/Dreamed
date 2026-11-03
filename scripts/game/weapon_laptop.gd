@@ -40,7 +40,7 @@ const GUN_GAP := 60.0           # separación entre torretas de disparo / gap be
 const NO_BUILD := 170.0         # no se ponen torretas tan cerca de una especial / no turrets this close to a special
 ## Ataque de Kroker (en %) que hace falta para cada nivel de torreta / Kroker's attack (in %) needed for each turret level
 const LEVEL_ATTACK: Array[float] = [0.0, 10.0, 25.0, 45.0]
-const EXECUTE_PCT := 25.0       # Mr. Ad remata por debajo de este % de vida / Mr. Ad finishes off below this % health
+const EXECUTE_PCT := 15.0       # Mr. Ad remata por debajo de este % de vida / Mr. Ad finishes off below this % health
 
 var _turrets: Array[Node2D] = []
 var _special := {}              # "heal" / "dummy" / "ad" → torreta / turret
@@ -347,8 +347,26 @@ class Turret extends Node2D:
 		weapon.run.fx.ring(target.global_position + Vector2(0, -30), 18.0, KIND_COLOR["dummy"], 0.25, 2.0)
 		Audio.play("hit", -8.0, 0.15)
 
+	## Torreta de cobro: apunta al que menos vida le queda (en proporción) dentro de su alcance; los jefes, los últimos
+	## Debt-collector turret: aims at whoever has the least health left (proportionally) in range; bosses last
+	func _weakest() -> Node2D:
+		var best: Node2D = null
+		var best_k := INF
+		var r := RANGE * weapon.range_mult()
+		for e: Node2D in weapon.run.enemies.get_children():
+			if not e is Enemy or not e.is_targetable():
+				continue
+			var en := e as Enemy
+			if en.aim_point().distance_to(global_position + Vector2(0, -24)) > r:
+				continue
+			var k := en.hp / maxf(en.max_hp, 1.0) + (10.0 if en.is_boss() else 0.0)
+			if k < best_k:
+				best_k = k
+				best = en
+		return best
+
 	func _shoot() -> void:
-		var target := weapon.nearest(RANGE * weapon.range_mult(), global_position + Vector2(0, -24))
+		var target := _weakest() if kind == "ad" else weapon.nearest(RANGE * weapon.range_mult(), global_position + Vector2(0, -24))
 		if target == null:
 			_fire = 0.15
 			return
