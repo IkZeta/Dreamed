@@ -19,6 +19,7 @@ var player: Player
 var enemies: Node2D
 var fx: FX
 var hud: HUD
+var helpers: Helpers
 var room: Bedroom
 ## Mundo de la partida, dibujado a 960 x 540 y ampliado x2 sin suavizar (pixel art).
 ## The run's world, drawn at 960 x 540 and scaled up x2 without smoothing (pixel art).
@@ -170,6 +171,10 @@ func _ready() -> void:
 
 	fx = FX.new()
 	world.add_child(fx)
+	# SuperK y Lil Key, si te han dado algún don / SuperK and Lil Key, if they've given you a gift
+	helpers = Helpers.new()
+	add_child(helpers)
+	helpers.setup(self)
 
 	hud = HUD.new()
 	add_child(hud)

@@ -45,6 +45,8 @@ var external_pull := Vector2.ZERO  # lo usa la aspiradora / used by the vacuum
 var vacuumed := false
 
 var stun_t := 0.0
+## Bailando con Lil Key: quieto y sin hacer daño / Dancing to Lil Key: still and harmless
+var dance_t := 0.0
 var slow_t := 0.0
 var vuln_t := 0.0
 var vuln_mult := 1.5
@@ -136,6 +138,9 @@ func _physics_process(delta: float) -> void:
 	_t += delta
 	_flash = maxf(0.0, _flash - delta * 5.0)
 	stun_t = maxf(0.0, stun_t - delta)
+	if dance_t > 0.0:
+		dance_t = maxf(0.0, dance_t - delta)
+		stun_t = maxf(stun_t, minf(dance_t, 0.1))
 	slow_t = maxf(0.0, slow_t - delta)
 	vuln_t = maxf(0.0, vuln_t - delta)
 	glitch_t = maxf(0.0, glitch_t - delta)
@@ -553,7 +558,17 @@ func _draw() -> void:
 		var j := Vector2(randf_range(-6, 6), randf_range(-2, 2))
 		_draw_body(Vector2(-5, bob) + j, Color(GLITCH_A, 0.5), a * 0.6)
 		_draw_body(Vector2(5, bob) - j, Color(GLITCH_B, 0.5), a * 0.6)
-	_draw_body(Vector2(0, bob), Color.WHITE, a)
+	# Bailando: se balancea y da saltitos al ritmo, con notas encima / Dancing: sways and hops to the beat, with notes above
+	if dance_t > 0.0:
+		var beat := _t * 8.4 + _phase
+		bob += -absf(sin(beat * 0.5)) * 10.0
+		_draw_body(Vector2(sin(beat * 0.5) * 9.0, bob), Color.WHITE, a)
+		var nc := Color(["ff6a8a", "8fe0ff", "f6d993"][int(_phase * 10.0) % 3], 0.8 * a)
+		var np := head_top() + Vector2(sin(beat * 0.25) * 14.0, -12.0 - fposmod(_t * 30.0, 18.0))
+		draw_circle(np, 4.0, nc)
+		draw_line(np + Vector2(3.5, 0), np + Vector2(3.5, -12), nc, 2.0)
+	else:
+		_draw_body(Vector2(0, bob), Color.WHITE, a)
 	draw_set_transform(Vector2.ZERO)
 	if elite:
 		_draw_horns(head_top() + Vector2(0, bob), a)

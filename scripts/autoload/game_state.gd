@@ -206,6 +206,8 @@ var run_kills := 0
 var run_hits := 0
 var run_falls := 0      # enemigos tirados por agujeros / enemies pushed down holes
 var run_elites := 0     # élites derrotados / elites defeated
+## Kroker lleva las gafas de sol de la taquilla durante toda esta partida / Kroker wears the locker sunglasses for this whole run
+var run_shades := false
 ## Vida con la que acabó el último sueño (−1 = empezar con la vida llena)
 ## Health at the end of the last dream (−1 = start at full health)
 var saved_hp := -1.0
@@ -287,7 +289,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades"]
 
 
 func save_run() -> void:
@@ -339,6 +341,7 @@ func reset_run() -> void:
 	pending_ups = 0
 	saved_hp = -1.0
 	run_time = 0.0
+	run_shades = false
 	run_kills = 0
 	run_hits = 0
 	run_falls = 0

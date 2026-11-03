@@ -224,6 +224,10 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 	if randf() * 100.0 < GameState.parry_chance():
 		_parry(source)
 		return
+	# SuperK aparece y para el golpe / SuperK shows up and stops the hit
+	if run.helpers and run.helpers.try_guard(source):
+		_invuln = HIT_INVULN
+		return
 	if shield_charges > 0:
 		# La almohada recogida para el golpe / The picked-up pillow blocks the hit
 		shield_charges -= 1
@@ -357,7 +361,8 @@ func _draw() -> void:
 	# Un saltito al girar / A little hop while spinning
 	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift)),
-		outfit, _t, {"facing": facing, "boots": boots != null and armed, "reload": reload_anim, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
+		outfit, _t, {"facing": facing, "boots": boots != null and armed, "reload": reload_anim,
+		"shades": GameState.run_shades or (run.helpers != null and run.helpers.shades), "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
 		"thrust": maxf(boots.thrust, 1.0 if _dash_t > 0.0 else 0.0) if boots else 0.0, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
