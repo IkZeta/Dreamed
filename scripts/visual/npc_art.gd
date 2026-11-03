@@ -9,16 +9,20 @@ static var _ci: CanvasItem
 static var _xf: Transform2D
 
 
-static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float) -> void:
+## opts (plano astral): "kick" (Svinho chuta sin balón de toques), "lift" (Stolk levanta la barra, 0..1)
+## y "lens" (Doc mira con la lupa ese punto del lienzo)
+## opts (astral plane): "kick" (Svinho kicks with no keepy-uppy ball), "lift" (Stolk lifts the bar, 0..1)
+## and "lens" (Doc looks at that canvas point through the magnifier)
+static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float, opts := {}) -> void:
 	_ci = ci
 	var breath := 1.0 + sin(t * 1.6) * 0.01
 	_xf = xf * Transform2D(0.0, Vector2(1.0, breath), 0.0, Vector2(0, 288.0 * (1.0 - breath)))
 	_ci.draw_set_transform_matrix(_xf)
 	match who:
-		"svinho": _svinho(t)
-		"stolk": _stolk(t)
+		"svinho": _svinho(t, opts)
+		"stolk": _stolk(t, opts)
 		"silly": _silly(t)
-		"doc": _doc(t)
+		"doc": _doc(t, opts)
 		"charo": _charo(t)
 		"ad": _ad(t)
 		"pinche": _pinche(t)
@@ -36,16 +40,20 @@ const SVINHO_TOUCH := 0.8       # segundos entre toque y toque / seconds between
 const SVINHO_KICK := -0.4       # cuánto levanta la pierna (radianes) / how high the leg lifts (radians)
 
 
-static func _svinho(t: float) -> void:
+static func _svinho(t: float, opts := {}) -> void:
 	var ph := fmod(t, SVINHO_TOUCH) / SVINHO_TOUCH
 	var near := minf(ph, 1.0 - ph)
 	var kick := clampf(1.0 - near / 0.22, 0.0, 1.0)
 	kick = kick * kick * (3.0 - 2.0 * kick)
+	if opts.has("kick"):
+		kick = float(opts["kick"])
 	# Pierna que golpea (detrás del cuerpo) / Kicking leg (behind the body)
 	_ci.draw_set_transform_matrix(_xf * Transform2D(SVINHO_KICK * kick, SVINHO_HIP) * Transform2D(0.0, -SVINHO_HIP))
 	Sprites.draw(_ci, "npc_svinho_leg")
 	_ci.draw_set_transform_matrix(_xf)
 	Sprites.draw(_ci, "npc_svinho")
+	if opts.has("kick"):
+		return
 	# El balón sube hasta el pecho y vuelve al pie / The ball rises to chest height and drops back to the foot
 	var foot := SVINHO_HIP + Vector2(13, 74).rotated(SVINHO_KICK)
 	var height := 4.0 * 95.0 * ph * (1.0 - ph)
@@ -168,10 +176,40 @@ static func _charo(t: float) -> void:
 		_ci.draw_rect(Rect2(86 + glint * 40.0, 75, 3, 3), Color(1, 1, 1, 0.8))
 
 
-static func _stolk(t: float) -> void:
+static func _stolk(t: float, opts := {}) -> void:
+	if opts.has("lift"):
+		_stolk_lift(float(opts["lift"]))
+		return
 	Sprites.draw(_ci, "npc_stolk")
 	# Aura roja que late / Pulsing red aura
 	_ci.draw_arc(Vector2(100, 150), 90 + sin(t * 3.0) * 4.0, 0, TAU, 48, Color("ff7a8a", 0.12), 3.0, true)
+
+
+## Stolk levanta la barra por encima de la cabeza con los dos brazos
+## Stolk presses the bar over his head with both arms
+static func _stolk_lift(up: float) -> void:
+	Sprites.draw(_ci, "npc_stolk_lift")
+	var hy := lerpf(104.0, 6.0, up)
+	var ink := Color("3a1018")
+	for side in [-1.0, 1.0]:
+		var sh := Vector2(100.0 + 40.0 * side, 112.0)
+		var hand := Vector2(100.0 + 54.0 * side, hy)
+		var elbow := (sh + hand) / 2.0 + Vector2(side * (6.0 + (1.0 - up) * 26.0), (1.0 - up) * 12.0)
+		var col := Color("a8323f") if side < 0.0 else Color("6e1f2a")
+		_ci.draw_line(sh, elbow, ink, 22.0)
+		_ci.draw_line(elbow, hand, ink, 19.0)
+		_ci.draw_circle(elbow, 10.5, ink)
+		_ci.draw_line(sh, elbow, col, 17.0)
+		_ci.draw_line(elbow, hand, col, 14.0)
+		_ci.draw_circle(elbow, 8.0, col)
+	# Barra con sus discos / Bar with its plates
+	_ci.draw_rect(Rect2(8, hy - 3, 184, 6), Color("c9cce0"))
+	for x in [8.0, 176.0]:
+		_ci.draw_rect(Rect2(x, hy - 22, 16, 44), Color("2b2945"))
+		_ci.draw_rect(Rect2(x + 3, hy - 18, 10, 36), Color("d8434f"))
+	for side in [-1.0, 1.0]:
+		_ci.draw_circle(Vector2(100.0 + 54.0 * side, hy), 9.0, Color("c9957e"))
+		_ci.draw_circle(Vector2(100.0 + 54.0 * side - 1.0, hy - 1.0), 7.0, Color("f0c4aa"))
 
 
 static func _silly(t: float) -> void:
@@ -193,11 +231,43 @@ static func _silly(t: float) -> void:
 	if fmod(t, 1.0) < 0.5:
 		_ci.draw_rect(Rect2(118, 141, 4, 3), Color("5ff2ff", 0.9))
 
-static func _doc(t: float) -> void:
-	Sprites.draw(_ci, "npc_doc")
+static func _doc(t: float, opts := {}) -> void:
+	if opts.has("lens"):
+		Sprites.draw(_ci, "npc_doc_free")
+		_doc_lens(Vector2(opts["lens"]))
+	else:
+		Sprites.draw(_ci, "npc_doc")
 	# Espejo frontal que brilla / Glowing head mirror
 	var glint := 0.6 + 0.4 * sin(t * 2.0)
 	_ci.draw_rect(Rect2(96, 36, 4, 4), Color(1, 1, 1, glint))
+
+
+## Brazo derecho de Doc con la lupa apuntando a "lens" (en el lienzo) / Doc's right arm with the magnifier aimed at "lens" (on the canvas)
+static func _doc_lens(lens: Vector2) -> void:
+	var sh := Vector2(136, 112)
+	var hand := lens - Vector2(26, -20)
+	var reach := 104.0
+	if hand.distance_to(sh) > reach:
+		hand = sh + (hand - sh).normalized() * reach
+	var mid := (sh + hand) / 2.0
+	var bend := sqrt(maxf(0.0, 52.0 * 52.0 - pow(sh.distance_to(hand) / 2.0, 2.0)))
+	var elbow := mid + (hand - sh).normalized().orthogonal() * -bend
+	if elbow.y < mid.y:
+		elbow = mid + (hand - sh).normalized().orthogonal() * bend
+	var ink := Color("5a5878")
+	_ci.draw_line(sh, elbow, ink, 19.0)
+	_ci.draw_line(elbow, hand, ink, 17.0)
+	_ci.draw_circle(elbow, 9.5, ink)
+	_ci.draw_line(sh, elbow, Color("dcdaee"), 15.0)
+	_ci.draw_line(elbow, hand, Color("c9c6e0"), 13.0)
+	_ci.draw_circle(elbow, 7.5, Color("d4d2ea"))
+	# Lupa / Magnifier
+	var lc := hand + Vector2(26, -20)
+	_ci.draw_line(hand, lc + (hand - lc).normalized() * 16.0, Color("4a2e22"), 7.0)
+	_ci.draw_circle(hand, 7.0, Color("e8c4a8"))
+	_ci.draw_circle(lc, 16.0, Color("dfe6ff", 0.3))
+	_ci.draw_arc(lc, 16.0, 0, TAU, 24, Color("8f8fb8"), 5.0)
+	_ci.draw_arc(lc, 10.0, -2.4, -1.4, 6, Color(1, 1, 1, 0.8), 3.0)
 
 
 # --- Utilidades / Helpers -----------------------------------------------------

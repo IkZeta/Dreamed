@@ -1113,6 +1113,7 @@ def npcs():
     b += flat("M88,92 C92,98 108,98 112,92 L114,100 C106,104 94,104 86,100 Z", R1)
     # Cuello / Neck
     b += flat("M90,82 L110,82 L110,96 C104,99 96,99 90,96 Z", S1)
+    stolk_body, b = b, ""
     # Brazos cruzados: los brazos bajan por los lados y los antebrazos se cruzan sobre el pecho
     # Crossed arms: the upper arms run down the sides and the forearms cross over the chest
     SEAM = "#4a141c"
@@ -1126,6 +1127,7 @@ def npcs():
     b += flat("M49,142 L49,160 L136,144 L134,126 Z", R2) + flat("M49,142 L134,126 L135,131 L49,147 Z", R3)
     b += "<path d='M49,142 L134,126 M49,160 L136,144' stroke='%s' stroke-width='2.4'/>" % SEAM
     b += flat(ellipse_d(140, 133, 8, 8), S) + flat("M142,140 C145,139 148,136 148,133 L144,133 C144,136 142,138 139,139 Z", S1)
+    stolk_arms, b = b, ""
     # Cabeza cuadrada / Square head
     b += flat(ellipse_d(76, 60, 5, 7), S) + flat(ellipse_d(124, 60, 5, 7), S1)
     b += flat("M77,56 C77,38 87,30 100,30 C113,30 123,38 123,56 L121,74 C117,84 110,88 100,88 C90,88 83,84 79,74 Z", S)
@@ -1136,7 +1138,10 @@ def npcs():
     # Tirita en la mejilla y palillo en la boca / Plaster on the cheek and toothpick in the mouth
     b += "<g transform='rotate(-25 113 70)'>%s</g>" % flat("M106,67 L120,67 L120,73 L106,73 Z", "#f2d4a6")
     b += "<path d='M104,78 L118,73' stroke='#e8d0a0' stroke-width='2.6' stroke-linecap='round'/>"
-    add("npc_stolk", 44, 22, 116, 272, b, px=PX_NPC, flat=True, post=npc_face(60, "#3a2a30", 2))
+    add("npc_stolk", 44, 22, 116, 272, stolk_body + stolk_arms + b, px=PX_NPC, flat=True, post=npc_face(60, "#3a2a30", 2))
+    # Sin brazos, para el plano astral, donde levanta pesas (los brazos se pintan en el juego)
+    # Without arms, for the astral plane, where he lifts weights (the arms are painted in game)
+    add("npc_stolk_lift", 44, 22, 116, 272, stolk_body + b, px=PX_NPC, flat=True, post=npc_face(60, "#3a2a30", 2))
 
     # Silly: la hacker, en pixel art de verdad (modo flat). Media melena morada, sudadera oscura
     # con capucha, cascos cian al cuello y el portátil abierto mirando hacia nosotros (el código
@@ -1189,6 +1194,26 @@ def npcs():
     b += flat("M80,50 C82,40 89,34 98,32 L98,36 C91,38 86,43 84,50 Z", P3)
     b += flat("M108,40 L114,40 L114,44 L108,44 Z", CY)
     add("npc_silly", 46, 24, 108, 268, b, px=PX_NPC, flat=True, post=npc_face(64, "#2a2238", 3))
+    # Silly de espaldas, con los cascos puestos, mirando sus ordenadores / Silly from behind, headphones on, facing her computers
+    b = ""
+    b += flat("M80,96 L120,96 C136,100 144,108 144,120 L140,200 L60,200 L56,120 C56,108 64,100 80,96 Z", D2)
+    b += flat("M120,96 C136,100 144,108 144,120 L140,200 L126,200 C130,160 130,124 116,98 Z", D1)
+    b += flat("M62,108 C66,102 72,99 78,98 L78,103 C72,104 68,108 65,113 Z", D3)
+    # Capucha caída / Lowered hood
+    b += flat(ellipse_d(100, 106, 24, 13), D1) + flat("M78,104 C84,96 116,96 122,104 L118,106 C112,100 88,100 82,106 Z", D3)
+    b += "<path d='M100,112 L100,196' stroke='#141630' stroke-width='2'/>"
+    # Brazos hacia delante, al teclado / Arms reaching forward to the keyboard
+    b += flat("M56,114 C50,128 52,140 58,150 L70,146 L70,116 Z", D2) + flat("M144,114 C150,128 148,140 142,150 L130,146 L130,116 Z", D1)
+    # Nuca y melena / Nape and bob
+    b += flat("M92,82 L108,82 L108,94 L92,94 Z", S1)
+    b += flat("M75,86 L75,52 C75,37 86,29 100,29 C114,29 125,37 125,52 L125,86 C114,90 86,90 75,86 Z", P2)
+    b += flat("M112,32 C120,38 125,45 125,52 L125,86 C121,88 117,88 113,88 C116,70 116,48 112,32 Z", P1)
+    b += flat("M82,42 C86,35 92,32 98,31 L98,35 C92,37 88,40 85,46 Z", P3)
+    b += "<path d='M86,60 L88,84 M100,56 L100,86 M114,60 L112,84' stroke='%s' stroke-width='2'/>" % P1
+    # Cascos puestos / Headphones on
+    b += "<path d='M76,56 C76,30 124,30 124,56' fill='none' stroke='%s' stroke-width='5'/>" % CY1
+    b += flat(ellipse_d(74, 60, 7, 9), CY) + flat(ellipse_d(126, 60, 7, 9), CY1)
+    add("npc_silly_back", 46, 24, 108, 180, b, px=PX_NPC, flat=True)
 
     # Doc: el doctor, en pixel art de verdad (modo flat). Médico mayor con bata blanca, espejo
     # frontal, pelo canoso a los lados, bigote, estetoscopio, camisa azul con corbata roja y su
@@ -1228,6 +1253,7 @@ def npcs():
     b += flat(ellipse_d(118, 154, 6, 6), ST1) + flat(ellipse_d(117, 153, 2.5, 2.5), "#dfe6ff")
     # Brazos / Arms
     b += flat("M58,106 L72,110 L74,176 L60,176 Z", W2) + flat("M62,110 L66,110 L66,170 L62,170 Z", W3)
+    doc_main, b = b, ""
     b += flat("M142,106 L128,110 L126,176 L140,176 Z", W1)
     b += flat(ellipse_d(133, 180, 7, 7), S1)
     # La mano sujeta la carpeta por el borde: los dedos van detrás y solo asoma el pulgar
@@ -1239,6 +1265,7 @@ def npcs():
     b += "".join("<path d='M58,%d L76,%d' stroke='#7a78a0' stroke-width='2'/>" % (y, y) for y in (162, 170, 178, 186))
     b += flat("M62,144 L74,144 L74,151 L62,151 Z", G1)
     b += flat("M49,178 L56,176 L57,183 L50,186 Z", S)
+    doc_hands, b = b, ""
     # Cuello y cabeza / Neck and head
     b += flat("M93,82 L107,82 L107,98 L93,98 Z", S1)
     b += flat(ellipse_d(100, 60, 23, 27), S)
@@ -1252,7 +1279,9 @@ def npcs():
     # Espejo frontal con su cinta / Head mirror with its band
     b += "<path d='M79,46 C88,40 112,40 121,46' fill='none' stroke='%s' stroke-width='3'/>" % ST
     b += flat(ellipse_d(100, 40, 9, 9), G1) + flat(ellipse_d(100, 40, 6.5, 6.5), "#dfe6ff") + flat(ellipse_d(98, 38, 2.5, 2.5), "#ffffff")
-    add("npc_doc", 46, 26, 106, 266, b, px=PX_NPC, flat=True, post=npc_face(62, "#2a2238", 1))
+    add("npc_doc", 46, 26, 106, 266, doc_main + doc_hands + b, px=PX_NPC, flat=True, post=npc_face(62, "#2a2238", 1))
+    # Sin carpeta y con el brazo derecho suelto (en el juego sujeta la lupa) / No clipboard and the right arm free (in game it holds the magnifier)
+    add("npc_doc_free", 46, 26, 106, 266, doc_main + flat(ellipse_d(67, 180, 7, 7), S) + b, px=PX_NPC, flat=True, post=npc_face(62, "#2a2238", 1))
 
 
 # --- Habitación de Kroker / Kroker's bedroom -------------------------------------------

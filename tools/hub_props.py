@@ -138,19 +138,38 @@ def build(ms):
     b += R(-8, -18, 16, 4, "#3a2a5a")
     b += R(-7, -34, 14, 16, "#3a2a5a")
     put("hub_gamerchair", -11, -38, 22, 40, b)
+    b = ""
+    for ang in (-1, 1):
+        b += "<path d='M0,-4 L%g,-1' stroke='%s' stroke-width='2'/>" % (ang * 11, DK)
+        b += E(ang * 11, -1, 2, 1.5, "#141226", stroke=False, rim=0)
+    b += R(-1.5, -12, 3, 8, DK)
+    b += R(-13, -14, 26, 4, "#2a1f48")
+    b += hs("M-13,-12 L-14,-36 Q-14,-42 -8,-42 L8,-42 Q14,-42 14,-36 L13,-12 Z", "#3a2a5a")
+    b += F(-6, -40, 3, 27, ng("#2fbf7a", 0.1)) + F(3, -40, 3, 27, ng("#2fbf7a", 0.1))
+    b += R(-8, -48, 16, 7, "#3a2a5a")
+    put("hub_gamerchair_back", -16, -50, 32, 52, b)
 
     # --- Doc: clínica podológica / podiatry clinic ---
     CH = ng("#c9cce0", 0.2)
     b = R(-26, -10, 3, 10, CH) + R(23, -10, 3, 10, CH)
     b += R(-28, -16, 56, 7, ng("#5b9ad6"))
     b += R(-30, -18, 10, 4, ng("#f4f4fa", 0.15))
-    # El pie gigante tumbado / The giant foot lying down
+    # El pie gigante, de perfil y de pie sobre la camilla, con su calcetín de rayas
+    # The giant foot, side-on and standing on the couch, with its striped sock
     SK = ng("#f2c9a8", 0.15)
-    b += hs("M-14,-16 L-14,-34 Q-12,-40 -4,-38 L12,-28 Q22,-26 22,-20 L22,-16 Z", SK)
-    for k, (x, y, r) in enumerate(((22, -25, 3.4), (20, -30, 2.8), (17, -34, 2.4), (13.5, -36.5, 2.1), (10, -38, 1.8))):
-        b += E(x, y, r, r, SK)
-    b += "<path d='M-14,-30 Q-18,-26 -14,-22' fill='none' stroke='%s' stroke-width='1'/>" % dark(SK, 0.3)
-    put("hub_couch", -34, -44, 62, 46, b)
+    SKD = dark(SK, 0.22)
+    b += hs("M-16,-16 L26,-16 C29,-16 30,-22 25,-23 L16,-24 C11,-26 6,-30 1,-35 L-2,-44 L-16,-44 L-17,-36 C-20,-32 -22,-26 -21,-21 C-21,-17 -19,-16 -16,-16 Z", SK)
+    for (x, y, rx, ry) in ((23, -20, 5, 4), (17, -22.5, 3.2, 3), (12.6, -24.6, 2.7, 2.6), (9, -26.8, 2.3, 2.2)):
+        b += E(x, y, rx, ry, SK, rim=0.35)
+    b += E(26, -21, 1.6, 1.3, ng("#ffe0e0", 0.1), stroke=False, rim=0)
+    b += E(-9, -34, 2, 2, SKD, stroke=False, rim=0)
+    b += "<path d='M-12,-17 C-6,-19 2,-19 8,-17' fill='none' stroke='%s' stroke-width='1'/>" % SKD
+    # Calcetín / Sock
+    SO = ng("#ece8f4", 0.2)
+    b += R(-18, -50, 17, 10, SO)
+    b += F(-18, -47, 17, 2, ng("#e2434f")) + F(-18, -43, 17, 2, ng("#5b9ad6"))
+    b += R(-19, -52, 19, 3, ng("#ffffff", 0.2))
+    put("hub_couch", -34, -54, 66, 56, b)
     b = R(-11, -30, 22, 30, ng("#e8eaf4", 0.2))
     b += R(-9, -28, 9, 26, ng("#d8dcec", 0.2)) + R(0, -28, 9, 26, ng("#d8dcec", 0.2))
     b += F(-3, -42, 6, 10, ng("#e2434f")) + F(-6, -39, 12, 4, ng("#e2434f"))
@@ -182,14 +201,24 @@ def build(ms):
     # Escaparate con 6 teles / Window with 6 TVs
     b += R(-90, -76, 180, 64, ng("#c9a27a"))
     b += F(-86, -72, 172, 56, "#120e2a")
-    for k in range(6):
-        x = -82 + (k % 3) * 56
-        y = -70 + (k // 3) * 27
-        b += R(x, y, 52, 24, ng("#9aa0c0"))
-        b += F(x + 3, y + 3, 46, 18, "#1e3a50")
+    for k in range(3):
+        x = -84 + k * 57
+        b += R(x, -71, 54, 52, ng("#9aa0c0"))
+        b += F(x + 4, -67, 46, 38, "#1e3a50")
+        b += F(x + 4, -27, 46, 6, ng("#7a80a0"))
+        b += E(x + 40, -24, 2, 2, "#2b2945", stroke=False, rim=0) + E(x + 46, -24, 2, 2, "#2b2945", stroke=False, rim=0)
+        b += F(x + 6, -26, 20, 3, "#2b2945")
     b += R(-92, -14, 184, 6, ng("#c9a27a"))
     b += F(-92, -8, 184, 8, WALL_D)
     put("hub_shopfront", -106, -100, 212, 102, b)
+    # Tele pequeña en su carrito / Small TV on its trolley
+    b = R(-9, -12, 18, 3, ng("#4a4f72"))
+    b += R(-8, -9, 2, 9, ng("#4a4f72")) + R(6, -9, 2, 9, ng("#4a4f72"))
+    b += R(-12, -32, 24, 20, ng("#8a6440"))
+    b += F(-9, -29, 16, 13, "#1e3a50")
+    b += E(10, -26, 1.2, 1.2, "#2b2945", stroke=False, rim=0) + E(10, -21, 1.2, 1.2, "#2b2945", stroke=False, rim=0)
+    b += "<path d='M-4,-32 L-8,-38 M2,-32 L6,-39' stroke='%s' stroke-width='1'/>" % ng("#c9cce0")
+    put("hub_tv", -14, -42, 28, 44, b)
 
     # --- El Pinche: cocina en llamas / kitchen on fire ---
     TILE, TILE_D = ng("#e8e2d4", 0.3), ng("#c8c0b0", 0.3)
