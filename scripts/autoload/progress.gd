@@ -24,39 +24,41 @@ var friendship := {}
 const FRIEND_MAX := 5
 
 ## Logros: "stat" + "goal" se cuentan solos; "check" es una comprobación especial.
-## "drawing" es el dibujo que aparece en la pared de la habitación al conseguirlo.
+## "drawing" es el dibujo que aparece en la pared de un escenario al conseguirlo (cada escenario
+## decide dónde cuelga los suyos: Bedroom/LivingRoom/Act3Room.drawing_slots()).
 ## Achievements: "stat" + "goal" count by themselves; "check" is a special test.
-## "drawing" is the drawing that appears on the bedroom wall once unlocked.
+## "drawing" is the drawing that appears on a stage wall once unlocked (each stage decides where
+## its own hang: Bedroom/LivingRoom/Act3Room.drawing_slots()).
 const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "first_dream", "stat": "dreams", "goal": 1, "drawing": "foox"},
 	{"id": "act1", "check": "act1", "goal": 1, "drawing": "bed"},
 	{"id": "nightmare", "check": "nightmare", "goal": 1, "drawing": "moon"},
-	{"id": "all_pajamas", "check": "all_pajamas", "goal": 4},
-	{"id": "no_hit", "flag": true, "goal": 1},
-	{"id": "void", "stat": "falls", "goal": 50},
+	{"id": "all_pajamas", "check": "all_pajamas", "goal": 4, "drawing": "pajamas"},
+	{"id": "no_hit", "flag": true, "goal": 1, "drawing": "no_hit"},
+	{"id": "void", "stat": "falls", "goal": 50, "drawing": "void"},
 	{"id": "golden", "stat": "golden", "goal": 10, "drawing": "golden"},
-	{"id": "elites", "stat": "elites", "goal": 25},
-	{"id": "kills", "stat": "kills", "goal": 500},
-	{"id": "level10", "stat": "best_level", "goal": 10},
-	{"id": "max_gift", "flag": true, "goal": 1},
+	{"id": "elites", "stat": "elites", "goal": 25, "drawing": "elites"},
+	{"id": "kills", "stat": "kills", "goal": 500, "drawing": "kills"},
+	{"id": "level10", "stat": "best_level", "goal": 10, "drawing": "level10"},
+	{"id": "max_gift", "flag": true, "goal": 1, "drawing": "gift"},
 	{"id": "bestiary", "check": "bestiary", "goal": 1, "drawing": "star"},
-	{"id": "mr_ad", "flag": true, "goal": 1},
+	{"id": "mr_ad", "flag": true, "goal": 1, "drawing": "mr_ad"},
 	{"id": "chef", "check": "act2", "goal": 1, "drawing": "chef"},
-	{"id": "two_weapons", "flag": true, "goal": 1},
-	{"id": "shopper", "stat": "bought", "goal": 10},
-	{"id": "pyro", "stat": "sacrifices", "goal": 5},
+	{"id": "two_weapons", "flag": true, "goal": 1, "drawing": "two_weapons"},
+	{"id": "shopper", "stat": "bought", "goal": 10, "drawing": "shopper"},
+	{"id": "pyro", "stat": "sacrifices", "goal": 5, "drawing": "pyro"},
 	{"id": "saver", "stat": "best_reality", "goal": 100, "drawing": "coin"},
 	# Pijamas y personajes nuevos que se desbloquean al llegar a cada acto
 	# New pajamas and characters unlocked on reaching each act
-	{"id": "finger", "flag": true, "goal": 1},
-	{"id": "teddy", "flag": true, "goal": 1},
-	{"id": "pinche", "flag": true, "goal": 1},
+	{"id": "finger", "flag": true, "goal": 1, "drawing": "finger"},
+	{"id": "teddy", "flag": true, "goal": 1, "drawing": "teddy"},
+	{"id": "pinche", "flag": true, "goal": 1, "drawing": "pinche"},
 	# La pelota: amistad 4 con Svinho / The ball: friendship 4 with Svinho
-	{"id": "ball", "check": "svinho4", "goal": 4},
+	{"id": "ball", "check": "svinho4", "goal": 4, "drawing": "ball"},
 	# Magnus: superar el Acto 3 / Magnus: clear Act 3
-	{"id": "magnus", "check": "act3", "goal": 1},
+	{"id": "magnus", "check": "act3", "goal": 1, "drawing": "magnus"},
 	# El portátil: amistad 4 con Silly / The laptop: friendship 4 with Silly
-	{"id": "laptop", "check": "silly4", "goal": 4},
+	{"id": "laptop", "check": "silly4", "goal": 4, "drawing": "laptop"},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4

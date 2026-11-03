@@ -106,12 +106,24 @@ func _process(delta: float) -> void:
 	tv_burst = maxf(0.0, tv_burst - delta * 0.8)
 
 
+## Dibujos de los logros del Acto 2 en la pared del salón / Act 2 achievement drawings on the living-room wall
+const LIVING_DRAWINGS := {
+	"shopper": Vector2(62, 110), "finger": Vector2(700, 70), "chef": Vector2(860, 40), "pyro": Vector2(1040, 40),
+	"two_weapons": Vector2(1150, 62), "mr_ad": Vector2(1430, 40), "coin": Vector2(1720, 55), "gift": Vector2(1868, 60),
+}
+
+
+func drawing_slots() -> Dictionary:
+	return LIVING_DRAWINGS
+
+
 func _draw() -> void:
 	Sprites.draw(self, "lroom_wall_%d" % clampi(weird, 0, 3))
 	_draw_window_l()
 	_draw_wall_holes()
 	Sprites.draw(self, "lroom_photos")
 	Sprites.draw(self, "lroom_painting")
+	draw_drawings(drawing_slots())
 	Sprites.draw(self, "lroom_floor")
 	draw_polygon(PackedVector2Array([Vector2(0, WALL_BOTTOM), Vector2(1920, WALL_BOTTOM), Vector2(1920, WALL_BOTTOM + 60), Vector2(0, WALL_BOTTOM + 60)]),
 		PackedColorArray([Color(0.05, 0.03, 0.2, 0.45), Color(0.05, 0.03, 0.2, 0.45), Color(0.05, 0.03, 0.2, 0), Color(0.05, 0.03, 0.2, 0)]))

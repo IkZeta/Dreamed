@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bcguywnv8kahi"
-path="res://.godot/imported/room_draw_bed.png-4cf19c9ccff9a86c2209b2b402d3f6c5.ctex"
+uid="uid://bsap8qyx02tq0"
+path="res://.godot/imported/draw_ball.png-6f04c81403058e0eb0c9d5bfd107774d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/room_draw_bed.png"
-dest_files=["res://.godot/imported/room_draw_bed.png-4cf19c9ccff9a86c2209b2b402d3f6c5.ctex"]
+source_file="res://assets/sprites/draw_ball.png"
+dest_files=["res://.godot/imported/draw_ball.png-6f04c81403058e0eb0c9d5bfd107774d.ctex"]
 
 [params]
 

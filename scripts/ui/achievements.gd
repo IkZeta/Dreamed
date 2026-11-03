@@ -90,7 +90,8 @@ func _row(a: Dictionary) -> Control:
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(desc)
 	if a.has("drawing"):
-		v.add_child(UITheme.label("ACH_DRAWING", 24, Color(UITheme.ROSE, 0.9 if done else 0.5), "italic"))
+		var where := "ACH_DRAWING_LIVING" if LivingRoom.LIVING_DRAWINGS.has(a["drawing"]) else ("ACH_DRAWING_HALL" if Act3Room.has_drawing(a["drawing"]) else "ACH_DRAWING")
+		v.add_child(UITheme.label(where, 24, Color(UITheme.ROSE, 0.9 if done else 0.5), "italic"))
 	var p := Progress.achievement_progress(a)
 	if int(p[1]) > 1:
 		var bar := ProgressBar.new()
@@ -130,10 +131,10 @@ class AchievementIcon extends Control:
 		var c := size / 2.0
 		var mod := Color.WHITE if done else Color(0.25, 0.25, 0.4, 0.7)
 		if drawing != "":
-			var r: Rect2 = SpriteRects.RECTS["room_draw_" + drawing]
+			var r: Rect2 = SpriteRects.RECTS["draw_" + drawing]
 			var k := minf(size.x / r.size.x, size.y / r.size.y) * 0.9
 			draw_set_transform(c - r.get_center() * k, 0.0, Vector2(k, k))
-			Sprites.draw(self, "room_draw_" + drawing, mod)
+			Sprites.draw(self, "draw_" + drawing, mod)
 			draw_set_transform(Vector2.ZERO)
 		else:
 			var pts := PackedVector2Array()

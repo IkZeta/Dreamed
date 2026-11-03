@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://kb7e1lbaxtpv"
-path="res://.godot/imported/room_draw_golden.png-0c023b8e526c691bd02e3cb971425bad.ctex"
+uid="uid://cjywgkkc5a4qp"
+path="res://.godot/imported/draw_pyro.png-a40eccbf92c6c87d87ecaa7054d10830.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/room_draw_golden.png"
-dest_files=["res://.godot/imported/room_draw_golden.png-0c023b8e526c691bd02e3cb971425bad.ctex"]
+source_file="res://assets/sprites/draw_pyro.png"
+dest_files=["res://.godot/imported/draw_pyro.png-a40eccbf92c6c87d87ecaa7054d10830.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dq4wljr1jyy6j"
-path="res://.godot/imported/room_draw_moon.png-4a3b24a69d0184e54e0bd6f9f27fa894.ctex"
+uid="uid://ilumghmuo55s"
+path="res://.godot/imported/draw_teddy.png-647bc8e98610440b742fade0246e8b98.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/room_draw_moon.png"
-dest_files=["res://.godot/imported/room_draw_moon.png-4a3b24a69d0184e54e0bd6f9f27fa894.ctex"]
+source_file="res://assets/sprites/draw_teddy.png"
+dest_files=["res://.godot/imported/draw_teddy.png-647bc8e98610440b742fade0246e8b98.ctex"]
 
 [params]
 

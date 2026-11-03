@@ -192,6 +192,10 @@ func _draw() -> void:
 		var off := Vector2(i * PERIOD, 0)
 		_draw_piece("hall_floor", off)
 		_draw_piece("hall_wall_%d" % posmod(i, 3), off)
+	# Dibujos de los logros del Acto 3, repetidos en cada tramo de su tipo de pared
+	# Act 3 achievement drawings, repeated on every piece of their wall type
+	for i: int in pieces:
+		draw_drawings(drawing_slots().get(posmod(i, 3), {}), Vector2(i * PERIOD, 0), DUSK)
 	_draw_dusk(k)
 	_draw_scorches(k)
 	if bell_open > 0.0:
@@ -212,6 +216,27 @@ func _draw() -> void:
 		_draw_dream_stars()
 	draw_set_transform(Vector2.ZERO)
 	_draw_edges(k)
+
+
+## Dónde van los dibujos en cada tipo de pared (0 taquillas y corcho, 1 baños y fuente, 2 ventanales y vitrina)
+## Where the drawings go on each wall type (0 lockers and corkboard, 1 toilets and fountain, 2 windows and trophy case)
+const HALL_DRAWINGS := {
+	0: {"teddy": Vector2(1065, 140), "ball": Vector2(1190, 140)},
+	1: {"pinche": Vector2(1090, 70), "magnus": Vector2(1180, 122)},
+	2: {"laptop": Vector2(580, 100), "pajamas": Vector2(690, 125), "kills": Vector2(1130, 110), "level10": Vector2(1380, 110)},
+}
+
+
+func drawing_slots() -> Dictionary:
+	return HALL_DRAWINGS
+
+
+## ¿Va este dibujo en el pasillo? / Does this drawing hang in the hallway?
+static func has_drawing(d: String) -> bool:
+	for wall: Dictionary in HALL_DRAWINGS.values():
+		if wall.has(d):
+			return true
+	return false
 
 
 ## Penumbra de anochecer: el techo y lo alto de la pared más oscuros, y una franja de luz

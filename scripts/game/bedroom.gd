@@ -516,11 +516,28 @@ func _draw_wall_decor() -> void:
 	# Dibujo infantil y póster del sistema solar / Child's drawing and solar system poster
 	Sprites.draw(self, "room_drawing")
 	Sprites.draw(self, "room_poster")
-	# Cuaderno de dibujos: uno nuevo en la pared por cada logro con dibujo
-	# Drawing book: a new one on the wall for each achievement with a drawing
+	# Dibujos de los logros que van en esta habitación / Achievement drawings that hang in this room
+	draw_drawings(drawing_slots())
+
+
+## Dónde cuelga cada dibujo de logro en este escenario (en el lienzo) / Where each achievement drawing hangs on this stage (on the canvas)
+const BED_DRAWINGS := {
+	"foox": Vector2(78, 150), "bed": Vector2(256, 108), "moon": Vector2(472, 176), "golden": Vector2(1834, 150),
+	"star": Vector2(1446, 132), "no_hit": Vector2(1178, 80), "void": Vector2(350, 55), "elites": Vector2(1834, 48),
+}
+
+
+func drawing_slots() -> Dictionary:
+	return BED_DRAWINGS
+
+
+## Pega en la pared los dibujos de los logros conseguidos que tengan sitio aquí
+## Tapes up the drawings of unlocked achievements that have a spot here
+func draw_drawings(slots: Dictionary, offset := Vector2.ZERO, mod := Color.WHITE) -> void:
 	for ach: Dictionary in Progress.ACHIEVEMENTS:
-		if ach.has("drawing") and Progress.has_achieved(ach["id"]):
-			Sprites.draw(self, "room_draw_" + String(ach["drawing"]))
+		var d: String = ach.get("drawing", "")
+		if d != "" and slots.has(d) and Progress.has_achieved(ach["id"]):
+			Sprites.draw(self, "draw_" + d, mod, slots[d] + offset)
 
 
 func _stick_figure(p: Vector2) -> void:

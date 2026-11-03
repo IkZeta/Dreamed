@@ -1548,49 +1548,164 @@ def pickups():
     add("pickup_clock", -18, -38, 36, 44, b, flat=True)
 
 # --- Dibujos infantiles de los logros / Children's drawings for achievements ---------
-# Hoja de papel algo torcida con trazos de cera; van pegados en la pared de la habitación.
-# A slightly crooked sheet of paper with crayon strokes; they're taped to the bedroom wall.
+# Hoja de papel algo torcida con un dibujo de Kroker; van pegados en las paredes de los escenarios.
+# A slightly crooked sheet of paper with one of Kroker's drawings; they're taped to the stage walls.
 
-DRAWING_SLOTS = {
-    "foox": (78, 150, -4),       # encima de los cubos / above the blocks
-    "bed": (256, 108, 3),        # encima de la cama / above the bed
-    "moon": (472, 176, -3),      # junto a la mesilla / by the nightstand
-    "golden": (1834, 150, 4),    # esquina derecha / right corner
-    "star": (1446, 132, -5),     # entre la estantería y el póster / between shelf and poster
-    "chef": (1178, 80, 3),       # entre la ventana y la estantería / between window and shelf
-    "coin": (350, 62, -4),       # sobre la cama, junto a la guirnalda / above the bed, by the garland
+## Inclinación de cada dibujo (grados); dónde se cuelgan lo decide cada escenario en el juego
+## (Bedroom/LivingRoom/Act3Room.DRAWINGS). / Tilt of each drawing (degrees); where it hangs is up to
+## each stage in game (Bedroom/LivingRoom/Act3Room.DRAWINGS).
+DRAWING_TILT = {
+    "foox": -4, "bed": 3, "moon": -3, "golden": 4, "star": -5, "no_hit": 3, "void": -4, "elites": -3,
+    "chef": -3, "coin": -3, "mr_ad": 3, "shopper": -3, "pyro": 3, "finger": 4, "two_weapons": -4, "gift": 3,
+    "teddy": -3, "ball": 4, "pinche": 3, "magnus": -3, "laptop": -4, "pajamas": 3, "kills": 3, "level10": -3,
 }
+
+# Colores de cera / Crayon colours
+CR_BLUE, CR_BLUE2 = "#7fa6e8", "#4f6fc4"
+CR_RED, CR_RED2 = "#e85d75", "#b83a56"
+CR_YEL, CR_YEL2 = "#f6c86a", "#d89a2a"
+CR_GRN, CR_GRN2 = "#7fcf7a", "#3f9a4a"
+CR_PUR, CR_PUR2 = "#a98af0", "#6f52c4"
+CR_BRN, CR_BRN2 = "#b8845e", "#7a5236"
+CR_INK = "#2b2945"
+CR_SKIN = "#f2c9a8"
+CR_WHITE = "#fbf8f0"
 
 
 def crayon(d, color, w=4.0):
-    return ("<path d='%s' fill='none' stroke='%s' stroke-width='%g' stroke-linecap='round' stroke-linejoin='round' opacity='0.95'/>" % (d, color, w))
+    return ("<path d='%s' fill='none' stroke='%s' stroke-width='%g' stroke-linecap='round' stroke-linejoin='round'/>" % (d, color, w))
+
+
+def kid(x, y, s=1.0, shirt=CR_BLUE, hair=CR_INK):
+    """Monigote de Kroker: cabeza redonda, gafas y pelo negro / Kroker stick figure: round head, glasses, black hair."""
+    b = flat(ellipse_d(x, y - 14 * s, 6 * s, 6 * s), CR_SKIN)
+    b += flat("M%g,%g Q%g,%g %g,%g L%g,%g Q%g,%g %g,%g Z" % (x - 6.5 * s, y - 15 * s, x, y - 25 * s, x + 6.5 * s, y - 15 * s,
+                                                            x + 5 * s, y - 18 * s, x, y - 21 * s, x - 5 * s, y - 18 * s), hair)
+    b += crayon("M%g,%g L%g,%g M%g,%g L%g,%g" % (x - 4 * s, y - 14 * s, x - 1 * s, y - 14 * s, x + 1 * s, y - 14 * s, x + 4 * s, y - 14 * s), CR_INK, 1.6 * s)
+    b += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x - 5 * s, y - 8 * s, x + 5 * s, y - 8 * s, x + 6 * s, y + 4 * s, x - 6 * s, y + 4 * s), shirt)
+    b += crayon("M%g,%g L%g,%g M%g,%g L%g,%g" % (x - 3 * s, y + 4 * s, x - 4 * s, y + 11 * s, x + 3 * s, y + 4 * s, x + 4 * s, y + 11 * s), CR_INK, 2.4 * s)
+    return b
+
+
+def fox(x, y, body, dark, s=1.0):
+    d = "M%g,%g Q%g,%g %g,%g L%g,%g L%g,%g L%g,%g L%g,%g Q%g,%g %g,%g Q%g,%g %g,%g Z" % (
+        x - 20 * s, y + 6 * s, x - 6 * s, y - 6 * s, x + 10 * s, y - 2 * s, x + 13 * s, y - 13 * s, x + 17 * s, y - 4 * s,
+        x + 22 * s, y - 13 * s, x + 24 * s, y - 1 * s, x + 32 * s, y + 3 * s, x + 26 * s, y + 8 * s, x + 8 * s, y + 14 * s, x - 20 * s, y + 6 * s)
+    b = flat(d, body) + clipped(d, flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x - 30 * s, y + 6 * s, x + 40 * s, y + 6 * s, x + 40 * s, y + 20 * s, x - 30 * s, y + 20 * s), dark))
+    b += flat("M%g,%g Q%g,%g %g,%g Q%g,%g %g,%g Z" % (x - 18 * s, y + 4 * s, x - 30 * s, y, x - 32 * s, y - 10 * s, x - 24 * s, y - 2 * s, x - 18 * s, y + 4 * s), body)
+    b += flat(ellipse_d(x + 19 * s, y + 1 * s, 1.8 * s, 1.8 * s), CR_INK)
+    return b
+
+
+def drawing_pics():
+    """Dibujos de Kroker para cada logro, en colores planos de cera / Kroker's drawings for each achievement, in flat crayon colours."""
+    ground = lambda c: flat("M-36,14 Q-10,10 10,14 Q24,16 36,13 L36,26 L-36,26 Z", c)
+    sky_stars = lambda: "".join(flat(star_d(x, y, r), CR_YEL) for x, y, r in ((-26, -18, 3), (24, -20, 2.5), (6, -22, 2)))
+    P = {}
+    P["foox"] = ground("#c8d8f2") + fox(-4, 0, CR_BLUE, CR_BLUE2) + flat(ellipse_d(24, -16, 6, 6), CR_YEL) + flat(ellipse_d(27, -18, 5, 5), CR_WHITE)
+    P["golden"] = ground("#f2e2b0") + fox(-4, 0, CR_YEL, CR_YEL2) + "".join(flat(star_d(x, y, r), CR_YEL2) for x, y, r in ((-26, -16, 4), (26, -18, 3.5), (8, -22, 2.5)))
+    bed = flat("M-26,-2 L26,-2 L26,10 L-26,10 Z", CR_BLUE) + flat("M-26,-14 L-20,-14 L-20,10 L-26,10 Z", CR_BLUE2) + flat("M20,-8 L26,-8 L26,10 L20,10 Z", CR_BLUE2)
+    bed += flat(ellipse_d(-12, -5, 6, 3.5), CR_WHITE) + crayon("M-24,10 L-26,16 M24,10 L26,16", CR_INK, 2.6)
+    bed += flat(ellipse_d(-6, -8, 2.6, 2.6), CR_RED) + flat(ellipse_d(8, -8, 2.6, 2.6), CR_RED)
+    bed += crayon("M-10,4 Q0,0 10,4", CR_INK, 2) + crayon("M-30,-20 L-24,-16 M30,-20 L24,-16 M0,-24 L0,-18", CR_RED, 2.4)
+    P["bed"] = ground("#d8cbe8") + bed
+    SKY = "#3a3478"
+    P["moon"] = flat("M-36,-26 L36,-26 L36,26 L-36,26 Z", SKY) + flat(ellipse_d(-4, 0, 18, 18), CR_PUR) \
+        + clipped(ellipse_d(-4, 0, 18, 18), flat("M-30,6 L20,6 L20,24 L-30,24 Z", CR_PUR2)) + flat(ellipse_d(6, -5, 14, 14), SKY) \
+        + flat(ellipse_d(-13, -2, 2.2, 2.2), CR_RED) + crayon("M-17,7 L-13,4 L-10,8", CR_RED, 2) + sky_stars()
+    P["star"] = flat(star_d(0, 0, 21), CR_YEL) + clipped(star_d(0, 0, 21), flat("M0,-30 L30,-30 L30,30 L0,30 Z", CR_YEL2)) \
+        + flat(ellipse_d(-6, -3, 2, 2.5), CR_INK) + flat(ellipse_d(6, -3, 2, 2.5), CR_INK) + crayon("M-6,5 Q0,10 6,5", CR_INK, 2) \
+        + crayon("M-30,-18 L-24,-13 M30,18 L24,13 M-30,18 L-24,14 M30,-18 L24,-13", "#e3a6c4", 2.6)
+    shield = ellipse_d(0, -4, 20, 22)
+    P["no_hit"] = ground("#cfe8c8") + flat(shield, "#d8eef8") + crayon(shield, "#7fd0f0", 3) + kid(0, 6) + crayon("M-6,-11 Q0,-7 6,-11", CR_INK, 1.4)
+    hole = ellipse_d(0, 8, 24, 9)
+    P["void"] = ground("#d8cbe8") + flat(hole, "#1e1840") + crayon("M-14,8 Q0,2 14,8 Q0,14 -6,8", CR_PUR, 2.2) + fox(-4, -10, CR_BLUE, CR_BLUE2, 0.55) \
+        + crayon("M-22,-22 L-18,-16 M22,-22 L18,-16", CR_INK, 2)
+    head = ellipse_d(0, -2, 16, 15)
+    P["elites"] = ground("#f2c8c8") + flat("M-14,-12 L-20,-26 L-6,-15 Z", CR_YEL2) + flat("M14,-12 L20,-26 L6,-15 Z", CR_YEL2) + flat(head, CR_RED) \
+        + clipped(head, flat("M4,-20 L20,-20 L20,16 L4,16 Z", CR_RED2)) + flat("M-9,-5 L-3,-3 L-9,-1 Z", CR_YEL) + flat("M9,-5 L3,-3 L9,-1 Z", CR_YEL) \
+        + crayon("M-7,7 L-3,4 L0,7 L3,4 L7,7", CR_WHITE, 2)
+    hat = "M-15,-2 Q-24,-12 -14,-19 Q-8,-28 0,-22 Q8,-28 14,-19 Q24,-12 15,-2 Z"
+    P["chef"] = ground("#f2dcc8") + flat(ellipse_d(0, 8, 13, 12), CR_SKIN) + flat(hat, CR_WHITE) + flat("M-14,-2 L14,-2 L14,3 L-14,3 Z", "#dcd8ea") \
+        + flat(ellipse_d(-5, 6, 1.8, 1.8), CR_INK) + flat(ellipse_d(5, 6, 1.8, 1.8), CR_INK) + flat("M-9,12 Q-4,9 0,12 Q4,9 9,12 Q4,14 0,13 Q-4,14 -9,12 Z", CR_BRN2) \
+        + flat("M18,-6 L30,-16 L32,-14 L21,-3 Z", "#cfd6ea") + flat("M16,-2 L20,-6 L23,-3 L19,1 Z", CR_BRN2)
+    gem = "M0,-20 L15,0 L0,20 L-15,0 Z"
+    P["coin"] = flat(gem, CR_PUR) + clipped(gem, flat("M0,-24 L20,-24 L20,24 L0,24 Z", CR_PUR2)) + flat("M-5,-6 L0,-14 L3,-8 Z", "#e8e0ff") \
+        + "".join(flat(star_d(x, y, r), CR_YEL) for x, y, r in ((-26, -14, 4), (24, -16, 3.5), (26, 14, 3), (-24, 16, 2.5)))
+    tv = "M-18,-14 L18,-14 L18,12 L-18,12 Z"
+    P["mr_ad"] = ground("#e8dcc8") + flat(tv, "#9aa0c0") + flat("M-14,-10 L14,-10 L14,8 L-14,8 Z", "#2b4f6a") \
+        + crayon("M-8,-14 L-14,-24 M8,-14 L14,-24", CR_INK, 2) + "<text x='-11' y='4' font-family='DejaVu Sans' font-weight='bold' font-size='11' fill='%s'>$ $</text>" % CR_YEL \
+        + crayon("M-6,6 Q0,9 6,6", CR_YEL, 1.6) + crayon("M-10,12 L-12,20 M10,12 L12,20", CR_INK, 2.4)
+    P["shopper"] = ground("#c8e8e0") + flat("M4,-14 L30,-14 L30,12 L4,12 Z", "#4fa89a") + flat("M2,-20 L32,-20 L30,-14 L4,-14 Z", CR_RED) \
+        + "".join(flat(ellipse_d(x, -4, 3, 4), c) for x, c in ((11, CR_RED), (18, CR_YEL), (25, CR_BLUE))) \
+        + flat(ellipse_d(-14, -10, 6, 6), CR_SKIN) + flat(ellipse_d(-14, -16, 6.5, 3.5), "#dcdcec") + crayon("M-18,-10 L-16,-10 M-12,-10 L-10,-10", CR_INK, 1.4) \
+        + flat("M-21,-4 L-7,-4 L-5,12 L-23,12 Z", CR_PUR)
+    P["pyro"] = flat("M-24,-6 L24,-6 L24,20 L-24,20 Z", "#b8b0c8") + flat("M-28,-12 L28,-12 L28,-6 L-28,-6 Z", CR_BRN) + flat("M-14,2 L14,2 L14,20 L-14,20 Z", "#3a2a3a") \
+        + flat("M-10,20 Q-12,8 -6,4 Q-6,12 -2,8 Q0,0 4,-2 Q4,8 8,6 Q12,10 10,20 Z", "#ff9a3a") + flat("M-5,20 Q-6,12 -2,10 Q0,15 3,11 Q6,14 5,20 Z", CR_YEL) \
+        + crayon("M-20,-22 Q-16,-28 -12,-22 M14,-24 Q18,-30 22,-24", "#cfc8d8", 2)
+    hand = "M-10,-4 L-10,-14 Q-10,-17 -7,-17 Q-4,-17 -4,-14 L-4,-4 L16,-4 Q20,-4 20,0 Q20,4 16,4 L8,4 L8,12 Q8,18 2,18 L-10,18 Q-16,18 -16,12 L-16,0 Q-16,-4 -10,-4 Z"
+    P["finger"] = ground("#f2d0dc") + flat(hand, CR_SKIN) + clipped(hand, flat("M-20,10 L20,10 L20,20 L-20,20 Z", "#d8a888")) \
+        + crayon("M22,0 L34,0", CR_RED, 3) + crayon("M24,-6 L32,-10 M24,6 L32,10", "#ff8fb1", 2) + "<text x='-30' y='-12' font-family='DejaVu Sans' font-weight='bold' font-size='8' fill='%s'>piu</text>" % CR_RED
+    P["two_weapons"] = ground("#dcd8f0") + flat("M-22,14 L-18,18 L18,-18 L12,-22 Z", CR_BRN) + flat("M-24,12 L-20,16 L-16,12 L-20,8 Z", CR_BRN2) \
+        + flat("M4,-10 L24,-10 L24,14 L4,14 Z", CR_BLUE2) + flat("M6,-8 L22,-8 L22,12 L6,12 Z", CR_WHITE) + crayon("M9,-3 L19,-3 M9,2 L19,2 M9,7 L16,7", "#9aa0c0", 1.4) \
+        + flat(star_d(14, -16, 4), CR_YEL)
+    box = "M-16,-6 L16,-6 L16,18 L-16,18 Z"
+    P["gift"] = ground("#c8e8c8") + flat(box, CR_RED) + clipped(box, flat("M6,-10 L20,-10 L20,20 L6,20 Z", CR_RED2)) + flat("M-3,-6 L3,-6 L3,18 L-3,18 Z", CR_YEL) \
+        + flat("M-18,-10 L18,-10 L18,-4 L-18,-4 Z", CR_RED) + flat("M-3,-10 L3,-10 L3,-4 L-3,-4 Z", CR_YEL) \
+        + flat("M0,-10 Q-12,-22 -12,-12 Q-12,-8 0,-10 Z", CR_YEL) + flat("M0,-10 Q12,-22 12,-12 Q12,-8 0,-10 Z", CR_YEL)
+    bear = ellipse_d(0, 2, 14, 14)
+    P["teddy"] = ground("#f2e2c8") + flat(ellipse_d(-11, -10, 5, 5), CR_BRN) + flat(ellipse_d(11, -10, 5, 5), CR_BRN) + flat(bear, CR_BRN) \
+        + clipped(bear, flat("M4,-14 L18,-14 L18,18 L4,18 Z", CR_BRN2)) + flat(ellipse_d(0, 6, 6, 4.5), "#f2dcc0") + flat(ellipse_d(0, 4, 2, 1.6), CR_INK) \
+        + flat(ellipse_d(-5, -2, 1.6, 1.6), CR_INK) + flat(ellipse_d(5, -2, 1.6, 1.6), CR_INK) + flat("M0,16 L-6,12 L-6,20 Z M0,16 L6,12 L6,20 Z", CR_RED) \
+        + flat(ellipse_d(22, -14, 4, 3), "#fbf0e0") + flat(ellipse_d(26, -10, 3, 2.5), "#fbf0e0")
+    ballc = ellipse_d(4, 0, 15, 15)
+    P["ball"] = ground("#c8e8c8") + flat(ballc, CR_WHITE) + flat(star_d(4, 0, 6, 0.8, -90), CR_INK) \
+        + "".join(flat(ellipse_d(4 + 13 * math.cos(math.radians(a)), 13 * math.sin(math.radians(a)), 3.5, 3.5), CR_INK) for a in (-90, -18, 54, 126, 198)) \
+        + crayon(ballc, "#9aa0c0", 1.6) + crayon("M-28,-6 L-16,-6 M-30,2 L-15,2 M-26,10 L-16,8", CR_GRN2, 2.4)
+    P["pinche"] = ground("#f2dcc8") + flat(ellipse_d(-6, 6, 11, 11), CR_SKIN) + flat("M-17,-4 L5,-4 L3,-18 L-15,-18 Z", CR_WHITE) \
+        + flat(ellipse_d(-10, 6, 1.6, 1.6), CR_INK) + flat(ellipse_d(-2, 6, 1.6, 1.6), CR_INK) + flat("M-14,-2 Q-6,-8 2,-2 L2,-4 L-14,-4 Z", "#c8622e") \
+        + crayon("M-8,12 Q-6,14 -4,12", CR_INK, 1.4) + flat("M10,4 L18,4 L18,14 L10,14 Z", CR_RED) \
+        + flat("M18,6 Q30,0 34,8 Q30,14 18,12 Z", "#ff9a3a") + flat("M18,8 Q26,6 28,9 Q26,11 18,10 Z", "#8fd8ff")
+    P["magnus"] = ground("#e0e8c8") + flat("M-14,-6 L-2,-6 L-4,-20 L-12,-20 Z", CR_INK) + flat("M-18,-6 L2,-6 L2,-3 L-18,-3 Z", CR_INK) \
+        + flat("M-8,-20 L-4,-20 L-4,-16 L-8,-16 Z", CR_RED) \
+        + flat("M6,-2 Q4,-12 14,-12 Q24,-12 22,-2 Q30,4 26,16 L4,16 Q0,4 6,-2 Z", CR_GRN2) + flat("M10,-14 L18,-14 L16,-10 L12,-10 Z", CR_GRN2) \
+        + "<text x='8' y='10' font-family='DejaVu Sans' font-weight='bold' font-size='12' fill='%s'>$</text>" % CR_YEL \
+        + "".join(flat(ellipse_d(x, 14, 4, 1.8), CR_YEL2) for x in (-20, -12))
+    P["laptop"] = ground("#c8e8d8") + flat("M-20,-16 L20,-16 L20,8 L-20,8 Z", "#4a4f72") + flat("M-17,-13 L17,-13 L17,5 L-17,5 Z", "#10261e") \
+        + crayon("M-13,-8 L-2,-8 M-13,-3 L6,-3 M-13,2 L0,2", "#5ff2a0", 2) + flat("M-24,8 L24,8 L20,14 L-20,14 Z", "#9aa0c0") \
+        + flat(ellipse_d(10, -5, 2, 2), "#5ff2a0")
+    pj = ""
+    for k, (c, c2) in enumerate(((CR_BLUE2, CR_WHITE), ("#b46e8f", "#7c4063"), ("#2b3d8f", CR_YEL), ("#62a9a1", CR_WHITE))):
+        x = -24 + k * 16
+        pj += crayon("M%g,-18 L%g,-14 M%g,-14 L%g,-14" % (x, x, x - 5, x + 5), CR_INK, 1.6)
+        pj += flat("M%g,-14 L%g,-14 L%g,10 L%g,10 Z" % (x - 6, x + 6, x + 6, x - 6), c) + flat("M%g,-8 L%g,-8 L%g,-6 L%g,-6 Z" % (x - 6, x + 6, x + 6, x - 6), c2)
+    P["pajamas"] = crayon("M-32,-18 L32,-18", CR_BRN2, 2.6) + pj + ground("#e8dcc8")
+    tally = ""
+    for g in range(4):
+        x0 = -28 + g * 15
+        for k in range(4):
+            tally += crayon("M%g,-10 L%g,8" % (x0 + k * 3, x0 + k * 3), CR_INK, 1.8)
+        tally += crayon("M%g,-6 L%g,4" % (x0 - 2, x0 + 12), CR_RED, 2)
+    P["kills"] = tally + "<text x='-12' y='22' font-family='DejaVu Sans' font-weight='bold' font-size='10' fill='%s'>500</text>" % CR_RED2 \
+        + fox(18, -16, CR_BLUE, CR_BLUE2, 0.35)
+    rainbow = ""
+    for k, c in enumerate((CR_RED, "#ff9a3a", CR_YEL, CR_GRN, CR_BLUE, CR_PUR)):
+        r = 30 - k * 3.4
+        rainbow += crayon("M%g,16 A%g,%g 0 0 1 %g,16" % (-r, r, r, r), c, 3.4)
+    P["level10"] = rainbow + "<text x='-11' y='14' font-family='DejaVu Sans' font-weight='bold' font-size='15' fill='%s'>10</text>" % CR_INK \
+        + flat(star_d(-24, -20, 4), CR_YEL) + flat(star_d(26, -20, 4), CR_YEL)
+    return P
 
 
 def drawings():
-    pics = {
-        "foox": crayon("M-20,6 Q-6,-6 12,-2 L16,-12 L19,-3 L24,-12 L25,0 Q32,4 26,8 Q8,14 -20,6 Z", "#8fb3e8", 3.4)
-        + crayon("M-20,6 Q-30,2 -32,-6", "#8fb3e8", 3.4) + "<circle cx='20' cy='2' r='2' fill='#2b2945'/>",
-        "bed": crayon("M-26,12 L-26,-12 L26,-12 L26,12", "#5b67c4", 3.4) + crayon("M-26,0 L26,0", "#5b67c4", 3.4)
-        + "<circle cx='-8' cy='-5' r='3' fill='#e85d75'/><circle cx='8' cy='-5' r='3' fill='#e85d75'/>"
-        + crayon("M-26,12 L-30,18 M26,12 L30,18 M-10,12 L-12,18 M10,12 L12,18", "#4a4f86", 3),
-        "moon": crayon("M6,-18 A18,18 0 1 0 6,18 A12,14 0 1 1 6,-18 Z", "#8a6ff0", 3.4)
-        + "<path d='%s' fill='#e85d75'/>" % star_d(18, -10, 4) + "<path d='%s' fill='#f6c86a'/>" % star_d(20, 10, 3),
-        "golden": crayon("M-20,6 Q-6,-6 12,-2 L16,-12 L19,-3 L24,-12 L25,0 Q32,4 26,8 Q8,14 -20,6 Z", "#f0b93a", 3.6)
-        + "<path d='%s' fill='#f6d993'/>" % star_d(-24, -12, 5) + "<path d='%s' fill='#f6d993'/>" % star_d(30, -14, 4),
-        "chef": crayon("M-16,2 Q-24,-10 -14,-18 Q-8,-28 0,-22 Q8,-28 14,-18 Q24,-10 16,2 Z", "#cfc8ec", 3.4)
-        + crayon("M-14,2 L14,2 L14,8 L-14,8 Z", "#cfc8ec", 3) + crayon("M-10,18 Q-4,13 0,17 Q4,13 10,18", "#2b2945", 3)
-        + "<circle cx='-6' cy='12' r='2.2' fill='#2b2945'/><circle cx='6' cy='12' r='2.2' fill='#2b2945'/>",
-        "coin": crayon("M0,-20 L14,0 L0,20 L-14,0 Z", "#8a6ff0", 3.4) + crayon("M0,-20 L2,0 L14,0 M2,0 L0,20", "#b8a6ff", 2.4)
-        + "<path d='%s' fill='#f6c86a'/>" % star_d(22, -14, 4),
-        "star": "<path d='%s' fill='none' stroke='#f0b93a' stroke-width='3.6' stroke-linejoin='round'/>" % star_d(0, 0, 20)
-        + crayon("M-28,-18 L-22,-12 M28,18 L22,12 M-28,18 L-22,13", "#e3a6c4", 3),
-    }
-    for name, pic in pics.items():
-        x, y, rot = DRAWING_SLOTS[name]
-        paper = shaded(rect_d(-38, -30, 76, 60), "#f7f3ea", shade=0.2, rim=0.2, sw=1)
-        tape = "<rect x='-12' y='-34' width='24' height='8' fill='#ffffff' opacity='0.6'/>"
-        b = "<g transform='translate(%g,%g) rotate(%g)'>%s%s%s</g>" % (x, y, rot, paper, pic, tape)
-        room_add("room_draw_" + name, x - 46, y - 40, 92, 80, b, colors=12)
+    """Hoja de papel con un dibujo de cera de Kroker, centrada en (0, 0) y algo torcida
+    A sheet of paper with one of Kroker's crayon drawings, centred on (0, 0) and slightly crooked"""
+    for name, pic in drawing_pics().items():
+        rot = DRAWING_TILT[name]
+        paper = flat(rect_d(-40, -32, 80, 64), "#f7f3ea") + flat(rect_d(30, -32, 10, 64), "#e4ddcc")
+        tape = "<rect x='-12' y='-36' width='24' height='8' fill='#ffffff' opacity='0.75'/>"
+        b = "<g transform='rotate(%g)'>%s%s%s</g>" % (rot, paper, clipped(rect_d(-38, -30, 76, 60), pic), tape)
+        room_add("draw_" + name, -48, -42, 96, 84, b, colors=14)
 
 
 # --- Acto 2: el salón / Act 2: the living room -------------------------------------------

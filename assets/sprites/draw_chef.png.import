@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjwpccxp0ihqf"
-path="res://.godot/imported/room_draw_foox.png-526573136ac750c700e3eac93191569a.ctex"
+uid="uid://c7kj51ga2tnpr"
+path="res://.godot/imported/draw_chef.png-be432cb07cc9524c8404ed37bd5d641f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/room_draw_foox.png"
-dest_files=["res://.godot/imported/room_draw_foox.png-526573136ac750c700e3eac93191569a.ctex"]
+source_file="res://assets/sprites/draw_chef.png"
+dest_files=["res://.godot/imported/draw_chef.png-be432cb07cc9524c8404ed37bd5d641f.ctex"]
 
 [params]
 

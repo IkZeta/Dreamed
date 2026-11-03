@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cyjietm305lrb"
-path="res://.godot/imported/room_draw_coin.png-8da577f81f2247db2fd766012487be24.ctex"
+uid="uid://fdggbvk0ymut"
+path="res://.godot/imported/draw_void.png-32eb7d8879c33a0b310030a52c07aa82.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/room_draw_coin.png"
-dest_files=["res://.godot/imported/room_draw_coin.png-8da577f81f2247db2fd766012487be24.ctex"]
+source_file="res://assets/sprites/draw_void.png"
+dest_files=["res://.godot/imported/draw_void.png-32eb7d8879c33a0b310030a52c07aa82.ctex"]
 
 [params]
 

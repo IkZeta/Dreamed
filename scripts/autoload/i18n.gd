@@ -179,6 +179,8 @@ const STRINGS := {
 	"ACH_UNLOCKED": {"es": "¡Logro conseguido!", "en": "Achievement unlocked!"},
 	"ACH_COUNT": {"es": "%d de %d conseguidos", "en": "%d of %d unlocked"},
 	"ACH_DRAWING": {"es": "Desbloquea un dibujo en la pared de la habitación", "en": "Unlocks a drawing on the bedroom wall"},
+	"ACH_DRAWING_LIVING": {"es": "Desbloquea un dibujo en la pared del salón", "en": "Unlocks a drawing on the living-room wall"},
+	"ACH_DRAWING_HALL": {"es": "Desbloquea un dibujo en el pasillo del colegio", "en": "Unlocks a drawing in the school hallway"},
 	"ACH_FIRST_DREAM_NAME": {"es": "Primer sueño", "en": "First dream"},
 	"ACH_FIRST_DREAM_DESC": {"es": "Supera tu primer sueño.", "en": "Clear your first dream."},
 	"ACH_ACT1_NAME": {"es": "Buenos días", "en": "Good morning"},

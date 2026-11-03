@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dh6145ssryvbm"
-path="res://.godot/imported/room_draw_star.png-515bbb095cf0c196f2ba17cd8a6ab190.ctex"
+uid="uid://db2fb4817cm0m"
+path="res://.godot/imported/draw_elites.png-6e1051c84c3388af99b58e00dee3677d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/room_draw_star.png"
-dest_files=["res://.godot/imported/room_draw_star.png-515bbb095cf0c196f2ba17cd8a6ab190.ctex"]
+source_file="res://assets/sprites/draw_elites.png"
+dest_files=["res://.godot/imported/draw_elites.png-6e1051c84c3388af99b58e00dee3677d.ctex"]
 
 [params]
 
