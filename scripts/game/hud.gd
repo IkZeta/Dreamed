@@ -292,7 +292,8 @@ func set_invest() -> void:
 	_invest.visible = not inv.is_empty()
 	if inv.is_empty():
 		return
-	var key := "INVEST_HUD_HITS" if inv["goal"] == "hits" else "INVEST_HUD"
+	# La misión de Magnus y cómo va / Magnus's mission and how it's going
+	var key := "INVEST_HUD_HITS_TAKEN" if inv["goal"] == "hits" else "INVEST_HUD_" + String(inv["goal"]).to_upper()
 	_invest.text = tr(key).format({"p": GameState.invest_progress(), "n": inv["target"]})
 	var col := Color("4fd39a") if GameState.invest_met() else (UITheme.EMBER if inv["goal"] == "hits" else UITheme.ASH)
 	_invest.add_theme_color_override("font_color", col)
