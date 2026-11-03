@@ -489,6 +489,9 @@ class HubWorld extends Control:
 	const ALWAYS: Array[String] = ["nexus", "wardrobe", "museum", "training"]
 	## Orden de las islas alrededor del centro (para los pasillos entre vecinas) / Order of the islands around the centre (for the walkways between neighbours)
 	const RING: Array[String] = ["wardrobe", "magnus", "doc", "ad", "pinche", "museum", "silly", "stolk", "svinho", "charo"]
+	## Islas lejanas: de dónde sale su puente (la primera que esté; Lil Key, de todas)
+	## Far islands: where their bridge comes from (the first one present; Lil Key, from all of them)
+	const FAR := {"training": ["wardrobe"], "superk": ["magnus", "wardrobe"], "lilkey": ["svinho", "stolk"]}
 
 	var frozen := false
 	var _pos := SPAWN
@@ -578,10 +581,20 @@ class HubWorld extends Control:
 				_rims[id] = grown[0] if not grown.is_empty() else rim
 		_isles.sort_custom(func(a: String, b: String) -> bool: return _isle_pos(a).y < _isle_pos(b).y)
 		for id in _isles:
-			if id != "nexus" and id != "training":
+			if id != "nexus" and not FAR.has(id):
 				_add_bridge("nexus", id)
-		# El tatami de entrenamiento se alcanza desde el armario / The training mat is reached from the wardrobe
-		_add_bridge("wardrobe", "training")
+		# Las islas lejanas se alcanzan desde sus vecinas (el tatami desde el armario...)
+		# The far islands are reached from their neighbours (the training mat from the wardrobe...)
+		for id: String in FAR:
+			if not _isles.has(id):
+				continue
+			var done := 0
+			for from: String in FAR[id]:
+				if _isles.has(from) and (done == 0 or id == "lilkey"):
+					_add_bridge(from, id)
+					done += 1
+			if done == 0:
+				_add_bridge("nexus", id)
 		# Pasillos entre islas vecinas, para no tener que volver siempre al centro
 		# Walkways between neighbouring islands, so you don't always have to go back to the centre
 		var ring: Array[String] = []
@@ -646,6 +659,8 @@ class HubWorld extends Control:
 				"pinche": _build_pinche()
 				"charo": _build_charo()
 				"magnus": _build_magnus()
+				"superk": _build_superk()
+				"lilkey": _build_lilkey()
 
 	## Puente de piedras flotantes de una isla a otra / Bridge of floating stones from one island to another
 	func _add_bridge(from_id: String, id: String, lanterns := true) -> void:
@@ -1275,6 +1290,64 @@ class HubWorld extends Control:
 		_piece(c + Vector2(88, -44), "hub_chart", Vector2(9, 3))
 		_piece(c + Vector2(-124, -6), "hub_plant", Vector2(7, 3))
 		_piece(c + Vector2(124, -6), "hub_plant", Vector2(7, 3))
+
+	# --- SuperK: en su azotea; de vez en cuando despega, da una vuelta a la isla y aterriza ---
+	# --- SuperK: on his rooftop; now and then he takes off, loops round the island and lands ---
+
+	const SK_PAD := Vector2(10, 4)
+	const SK_CYCLE := 8.0
+	const SK_FLIGHT := 2.6
+
+	func _build_superk() -> void:
+		var c := _isle_pos("superk")
+		_piece(c + Vector2(-96, -38), "hub_tank", Vector2(18, 5))
+		_piece(c + Vector2(100, -46), "hub_antenna", Vector2(6, 3))
+		_piece(c + Vector2(92, 30), "hub_vent", Vector2(11, 4))
+		_piece(c + Vector2(-110, 22), "hub_vent", Vector2(11, 4))
+		var sk := _npc_prop("superk", c + SK_PAD)
+		sk.painter = func(ci: CanvasItem) -> void:
+			var ph := fmod(_t, SK_CYCLE)
+			var fly := ph - (SK_CYCLE - SK_FLIGHT)
+			if fly < 0.0:
+				_draw_npc(ci, "superk", Vector2.ZERO)
+				return
+			# Vuelta a la isla en el aire / A loop round the island in the air
+			var k := fly / SK_FLIGHT
+			var a := k * TAU
+			var r := Vector2(120, 50) * sin(k * PI)
+			var p := Vector2(sin(a) * r.x, -cos(a) * r.y + r.y) + Vector2(0, -sin(k * PI) * 40.0)
+			var dir := cos(a)
+			ci.draw_colored_polygon(_ellipse(Vector2(p.x, p.y + sin(k * PI) * 40.0), Vector2(8, 2.5)), Color(0, 0, 0, 0.2))
+			_draw_npc(ci, "superk", p + Vector2(0, -2.5), dir < 0.0, {"fly": k > 0.08 and k < 0.92})
+		# Ráfaga al despegar y al aterrizar / A gust on take-off and landing
+		_prop(c + SK_PAD + Vector2(0, 1), func(ci: CanvasItem) -> void:
+			var fly := fmod(_t, SK_CYCLE) - (SK_CYCLE - SK_FLIGHT)
+			for edge in [0.0, SK_FLIGHT]:
+				var d := absf(fly - edge)
+				if fly > -0.2 and d < 0.35:
+					var k := d / 0.35
+					ci.draw_arc(Vector2.ZERO, 8.0 + k * 22.0, 0.0, TAU, 20, Color(1, 1, 1, 0.5 * (1.0 - k)), 1.0))
+
+	# --- Lil Key: dando un concierto en su escenario / giving a gig on his stage ---
+
+	func _build_lilkey() -> void:
+		var c := _isle_pos("lilkey")
+		_piece(c + Vector2(-86, -30), "hub_speaker", Vector2(10, 4))
+		_piece(c + Vector2(86, -30), "hub_speaker", Vector2(10, 4))
+		_piece(c + Vector2(-118, -46), "hub_truss", Vector2(6, 3))
+		_piece(c + Vector2(118, -46), "hub_truss", Vector2(6, 3))
+		_piece(c + Vector2(-24, -14), "hub_micstand")
+		var lk := _npc_prop("lilkey", c + Vector2(8, -6))
+		lk.painter = func(ci: CanvasItem) -> void:
+			_draw_npc(ci, "lilkey", Vector2.ZERO, false, {"dance": 1.0})
+		# Haces de luz de colores que barren el escenario / Coloured light beams sweeping the stage
+		_prop(c + Vector2(0, -60), func(ci: CanvasItem) -> void:
+			for i in 3:
+				var col := Color(["ff6a8a", "8fe0ff", "f6d993"][i], 0.12)
+				var from := Vector2([-118.0, 118.0, 0.0][i], -10.0)
+				var to := Vector2(sin(_t * (0.9 + i * 0.3) + i * 2.0) * 90.0, 70.0)
+				var side := (to - from).orthogonal().normalized() * 14.0
+				ci.draw_colored_polygon(PackedVector2Array([from, to + side, to - side]), col))
 
 	# --- Kroker ---
 

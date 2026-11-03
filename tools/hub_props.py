@@ -279,6 +279,35 @@ def build(ms):
     b += E(-3, 0, 9, 1.6, "#000000", stroke=False, rim=0)
     put("hub_torch", -12, -13, 32, 16, b)
 
+    # --- SuperK: azotea / rooftop ---
+    MET, MET_D, MET_L = ng("#9aa0c0"), ng("#5a5f82"), ng("#c8cce0")
+    # Depósito de agua sobre patas / Water tank on legs
+    b = R(-16, -10, 3, 10, MET_D) + R(13, -10, 3, 10, MET_D) + R(-2, -10, 3, 10, MET_D)
+    b += R(-18, -36, 36, 26, ng("#7a6a9a")) + E(0, -36, 18, 5, ng("#9a8ab8"))
+    b += F(-18, -26, 36, 2, ng("#5a4a7a")) + F(-18, -18, 36, 2, ng("#5a4a7a"))
+    put("hub_tank", -20, -44, 40, 46, b)
+    # Antena con luz roja / Antenna with a red light
+    b = R(-1, -50, 2, 50, MET) + R(-6, -2, 12, 3, MET_D)
+    b += "<path d='M-8,-30 L8,-30 M-6,-40 L6,-40 M-4,-48 L4,-48' stroke='%s' stroke-width='1.4'/>" % MET_L
+    put("hub_antenna", -10, -56, 20, 58, b)
+    # Salida de aire / Air vent
+    b = R(-10, -14, 20, 14, MET) + F(-8, -12, 16, 2, MET_D) + F(-8, -8, 16, 2, MET_D) + F(-8, -4, 16, 2, MET_D)
+    put("hub_vent", -12, -16, 24, 18, b)
+
+    # --- Lil Key: escenario / stage ---
+    BK, BK1 = ng("#1e1f2e", 0.1), ng("#34364e", 0.1)
+    # Altavoz grande / Big speaker
+    b = R(-12, -40, 24, 40, BK) + E(0, -27, 8, 8, BK1) + E(0, -27, 3, 3, ng("#ff6a8a", 0.1)) + E(0, -9, 5, 5, BK1)
+    put("hub_speaker", -14, -44, 28, 46, b)
+    # Pie de micro / Mic stand
+    b = R(-6, -2, 12, 2, BK1) + R(-0.8, -30, 1.6, 28, ng("#8a8fa8")) + E(0, -32, 3, 3, ng("#c8cce0"))
+    put("hub_micstand", -8, -38, 16, 40, b)
+    # Torre de luces / Lighting truss
+    b = R(-2, -70, 4, 70, MET_D) + R(-14, -72, 28, 4, MET_D)
+    for x, c in ((-10, "#ff6a8a"), (0, "#8fe0ff"), (10, "#f6d993")):
+        b += R(x - 3, -68, 6, 6, BK) + E(x, -62, 2.4, 1.6, ng(c, 0.05), stroke=False, rim=0)
+    put("hub_truss", -16, -76, 32, 78, b)
+
     # --- Charo: sillón de tejer / knitting armchair ---
     TEAL, TEAL_D = ng("#4fa89a"), ng("#3f8a7e")
     b = hs("M-20,-12 L-20,-44 Q-20,-50 -12,-50 L12,-50 Q20,-50 20,-44 L20,-12 Z", TEAL)

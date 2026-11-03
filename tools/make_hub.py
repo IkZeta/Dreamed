@@ -78,6 +78,10 @@ ISLES = {
     # Detrás del armario: el tatami de entrenamiento con el muñeco de pruebas
     # Behind the wardrobe: the training mat with the practice dummy
     "training": dict(pos=(-260, -690), r=(230, 112), aura="#ff8f6a", seed=12, floor="dojo", inset=(196, 90, 0, 4)),
+    # SuperK, en lo alto, junto a Magnus; Lil Key, a la izquierda del todo, junto a Svinho y Stolk
+    # SuperK, high up, next to Magnus; Lil Key, far left, next to Svinho and Stolk
+    "superk": dict(pos=(300, -720), r=(165, 100), aura="#b48cff", seed=13, floor="roof", inset=(125, 70, 0, 4)),
+    "lilkey": dict(pos=(-1090, 85), r=(165, 100), aura="#ff6a8a", seed=14, floor="stage", inset=(125, 68, 0, 4)),
 }
 
 
@@ -377,8 +381,49 @@ def floor_dojo(lx, ly, rng, irx, iry):
     return out
 
 
+def floor_roof(lx, ly, rng, irx, iry):
+    """Azotea de SuperK: losas de hormigón y un helipuerto con su K en un círculo dorado
+    SuperK's rooftop: concrete slabs and a helipad with his K in a gold circle"""
+    A, B, S = night("#9a96b0"), night("#8c88a2"), night("#6a6684")
+    out = np.where(((((lx + 400) // 18) + ((ly + 400) // 12)) % 2 == 0)[..., None], A, B)
+    out[((lx + 400) % 18 == 0) | ((ly + 400) % 12 == 0)] = S
+    noise = np.random.default_rng(13).random(lx.shape)
+    out[noise < 0.02] = night("#7a7690")
+    GOLD, PUR = night("#f2c94c", 0.2), night("#5a34a8", 0.2)
+    cx, cy = 10, 6
+    rr = np.sqrt((lx - cx) ** 2 + ((ly - cy) * 1.6) ** 2)
+    out[rr < 30] = PUR
+    out[(rr >= 30) & (rr < 34)] = GOLD
+    # La K / The K
+    x, y = lx - cx, (ly - cy) * 1.6
+    k = (np.abs(x + 8) < 3) & (np.abs(y) < 18)
+    k |= (np.abs((x + 6) - (-y) * 0.75) < 3) & (y < 0) & (y > -18) & (x > -7)
+    k |= (np.abs((x + 6) - y * 0.75) < 3) & (y > 0) & (y < 18) & (x > -7)
+    out[k & (rr < 30)] = GOLD
+    return out
+
+
+def floor_stage(lx, ly, rng, irx, iry):
+    """Escenario de Lil Key: tablas de madera oscura, focos de colores y luces en el borde
+    Lil Key's stage: dark wooden boards, coloured spotlights and lights along the edge"""
+    A, B, S = night("#6a3e3a"), night("#5e3634"), night("#3a2026")
+    row = (ly + 400) // 7
+    off = (row % 3) * 13
+    out = np.where(((((lx + 400 + off) // 38) + row) % 2 == 0)[..., None], A, B)
+    out[((ly + 400) % 7 == 0) | ((lx + 400 + off) % 38 == 0)] = S
+    for (cx, cy, col) in ((-50, -10, "#ff6a8a"), (50, 4, "#8fe0ff"), (0, -30, "#f6d993")):
+        d = np.sqrt((lx - cx) ** 2 + ((ly - cy) * 1.5) ** 2)
+        k = (np.floor(np.clip(1.0 - d / 46.0, 0.0, 0.999) * 3.0) / 3.0)[..., None] * 0.4
+        out = out + (rgb(col) - out) * k
+    # Luces en el borde de delante / Lights along the front edge
+    edge = (np.abs(ly - (iry - 8)) < 1.5) & (((lx + 400) % 16) < 3)
+    out[edge] = night("#fff0a0", 0.1)
+    return out
+
+
 FLOORS = {"grass": floor_grass, "gym": floor_gym, "dark": floor_dark, "clinic": floor_clinic, "street": floor_street,
-          "kitchen": floor_kitchen, "bedroom": floor_bedroom, "charo": floor_charo, "magnus": floor_magnus, "marble": floor_marble, "dojo": floor_dojo}
+          "kitchen": floor_kitchen, "bedroom": floor_bedroom, "charo": floor_charo, "magnus": floor_magnus, "marble": floor_marble, "dojo": floor_dojo,
+          "roof": floor_roof, "stage": floor_stage}
 
 
 def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flowers=True, nexus=False, crystals=True, thick=18, pad=30, shape=None):
@@ -583,7 +628,8 @@ def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flower
             img[glyph] = GOLD if k % 2 else CYAN
         img[top & (np.abs(rr - 36) < 0.8)] = GOLD_D
         for name2, isle in ISLES.items():
-            if name2 == "nexus":
+            # Las islas lejanas no tienen puente desde el centro / The far islands have no bridge from the centre
+            if name2 in ("nexus", "training", "superk", "lilkey"):
                 continue
             vx, vy = isle["pos"]
             a = math.atan2(vy, vx)
