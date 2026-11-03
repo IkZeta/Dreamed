@@ -67,6 +67,9 @@ func _ready() -> void:
 	_hp_bar = ProgressBar.new()
 	_hp_bar.show_percentage = false
 	_hp_bar.custom_minimum_size = Vector2(320, 6)
+	# Ancho fijo: no se estira aunque otra línea (p. ej. la de la almohada) sea más larga
+	# Fixed width: it doesn't stretch even if another line (e.g. the pillow one) is longer
+	_hp_bar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_hp_bar.add_theme_stylebox_override("fill", UITheme.bar(UITheme.EMBER, 3.0))
 	_hp_bar.add_theme_stylebox_override("background", UITheme.bar(Color(UITheme.LINE, 0.7), 3.0))
 	hp_box.add_child(_hp_bar)
