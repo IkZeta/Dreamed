@@ -10,7 +10,7 @@ const START := Vector2i(21, 17)
 
 const MAP: Array[String] = [
 	"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
-	"TT..T..T..T..T..T..T..T..T..T..T..T..T..T..T",
+	"TT..TTTT..T..T..TTTTTTTTTT..TTTTTTT..T..T..T",
 	"TT.........................................T",
 	"T.........................................TT",
 	"T..........................................T",
@@ -37,7 +37,7 @@ const MAP: Array[String] = [
 	"T.,,,,**,,,,T,,..,T:::o::T,................T",
 	"TT,T,,,,T,,,,,,..,,::::::,,.o..............T",
 	"T.,,,,,,,,,,,,,..T,::::::,T...............TT",
-	"T.T..T..T..T..T..T..T..T..T..T..T..T..T..T.T",
+	"T.T..T..T..T..T..T..T..T..T..TTTT..TTTTTTTTT",
 	"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
 ]
 

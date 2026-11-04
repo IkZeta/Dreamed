@@ -67,6 +67,8 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	# Lil Key: ponerle a Kroker las gafas de sol de la taquilla del colegio
 	# Lil Key: put the sunglasses from the school locker on Kroker
 	{"id": "lilkey", "flag": true, "goal": 1, "drawing": "lilkey"},
+	# Superar el Acto 4: el final de la partida / Clear Act 4: the end of the run
+	{"id": "act4", "check": "act4", "goal": 1},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4
@@ -183,6 +185,11 @@ func achievement_progress(a: Dictionary) -> Array:
 		"act3":
 			for w: String in cleared:
 				if has_cleared(w, "normal", 3):
+					return [1, 1]
+			return [0, 1]
+		"act4":
+			for w: String in cleared:
+				if has_cleared(w, "normal", 4):
 					return [1, 1]
 			return [0, 1]
 		"silly4":

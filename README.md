@@ -141,7 +141,23 @@ Un pasillo **infinito** hacia los lados, al estilo de la biblioteca de *Vampire 
 | 14 | Kiosco de Charo |
 | 15 | **Jefe: el Ovni** |
 
-**El Ovni** pasa por el pasillo dando tumbos y lo destroza: quema las paredes, dispara láseres, abre agujeros en el suelo con su rayo y deja caer enemigos. Mientras vuela no se le puede dar; cada cierto tiempo se estrella justo donde está Kroker (con aviso en el suelo) y ahí sí, pero en el suelo suelta anillos de láseres con un hueco para esquivar. A media vida se enfada: más láseres, dos rayos a la vez y más enemigos. Al vencerlo se acaba la partida.
+**El Ovni** pasa por el pasillo dando tumbos y lo destroza: quema las paredes, dispara láseres, abre agujeros en el suelo con su rayo y deja caer enemigos. Mientras vuela no se le puede dar; cada cierto tiempo se estrella justo donde está Kroker (con aviso en el suelo) y ahí sí, pero en el suelo suelta anillos de láseres con un hueco para esquivar. A media vida se enfada: más láseres, dos rayos a la vez y más enemigos. Al vencerlo (o aguantarlo) se acaba el Acto 3 y el sueño sigue en la Metrópolis.
+
+### Acto 4 (el final): la Metrópolis (sueños 16–20)
+
+Una **ciudad grande y abierta** que se recorre en todas direcciones, al estilo de las ciudades centrales de los juegos de Pokémon: avenidas en cruz, una gran plaza con fuente, la torre de los sueños al norte, tiendas, casas y bloques de pisos, un parque con estanque, un jardín con parterres al sur y un bosque alrededor (plano de 44 × 30 baldosas, `tools/make_city_map.py`). La cámara sigue a Kroker en las dos direcciones y, si pasa por detrás de un edificio, el edificio se vuelve transparente. Los enemigos rodean los edificios para llegar hasta ti.
+
+Cada sueño la ciudad tiene una **estética distinta**, sin repetir en la partida: **synthwave** (neón rosa y cian, palmeras de neón), **steampunk** (ladrillo, latón, engranajes y adoquines), **de queso** (todo de queso con agujeros), **Frutiger Aero** (cristal brillante, burbujas y verde), **solarpunk** (edificios blancos con plantas y placas solares), **dieselpunk** (art déco oscuro y dorado) o **brutalista** (hormigón gris). Arriba a la derecha sale cuál toca.
+
+- **Derrumbes:** de vez en cuando se cae un rascacielos cerca de Kroker. Primero se marca su sombra en el suelo; luego cae, hace mucho daño a lo que pille debajo (a ti también) y sus **escombros cortan el paso** casi medio minuto.
+- **Alcantarillas:** cada sueño hay más abiertas; sirven de agujero para tirar enemigos.
+
+| Sueño | Novedad |
+|---|---|
+| 16 | **Unidad Especial**: una furgo blindada que vuela. Llega con la sirena, da vueltas alrededor de Kroker y suelta **policías** por una cuerda hasta que la derribas; al caer, revienta y daña a los de alrededor. Los policías tienen poca vida, disparan ráfagas de tres con su fusil de asalto y **cada bala hace sangrar**. Su uniforme cambia con la estética de la ciudad |
+| 17 | **Antidisturbios**: salen de las alcantarillas abiertas. No te persiguen ni atacan: se quedan detrás y ponen **escudos** a los demás (dos cada vez, cinco como mucho). Un enemigo con escudo apenas recibe daño ni empujones, y el escudo solo desaparece cuando cae el antidisturbios que lo puso. Kiosco de Charo |
+| 19 | Kiosco de Charo |
+| 20 | **El último sueño**: la ciudad se viene abajo, con derrumbes cada pocos segundos, más alcantarillas abiertas, más furgos y más antidisturbios. Si aguantas, Kroker se despierta de verdad y se acaba la partida |
 
 ### Jefes con tiempo límite
 
