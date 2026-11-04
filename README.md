@@ -396,7 +396,7 @@ Cada lugar y cada personaje tiene su tema (todos en bucle y suaves):
 | **SuperK** | Su isla | Fanfarria de héroe: cuerdas, timbales, redobles y metales que suben |
 | **Lil Key** | Su isla | Dembow con 808, sinte con eco y un «¡eh!» de coro |
 
-En el plano astral, la música cambia con un fundido al entrar en la isla de cada personaje. Lo que suena al hablar con ellos es el arranque de su tema (su leitmotiv); también suena, claro y con la música bajada un momento, al elegir su mejora tras cada sueño, y el de Charo cuando te da la bienvenida la primera vez y cada vez que abre el kiosco. Los sonidos de los botones son toques de kalimba graves, cortos y apagados.
+En el plano astral, la música cambia con un fundido al entrar en la isla de cada personaje. Lo que suena al hablar con ellos es el arranque de su tema (su leitmotiv); también suena, claro y con la música bajada un momento, al elegir su mejora tras cada sueño, y el de Charo cuando te da la bienvenida la primera vez y cada vez que abre el kiosco. SuperK y Lil Key también hacen sonar el suyo cada vez que aparecen en un sueño a ayudarte (con la música bajada solo un poco). Los sonidos de los botones son toques de kalimba graves, cortos y apagados.
 
 ### Bot de equilibrio
 

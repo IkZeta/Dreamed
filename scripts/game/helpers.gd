@@ -219,6 +219,7 @@ class Actor extends Node2D:
 				phase = "sweep"
 				_dur = _from.distance_to(_to) / 900.0
 				Audio.play("dash", -8.0)
+				Audio.leitmotif("superk", -2.0, -14.0)
 			"throw":
 				var best: Enemy = null
 				var best_d := INF
@@ -248,6 +249,7 @@ class Actor extends Node2D:
 				run.fx.ring(position + Vector2(0, -60), 60.0, Color("b48cff"), 0.4, 2.0)
 				run.fx.text(kroker + Vector2(0, -150), tr("SUPERK_BLOCK"), Color("e0c8ff"), 24)
 				Audio.play("pillow", -4.0)
+				Audio.leitmotif("superk", -2.0, -14.0)
 				run.player.set("_invuln", 0.6)
 				if is_instance_valid(target) and target is Enemy and not (target as Enemy).is_boss():
 					(target as Enemy).hit(5.0, (target.global_position - kroker).normalized() * 700.0)
@@ -278,7 +280,8 @@ class Actor extends Node2D:
 		_fade = 0.0
 		run.fx.ring(position + Vector2(0, -50), 50.0, Color("ff6a8a"), 0.5, 2.4)
 		run.fx.text(position + Vector2(0, -170), tr("LILKEY_SHOUT"), Color("ffb0c0"), 22)
-		Audio.play("bell", -10.0)
+		# Su leitmotiv al aparecer (la música baja un poco) / His leitmotif when he shows up (the music dips a little)
+		Audio.leitmotif("lilkey", -2.0, -14.0)
 
 	## Entra volando en diagonal desde arriba / Flies in diagonally from above
 	func _fly_in(at: Vector2) -> void:
@@ -293,6 +296,7 @@ class Actor extends Node2D:
 		_dur = maxf(0.35, _from.distance_to(_to) / FLY_SPEED)
 		run.fx.text(_to + Vector2(0, -160), tr("SUPERK_SHOUT"), Color("e0c8ff"), 22)
 		Audio.play("dash", -6.0)
+		Audio.leitmotif("superk", -2.0, -14.0)
 
 	func _fly_out() -> void:
 		phase = "out"
