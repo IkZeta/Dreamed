@@ -237,6 +237,18 @@ Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 d
 
 ![Plano astral](docs/screenshots/plano-astral.jpg)
 
+### Mejoras dúo
+
+Cada personaje tiene una pareja, y su mejora dúo va con un arma concreta. Solo cuenta el **arma principal** (la segunda, la que se consigue al final del Acto 2, no). Una mejora dúo se desbloquea para siempre al tener **amistad 3 con los dos** personajes, y sale en el plano astral (casi seguro, ocupando un hueco) cuando, en esa partida, las mejoras de los dos con esa arma están **al máximo** (nivel 3). Magnus no da mejoras de arma: para él cuenta haber ganado 2 tratos en la partida. En el menú de personajes se ve con quién hace dúo cada uno.
+
+| Dúo | Arma | Mejora |
+|---|---|---|
+| Svinho y Silly | Botas | **Regate binario**: lo que lanzas con patadas y dash rebota en 1 enemigo más; todo lo que toca el rebote se congela 1 s y recibe +50 % de daño un rato |
+| Stolk y Doc | Bate | **Receta de matón**: las mejoras de Stolk no cuestan vida máxima, la de Doc no baja el daño y cada enemigo que tumbas con el bate te cura 1 |
+| SuperK y Lil Key | Escudo | **Concierto benéfico**: SuperK para golpes con +10 % de probabilidad y, cada vez que para uno, Lil Key pone a bailar a los de alrededor 4 s |
+| Mr. Ad y D. Lynx | Portátil | **Pausa publicitaria**: cada 20 s, D. Lynx rueda un anuncio de Mr. Ad en una tele gigante; los enemigos a la vista se paran a mirarlo 3 s y reciben +50 % de daño, y ganas 1 de Realidad Fragmentada por cada 4 que miran (hasta 5) |
+| El Pinche y Magnus | Libro | **Franquicia**: los enemigos que mueren quemados tienen un 30 % de soltar 1 de Realidad Fragmentada y pasan el fuego a los 2 de al lado |
+
 ### Amistad
 
 La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
@@ -282,7 +294,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
-- **Logros:** hay 30 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 31 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, y conseguir una mejora dúo). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;

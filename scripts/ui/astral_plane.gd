@@ -25,12 +25,16 @@ var _hearts: FriendHearts
 var _first_talk := false
 ## Trato que ofrece Magnus, si sale / Deal Magnus offers, if he shows up
 var _deal := {}
+## Mejora dúo que se ofrece, si sale / Duo upgrade on offer, if there is one
+var _duo := ""
 
 
 func _ready() -> void:
 	theme = UITheme.build()
 	Audio.play_music("music_astral", 1.5)
 	_offer = GameState.pick_offer()
+	if "duo" in _offer:
+		_duo = GameState.duo_ready()
 	# Quedan conocidos para el menú de personajes / They count as met for the characters menu
 	for g in _offer:
 		Progress.stats["met_" + g] = 1
@@ -47,7 +51,8 @@ func _ready() -> void:
 	tw.tween_callback(flash.queue_free)
 	# Cada personaje se presenta con su propio tema / Each character introduces itself with its own motif
 	for i in _offer.size():
-		get_tree().create_timer(0.5 + i * 1.1).timeout.connect(Audio.play.bind("giver_" + _offer[i], -8.0))
+		var motif: String = "giver_" + (GameState.DUOS[_duo]["a"] if _offer[i] == "duo" else _offer[i])
+		get_tree().create_timer(0.5 + i * 1.1).timeout.connect(Audio.play.bind(motif, -8.0))
 	if not _buttons.is_empty():
 		_buttons[0].grab_focus()
 
@@ -107,6 +112,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 
 	var fig := GiverFigure.new()
 	fig.who = giver
+	fig.duo = _duo
 	var fig_px := PixelView.wrap(fig, 3)
 	fig_px.custom_minimum_size = Vector2(0, 380)
 	fig_px.size_flags_vertical = SIZE_EXPAND_FILL
@@ -120,6 +126,9 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	v.add_theme_constant_override("separation", 6)
 	card.add_child(v)
 
+	if giver == "duo":
+		_duo_card(v, fig)
+		return col
 	# Si el nombre es largo, el papel baja a la línea siguiente / If the name is long, the role drops to the next line
 	var name_row := HFlowContainer.new()
 	name_row.add_theme_constant_override("h_separation", 12)
@@ -232,18 +241,62 @@ func _deal_card(v: VBoxContainer, fig: GiverFigure) -> void:
 	_buttons.append(b)
 
 
+## Mejora dúo: los dos personajes juntos y su mejora compartida / Duo upgrade: both characters together and their shared upgrade
+func _duo_card(v: VBoxContainer, fig: GiverFigure) -> void:
+	var d: Dictionary = GameState.DUOS[_duo]
+	var name_row := HFlowContainer.new()
+	name_row.add_theme_constant_override("h_separation", 12)
+	var names := UITheme.label("%s & %s" % [tr("GIVER_%s_NAME" % String(d["a"]).to_upper()), tr("GIVER_%s_NAME" % String(d["b"]).to_upper())], 36, UITheme.BONE, "display")
+	names.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	names.size_flags_horizontal = SIZE_EXPAND_FILL
+	name_row.add_child(names)
+	name_row.add_child(UITheme.label("DUO_ROLE", 14, GiverFigure.AURA["duo"], "caps"))
+	v.add_child(name_row)
+	var line := UITheme.label("DUO_%s_LINE" % _duo.to_upper(), 20, UITheme.ASH, "italic")
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(line)
+	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.5)))
+	var up_row := HBoxContainer.new()
+	var up_name := UITheme.label("DUO_%s_NAME" % _duo.to_upper(), 26, UITheme.GOLD)
+	up_name.size_flags_horizontal = SIZE_EXPAND_FILL
+	up_row.add_child(up_name)
+	var tag := UITheme.label("DUO_TAG", 14, GiverFigure.AURA["duo"], "caps")
+	up_row.add_child(tag)
+	v.add_child(up_row)
+	var desc := Keywords.label("", 19, Color(UITheme.BONE, 0.85), "light")
+	desc.custom_minimum_size.y = 84
+	Keywords.set_text(desc, GameState.duo_desc(_duo))
+	v.add_child(desc)
+	var b := Button.new()
+	b.text = "ASTRAL_ACCEPT"
+	b.custom_minimum_size = Vector2(0, 60)
+	b.pressed.connect(_choose.bind("duo"))
+	Keywords.on_focus(b, desc)
+	b.mouse_entered.connect(b.grab_focus)
+	b.focus_entered.connect(func() -> void: fig.highlight = true)
+	b.focus_exited.connect(func() -> void: fig.highlight = false)
+	v.add_child(b)
+	_buttons.append(b)
+
+
 func _choose(giver: String) -> void:
 	if _chosen:
 		return
 	_chosen = true
 	if giver == "magnus":
 		GameState.sign_deal(_deal)
+	elif giver == "duo":
+		GameState.add_duo(_duo)
 	else:
 		GameState.add_upgrade(giver, _target.get(giver, ""))
 	GameState.dream_depth += 1
-	# Suena su leitmotiv, claro: la música baja un momento para dejarle sitio
-	# Their leitmotif plays, clearly: the music dips for a moment to make room for it
-	Audio.leitmotif(giver)
+	# Suena su leitmotiv, claro: la música baja un momento para dejarle sitio (en el dúo, los dos)
+	# Their leitmotif plays, clearly: the music dips for a moment to make room for it (for a duo, both)
+	if giver == "duo":
+		Audio.leitmotif(GameState.DUOS[_duo]["a"])
+		get_tree().create_timer(1.3).timeout.connect(Audio.play.bind("giver_" + GameState.DUOS[_duo]["b"], 1.0))
+	else:
+		Audio.leitmotif(giver)
 	get_tree().create_timer(1.6).timeout.connect(Audio.play.bind("astral", -10.0))
 	for b in _buttons:
 		b.disabled = true
@@ -268,6 +321,7 @@ func _talk_scene(giver: String) -> void:
 
 	var fig := GiverFigure.new()
 	fig.who = giver
+	fig.duo = _duo
 	fig.highlight = true
 	var fig_px := PixelView.wrap(fig, 4)
 	talk.add_child(fig_px)
@@ -279,14 +333,23 @@ func _talk_scene(giver: String) -> void:
 	talk.add_child(col)
 	col.position = Vector2(860, 250)
 	col.size = Vector2(920, 560)
-	var name_l := UITheme.label("GIVER_%s_NAME" % giver.to_upper(), 84, aura, "display")
+	var is_duo := giver == "duo"
+	var name_l: Label
+	if is_duo:
+		var d: Dictionary = GameState.DUOS[_duo]
+		name_l = UITheme.label("%s & %s" % [tr("GIVER_%s_NAME" % String(d["a"]).to_upper()), tr("GIVER_%s_NAME" % String(d["b"]).to_upper())], 64, aura, "display")
+		name_l.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	else:
+		name_l = UITheme.label("GIVER_%s_NAME" % giver.to_upper(), 84, aura, "display")
 	col.add_child(name_l)
-	col.add_child(UITheme.label("GIVER_%s_ROLE" % giver.to_upper(), 24, UITheme.ASH, "caps"))
+	col.add_child(UITheme.label("DUO_ROLE" if is_duo else "GIVER_%s_ROLE" % giver.to_upper(), 24, UITheme.ASH, "caps"))
 	col.add_child(UITheme.rule(Color(aura, 0.5)))
 	var weapon: String = _target.get(giver, GameState.selected_character)
 	var gift_text: String
 	if giver == "magnus":
 		gift_text = tr("INVEST_SIGNED").format({"goal": GameState.deal_goal_text(_deal)})
+	elif is_duo:
+		gift_text = tr("DUO_GIFT").format({"up": tr("DUO_%s_NAME" % _duo.to_upper())})
 	else:
 		gift_text = tr("ASTRAL_GIFT").format({"up": tr(GameState.upgrade_key(giver, weapon, "NAME")), "lvl": GameState.level(giver, weapon)})
 		# Con dos armas se dice para cuál es / With two weapons, say which one it's for
@@ -316,8 +379,10 @@ func _talk_scene(giver: String) -> void:
 	_talk_giver = giver
 	# Primera vez: presentación y sin propina. Luego, lo que toque según la amistad.
 	# First time: introduction and no tip. After that, whatever friendship calls for.
-	_first_talk = Progress.first_talk(giver)
-	if _first_talk:
+	_first_talk = false if is_duo else Progress.first_talk(giver)
+	if is_duo:
+		_set_talk(tr("DUO_%s_TALK" % _duo.to_upper()))
+	elif _first_talk:
 		_set_talk(tr("TALK_%s_INTRO" % giver.to_upper()))
 		Progress.mark_talked(giver)
 	else:
@@ -338,6 +403,7 @@ func _talk_scene(giver: String) -> void:
 	friend_row.add_child(fl)
 	_hearts = FriendHearts.new(Progress.friend_level(giver), aura, 22.0)
 	friend_row.add_child(_hearts)
+	friend_row.visible = not is_duo
 	_talk_buttons = HBoxContainer.new()
 	_talk_buttons.add_theme_constant_override("separation", 20)
 	_talk_buttons.modulate.a = 0.0
@@ -347,7 +413,7 @@ func _talk_scene(giver: String) -> void:
 	_tip_button.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	_tip_button.pressed.connect(_tip)
 	_tip_button.mouse_entered.connect(_tip_button.grab_focus)
-	_tip_button.visible = GameState.reality_on() and not _first_talk
+	_tip_button.visible = GameState.reality_on() and not _first_talk and not is_duo
 	_talk_buttons.add_child(_tip_button)
 	var go := Button.new()
 	go.text = "TALK_CONTINUE"
@@ -460,8 +526,9 @@ func _leave() -> void:
 
 ## Personaje sobre una roca flotante / A character standing on a floating rock
 class GiverFigure extends Control:
-	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a"), "superk": Color("b48cff"), "lilkey": Color("ff6a8a"), "lynx": Color("e0303a")}
+	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a"), "superk": Color("b48cff"), "lilkey": Color("ff6a8a"), "lynx": Color("e0303a"), "duo": Color("f6d993")}
 	var who := "svinho"
+	var duo := ""
 	var highlight := false
 	var _t := 0.0
 	var _glow := 0.0
@@ -494,6 +561,17 @@ class GiverFigure extends Control:
 		draw_colored_polygon(PackedVector2Array([rock_c + Vector2(-20, 30) * s, rock_c + Vector2(-8, 82) * s, rock_c + Vector2(4, 30) * s]), Color(aura, 0.7))
 		draw_colored_polygon(top, Color("4a4592"))
 		draw_polyline(top + PackedVector2Array([top[0]]), Color(aura, 0.5), 1.5, true)
+		if who == "duo" and duo != "":
+			# Los dos juntos, un poco más pequeños, sobre la misma roca / Both together, a bit smaller, on the same rock
+			var d: Dictionary = GameState.DUOS[duo]
+			var k := s * 0.78
+			for i in 2:
+				var o := rock_c + Vector2((-46.0 if i == 0 else 46.0) * s, -2.0 * s) - Vector2(100, 288) * k
+				var bob := sin(_t * 1.1 + i * 1.7) * 3.0 * s
+				var g: String = d["a"] if i == 0 else d["b"]
+				draw_texture_rect(DreamBackground.soft_texture(), Rect2(o + Vector2(-20, 40) * k, Vector2(240, 300) * k), false, Color(AURA[g], 0.12 + 0.12 * _glow))
+				NpcArt.draw(self, Transform2D(0.0, Vector2(k * (-1.0 if i == 1 else 1.0), k), 0.0, o + Vector2(200.0 * k if i == 1 else 0.0, bob)), g, _t)
+			return
 		NpcArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin), who, _t)
 
 

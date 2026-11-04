@@ -97,6 +97,14 @@ func _build(player: Player) -> void:
 			var desc := Keywords.label(s.upgrade_desc(g, weapon, lvl), 24, UITheme.ASH, "italic")
 			desc.custom_minimum_size.x = 760
 			v.add_child(desc)
+	for duo: String in s.duos:
+		any = true
+		var head := UITheme.label("%s  ·  %s" % [tr("DUO_ROLE"), tr("DUO_%s_NAME" % duo.to_upper())], 24, UITheme.GOLD, "body")
+		head.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		v.add_child(head)
+		var desc := Keywords.label(s.duo_desc(duo), 24, UITheme.ASH, "italic")
+		desc.custom_minimum_size.x = 760
+		v.add_child(desc)
 	if not any:
 		var none := UITheme.label("PAUSE_NO_UPGRADES", 24, UITheme.ASH, "italic")
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

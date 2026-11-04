@@ -22,12 +22,17 @@ func attack() -> bool:
 	if target == null:
 		return false
 	var dir := (_body(target) - origin()).normalized()
-	var damage := DAMAGE * (1.0 + uv("stolk", "pct") / 100.0) * (1.0 - uv("doc", "pct") / 100.0)
+	# Dúo Stolk y Doc: sin la pega del Doc / Stolk & Doc duo: without Doc's downside
+	var doc_pen := 0.0 if GameState.has_duo("stolk_doc") else uv("doc", "pct") / 100.0
+	var damage := DAMAGE * (1.0 + uv("stolk", "pct") / 100.0) * (1.0 - doc_pen)
 	var knock := KNOCKBACK
 	if lv("svinho") > 0:
 		knock = 380.0 + 60.0 * lv("svinho")
 		target.start_bounce(damage * player.damage_mult * uv("svinho", "pct") / 100.0, int(uv("svinho", "chain")) - 1)
 	deal(target, damage, dir * knock)
+	# ...y cada enemigo que tumba el bate cura / ...and every enemy the bat knocks out heals
+	if GameState.has_duo("stolk_doc") and target.state == Enemy.State.DYING:
+		player.heal(GameState.duo_value("stolk_doc", "heal"))
 	if lv("silly") > 0 and randf() * 100.0 < uv("silly", "chance"):
 		target.glitch(uv("silly", "secs"))
 	swung()

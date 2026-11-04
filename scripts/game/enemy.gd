@@ -341,6 +341,10 @@ func _ricochet() -> void:
 			var dir := (other.global_position - global_position).normalized()
 			other.hit(bounce_damage, dir * knock.length() * 0.6)
 			run.fx.ring(other.aim_point(), 18.0, UITheme.GOLD, 0.3, 2.0)
+			# Dúo Svinho y Silly: lo que toca el rebote se queda congelado y vulnerable
+			# Svinho & Silly duo: whatever the bounce touches freezes and turns vulnerable
+			if GameState.has_duo("svinho_silly") and not other.is_boss():
+				other.glitch(GameState.duo_value("svinho_silly", "secs"), 0.0, 3.0, 1.0 + GameState.duo_value("svinho_silly", "pct") / 100.0)
 			Audio.play("ricochet", -11.0, 0.1)
 			if bounce_chain > 0:
 				other.start_bounce(bounce_damage, bounce_chain - 1, [self])
@@ -351,6 +355,9 @@ func start_bounce(damage: float, chain: int, ignore: Array = []) -> void:
 	bounce_t = 0.7
 	bounce_damage = damage
 	bounce_chain = chain
+	if GameState.has_duo("svinho_silly") and ignore.is_empty():
+		bounce_chain += int(GameState.duo_value("svinho_silly", "extra"))
+		glitch_t = maxf(glitch_t, 0.7)
 	_bounced = ignore.duplicate()
 
 
@@ -641,7 +648,29 @@ func die(counted: bool) -> void:
 	run.fx.dissipate(aim_point(), Color("dfe3f0"))
 	if counted:
 		_death_sound()
+		if burn_t > 0.0 and GameState.has_duo("pinche_magnus"):
+			_franchise()
 		run.on_enemy_killed(self)
+
+
+## Dúo del Pinche y Magnus: quien muere quemado a veces suelta Realidad Fragmentada y le pasa
+## el fuego a los de al lado / Kitchen Boy & Magnus duo: whoever dies burning sometimes drops
+## Fragmented Reality and passes the fire on to its neighbours
+func _franchise() -> void:
+	if randf() * 100.0 < GameState.duo_value("pinche_magnus", "chance") and GameState.reality_on():
+		GameState.add_reality(1)
+		run.hud.set_reality()
+		run.fx.text(global_position + Vector2(0, -aim_height * 3.0), "+1 ◆", Color("4fd39a"), 20)
+		Audio.play("reality", -10.0, 0.1)
+	var near: Array = []
+	for o: Node in run.enemies.get_children():
+		if o != self and o is Enemy and (o as Enemy).is_targetable() and (o as Node2D).global_position.distance_to(global_position) < 220.0:
+			near.append(o)
+	near.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.global_position.distance_squared_to(global_position) < b.global_position.distance_squared_to(global_position))
+	for i in mini(near.size(), int(GameState.duo_value("pinche_magnus", "spread"))):
+		var e := near[i] as Enemy
+		e.burn(burn_dps, maxf(burn_t, 2.0), burn_pct)
+		run.fx.ring(e.aim_point(), 16.0, Color("ff9a3a"), 0.3, 2.0)
 
 
 func _death_sound() -> void:

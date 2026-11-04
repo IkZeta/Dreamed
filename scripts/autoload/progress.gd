@@ -71,6 +71,7 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "act4", "check": "act4", "goal": 1},
 	{"id": "evil_ad", "flag": true, "goal": 1},
 	{"id": "lynx", "flag": true, "goal": 1},
+	{"id": "duo", "flag": true, "goal": 1},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4

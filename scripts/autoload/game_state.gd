@@ -234,6 +234,10 @@ var run_elites := 0     # élites derrotados / elites defeated
 var run_shades := false
 ## D. Lynx ya ha dado su "toma 2" en esta partida / D. Lynx has already given his "take 2" this run
 var lynx_retake_used := false
+## Mejoras dúo que tiene esta partida (ids de DUOS) y tratos de Magnus ganados
+## Duo upgrades this run has (DUOS ids) and Magnus deals won
+var duos: Array = []
+var run_deals_won := 0
 ## Evento del sueño anterior, para no repetirlo / Previous dream's event, so it isn't repeated
 var last_event := ""
 ## Orden de las estéticas de la Metrópolis en esta partida / Order of the Metropolis looks this run
@@ -319,7 +323,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won"]
 
 
 func save_run() -> void:
@@ -373,6 +377,8 @@ func reset_run() -> void:
 	run_time = 0.0
 	run_shades = false
 	lynx_retake_used = false
+	duos = []
+	run_deals_won = 0
 	city_styles = []
 	run_kills = 0
 	run_hits = 0
@@ -662,6 +668,9 @@ func pick_offer() -> Array[String]:
 	# Magnus no da mejoras de arma: sale si se le puede pagar / Magnus gives no weapon upgrade: he shows up if you can pay him
 	if magnus_available():
 		pool.append("magnus")
+	# Mejora dúo lista: sale casi seguro / A duo upgrade ready: it shows up almost surely
+	if duo_ready() != "":
+		pool.append("duo")
 	# Con suerte es más fácil que vuelva alguien que ya te ha dado un don, para subirlo de nivel
 	# With luck, someone who already gave you a gift is likelier to return, to level it up
 	var out: Array[String] = []
@@ -686,7 +695,85 @@ func pick_offer() -> Array[String]:
 func _giver_weight(g: String) -> float:
 	if g == "magnus":
 		return 1.0
+	if g == "duo":
+		return 6.0
 	return 1.0 + (stat("luck") / 20.0 if best_level(g) > 0 else 0.0)
+
+
+## --- Mejoras dúo / Duo upgrades -------------------------------------------------------
+## Cada personaje tiene una pareja y la mejora dúo va con un arma concreta. Solo cuenta el arma
+## principal (no la segunda que se consigue al final del Acto 2). Se desbloquea con amistad 3 con
+## los dos, y sale en partida cuando las mejoras de los dos con esa arma están al máximo (Magnus no
+## da mejoras de arma: él está "al máximo" tras ganar DUO_MAGNUS_DEALS tratos en la partida).
+## Every character has a partner and the duo upgrade goes with one specific weapon. Only the main
+## weapon counts (not the second one you get at the end of Act 2). It unlocks with friendship 3
+## with both, and shows up in a run once both of their upgrades for that weapon are maxed (Magnus
+## gives no weapon upgrades: he's "maxed" after winning DUO_MAGNUS_DEALS deals in the run).
+const DUO_FRIEND := 3
+const DUO_MAGNUS_DEALS := 2
+const DUOS := {
+	"svinho_silly": {"a": "svinho", "b": "silly", "weapon": "boots"},
+	"stolk_doc": {"a": "stolk", "b": "doc", "weapon": "bat"},
+	"superk_lilkey": {"a": "superk", "b": "lilkey", "weapon": "shield"},
+	"ad_lynx": {"a": "ad", "b": "lynx", "weapon": "laptop"},
+	"pinche_magnus": {"a": "pinche", "b": "magnus", "weapon": "book"},
+}
+## Valores de cada dúo (las descripciones usan las mismas claves) / Each duo's values (descriptions use the same keys)
+const DUO_VALUES := {
+	"svinho_silly": {"extra": 1, "secs": 1.0, "pct": 50},
+	"stolk_doc": {"heal": 1},
+	"superk_lilkey": {"secs": 4, "chance": 10},
+	"ad_lynx": {"cd": 20, "secs": 3, "pct": 50, "per": 4, "max": 5},
+	"pinche_magnus": {"chance": 30, "spread": 2},
+}
+
+
+static func duo_value(id: String, key: String) -> float:
+	return float(DUO_VALUES[id][key])
+
+
+func has_duo(id: String) -> bool:
+	return id in duos
+
+
+## Desbloqueado para siempre (amistad 3 con los dos) / Unlocked for good (friendship 3 with both)
+func duo_unlocked(id: String) -> bool:
+	var d: Dictionary = DUOS[id]
+	for g: String in [d["a"], d["b"]]:
+		if not giver_unlocked(g) or Progress.friend_level(g) < DUO_FRIEND:
+			return false
+	return true
+
+
+func _duo_maxed(g: String, weapon: String) -> bool:
+	if g == "magnus":
+		return run_deals_won >= DUO_MAGNUS_DEALS
+	return level(g, weapon) >= MAX_UPGRADE_LEVEL
+
+
+## El dúo que se puede ofrecer ahora ("" si ninguno) / The duo that can be offered now ("" if none)
+func duo_ready() -> String:
+	for id: String in DUOS:
+		var d: Dictionary = DUOS[id]
+		if has_duo(id) or d["weapon"] != selected_character or not duo_unlocked(id):
+			continue
+		if _duo_maxed(d["a"], selected_character) and _duo_maxed(d["b"], selected_character):
+			return id
+	return ""
+
+
+func add_duo(id: String) -> void:
+	if not has_duo(id):
+		duos.append(id)
+		Progress.flag("duo")
+
+
+func duo_desc(id: String) -> String:
+	var vals := {}
+	for k: String in DUO_VALUES[id]:
+		var v := float(DUO_VALUES[id][k])
+		vals[k] = str(int(v)) if is_equal_approx(v, roundf(v)) else str(v)
+	return tr("DUO_%s_DESC" % id.to_upper()).format(vals)
 
 
 ## Mr. Ad aparece desde que se llega al Acto 2 por primera vez y El Pinche desde el Acto 3
@@ -844,6 +931,7 @@ func settle_deal() -> String:
 	var result := "won" if invest_met() else "lost"
 	if result == "won":
 		add_reality(int(invest["payout"]))
+		run_deals_won += 1
 	else:
 		for b: Dictionary in _deal_boosts(invest):
 			var id: String = b["stat"]
@@ -1333,6 +1421,9 @@ func stats_for(id: String) -> Dictionary:
 	var stolk := 0
 	for w in weapons():
 		stolk += level("stolk", w)
+	# Dúo Stolk y Doc: el Doc le cura la factura / Stolk & Doc duo: Doc covers the bill
+	if has_duo("stolk_doc"):
+		stolk -= level("stolk", selected_character)
 	s["max_hp"] = maxf(5.0, float(s["max_hp"]) - STOLK_HP_COST * stolk)
 	# Doc: suma vida máxima; con la aspiradora cuesta velocidad / Doc: adds max health; with the vacuum it costs speed
 	s["max_hp"] = float(s["max_hp"]) + doc_hp()

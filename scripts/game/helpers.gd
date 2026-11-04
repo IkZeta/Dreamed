@@ -51,8 +51,14 @@ var _lynx: Actor
 var _t := 0.0
 
 
+## Dúo de Mr. Ad y D. Lynx: cada cierto tiempo ruedan un anuncio / Mr. Ad & D. Lynx duo: now and then they shoot an advert
+var _ad_t := 0.0
+var _ad: Actor
+
+
 func setup(r: Node) -> void:
 	run = r
+	_ad_t = GameState.duo_value("ad_lynx", "cd") * 0.5
 	for w: String in GameState.weapons():
 		for g: String in ["superk", "lilkey", "lynx"]:
 			if GameState.level(g, w) > 0 and GameState.UPGRADE_VALUES[g][w].has("cd"):
@@ -65,6 +71,20 @@ func _physics_process(delta: float) -> void:
 	_guard_cd = maxf(0.0, _guard_cd - delta)
 	if not run.running:
 		return
+	if GameState.has_duo("ad_lynx") and not is_instance_valid(_ad):
+		_ad_t -= delta
+		if _ad_t <= 0.0:
+			var a := Actor.new()
+			a.helpers = self
+			a.who = "lynx"
+			a.power = "commercial"
+			if a.plan():
+				run._actors.add_child(a)
+				_ad = a
+				_ad_t = GameState.duo_value("ad_lynx", "cd")
+			else:
+				a.free()
+				_ad_t = 1.0
 	for key: String in _timers:
 		var g: String = key.get_slice(":", 0)
 		var w: String = key.get_slice(":", 1)
@@ -121,7 +141,8 @@ func try_guard(source: Node2D) -> bool:
 	for w: String in GameState.weapons():
 		if GameState.helper_power("superk", w) != "guard" or GameState.level("superk", w) <= 0:
 			continue
-		if randf() * 100.0 >= GameState.up_value("superk", "chance", -1, w):
+		var extra := GameState.duo_value("superk_lilkey", "chance") if GameState.has_duo("superk_lilkey") else 0.0
+		if randf() * 100.0 >= GameState.up_value("superk", "chance", -1, w) + extra:
 			continue
 		_guard_cd = GameState.up_value("superk", "cd", -1, w)
 		var a := Actor.new()
@@ -133,6 +154,20 @@ func try_guard(source: Node2D) -> bool:
 		a.plan()
 		run._actors.add_child(a)
 		_superk = a
+		# Dúo SuperK y Lil Key: tras parar el golpe, Lil Key monta la fiesta / SuperK & Lil Key duo: after the block, Lil Key starts the party
+		if GameState.has_duo("superk_lilkey") and not is_instance_valid(_lilkey):
+			var lk := Actor.new()
+			lk.helpers = self
+			lk.who = "lilkey"
+			lk.power = "dance"
+			lk.weapon = w
+			if lk.plan():
+				lk.set("_secs", GameState.duo_value("superk_lilkey", "secs"))
+				run._actors.add_child(lk)
+				_lilkey = lk
+				shades = true
+			else:
+				lk.free()
 		return true
 	return false
 
@@ -310,6 +345,40 @@ class Actor extends Node2D:
 				run.fx.text(position + Vector2(0, -180), tr("LYNX_SHOUT"), Color("ffb0b0"), 24)
 				Audio.play("snap", -4.0, 0.05)
 				Audio.leitmotif("lynx", -2.0, -14.0)
+			"commercial":
+				# Pausa publicitaria: los enemigos a la vista se paran a mirar el anuncio
+				# Commercial break: enemies in view stop to watch the advert
+				var watchers: Array = []
+				for e: Enemy in foes:
+					if helpers.in_view(e.global_position, 0.0):
+						watchers.append(e)
+				if watchers.size() < 3:
+					return false
+				flying = false
+				facing = 1.0
+				position = run.clamp_to_arena(kroker + Vector2(0, -150.0), 60.0)
+				var secs := GameState.duo_value("ad_lynx", "secs")
+				_secs = secs + 0.6
+				phase = "show"
+				_fade = 0.0
+				for e: Enemy in watchers:
+					if e.is_boss():
+						e.vuln_t = maxf(e.vuln_t, secs)
+						e.vuln_mult = 1.0 + GameState.duo_value("ad_lynx", "pct") / 100.0
+						continue
+					e.stun_t = maxf(e.stun_t, secs)
+					e.vuln_t = maxf(e.vuln_t, secs)
+					e.vuln_mult = 1.0 + GameState.duo_value("ad_lynx", "pct") / 100.0
+				set_meta("cast", watchers)
+				var cash := mini(int(GameState.duo_value("ad_lynx", "max")), watchers.size() / int(GameState.duo_value("ad_lynx", "per")))
+				if cash > 0 and GameState.reality_on():
+					GameState.add_reality(cash)
+					run.hud.set_reality()
+					run.fx.text(position + Vector2(0, -230), "+%d ◆" % cash, Color("ffb04a"), 26)
+				run.fx.text(position + Vector2(0, -200), tr("DUO_AD_SHOUT"), Color("ffd08a"), 26)
+				run.fx.ring(position + Vector2(0, -50), 80.0, Color("ffb04a"), 0.5, 2.4)
+				Audio.play("snap", -4.0, 0.05)
+				Audio.leitmotif("ad", -2.0, -14.0)
 		return true
 
 	func _appear() -> void:
@@ -504,6 +573,9 @@ class Actor extends Node2D:
 		var s := SCALE
 		var a := _fade if who != "superk" else 1.0
 		modulate.a = a
+		if who == "lynx" and power == "commercial":
+			_draw_commercial(s)
+			return
 		if who == "lynx":
 			_draw_lynx(s)
 			return
@@ -559,6 +631,29 @@ class Actor extends Node2D:
 					draw_rect(Rect2(Vector2(0, -60).lerp(end, (i + 0.5) / maxf(1.0, n)) - Vector2(1.5, 1.5), Vector2(3, 3)), Color(1, 1, 1, 0.7))
 		var xf := Transform2D(0.0, Vector2(s * facing, s), 0.0, Vector2(-100.0 * s * facing, -288.0 * s))
 		NpcArt.draw(self, xf, "lynx", _t, {"shout": clampf(_phase_t * 4.0, 0.0, 1.0)})
+
+	## El anuncio: Mr. Ad dentro de una tele enorme y D. Lynx a su lado con el megáfono; los que
+	## miran tienen una tele pequeñita encima / The advert: Mr. Ad inside a huge TV and D. Lynx beside
+	## him with the megaphone; the watchers get a tiny TV above them
+	func _draw_commercial(s: float) -> void:
+		var tv := Rect2(Vector2(-120, -250), Vector2(240, 170))
+		draw_rect(tv.grow(10), Color("2a1e14"))
+		draw_rect(tv, Color("101828"))
+		var flick := 0.85 + 0.15 * sin(_t * 40.0)
+		draw_rect(tv.grow(-6), Color(1.0, 0.75, 0.35, 0.25 * flick))
+		NpcArt.draw(self, Transform2D(0.0, Vector2(0.42, 0.42), 0.0, Vector2(-42, -250)), "ad", _t)
+		draw_set_transform(Vector2.ZERO)
+		for k in 5:
+			draw_line(Vector2(tv.position.x, tv.position.y + fposmod(_t * 60.0 + k * 34.0, tv.size.y)), Vector2(tv.end.x, tv.position.y + fposmod(_t * 60.0 + k * 34.0, tv.size.y)), Color(1, 1, 1, 0.06), 2.0)
+		draw_line(Vector2(-40, -80), Vector2(-70, 0), Color("2a1e14"), 6.0)
+		draw_line(Vector2(40, -80), Vector2(70, 0), Color("2a1e14"), 6.0)
+		var xf := Transform2D(0.0, Vector2(-s, s), 0.0, Vector2(180.0 + 100.0 * s, -288.0 * s))
+		NpcArt.draw(self, xf, "lynx", _t, {"shout": 1.0})
+		for e: Variant in get_meta("cast", []):
+			if is_instance_valid(e) and (e as Enemy).stun_t > 0.0:
+				var p: Vector2 = (e as Enemy).head_top() + (e as Node2D).global_position - global_position + Vector2(0, -18)
+				draw_rect(Rect2(p - Vector2(9, 7), Vector2(18, 13)), Color("2a1e14"))
+				draw_rect(Rect2(p - Vector2(7, 5), Vector2(14, 9)), Color(1.0, 0.75, 0.35, 0.6 * flick))
 
 	func _ring(c: Vector2, r: Vector2) -> PackedVector2Array:
 		var pts := PackedVector2Array()
