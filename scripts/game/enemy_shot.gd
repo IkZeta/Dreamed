@@ -14,6 +14,8 @@ var _spin := 0.0
 var reflected := false
 ## Segundos de sangrado al dar a Kroker (las balas de la policía) / Seconds of bleeding on hitting Kroker (police bullets)
 var bleed := 0.0
+## Quién lo disparó (para el diario) / Who fired it (for the diary)
+var cause := ""
 
 
 ## Lo devuelve hacia el enemigo más cercano (o por donde vino) / Sends it back towards the nearest enemy (or the way it came)
@@ -71,7 +73,7 @@ func _physics_process(delta: float) -> void:
 				return
 	elif run.running and global_position.distance_to(player.global_position + Player.HURT) < radius + Player.HURT_R:
 		var before: float = player.hp
-		player.take_damage(damage * GameState.enemy_dmg_mult())
+		player.take_damage(damage * GameState.enemy_dmg_mult(), self)
 		if bleed > 0.0 and player.hp < before:
 			player.start_bleed(bleed)
 		run.fx.ring(global_position, 14.0, UITheme.EMBER, 0.3, 2.0)

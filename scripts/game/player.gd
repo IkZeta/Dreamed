@@ -255,6 +255,13 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 		return
 	# La defensa resta daño, pero nunca quita más de la mitad del golpe y siempre se recibe al menos 1.
 	# Defense subtracts damage, but never more than half the hit, and at least 1 always gets through.
+	# Quién le ha dado, para el diario / Who hit him, for the diary
+	if source != null:
+		var who: Variant = source.get("bestiary_id")
+		if who == null or str(who) == "":
+			who = source.get("cause")
+		if who != null and str(who) != "":
+			GameState.last_hit = str(who)
 	var def := armor * (Enemy.BLEED_DEFENSE if bleed_t > 0.0 else 1.0)
 	var dmg := maxf(maxf(1.0, amount * 0.5), amount - def)
 	hp = maxf(0.0, hp - dmg)
@@ -333,6 +340,7 @@ func _parry(source: Node2D) -> void:
 ## Bleeding: loses 1 health every 1.3 s (without invulnerability blinking) and his defence drops to 75%
 const BLEED_TICK := 1.3
 func start_bleed(seconds: float) -> void:
+	Progress.tip("bleed")
 	if bleed_t <= 0.0:
 		_bleed_tick = BLEED_TICK
 	bleed_t = maxf(bleed_t, seconds)
@@ -349,6 +357,8 @@ func _update_bleed(delta: float) -> void:
 	if GameState.god_mode and GameState.god_invuln:
 		return
 	hp = maxf(0.0, hp - 1.0)
+	if hp <= 0.0:
+		GameState.last_hit = "bleed"
 	_flash = 0.5
 	run.fx.text(global_position + Vector2(randf_range(-14, 14), -80), "-1", Color("e8455a"), 20)
 	run.fx.dissipate(global_position + Vector2(randf_range(-10, 10), -40), Color("c8304a"))

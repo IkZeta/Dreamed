@@ -250,6 +250,20 @@ func _build_access() -> Control:
 		if on:
 			Settings.rumble(0.4, 0.4, 0.2))
 	page.add_child(_row("ACCESS_VIBRATION", vib))
+	var fl := CheckButton.new()
+	fl.button_pressed = Settings.reduce_flashes
+	fl.toggled.connect(func(on: bool) -> void: Settings.reduce_flashes = on)
+	page.add_child(_row("ACCESS_FLASHES", fl))
+	var bt := CheckButton.new()
+	bt.button_pressed = Settings.big_text
+	bt.toggled.connect(func(on: bool) -> void:
+		Settings.big_text = on
+		_show_tab(_current_tab))
+	page.add_child(_row("ACCESS_BIG_TEXT", bt))
+	var tp := CheckButton.new()
+	tp.button_pressed = Settings.tips
+	tp.toggled.connect(func(on: bool) -> void: Settings.tips = on)
+	page.add_child(_row("ACCESS_TIPS", tp))
 	page.add_child(UITheme.label("ACCESS_HINT", 22, UITheme.ASH, "italic"))
 	return page
 

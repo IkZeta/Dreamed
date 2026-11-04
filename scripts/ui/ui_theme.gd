@@ -216,7 +216,9 @@ static func label(key: String, font_size := 26, color := BONE, role := "body") -
 ## La fuente pixel art solo se ve nítida en múltiplos de su tamaño (12). Nada por debajo de x2.
 ## The pixel font is only crisp at multiples of its size (12). Nothing below x2.
 static func pixel_size(font_size: int) -> int:
-	return maxi(2, roundi(font_size / 12.0)) * 12
+	# Texto grande (accesibilidad): un 25 % más / Big text (accessibility): 25% more
+	var f := font_size * (1.25 if Settings.big_text else 1.0)
+	return maxi(2, roundi(f / 12.0)) * 12
 
 
 static func rule(color := LINE, width := 0.0) -> ColorRect:

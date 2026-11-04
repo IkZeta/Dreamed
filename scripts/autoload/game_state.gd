@@ -170,6 +170,14 @@ const HELPER_POWER := {
 static func helper_power(giver: String, weapon: String) -> String:
 	return HELPER_POWER.get(giver, {}).get(weapon, "")
 const MAX_UPGRADE_LEVEL := 3
+## Nivel legendario: un cuarto nivel para un personaje que no tiene mejora dúo con esa arma.
+## Sale con amistad LEGEND_FRIEND y su mejora al 3. Los números siguen la subida de los niveles
+## anteriores (más grande), sin empeorar las pegas.
+## Legendary level: a fourth level for a character who has no duo upgrade with that weapon. It
+## shows up at friendship LEGEND_FRIEND with their upgrade at 3. The numbers follow the previous
+## levels' rise (bigger), without worsening the downsides.
+const LEGEND_LEVEL := 4
+const LEGEND_FRIEND := 5
 const STOLK_HP_COST := 5.0   # vida máxima que cuesta cada nivel de Stolk / max health each Stolk level costs
 
 var selected_character := "bat"
@@ -237,6 +245,10 @@ var lynx_retake_used := false
 ## Mejoras dúo que tiene esta partida (ids de DUOS) y tratos de Magnus ganados
 ## Duo upgrades this run has (DUOS ids) and Magnus deals won
 var duos: Array = []
+## Combos que ya se han anunciado en esta partida / Combos already announced this run
+var combos_seen: Array = []
+## Lo último que le hizo daño (id del bestiario, "bleed"...) / The last thing that hurt him (bestiary id, "bleed"...)
+var last_hit := ""
 var run_deals_won := 0
 ## Evento del sueño anterior, para no repetirlo / Previous dream's event, so it isn't repeated
 var last_event := ""
@@ -323,7 +335,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen"]
 
 
 func save_run() -> void:
@@ -378,6 +390,8 @@ func reset_run() -> void:
 	run_shades = false
 	lynx_retake_used = false
 	duos = []
+	combos_seen = []
+	last_hit = ""
 	run_deals_won = 0
 	city_styles = []
 	run_kills = 0
@@ -448,6 +462,8 @@ func reality_on() -> bool:
 
 func add_reality(n: int) -> void:
 	reality = maxi(0, reality + n)
+	if n > 0:
+		Progress.tip("reality")
 
 
 ## Multiplicadores de la pesadilla y del Acto 2 / Nightmare and Act 2 multipliers
@@ -577,6 +593,11 @@ func roll_level_choices() -> Array[Dictionary]:
 
 
 func apply_stat(choice: Dictionary) -> void:
+	_apply_stat(choice)
+	check_combos()
+
+
+func _apply_stat(choice: Dictionary) -> void:
 	var id: String = choice["stat"]
 	# Solo lo ganado (sin contar lo de serie ni los hackeos) / Only what was gained (not the base or hacks)
 	stat_bonus[id] = float(stat_bonus.get(id, 0.0)) + float(choice["value"])
@@ -635,10 +656,36 @@ func doc_hp() -> float:
 	return total
 
 
+## ¿Tiene este personaje mejora dúo con esa arma? / Does this character have a duo upgrade with that weapon?
+func has_duo_with(giver: String, weapon: String) -> bool:
+	for id: String in DUOS:
+		var d: Dictionary = DUOS[id]
+		if d["weapon"] == weapon and (d["a"] == giver or d["b"] == giver):
+			return true
+	return false
+
+
+## ¿Se le puede ofrecer el nivel legendario? (la segunda arma nunca tiene dúo)
+## Can the legendary level be offered? (the second weapon never has a duo)
+func legend_ok(giver: String, weapon := "") -> bool:
+	if weapon == "":
+		weapon = selected_character
+	if giver == "magnus" or Progress.friend_level(giver) < LEGEND_FRIEND:
+		return false
+	return not (weapon == selected_character and has_duo_with(giver, weapon))
+
+
+## Nivel máximo que puede llegar a tener ahora / Highest level it can reach right now
+func max_level(giver: String, weapon := "") -> int:
+	return LEGEND_LEVEL if legend_ok(giver, weapon) else MAX_UPGRADE_LEVEL
+
+
 func add_upgrade(giver: String, weapon := "") -> void:
 	var hp_before := doc_hp()
 	var ups := _ups(weapon)
-	ups[giver] = mini(MAX_UPGRADE_LEVEL, int(ups.get(giver, 0)) + 1)
+	ups[giver] = mini(max_level(giver, weapon), int(ups.get(giver, 0)) + 1)
+	if int(ups[giver]) >= LEGEND_LEVEL:
+		Progress.flag("legend")
 	if int(ups[giver]) >= MAX_UPGRADE_LEVEL:
 		Progress.flag("max_gift")
 	# La vida máxima que da Doc llega llena / The max health Doc gives arrives full
@@ -662,7 +709,7 @@ func pick_offer() -> Array[String]:
 		if not giver_unlocked(g):
 			continue
 		for w in weapons():
-			if level(g, w) < MAX_UPGRADE_LEVEL:
+			if level(g, w) < max_level(g, w):
 				pool.append(g)
 				break
 	# Magnus no da mejoras de arma: sale si se le puede pagar / Magnus gives no weapon upgrade: he shows up if you can pay him
@@ -782,6 +829,85 @@ func duo_desc(id: String) -> String:
 		var v := float(DUO_VALUES[id][k])
 		vals[k] = str(int(v)) if is_equal_approx(v, roundf(v)) else str(v)
 	return tr("DUO_%s_DESC" % id.to_upper()).format(vals)
+
+
+## --- Combos (sinergias) / Combos (synergies) ----------------------------------------------
+## Mejoras que se ayudan entre sí. No dan nada extra: es que juntas funcionan mejor, y el juego te
+## lo enseña. Cada requisito: personaje ("g") con nivel en alguna de las armas ("w", vacío = cualquiera)
+## o con ese poder ("power"); "stat" pide un mínimo de estadística; "weapon" pide llevar esa arma.
+## Upgrades that help each other. They give nothing extra: they just work better together, and the
+## game shows you. Each requirement: a giver ("g") with a level on any of the weapons ("w", empty =
+## any) or with that power ("power"); "stat" asks for a stat minimum; "weapon" asks for that weapon.
+const RANGED_W := ["book", "finger", "laptop", "ball", "vacuum"]
+const COMBOS := {
+	"clinic": {"needs": [{"g": "doc"}, {"g": "stolk"}]},
+	"capital": {"needs": [{"g": "ad"}, {"g": "magnus"}]},
+	"row": {"needs": [{"g": "lilkey", "power": "sing"}, {"g": "svinho", "w": RANGED_W}]},
+	"laser_row": {"needs": [{"g": "lilkey", "power": "sing"}, {"g": "superk", "power": "laser"}]},
+	"fluffball": {"needs": [{"g": "silly", "w": ["teddy"]}, {"g": "svinho", "w": ["teddy"]}]},
+	"suction": {"needs": [{"g": "silly", "w": ["vacuum"]}, {"g": "stolk", "w": ["vacuum"]}]},
+	"second_take": {"needs": [{"g": "stolk"}, {"g": "lynx", "power": "retake"}]},
+	"lucky_finger": {"needs": [{"weapon": "finger"}, {"stat": "luck", "min": 20.0}]},
+	"pillow_wall": {"needs": [{"weapon": "shield"}, {"stat": "parry", "min": 12.0}]},
+	"hole": {"needs": [{"g": "superk", "power": "throw"}, {"g": "svinho"}]},
+	"bbq": {"needs": [{"g": "pinche", "w": ["laptop"]}, {"g": "lilkey", "power": "sing"}]},
+}
+
+
+## ¿Se cumple el requisito? "plus" = mejora que estás a punto de coger ([personaje, arma])
+## Is the requirement met? "plus" = upgrade you're about to take ([giver, weapon])
+func _combo_need(n: Dictionary, plus: Array) -> bool:
+	if n.has("stat"):
+		return stat(n["stat"]) >= float(n["min"])
+	if n.has("weapon"):
+		return n["weapon"] in weapons()
+	var g: String = n["g"]
+	if g == "magnus":
+		return not invest.is_empty() or run_deals_won > 0 or (not plus.is_empty() and plus[0] == "magnus")
+	for w in weapons():
+		var has: bool = level(g, w) > 0 or (not plus.is_empty() and plus[0] == g and plus[1] == w)
+		if not has:
+			continue
+		if n.has("w") and not (w in n["w"]):
+			continue
+		if n.has("power") and helper_power(g, w) != n["power"]:
+			continue
+		return true
+	return false
+
+
+func combo_active(id: String, plus: Array = []) -> bool:
+	for n: Dictionary in COMBOS[id]["needs"]:
+		if not _combo_need(n, plus):
+			return false
+	return true
+
+
+func active_combos() -> Array[String]:
+	var out: Array[String] = []
+	for id: String in COMBOS:
+		if combo_active(id):
+			out.append(id)
+	return out
+
+
+## Combos que se completarían al coger esta mejora / Combos that taking this upgrade would complete
+func combos_completed_by(giver: String, weapon: String) -> Array[String]:
+	var out: Array[String] = []
+	for id: String in COMBOS:
+		if not combo_active(id) and combo_active(id, [giver, weapon]):
+			out.append(id)
+	return out
+
+
+## Anuncia los combos nuevos que se hayan completado / Announces any newly completed combos
+func check_combos() -> void:
+	for id in active_combos():
+		if id in combos_seen:
+			continue
+		combos_seen.append(id)
+		Progress.stats["combo_" + id] = 1
+		Progress.note(tr("COMBO_NEW"), "[b]%s[/b] · %s" % [tr("COMBO_%s_NAME" % id.to_upper()), tr("COMBO_%s_DESC" % id.to_upper())], Color("ff9ad0"), 5.0)
 
 
 ## Mr. Ad aparece desde que se llega al Acto 2 por primera vez y El Pinche desde el Acto 3
@@ -1177,7 +1303,36 @@ func up_value(giver: String, key: String, lvl := -1, weapon := "") -> float:
 	if lvl <= 0:
 		return 0.0
 	var values: Array = UPGRADE_VALUES[giver][weapon][key]
-	return _friendly(giver, key, float(values[mini(lvl, values.size()) - 1]))
+	if lvl > values.size():
+		return _friendly(giver, key, _legend_value(giver, key, values))
+	return _friendly(giver, key, float(values[lvl - 1]))
+
+
+## El valor legendario: sigue la subida del último nivel, una vez y media más grande. Las cosas que
+## se cuentan suben al menos 1; las recargas bajan como mucho un 30 %; las pegas de Doc no empeoran.
+## The legendary value: follows the last level's rise, one and a half times bigger. Counted things
+## go up by at least 1; cooldowns drop by 30% at most; Doc's downsides don't get worse.
+func _legend_value(giver: String, key: String, values: Array) -> float:
+	var v3 := float(values[values.size() - 1])
+	var v2 := float(values[values.size() - 2]) if values.size() > 1 else v3
+	var v1 := float(values[0])
+	if giver == "doc" and key in ["pct", "dmg"]:
+		return v3
+	var step := v3 - v2
+	if is_zero_approx(step):
+		step = (v3 - v1) * 0.5
+	if key in COUNT_KEYS or key == "extra" and giver != "ad":
+		if is_zero_approx(step):
+			return v3 + (1.0 if v3 > 0.0 else 0.0)
+		return v3 + signf(step) * maxf(1.0, roundf(absf(step)))
+	if is_zero_approx(step):
+		return v3 * 1.25
+	var v4 := v3 + step * 1.5
+	if key == "cd":
+		return maxf(v3 * 0.7, v4)
+	if key in ["chance", "hp"]:
+		return minf(v4, 100.0)
+	return snappedf(v4, 0.1)
 
 
 ## Descripción traducida con los números del nivel indicado / Translated description with that level's numbers

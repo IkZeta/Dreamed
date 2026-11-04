@@ -269,6 +269,7 @@ func _shop(delta: float, k: float) -> void:
 
 func _coin(from: Vector2, dir: Vector2, spd: float) -> void:
 	var s := EnemyShot.new()
+	s.cause = bestiary_id
 	s.run = run
 	s.kind = "coin"
 	s.position = from

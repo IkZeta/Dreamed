@@ -142,6 +142,7 @@ func _ready() -> void:
 			speed *= 1.5
 		if not preview:
 			Progress.see("elite")
+			Progress.tip("elite")
 	hp = max_hp
 	if not preview:
 		Progress.see(bestiary_id)
@@ -302,6 +303,7 @@ func _start_fall(to: Vector2) -> void:
 	_unstick()
 	Progress.add_stat("falls")
 	GameState.run_falls += 1
+	Progress.tip("hole")
 	_fall_from = run.clamp_to_arena(position, radius)
 	position = _fall_from
 	_fall_to = to
@@ -713,6 +715,8 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	if elite:
 		_draw_horns(head_top() + Vector2(0, bob), a)
+		if Settings.colorblind:
+			_draw_elite_symbol(head_top() + Vector2(0, bob - 34), a)
 	# Burbuja del escudo de antidisturbios / Riot shield bubble
 	if shielded():
 		var top := head_top()
@@ -760,6 +764,23 @@ func _draw_actor_mark(a: float) -> void:
 	draw_colored_polygon(xf * top, Color("16141a", a))
 	for k in 3:
 		draw_line(xf * Vector2(-9 + k * 7, -4), xf * Vector2(-5 + k * 7, 0), Color(1, 1, 1, 0.9 * a), 2.0)
+
+
+## Modo daltónico: un símbolo para cada habilidad del élite, además del color
+## Colourblind mode: a symbol for each elite ability, on top of the colour
+func _draw_elite_symbol(c: Vector2, a: float) -> void:
+	draw_circle(c, 13.0, Color(0, 0, 0, 0.7 * a))
+	draw_arc(c, 13.0, 0, TAU, 20, Color(1, 1, 1, 0.9 * a), 2.0)
+	var w := Color(1, 1, 1, a)
+	match elite_power:
+		"split":   # dos flechas que se separan / two arrows pulling apart
+			draw_line(c + Vector2(-7, 0), c + Vector2(7, 0), w, 2.0)
+			draw_polyline(PackedVector2Array([c + Vector2(-3, -4), c + Vector2(-7, 0), c + Vector2(-3, 4)]), w, 2.0)
+			draw_polyline(PackedVector2Array([c + Vector2(3, -4), c + Vector2(7, 0), c + Vector2(3, 4)]), w, 2.0)
+		"puddle":  # una gota / a drop
+			draw_colored_polygon(PackedVector2Array([c + Vector2(0, -8), c + Vector2(5, 1), c + Vector2(3, 6), c + Vector2(-3, 6), c + Vector2(-5, 1)]), w)
+		"haste":   # un rayo / a lightning bolt
+			draw_polyline(PackedVector2Array([c + Vector2(3, -8), c + Vector2(-3, 0), c + Vector2(3, 0), c + Vector2(-3, 8)]), w, 2.5)
 
 
 func elite_color() -> Color:

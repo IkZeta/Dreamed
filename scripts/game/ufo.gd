@@ -215,6 +215,7 @@ func _ground_burst() -> void:
 		if i == gap:
 			continue
 		var s := EnemyShot.new()
+		s.cause = bestiary_id
 		s.run = run
 		s.kind = "laser"
 		s.position = from
@@ -286,6 +287,7 @@ func _fire_lasers() -> void:
 	var n := 5 if angry() else 3
 	for i in n:
 		var s := EnemyShot.new()
+		s.cause = bestiary_id
 		s.run = run
 		s.kind = "laser"
 		s.position = from
@@ -317,7 +319,7 @@ func _tick_ray(ray: Dictionary, delta: float) -> Dictionary:
 		run.fx.dissipate(at, Color("ffd27a"))
 		var player: Player = run.player
 		if player.global_position.distance_to(at) < RAY_RADIUS:
-			player.take_damage(RAY_DAMAGE * GameState.enemy_dmg_mult() * atk_mult())
+			player.take_damage(RAY_DAMAGE * GameState.enemy_dmg_mult() * atk_mult(), self)
 		if run.room is Act3Room:
 			(run.room as Act3Room).add_crater((at - Bedroom.OFFSET) / Bedroom.S)
 	if float(ray["t"]) >= RAY_WARN + 0.45:

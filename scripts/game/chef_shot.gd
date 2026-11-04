@@ -15,6 +15,7 @@ const PLATE_DAMAGE := 3.0
 const PLATE_RADIUS := 56.0
 const PLATE_FLIGHT := 0.85
 
+var cause := "boss_chef"
 var run: Node
 var kind := "knife"
 var velocity := Vector2.ZERO
@@ -40,7 +41,7 @@ func _physics_process(delta: float) -> void:
 		_life -= delta
 		if global_position.distance_to(player.global_position + Player.HURT) < Player.HURT_R + 8.0:
 			var before := player.hp
-			player.take_damage(KNIFE_DAMAGE * GameState.BOSS_POWER * GameState.enemy_dmg_mult())
+			player.take_damage(KNIFE_DAMAGE * GameState.BOSS_POWER * GameState.enemy_dmg_mult(), self)
 			# Solo sangra si el cuchillo le ha hecho daño de verdad / Only bleeds if the knife really hurt him
 			if player.hp < before:
 				player.start_bleed(BLEED_TIME)
@@ -63,7 +64,7 @@ func _break() -> void:
 	var player: Player = run.player
 	var d := player.global_position - target
 	if Vector2(d.x, d.y / 0.5).length() < PLATE_RADIUS:
-		player.take_damage(PLATE_DAMAGE * GameState.BOSS_POWER * GameState.enemy_dmg_mult())
+		player.take_damage(PLATE_DAMAGE * GameState.BOSS_POWER * GameState.enemy_dmg_mult(), self)
 	Audio.play("plate_break", -4.0, 0.1)
 	run.shake(3.0)
 	run.fx.ring(target, 26.0, Color("f4f1fa"), 0.35, 2.4)

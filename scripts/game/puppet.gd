@@ -109,7 +109,7 @@ func _strike() -> void:
 		run.fx.swing(hit_at, 50.0, 0.0 if _facing > 0 else PI, 0.9, Color("dfe6ff"), 5.0)
 		if close:
 			var before := player.hp
-			player.take_damage(BLADE_DAMAGE * GameState.enemy_dmg_mult() * atk_mult())
+			player.take_damage(BLADE_DAMAGE * GameState.enemy_dmg_mult() * atk_mult(), self)
 			if player.hp < before:
 				player.start_bleed(BLADE_BLEED)
 	else:
@@ -117,7 +117,7 @@ func _strike() -> void:
 		Audio.play("zap", -4.0, 0.1)
 		if close:
 			var before := player.hp
-			player.take_damage(ROD_DAMAGE * GameState.enemy_dmg_mult() * atk_mult())
+			player.take_damage(ROD_DAMAGE * GameState.enemy_dmg_mult() * atk_mult(), self)
 			if player.hp < before:
 				player.root(ROD_ROOT)
 				player.shock(ROD_ROOT)
@@ -143,6 +143,7 @@ func _fire() -> void:
 	_atk_cd = GUN_EVERY + randf_range(-0.4, 0.6)
 	_swing = 1.0
 	var shot := EnemyShot.new()
+	shot.cause = bestiary_id
 	shot.run = run
 	shot.position = _muzzle()
 	shot.velocity = _aim_dir * GUN_SPEED

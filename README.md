@@ -253,6 +253,14 @@ Hay nueve mejoras dúo, una por arma; cada personaje sale en dos parejas distint
 | Stolk y Magnus | Dedo | **Cobro con intereses**: críticos mucho más frecuentes y con +50 % de daño; cada crítico tiene un 15 % de cobrar 1 de Realidad Fragmentada |
 | Doc y Lil Key | Oso de peluche | **Musicoterapia**: cuando Lil Key pone a bailar, cada enemigo que baila te cura 0,3 por segundo (hasta 1,5) y se le pega pelusa |
 
+### Mejoras legendarias
+
+Si un personaje **no tiene mejora dúo con tu arma** (o es la segunda arma, que nunca tiene dúo), con **amistad 5** puede ofrecerte un **nivel 4 legendario** de su mejora cuando ya la tienes al 3. Los números siguen la subida de los niveles anteriores, una vez y media más grande: lo que se cuenta (rebotes, enemigos...) sube al menos 1, las recargas bajan como mucho un 30 % y las pegas de Doc no empeoran.
+
+### Combos
+
+Hay mejoras que se ayudan entre sí, y el juego te lo enseña: en la tarjeta del plano astral aparece «Completa un combo» si al cogerla se forma uno, al completarlo sale un aviso, y en la pausa y en el diario se listan los que tienes. No dan nada extra; es que juntas funcionan mejor. Son: Equilibrio clínico (Doc + Stolk), Capital riesgo (Mr. Ad + Magnus), Público en fila (canto de Lil Key + rebotes de Svinho a distancia), Todos en fila (canto de Lil Key + láser de SuperK), Bola de pelusa (Silly + Svinho en el oso), Succión crítica (Silly + Stolk en la aspiradora), Matón con doble (Stolk + Toma 2 de D. Lynx), Dedos de la suerte (dedo + 20 de suerte), Muro de almohada (escudo + 12 de parry), Directo al hoyo (lanzamiento de SuperK + Svinho) y Barbacoa del barrio (fogón del Pinche + canto de Lil Key).
+
 ### Amistad
 
 La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
@@ -298,7 +306,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
-- **Logros:** hay 31 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, y conseguir una mejora dúo). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 32 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;
@@ -311,6 +319,14 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 ![El tatami, con el muñeco de pruebas](docs/screenshots/tatami.jpg)
 
 ![El museo, con las estatuas de los enemigos](docs/screenshots/bestiario.jpg)
+
+### Diario del sueño
+
+Al despertar, ganes o pierdas, sale una hoja del diario de Kroker (papel de libreta con margen rojo y estrellitas a boli): cuántos sueños soñó, cuánto duró, a cuántos tumbó, tiró por agujeros y cuántos golpes recibió, **qué le despertó** (el enemigo o el ataque que le dio el último golpe, o el sangrado), las mejoras, dúos y combos que llevaba, y una frase del personaje que más le ayudó.
+
+### Accesibilidad y consejos
+
+En Ajustes → Accesibilidad: fuerza del temblor de pantalla, modo daltónico (avisos en amarillo y, además, un símbolo sobre cada élite: flechas para el que se divide, gota para el de los charcos y rayo para el rápido), números de daño, vibración, **reducir destellos** (los fogonazos de pantalla, los glitches del sueño 20 y los fundidos a blanco se suavizan), **texto grande** (un 25 % más, en las pantallas que se abran después) y **consejos la primera vez**: un cartelito corto la primera vez que pasa algo (al empezar, el primer trozo de estrella, el primer agujero, el primer élite, el primer sangrado, la primera Realidad Fragmentada y el primer jefe).
 
 ### Modo Dios (para probar)
 

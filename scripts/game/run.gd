@@ -203,6 +203,8 @@ func _ready() -> void:
 	helpers = Helpers.new()
 	add_child(helpers)
 	helpers.setup(self)
+	if not GameState.training:
+		GameState.check_combos.call_deferred()
 
 	hud = HUD.new()
 	add_child(hud)
@@ -366,6 +368,7 @@ func _arrive_glow(at: Vector2) -> Tween:
 ## Empieza el sueño de verdad / The dream really starts
 func _begin(depth: int) -> void:
 	hud.visible = true
+	Progress.tip("move")
 	hud.start(depth)
 	hud.show_event(event)
 	hud.set_reality()
@@ -590,6 +593,7 @@ func _open_sacrifice() -> void:
 
 ## El jefe del acto: los muebles despiertan de uno en uno / The act boss: the furniture wakes up one at a time
 func _spawn_boss() -> void:
+	Progress.tip("boss")
 	if _wave.get("boss_kind", "") == "":
 		Audio.play_music("music_boss", 1.0)
 	if _wave.get("boss_kind", "") == "chef":
@@ -711,7 +715,7 @@ var _noir_holder: Control = null
 func noir_glitch(secs := 0.3, power := 1.0) -> void:
 	if _noir_mat == null:
 		return
-	_noir_mat.set_shader_parameter("glitch", power)
+	_noir_mat.set_shader_parameter("glitch", power * Settings.flash_mult())
 	var tw := create_tween()
 	tw.tween_interval(secs)
 	tw.tween_callback(_noir_mat.set_shader_parameter.bind("glitch", 0.0))
@@ -881,7 +885,7 @@ func flash_screen(color: Color, secs := 0.3) -> void:
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(r)
 	r.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	r.modulate.a = 0.55
+	r.modulate.a = 0.55 * Settings.flash_mult()
 	var tw := create_tween()
 	tw.tween_property(r, "modulate:a", 0.0, secs)
 	tw.tween_callback(layer.queue_free)
@@ -1664,7 +1668,7 @@ func _wake_scene(won: bool) -> void:
 	layer.layer = 30
 	add_child(layer)
 	var flash := ColorRect.new()
-	flash.color = Color("f7f2ff")
+	flash.color = Color("f7f2ff") if not Settings.reduce_flashes else Color("3a3570")
 	flash.modulate.a = 0.0
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(flash)
@@ -1679,7 +1683,7 @@ func _wake_scene(won: bool) -> void:
 	else:
 		tw.tween_callback(_startle)
 		tw.tween_interval(2.2)
-		tw.tween_callback(_show_end.bind("LOSE_TITLE", "", [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]]))
+		tw.tween_callback(_show_loss)
 
 
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
@@ -1740,7 +1744,13 @@ func _show_victory() -> void:
 		tr("SUM_DIFFICULTY") % tr("DIFF_" + GameState.difficulty.to_upper()),
 	]
 	_show_end("ACT%d_CLEAR_TITLE" % act, "ACT%d_CLEAR_SUB" % act, [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]], lines)
-	_overlay.add_side(PauseSummary.make(player))
+	_overlay.add_side(DreamDiary.make(true))
+
+
+## Al perder: la pantalla de fin con el diario del sueño / On losing: the end screen with the dream diary
+func _show_loss() -> void:
+	_show_end("LOSE_TITLE", "", [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]])
+	_overlay.add_side(DreamDiary.make(false))
 
 
 func _on_wave_cleared() -> void:
@@ -1834,7 +1844,7 @@ func _flash_to_astral() -> void:
 	layer.layer = 30
 	add_child(layer)
 	var flash := ColorRect.new()
-	flash.color = Color("f7f2ff")
+	flash.color = Color("f7f2ff") if not Settings.reduce_flashes else Color("3a3570")
 	flash.modulate.a = 0.0
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(flash)

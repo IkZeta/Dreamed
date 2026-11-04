@@ -305,7 +305,7 @@ func _land() -> void:
 	run.fx.dissipate(global_position, Color("cfc6e8"))
 	var player: Player = run.player
 	if player.global_position.distance_to(global_position) < QUAKE_RADIUS:
-		player.take_damage(5.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult())
+		player.take_damage(5.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult(), self)
 	_waves.append({"r": 40.0, "hit": false})
 
 
@@ -320,7 +320,7 @@ func _update_waves(delta: float) -> void:
 		var dist := Vector2(d.x, d.y / 0.45).length()
 		if not w["hit"] and absf(dist - r) < 26.0 and r > QUAKE_RADIUS:
 			w["hit"] = true
-			player.take_damage(3.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult())
+			player.take_damage(3.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult(), self)
 		if r > WAVE_REACH:
 			_waves.remove_at(i)
 
@@ -329,6 +329,7 @@ func _throw_books(n: int, dir: Vector2) -> void:
 	var from := aim_point() + Vector2(0, -40)
 	for i in n:
 		var shot := EnemyShot.new()
+		shot.cause = bestiary_id
 		shot.run = run
 		shot.kind = "book"
 		shot.radius = 16.0

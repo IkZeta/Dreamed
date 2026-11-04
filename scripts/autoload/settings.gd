@@ -23,6 +23,9 @@ var shake_amount := 1.0       # 0..1, fuerza de la sacudida / shake strength
 var colorblind := false       # avisos en amarillo en vez de rojo / warnings in yellow instead of red
 var damage_numbers := true    # números de daño sobre los enemigos / damage numbers above enemies
 var vibration := true         # vibración del mando / gamepad rumble
+var reduce_flashes := false   # destellos y parpadeos más suaves / softer flashes and flickers
+var big_text := false         # texto más grande / bigger text
+var tips := true              # consejos la primera vez que pasa algo / tips the first time something happens
 
 
 ## --- Teclado y ratón o mando / Keyboard & mouse or gamepad ------------------------------
@@ -103,6 +106,9 @@ func reset_defaults(apply := true) -> void:
 	colorblind = false
 	damage_numbers = true
 	vibration = true
+	reduce_flashes = false
+	big_text = false
+	tips = true
 	if apply:
 		apply_all()
 
@@ -185,6 +191,9 @@ func save_settings() -> void:
 	cfg.set_value("access", "colorblind", colorblind)
 	cfg.set_value("access", "damage_numbers", damage_numbers)
 	cfg.set_value("access", "vibration", vibration)
+	cfg.set_value("access", "reduce_flashes", reduce_flashes)
+	cfg.set_value("access", "big_text", big_text)
+	cfg.set_value("access", "tips", tips)
 	cfg.save(PATH)
 
 
@@ -205,6 +214,14 @@ func load_settings() -> void:
 	colorblind = bool(cfg.get_value("access", "colorblind", colorblind))
 	damage_numbers = bool(cfg.get_value("access", "damage_numbers", damage_numbers))
 	vibration = bool(cfg.get_value("access", "vibration", vibration))
+	reduce_flashes = bool(cfg.get_value("access", "reduce_flashes", reduce_flashes))
+	big_text = bool(cfg.get_value("access", "big_text", big_text))
+	tips = bool(cfg.get_value("access", "tips", tips))
+
+
+## Cuánto se ven los destellos (1 = normal) / How strong flashes look (1 = normal)
+func flash_mult() -> float:
+	return 0.25 if reduce_flashes else 1.0
 
 
 ## Vibra el mando si hay alguno conectado / Rumbles the gamepad if one is connected

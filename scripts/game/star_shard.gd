@@ -49,6 +49,7 @@ func _physics_process(delta: float) -> void:
 		position += _vel * delta
 		if global_position.distance_to(target) < 30.0:
 			run.collect_shards(value)
+			Progress.tip("shard")
 			queue_free()
 			return
 	else:

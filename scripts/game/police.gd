@@ -96,6 +96,7 @@ func _shot_from() -> Vector2:
 
 func _fire() -> void:
 	var shot := EnemyShot.new()
+	shot.cause = bestiary_id
 	shot.run = run
 	shot.kind = "bullet"
 	shot.radius = 6.0

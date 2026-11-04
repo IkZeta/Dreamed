@@ -42,7 +42,7 @@ func _ready() -> void:
 	_build()
 	# Sale del destello blanco del final del sueño / Fades out of the end-of-dream flash
 	var flash := ColorRect.new()
-	flash.color = Color("f7f2ff")
+	flash.color = Color("f7f2ff") if not Settings.reduce_flashes else Color("3a3570")
 	flash.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(flash)
 	flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
@@ -151,7 +151,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	var weapons := GameState.weapons()
 	_target[giver] = weapon
 	for w in weapons:
-		if GameState.level(giver, w) < GameState.MAX_UPGRADE_LEVEL:
+		if GameState.level(giver, w) < GameState.max_level(giver, w):
 			_target[giver] = w
 			break
 	var up_row := HBoxContainer.new()
@@ -163,11 +163,23 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	up_row.add_child(lvl_label)
 	var desc := Keywords.label("", 19, Color(UITheme.BONE, 0.85), "light")
 	desc.custom_minimum_size.y = 84
+	# Si al cogerla se completa un combo, se avisa / If taking it completes a combo, say so
+	var combo := Keywords.label("", 17, Color("ff9ad0"), "caps")
 	var refresh := func() -> void:
 		var w: String = _target[giver]
+		var done := GameState.combos_completed_by(giver, w)
+		combo.visible = not done.is_empty()
+		if not done.is_empty():
+			var names := PackedStringArray()
+			for id in done:
+				names.append(tr("COMBO_%s_NAME" % id.to_upper()))
+			Keywords.set_text(combo, "» " + tr("COMBO_HINT").format({"names": ", ".join(names)}))
 		var lvl := GameState.level(giver, w)
+		var legend := lvl + 1 >= GameState.LEGEND_LEVEL
 		up_name.text = tr(GameState.upgrade_key(giver, w, "NAME"))
-		lvl_label.text = tr("UP_LEVEL") % (lvl + 1)
+		lvl_label.text = tr("UP_LEGEND") if legend else tr("UP_LEVEL") % (lvl + 1)
+		lvl_label.add_theme_color_override("font_color", UITheme.GOLD if legend else UITheme.ASH)
+		up_name.add_theme_color_override("font_color", Color("ffd36a") if legend else UITheme.GOLD)
 		Keywords.set_text(desc, GameState.upgrade_desc(giver, w, lvl + 1))
 	if weapons.size() > 1:
 		var tabs := HBoxContainer.new()
@@ -182,7 +194,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 			t.text = "%s · %s" % [tr("WEAPON_SHORT_" + w.to_upper()), tr("UP_LEVEL") % lvl_w if lvl_w > 0 else tr("ASTRAL_NEW")]
 			t.size_flags_horizontal = SIZE_EXPAND_FILL
 			t.custom_minimum_size.y = 48
-			t.disabled = lvl_w >= GameState.MAX_UPGRADE_LEVEL
+			t.disabled = lvl_w >= GameState.max_level(giver, w)
 			t.button_pressed = w == _target[giver]
 			t.toggled.connect(func(on: bool) -> void:
 				if on:
@@ -193,6 +205,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 		v.add_child(tabs)
 	v.add_child(up_row)
 	v.add_child(desc)
+	v.add_child(combo)
 	refresh.call()
 	if giver == "stolk":
 		v.add_child(UITheme.label(tr("UP_STOLK_COST") % int(GameState.STOLK_HP_COST), 16, UITheme.EMBER, "caps"))
@@ -289,6 +302,7 @@ func _choose(giver: String) -> void:
 		GameState.add_duo(_duo)
 	else:
 		GameState.add_upgrade(giver, _target.get(giver, ""))
+	GameState.check_combos()
 	GameState.dream_depth += 1
 	# Suena su leitmotiv, claro: la música baja un momento para dejarle sitio (en el dúo, los dos)
 	# Their leitmotif plays, clearly: the music dips for a moment to make room for it (for a duo, both)
@@ -512,7 +526,7 @@ func _leave() -> void:
 	_leaving = true
 	Audio.play("astral", -4.0)
 	var flash := ColorRect.new()
-	flash.color = Color("f7f2ff")
+	flash.color = Color("f7f2ff") if not Settings.reduce_flashes else Color("3a3570")
 	flash.modulate.a = 0.0
 	flash.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(flash)

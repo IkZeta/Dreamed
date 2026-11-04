@@ -89,7 +89,7 @@ func _touch_player() -> void:
 func _hurt_player(dmg: float) -> void:
 	var player: Player = run.player
 	var before := player.hp
-	player.take_damage(dmg * GameState.enemy_dmg_mult() * atk_mult())
+	player.take_damage(dmg * GameState.enemy_dmg_mult() * atk_mult(), self)
 	if player.hp < before:
 		player.stink(STENCH_TIME)
 

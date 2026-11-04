@@ -259,7 +259,7 @@ func _pan_strike() -> void:
 	var d: Vector2 = player.global_position - global_position
 	if d.length() < PAN_RANGE and d.x * _facing > -40.0:
 		var before := player.hp
-		player.take_damage(PAN_DAMAGE * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult())
+		player.take_damage(PAN_DAMAGE * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult(), self)
 		if player.hp < before:
 			player.root(PAN_ROOT)
 

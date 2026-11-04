@@ -169,7 +169,7 @@ func _giver_text(g: String) -> String:
 
 func _giver_step(dir: int, g: String) -> void:
 	var ups := _god_ups()
-	var lvl := clampi(int(ups.get(g, 0)) + dir, 0, GameState.MAX_UPGRADE_LEVEL)
+	var lvl := clampi(int(ups.get(g, 0)) + dir, 0, GameState.LEGEND_LEVEL)
 	if lvl == 0:
 		ups.erase(g)
 	else:

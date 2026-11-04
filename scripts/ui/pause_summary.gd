@@ -105,6 +105,16 @@ func _build(player: Player) -> void:
 		var desc := Keywords.label(s.duo_desc(duo), 24, UITheme.ASH, "italic")
 		desc.custom_minimum_size.x = 760
 		v.add_child(desc)
+	var combos := s.active_combos()
+	if not combos.is_empty():
+		var g2 := Control.new()
+		g2.custom_minimum_size.y = 10
+		v.add_child(g2)
+		v.add_child(UITheme.label("PAUSE_COMBOS", 24, Color("ff9ad0"), "caps"))
+		for id in combos:
+			var c := Keywords.label("[b]%s[/b] · %s" % [tr("COMBO_%s_NAME" % id.to_upper()), tr("COMBO_%s_DESC" % id.to_upper())], 22, UITheme.ASH, "italic")
+			c.custom_minimum_size.x = 760
+			v.add_child(c)
 	if not any:
 		var none := UITheme.label("PAUSE_NO_UPGRADES", 24, UITheme.ASH, "italic")
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

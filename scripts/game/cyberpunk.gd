@@ -69,7 +69,7 @@ func _act(delta: float) -> void:
 		_virus_t -= delta
 		if _virus_t <= 0.0:
 			_virus_t = VIRUS_TIME
-			run.player.take_damage(VIRUS_DAMAGE * atk_mult())
+			run.player.take_damage(VIRUS_DAMAGE * atk_mult(), self)
 			Audio.play("glitch", -4.0, 0.1)
 			run.fx.text(run.player.global_position + Vector2(0, -130), tr("HACK_VIRUS"), NEON2, 22)
 			run.fx.ring(run.player.global_position + Vector2(0, -40), 26.0, NEON2, 0.4, 2.4)

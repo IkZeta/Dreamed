@@ -72,6 +72,7 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "evil_ad", "flag": true, "goal": 1},
 	{"id": "lynx", "flag": true, "goal": 1},
 	{"id": "duo", "flag": true, "goal": 1},
+	{"id": "legend", "flag": true, "goal": 1},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4
@@ -278,6 +279,22 @@ func _unlock(id: String) -> void:
 
 ## Cartelito de «¡Logro conseguido!» arriba a la derecha / "Achievement unlocked!" note at the top right
 func _show_toast(id: String) -> void:
+	note(tr("ACH_UNLOCKED"), tr("ACH_%s_NAME" % id.to_upper()))
+
+
+## Tutorial ligero: un consejo la primera vez que pasa algo (se puede quitar en Accesibilidad)
+## Light tutorial: a tip the first time something happens (can be switched off in Accessibility)
+func tip(id: String) -> void:
+	if not Settings.tips or GameState.training or int(stats.get("tip_" + id, 0)) > 0:
+		return
+	stats["tip_" + id] = 1
+	save_progress()
+	note(tr("TIP_HEAD"), Settings.controls_text(tr("TIP_" + id.to_upper())), UITheme.MIST, 7.0, "ui_click")
+
+
+## Cartelito genérico arriba a la derecha (logros, combos, consejos); el texto puede llevar
+## palabras clave / Generic note at the top right (achievements, combos, tips); the text may carry keywords
+func note(head: String, body: String, color := UITheme.GOLD, secs := 3.0, sound := "chime") -> void:
 	if _toast == null:
 		_toast = CanvasLayer.new()
 		_toast.layer = 40
@@ -285,7 +302,7 @@ func _show_toast(id: String) -> void:
 		add_child(_toast)
 	var box := PanelContainer.new()
 	box.theme = UITheme.build()
-	box.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.95), Color(UITheme.GOLD, 0.8), Color(UITheme.GOLD, 0.2), 16, 12, 22))
+	box.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.95), Color(color, 0.8), Color(color, 0.2), 16, 12, 22))
 	_toast.add_child(box)
 	box.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
@@ -293,13 +310,18 @@ func _show_toast(id: String) -> void:
 	box.offset_top = 150 + 110 * (_toast.get_child_count() - 1)
 	var v := VBoxContainer.new()
 	box.add_child(v)
-	v.add_child(UITheme.label("ACH_UNLOCKED", 24, UITheme.GOLD, "caps"))
-	v.add_child(UITheme.label("ACH_%s_NAME" % id.to_upper(), 24, UITheme.BONE, "body"))
-	Audio.play("chime", -2.0)
+	var h := UITheme.label(head, 24, color, "caps")
+	h.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	v.add_child(h)
+	var b := Keywords.label(body, 22, UITheme.BONE, "body")
+	b.custom_minimum_size.x = 460
+	v.add_child(b)
+	if sound != "":
+		Audio.play(sound, -2.0 if sound == "chime" else -8.0)
 	box.modulate.a = 0.0
 	var tw := box.create_tween()
 	tw.tween_property(box, "modulate:a", 1.0, 0.3)
-	tw.tween_interval(3.0)
+	tw.tween_interval(secs)
 	tw.tween_property(box, "modulate:a", 0.0, 0.6)
 	tw.tween_callback(box.queue_free)
 

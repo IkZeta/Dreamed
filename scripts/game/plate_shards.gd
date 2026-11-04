@@ -7,6 +7,7 @@ const LIFE := 7.0
 const RADIUS := 46.0
 const DAMAGE := 1.5
 
+var cause := "boss_chef"
 var run: Node
 var _t := 0.0
 
@@ -23,7 +24,7 @@ func _physics_process(delta: float) -> void:
 	var player: Player = run.player
 	var d := player.global_position - global_position
 	if Vector2(d.x, d.y / 0.45).length() < RADIUS:
-		player.take_damage(DAMAGE * GameState.enemy_dmg_mult())
+		player.take_damage(DAMAGE * GameState.enemy_dmg_mult(), self)
 	queue_redraw()
 
 
