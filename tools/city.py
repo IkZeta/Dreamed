@@ -179,10 +179,13 @@ def build(ms):
         if name == "synthwave":
             b += R(0, 0, T, 2, "#2a1c4e") + R(0, 0, 2, T, "#2a1c4e") + R(60, 60, 6, 6, "#5ff2ff")
         elif name == "steampunk":
-            b += R(0, 0, T, T, "#7a5e48")
-            for k in range(4):
-                b += "<path d='M0,%d L%d,0' stroke='%s' stroke-width='6'/>" % (30 * k + 30, 30 * k + 30, dark("#7a5e48", 0.2))
-            pass
+            # Adoquín en espiga / Herringbone cobbles
+            b += R(0, 0, T, T, dark("#7a5e48", 0.25))
+            for gy in range(0, T, 25):
+                for gx in range(0, T, 50):
+                    o = (gy // 25) % 2 * 25
+                    b += "<rect x='%d' y='%d' width='46' height='21' rx='5' fill='%s'/>" % ((gx + o) % T - 2, gy + 2, rng.choice(["#7a5e48", "#86684e", "#6e5440"]))
+                    b += "<rect x='%d' y='%d' width='46' height='21' rx='5' fill='%s'/>" % ((gx + o) % T - 2 - T, gy + 2, rng.choice(["#7a5e48", "#86684e", "#6e5440"]))
         elif name == "cheese":
             b += R(0, 0, T, T, "#ffe98a") + R(0, 0, T, 6, "#ff9a3a") + R(0, 0, 6, T, "#ff9a3a")
         elif name == "aero":
@@ -192,9 +195,12 @@ def build(ms):
             b += R(0, 0, T, 3, "#cfc6a8") + R(0, 0, 3, T, "#cfc6a8") + "<ellipse cx='62' cy='62' rx='10' ry='5' fill='#9fd29a'/>"
         elif name == "dieselpunk":
             b += R(0, 0, T, T, "#3e3a3c")
-            for k in range(0, T, 20):
-                b += R(k, 0, 10, T, "#4a4648")
-            b += R(0, 56, T, 8, "#e0b53a")
+            # Chapa estriada / Diamond plate
+            for gy in range(0, T, 25):
+                for gx in range(0, T, 25):
+                    o = 12 if (gy // 25) % 2 else 0
+                    b += "<path d='M%d,%d l8,-4 l3,2 l-8,4 z' fill='#5a5658'/>" % ((gx + o) % T + 6, gy + 14)
+            b += R(0, 0, T, 3, "#2a2628") + R(0, 0, 3, T, "#2a2628")
         elif name == "brutalist":
             b += R(0, 0, T, T, "#a8a8a6") + R(0, 0, T, 4, "#8a8a88") + R(0, 0, 4, T, "#8a8a88") + R(40, 40, 40, 40, "#b8b8b4")
         room_add("city_%s_plaza" % name, 0, 0, T, T, b, colors=8, outline=None, tile=True)
@@ -258,31 +264,120 @@ def build(ms):
         trunk = {"steampunk": "#4a3a3a", "dieselpunk": "#3a3438", "brutalist": "#5a5a58"}.get(name, "#7a5236")
         leaf = {"synthwave": "#ff3aa0", "cheese": "#f6c83a", "aero": "#5fd07a", "steampunk": "#8a6a3a", "dieselpunk": "#4a6a4a",
                 "brutalist": "#6a8a5a", "solarpunk": "#3f9a4a"}[name]
-        b = "<ellipse cx='0' cy='0' rx='44' ry='12' fill='#000000' opacity='0.3'/>" + shaded(rect_d(-10, -70, 20, 70), trunk, rim=0.2)
+        rng = random.Random(name + "props")
+        b = "<ellipse cx='4' cy='0' rx='54' ry='15' fill='#000000' opacity='0.3'/>"
+        # Tronco con raíces / Trunk with roots
+        b += shaded("M-12,0 L-20,4 L-8,-4 L-9,-72 L9,-72 L8,-4 L20,4 L12,0 Z", trunk, rim=0.2)
+        b += R(-3, -60, 3, 40, dark(trunk, 0.25))
         if name == "synthwave":
-            # Palmera de neón / Neon palm
-            for a in (-60, -25, 15, 50, 90, 130):
+            # Palmera de neón con cocos / Neon palm with coconuts
+            b += shaded("M-8,-70 Q-14,-110 -4,-150 L6,-150 Q-2,-110 8,-70 Z", trunk, rim=0.3)
+            for k in range(6):
+                b += R(-8 + k * 0.6, -80 - k * 12, 14, 3, dark(trunk, 0.3))
+            for a in (-70, -35, 0, 35, 75, 115, 150):
                 ang = math.radians(a - 90)
-                b += "<path d='M0,-80 Q%g,%g %g,%g' fill='none' stroke='%s' stroke-width='10' stroke-linecap='round'/>" % (math.cos(ang) * 30, -80 + math.sin(ang) * 40, math.cos(ang) * 60, -70 + math.sin(ang) * 50, leaf)
+                ex, ey = math.cos(ang) * 64, -150 + math.sin(ang) * 46 + 24
+                b += "<path d='M0,-152 Q%g,%g %g,%g' fill='none' stroke='%s' stroke-width='13' stroke-linecap='round'/>" % (ex * 0.5, -176 + math.sin(ang) * 30, ex, ey, dark(leaf, 0.25))
+                b += "<path d='M0,-154 Q%g,%g %g,%g' fill='none' stroke='%s' stroke-width='7' stroke-linecap='round'/>" % (ex * 0.5, -178 + math.sin(ang) * 30, ex, ey - 2, leaf)
+            b += C(-6, -146, 7, "#5ff2ff") + C(7, -144, 7, "#3ad0e0")
         elif name == "cheese":
-            b += shaded("M-50,-60 L50,-60 L0,-170 Z", leaf, rim=0.3) + C(-10, -100, 8, "#d8a020") + C(14, -80, 6, "#d8a020")
+            # Árbol de cuña de queso con agujeros / Cheese wedge tree with holes
+            b += shaded("M-56,-62 L56,-62 L46,-80 L0,-182 Z", leaf, rim=0.3)
+            b += P([(-56, -62), (56, -62), (56, -48), (-56, -48)], dark(leaf, 0.2))
+            for (x, y, r) in ((-14, -100, 9), (16, -84, 7), (2, -130, 6), (-30, -74, 5), (26, -110, 5)):
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (x, y, r, r * 0.8, "#d8a020")
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (x + 1, y + 1.5, r * 0.6, r * 0.5, "#b07a10")
         elif name == "steampunk":
-            b += shaded(ellipse_d(0, -110, 48, 44), leaf, rim=0.3) + "<circle cx='0' cy='-110' r='18' fill='none' stroke='#c9961e' stroke-width='6'/>"
+            # Árbol de engranajes / Clockwork tree
+            for (x, y, r) in ((-24, -108, 34), (24, -104, 32), (0, -138, 36)):
+                b += shaded(ellipse_d(x, y, r, r * 0.92), leaf, rim=0.3)
+            b += "<circle cx='0' cy='-118' r='22' fill='none' stroke='#c9961e' stroke-width='7'/>"
+            for k in range(8):
+                a = k * math.pi / 4
+                b += R(math.cos(a) * 26 - 4, -118 + math.sin(a) * 26 - 4, 8, 8, "#c9961e")
+            b += C(0, -118, 6, "#f0c860")
         else:
-            b += shaded(ellipse_d(0, -104, 52, 46), leaf, rim=0.4) + shaded(ellipse_d(-14, -128, 30, 24), light(leaf, 0.12), outline=False, rim=0.3)
+            # Copa redonda de varias bolas con brillo y sombra / Round canopy of several clumps with light and shade
+            clumps = ((-30, -96, 34), (30, -94, 34), (0, -82, 38), (-18, -128, 32), (20, -126, 32), (0, -150, 26))
+            for (x, y, r) in clumps:
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (x, y + 4, r + 3, r * 0.92 + 3, dark(leaf, 0.35))
+            for (x, y, r) in clumps:
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (x, y, r, r * 0.9, leaf)
+            for (x, y, r) in clumps:
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (x - r * 0.25, y - r * 0.3, r * 0.5, r * 0.4, light(leaf, 0.16))
+            for i in range(26):
+                x, y = rng.uniform(-50, 50), rng.uniform(-160, -70)
+                b += R(x, y, 5, 4, light(leaf, 0.3) if i % 2 else dark(leaf, 0.2))
             if name == "aero":
-                b += C(-20, -130, 8, "#ffffff")
-        room_add("city_%s_tree" % name, -64, -180, 128, 196, b, colors=10)
-        # Seto / Hedge
-        b = shaded("M-60,0 L60,0 L60,-46 Q0,-62 -60,-46 Z", dark(leaf, 0.15) if name != "cheese" else "#e0a020", rim=0.3)
-        room_add("city_%s_hedge" % name, -64, -64, 128, 72, b, colors=6)
-        # Farola / Lamp
-        b = R(-5, -200, 10, 200, dark(st["walk"], 0.45)) + R(-16, -4, 32, 6, dark(st["walk"], 0.5))
-        b += shaded(ellipse_d(0, -206, 16, 12), st["lamp"], outline=True, rim=0.5)
-        room_add("city_%s_lamp" % name, -22, -222, 44, 230, b, colors=8)
-        # Banco / Bench
-        b = R(-48, -8, 8, 8, "#2b2945") + R(40, -8, 8, 8, "#2b2945") + shaded(rect_d(-52, -30, 104, 22), st["trim"], rim=0.3) + shaded(rect_d(-52, -52, 104, 14), st["trim"], rim=0.3)
-        room_add("city_%s_bench" % name, -56, -58, 112, 66, b, colors=6)
+                b += C(-24, -140, 9, "#ffffff") + C(-16, -150, 4, "#ffffff")
+            if name == "solarpunk":
+                for i in range(6):
+                    b += C(rng.uniform(-44, 44), rng.uniform(-150, -80), 5, "#ff7a6a" if i % 2 else "#ffd060")
+            if name == "brutalist":
+                # Seto cúbico podado / Clipped cube topiary
+                b = "<ellipse cx='4' cy='0' rx='54' ry='15' fill='#000000' opacity='0.3'/>" + shaded(rect_d(-8, -50, 16, 50), trunk, rim=0.2)
+                b += shaded(rect_d(-48, -150, 96, 100), leaf, rim=0.3) + R(-48, -150, 96, 12, light(leaf, 0.2)) + R(-48, -62, 96, 12, dark(leaf, 0.2))
+        room_add("city_%s_tree" % name, -70, -196, 140, 214, b, colors=14)
+        # Seto con hojitas y flores / Hedge with leaves and flowers
+        hc = dark(leaf, 0.15) if name != "cheese" else "#e0a020"
+        b = "<ellipse cx='4' cy='2' rx='64' ry='10' fill='#000000' opacity='0.25'/>"
+        b += shaded("M-62,0 L62,0 L62,-44 Q52,-60 30,-56 Q14,-66 0,-58 Q-16,-66 -32,-56 Q-52,-60 -62,-44 Z", hc, rim=0.3)
+        for i in range(18):
+            x, y = rng.uniform(-56, 52), rng.uniform(-54, -10)
+            b += R(x, y, 6, 4, light(hc, 0.22) if i % 2 else dark(hc, 0.22))
+        if name in ("solarpunk", "aero", "cheese"):
+            for i in range(4):
+                b += C(rng.uniform(-50, 50), rng.uniform(-50, -24), 4, "#ffb0c8" if i % 2 else "#fff0a0")
+        room_add("city_%s_hedge" % name, -68, -70, 136, 80, b, colors=8)
+        # Farola: base, poste con anillos y farol de cada estética / Lamp: base, post with rings and each look's lantern
+        pole = dark(st["walk"], 0.45)
+        b = "<ellipse cx='4' cy='0' rx='22' ry='6' fill='#000000' opacity='0.3'/>"
+        b += shaded("M-12,0 L12,0 L8,-16 L-8,-16 Z", pole, rim=0.3) + shaded(rect_d(-4, -196, 8, 182), pole, rim=0.3)
+        b += R(-6, -120, 12, 6, light(pole, 0.2)) + R(-6, -60, 12, 6, light(pole, 0.2))
+        lamp = st["lamp"]
+        b += "<circle cx='0' cy='-208' r='30' fill='%s' opacity='0.25'/>" % lamp
+        if name in ("steampunk", "dieselpunk", "brutalist"):
+            b += shaded("M-14,-196 L14,-196 L10,-224 L-10,-224 Z", lamp, rim=0.5) + shaded("M-18,-224 L18,-224 L0,-238 Z", pole, rim=0.3)
+            b += R(-1.5, -224, 3, 28, pole)
+        elif name == "synthwave":
+            b += shaded(rect_d(-20, -206, 40, 8), lamp, rim=0.5) + R(-24, -198, 48, 3, "#ff3aa0")
+        else:
+            b += shaded(ellipse_d(0, -210, 16, 14), lamp, rim=0.5) + C(-5, -215, 4, "#ffffff")
+        room_add("city_%s_lamp" % name, -34, -244, 68, 252, b, colors=10)
+        # Banco de listones / Slatted bench
+        tc = st["trim"]
+        b = "<ellipse cx='4' cy='0' rx='56' ry='8' fill='#000000' opacity='0.25'/>"
+        for x in (-46, 38):
+            b += shaded(rect_d(x, -30, 8, 30), "#2b2945", rim=0.2)
+        for k in range(3):
+            b += shaded(rect_d(-52, -60 + k * 9, 104, 7), tc, rim=0.25)
+        for k in range(3):
+            b += shaded(rect_d(-52, -30 + k * 8, 104, 7), light(tc, 0.08), rim=0.25)
+        room_add("city_%s_bench" % name, -60, -66, 120, 74, b, colors=8)
+        # Papelera / Litter bin
+        b = "<ellipse cx='3' cy='0' rx='20' ry='6' fill='#000000' opacity='0.3'/>" + shaded("M-14,0 L14,0 L16,-44 L-16,-44 Z", dark(tc, 0.2), rim=0.3)
+        b += R(-16, -48, 32, 6, dark(tc, 0.45)) + R(-10, -34, 3, 26, light(tc, 0.1)) + R(-2, -34, 3, 26, light(tc, 0.1)) + R(6, -34, 3, 26, light(tc, 0.1))
+        room_add("city_%s_bin" % name, -24, -54, 48, 62, b, colors=6)
+        # Máquina expendedora / Vending machine
+        vc = {"cheese": "#e0702a", "solarpunk": "#4fa85a", "brutalist": "#c83a3a"}.get(name, st["curb"])
+        b = "<ellipse cx='6' cy='0' rx='36' ry='8' fill='#000000' opacity='0.3'/>" + shaded(rect_d(-30, -104, 60, 104), vc, rim=0.35)
+        b += R(-24, -96, 34, 62, "#1a2a3a")
+        for r in range(4):
+            for c in range(3):
+                b += R(-21 + c * 11, -92 + r * 15, 8, 10, ["#ff6a6a", "#ffe36a", "#5ff2ff", "#7aff8a"][(r + c) % 4])
+        b += R(14, -92, 10, 20, "#2a2c34") + R(16, -66, 6, 4, "#ffe36a") + R(-24, -24, 34, 12, "#1a1024")
+        b += R(-24, -96, 6, 62, "#ffffff") .replace("fill='#ffffff'", "fill='#ffffff' opacity='0.25'")
+        room_add("city_%s_vending" % name, -38, -112, 80, 120, b, colors=12)
+        # Jardinera con flores / Flower planter
+        b = "<ellipse cx='4' cy='0' rx='40' ry='8' fill='#000000' opacity='0.3'/>" + shaded(rect_d(-34, -30, 68, 30), light(st["walk"], 0.15) if name != "synthwave" else "#3a2466", rim=0.3)
+        b += R(-34, -30, 68, 5, light(st["walk"], 0.35))
+        for i in range(7):
+            x = -26 + i * 8.6
+            b += C(x, -38 - (i % 2) * 6, 9, dark(leaf, 0.1) if name not in ("cheese", "synthwave") else "#4fa85a")
+        for i in range(5):
+            b += C(-22 + i * 11, -44 - (i % 2) * 5, 4.5, ["#ff8fb0", "#ffd060", "#ffffff", "#c8a0ff", "#ff6a6a"][i])
+        room_add("city_%s_planter" % name, -44, -60, 88, 68, b, colors=12)
+
         rng = random.Random(name + "tower")
         # El rascacielos que se cae (de pie; en el juego se tumba) / The skyscraper that falls (standing; tipped over in game)
         rng = random.Random(name + "tower")
