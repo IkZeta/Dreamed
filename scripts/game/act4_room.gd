@@ -188,12 +188,17 @@ func tower_sites(count: int) -> Array:
 	rng.seed = hash(style) * 7 + weird
 	var cands: Array = []
 	var start := start_point()
+	# En el último sueño, nada de rascacielos cerca de donde Kroker se apoya y llega Evil Ad
+	# In the last dream, no skyscrapers near where Kroker leans and Evil Ad arrives
+	var lean := lean_spot() if style == "noir" else Vector2.INF
 	for r in CityLayout.ROWS:
 		for c in CityLayout.COLS:
 			if not CityLayout.MAP[r][c] in [".", ":"]:
 				continue
 			var foot := (Vector2(c, r) + Vector2(0.5, 0.5)) * T
 			if foot.distance_to(start) < 520.0 or FOUNTAIN.grow(200.0).has_point(foot):
+				continue
+			if lean != Vector2.INF and (foot.distance_to(lean) < 900.0 or foot.distance_to(lean + Vector2(500, 55)) < 900.0):
 				continue
 			for d in [1.0, -1.0]:
 				var center := foot + Vector2(CityFall.LENGTH / 2.0 * d, 0)
