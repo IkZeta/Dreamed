@@ -246,7 +246,7 @@ func _move(delta: float) -> void:
 		var want := _actor_velocity() if actor_t > 0.0 else _desired_velocity()
 		# Saliendo en estampida de la puerta: corre hacia el pasillo / Stampeding out of the door: runs into the hall
 		if rush_t > 0.0:
-			want = rush_dir * maxf(speed, 95.0) * 2.8
+			want = rush_dir * maxf(speed, 95.0) * 2.2
 		vel = want * (0.5 if slow_t > 0.0 else 1.0) * fluff_speed_mult()
 	# Se separa de los demás enemigos / Keeps apart from other enemies
 	for other: Node2D in run.enemies.get_children():

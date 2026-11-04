@@ -25,13 +25,15 @@ extends Node2D
 ## (levelling up freezes the whole screen) and music box (every so often puts nearby enemies to
 ## sleep, and they take more damage).
 
+## Solo se compran una vez / Only bought once
+const UNIQUE := ["rubber_duck", "alarm_clock"]
 const TRINKETS := ["rubber_duck", "firecrackers", "piggy_bank", "water_balloon", "whistle", "voodoo", "magnet",
 	"matches", "alarm_clock", "pinata", "snow_globe", "music_box"]
 
 const FIRECRACKER_DMG := 3.0
 const FIRECRACKER_RADIUS := 170.0
-const PIGGY_EVERY := 8          # 1 de interés por cada 8 ahorrados / 1 interest per 8 saved
-const PIGGY_MAX := 4            # como mucho, por hucha / at most, per piggy bank
+const PIGGY_EVERY := 8          # 1 de interés por cada 8 ahorrados (6 con dos huchas, 5 con tres...) / 1 interest per 8 saved (6 with two, 5 with three...)
+const PIGGY_MAX := 4            # como mucho, en total / at most, in total
 const BALLOON_EVERY := 5.0
 const BALLOON_DMG := 4.0
 const BALLOON_RADIUS := 120.0
@@ -72,10 +74,11 @@ func setup(r: Node) -> void:
 
 ## Al empezar cada sueño / At the start of each dream
 func on_dream_start() -> void:
-	var duck := count("rubber_duck")
-	if duck > 0:
-		run.player.shield_charges = maxi(run.player.shield_charges, duck)
-	_alarms_left = count("alarm_clock")
+	# El patito y el despertador no se acumulan: uno basta (el kiosco ya no los vuelve a sacar)
+	# The duck and the alarm clock don't stack: one is enough (the kiosk doesn't offer them again)
+	if count("rubber_duck") > 0:
+		run.player.shield_charges = maxi(run.player.shield_charges, 1)
+	_alarms_left = 1 if count("alarm_clock") > 0 else 0
 	_balloon_t = BALLOON_EVERY
 	_music_t = MUSIC_EVERY * 0.5
 
@@ -85,7 +88,8 @@ func on_dream_end() -> void:
 	var pig := count("piggy_bank")
 	if pig <= 0 or not GameState.reality_on():
 		return
-	var n := mini(GameState.reality / PIGGY_EVERY, PIGGY_MAX * pig)
+	var every := maxi(4, PIGGY_EVERY - 2 * (pig - 1) + (1 if pig >= 3 else 0))
+	var n := mini(GameState.reality / every, PIGGY_MAX)
 	if n > 0:
 		run.gain_reality(n, run.player.global_position + Vector2(0, -60))
 		Audio.play("chime", -8.0)
@@ -107,8 +111,10 @@ func on_hurt(dmg: float, source: Node2D) -> void:
 	var voo := count("voodoo")
 	if voo > 0 and source is Enemy and is_instance_valid(source) and (source as Enemy).is_targetable():
 		var e := source as Enemy
-		e.hit(dmg * VOODOO_MULT * voo)
-		run.fx.text(e.global_position + Vector2(0, -e.aim_height * 2.0 - 50), "x%d" % roundi(VOODOO_MULT * voo), Color("c86ad0"), 24)
+		# A los jefes solo les devuelve el mismo daño / Bosses only get the same damage back
+		var mult := 1.0 if e.is_boss() else VOODOO_MULT * voo
+		e.hit(dmg * mult)
+		run.fx.text(e.global_position + Vector2(0, -e.aim_height * 2.0 - 50), "x%d" % roundi(mult), Color("c86ad0"), 24)
 		Audio.play("pin", -8.0, 0.1)
 	# Despertador / Alarm clock
 	if _alarms_left > 0 and run.player.hp > 0.0 and run.player.hp <= run.player.max_hp * ALARM_HP:
@@ -124,7 +130,9 @@ func on_hurt(dmg: float, source: Node2D) -> void:
 ## Ha muerto un enemigo (contado) / An enemy died (counted)
 func on_kill(e: Enemy) -> void:
 	var m := count("matches")
-	if m > 0 and randf() * 100.0 < minf(80.0, MATCHES_CHANCE * m):
+	# Quien muere ardiendo no prende a otros (si no, el fuego barría la pantalla en cadena)
+	# Whoever dies burning doesn't light others (otherwise the fire swept the screen in a chain)
+	if m > 0 and e.burn_t <= 0.0 and randf() * 100.0 < minf(80.0, MATCHES_CHANCE * m):
 		var p := e.global_position
 		run.fx.ring(p + Vector2(0, -20), MATCHES_RADIUS * 0.5, Color("ff9a3a"), 0.35, 2.0)
 		for o in _enemies_near(p, MATCHES_RADIUS):
@@ -156,7 +164,7 @@ func on_level_up() -> void:
 	for o: Node in run.enemies.get_children():
 		if o is Enemy and (o as Enemy).is_targetable() and v.has_point((o as Enemy).global_position):
 			list.append(o)
-	_freeze(list, GLOBE_FREEZE * g)
+	_freeze(list, GLOBE_FREEZE + 0.5 * (g - 1))
 	run.flash_screen(Color(0.8, 0.92, 1.0, 0.35), 0.3)
 	Audio.play("freeze", -8.0)
 
@@ -175,7 +183,7 @@ func _physics_process(delta: float) -> void:
 	if bal > 0:
 		_balloon_t -= delta
 		if _balloon_t <= 0.0:
-			_balloon_t = BALLOON_EVERY / (1.0 + 0.5 * (bal - 1))
+			_balloon_t = BALLOON_EVERY / (1.0 + 0.3 * (bal - 1))
 			var target := _nearest(run.player.global_position, 650.0)
 			if target != null:
 				_balloons.append([target.global_position, 260.0, bal])
@@ -183,7 +191,7 @@ func _physics_process(delta: float) -> void:
 	if mus > 0:
 		_music_t -= delta
 		if _music_t <= 0.0:
-			_music_t = MUSIC_EVERY / (1.0 + 0.4 * (mus - 1))
+			_music_t = MUSIC_EVERY / (1.0 + 0.15 * (mus - 1))
 			_lullaby(mus)
 
 
@@ -219,7 +227,7 @@ func _lullaby(n: int) -> void:
 		_notes.append([p + Vector2(randf_range(-60, 60), randf_range(-90, -40)), 1.4, randf() * TAU])
 	for e in _enemies_near(p, MUSIC_RADIUS):
 		e.stun_t = maxf(e.stun_t, MUSIC_SLEEP)
-		e.vuln_mult = maxf(e.vuln_mult if e.vuln_t > 0.0 else 1.0, MUSIC_VULN + 0.25 * (n - 1))
+		e.vuln_mult = maxf(e.vuln_mult if e.vuln_t > 0.0 else 1.0, MUSIC_VULN + 0.1 * (n - 1))
 		e.vuln_t = maxf(e.vuln_t, MUSIC_SLEEP)
 		run.fx.text(e.global_position + Vector2(0, -e.aim_height * 2.0 - 40), "z", Color("c9b4ff"), 22)
 

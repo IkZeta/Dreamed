@@ -1371,9 +1371,9 @@ const WARES := {
 	"glasses": {"tier": 1, "price": 5},       # +10 % de alcance / +10% range
 	"sneakers": {"tier": 1, "price": 5},      # +6 % de velocidad / +6% speed
 	"plasters": {"tier": 1, "price": 4},      # +0,5 de regeneración / +0.5 regen
-	"rubber_duck": {"tier": 1, "price": 6},   # para el primer golpe de cada sueño / blocks the first hit each dream
+	"rubber_duck": {"tier": 1, "price": 8},   # para el primer golpe de cada sueño / blocks the first hit each dream
 	"firecrackers": {"tier": 1, "price": 5},  # estallan cuando te dan / burst when you're hit
-	"piggy_bank": {"tier": 1, "price": 5},    # intereses al acabar cada sueño / interest after each dream
+	"piggy_bank": {"tier": 1, "price": 9},    # intereses al acabar cada sueño / interest after each dream
 	# Nivel 2 / Tier 2
 	"gum": {"tier": 2, "price": 11},           # estadística rara al azar / random rare stat
 	"soda": {"tier": 2, "price": 11},          # +12 % de velocidad de ataque / +12% attack speed
@@ -1469,6 +1469,8 @@ func roll_wares(n := 3, avoid: Array = []) -> Array[String]:
 		if not weights.has(t):
 			continue
 		if w in ["newspaper", "sunday_paper", "encyclopedia"] and upgradable().is_empty():
+			continue
+		if w in Trinkets.UNIQUE and int(bought.get(w, 0)) > 0:
 			continue
 		pool[w] = float(weights[t]) * (0.25 if avoid.has(w) else 1.0)
 	var out: Array[String] = []

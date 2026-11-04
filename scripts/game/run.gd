@@ -1601,7 +1601,12 @@ func _update_bell(delta: float) -> void:
 				if last != null and not last is GoldenFoox:
 					last.spawn_time = 0.15
 					last.rush_t = randf_range(0.7, 1.0)
-					last.rush_dir = Vector2(randf_range(-0.9, 0.9), 1.0).normalized()
+					# De lado, alejándose de Kroker, para no echársele encima sin avisar
+					# Sideways, away from Kroker, so they don't pounce on him without warning
+					var side := signf(p.x - player.global_position.x)
+					if absf(p.x - player.global_position.x) < 40.0:
+						side = 1.0 if randf() < 0.5 else -1.0
+					last.rush_dir = Vector2(side, randf_range(0.2, 0.6)).normalized()
 		if _bell_t <= 0.0:
 			hud.show_event(event)
 			# Y al rato vuelve a sonar / And after a while it rings again
