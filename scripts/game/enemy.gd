@@ -755,32 +755,15 @@ func _draw_actor_mark(a: float) -> void:
 	draw_circle(Vector2.ZERO, radius + 14.0, Color(1.0, 0.95, 0.8, 0.16 * a))
 	draw_arc(Vector2.ZERO, radius + 14.0, 0.0, TAU, 24, Color("e0303a", 0.7 * a), 3.0)
 	draw_set_transform(Vector2.ZERO)
-	var c := head_top() + Vector2(0, -16.0 + sin(_t * 3.0) * 2.0)
-	var snap := absf(sin(_t * 4.0)) * 0.35
-	draw_rect(Rect2(c + Vector2(-11, -4), Vector2(22, 14)), Color("16141a", a))
-	draw_rect(Rect2(c + Vector2(-11, -4), Vector2(22, 14)), Color(1, 1, 1, 0.8 * a), false, 1.5)
-	var top := PackedVector2Array([Vector2(-11, 0), Vector2(11, 0), Vector2(11, -4), Vector2(-11, -4)])
-	var xf := Transform2D(-snap, c + Vector2(-11, -4)) * Transform2D(0.0, Vector2(11, 4))
-	draw_colored_polygon(xf * top, Color("16141a", a))
-	for k in 3:
-		draw_line(xf * Vector2(-9 + k * 7, -4), xf * Vector2(-5 + k * 7, 0), Color(1, 1, 1, 0.9 * a), 2.0)
+	var c := (head_top() + Vector2(0, -16.0 + sin(_t * 3.0) * 2.0)).round()
+	Sprites.draw(self, "fx_clapper", Color(1, 1, 1, a), c)
 
 
 ## Modo daltónico: un símbolo para cada habilidad del élite, además del color
 ## Colourblind mode: a symbol for each elite ability, on top of the colour
+## (flechas que se separan, gota o rayo / arrows pulling apart, a drop or a lightning bolt)
 func _draw_elite_symbol(c: Vector2, a: float) -> void:
-	draw_circle(c, 13.0, Color(0, 0, 0, 0.7 * a))
-	draw_arc(c, 13.0, 0, TAU, 20, Color(1, 1, 1, 0.9 * a), 2.0)
-	var w := Color(1, 1, 1, a)
-	match elite_power:
-		"split":   # dos flechas que se separan / two arrows pulling apart
-			draw_line(c + Vector2(-7, 0), c + Vector2(7, 0), w, 2.0)
-			draw_polyline(PackedVector2Array([c + Vector2(-3, -4), c + Vector2(-7, 0), c + Vector2(-3, 4)]), w, 2.0)
-			draw_polyline(PackedVector2Array([c + Vector2(3, -4), c + Vector2(7, 0), c + Vector2(3, 4)]), w, 2.0)
-		"puddle":  # una gota / a drop
-			draw_colored_polygon(PackedVector2Array([c + Vector2(0, -8), c + Vector2(5, 1), c + Vector2(3, 6), c + Vector2(-3, 6), c + Vector2(-5, 1)]), w)
-		"haste":   # un rayo / a lightning bolt
-			draw_polyline(PackedVector2Array([c + Vector2(3, -8), c + Vector2(-3, 0), c + Vector2(3, 0), c + Vector2(-3, 8)]), w, 2.5)
+	Sprites.draw(self, "elite_sym_" + elite_power, Color(1, 1, 1, a), c.round())
 
 
 func elite_color() -> Color:

@@ -615,10 +615,11 @@ class Actor extends Node2D:
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.4))
 			draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color("ff6a8a", 0.35 * (1.0 - fposmod(_t * 0.9, 1.0))), 3.0)
 			draw_set_transform(Vector2.ZERO)
-			draw_rect(Rect2(Vector2(34, -36), Vector2(26, 36)), Color("1e1f2e"))
-			draw_circle(Vector2(47, -24), 7.0 + pulse * 1.5, Color("4a4f72"))
-			draw_circle(Vector2(47, -24), 3.0, Color("ff6a8a"))
-			draw_circle(Vector2(47, -8), 4.0, Color("4a4f72"))
+			# Altavoz que late con el ritmo / Speaker pulsing with the beat
+			var thump := 1.0 + pulse * 0.06
+			draw_set_transform(Vector2(47, 0), 0.0, Vector2(thump, thump))
+			Sprites.draw(self, "fx_speaker")
+			draw_set_transform(Vector2.ZERO)
 			NpcArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, Vector2(-100.0 * s, -288.0 * s)), "lilkey", _t, {"dance": 1.0})
 			return
 		# SuperK: sombra en el suelo y el cuerpo en el aire / SuperK: shadow on the ground and the body in the air
@@ -664,24 +665,21 @@ class Actor extends Node2D:
 	## miran tienen una tele pequeñita encima / The advert: Mr. Ad inside a huge TV and D. Lynx beside
 	## him with the megaphone; the watchers get a tiny TV above them
 	func _draw_commercial(s: float) -> void:
-		var tv := Rect2(Vector2(-120, -250), Vector2(240, 170))
-		draw_rect(tv.grow(10), Color("2a1e14"))
-		draw_rect(tv, Color("101828"))
+		var tv := Rect2(Vector2(-122, -252), Vector2(244, 174))
+		Sprites.draw(self, "fx_tv_big")
 		var flick := 0.85 + 0.15 * sin(_t * 40.0)
-		draw_rect(tv.grow(-6), Color(1.0, 0.75, 0.35, 0.25 * flick))
-		NpcArt.draw(self, Transform2D(0.0, Vector2(0.42, 0.42), 0.0, Vector2(-42, -250)), "ad", _t)
+		draw_rect(tv.grow(-4), Color(1.0, 0.75, 0.35, 0.22 * flick))
+		NpcArt.draw(self, Transform2D(0.0, Vector2(0.42, 0.42), 0.0, Vector2(-42, -236)), "ad", _t)
 		draw_set_transform(Vector2.ZERO)
 		for k in 5:
-			draw_line(Vector2(tv.position.x, tv.position.y + fposmod(_t * 60.0 + k * 34.0, tv.size.y)), Vector2(tv.end.x, tv.position.y + fposmod(_t * 60.0 + k * 34.0, tv.size.y)), Color(1, 1, 1, 0.06), 2.0)
-		draw_line(Vector2(-40, -80), Vector2(-70, 0), Color("2a1e14"), 6.0)
-		draw_line(Vector2(40, -80), Vector2(70, 0), Color("2a1e14"), 6.0)
+			var y := roundf(tv.position.y + fposmod(_t * 60.0 + k * 34.0, tv.size.y))
+			draw_rect(Rect2(tv.position.x, y, tv.size.x, 2), Color(1, 1, 1, 0.06))
 		var xf := Transform2D(0.0, Vector2(-s, s), 0.0, Vector2(180.0 + 100.0 * s, -288.0 * s))
 		NpcArt.draw(self, xf, "lynx", _t, {"shout": 1.0})
 		for e: Variant in get_meta("cast", []):
 			if is_instance_valid(e) and (e as Enemy).stun_t > 0.0:
 				var p: Vector2 = (e as Enemy).head_top() + (e as Node2D).global_position - global_position + Vector2(0, -18)
-				draw_rect(Rect2(p - Vector2(9, 7), Vector2(18, 13)), Color("2a1e14"))
-				draw_rect(Rect2(p - Vector2(7, 5), Vector2(14, 9)), Color(1.0, 0.75, 0.35, 0.6 * flick))
+				Sprites.draw(self, "fx_tv_small", Color(1, 1, 1, 0.8 + 0.2 * flick), p.round())
 
 	func _ring(c: Vector2, r: Vector2) -> PackedVector2Array:
 		var pts := PackedVector2Array()

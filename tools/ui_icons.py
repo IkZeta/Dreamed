@@ -212,3 +212,67 @@ def wares(ms):
                                   for k, c in enumerate(("#7a2e4a", "#2f5e9e", "#2f9e5b")))
     for k, body in out.items():
         ms.add("ware_" + k, -16, -20, 32, 36, body, px=1.0, flat=True, outline=OUTLINE)
+
+
+def fx(ms):
+    """Piezas pequeñas del mundo que antes se dibujaban con rectángulos: el altavoz de Lil Key, la
+    claqueta de los actores de D. Lynx, las teles del anuncio de Mr. Ad y los símbolos de los
+    élites (modo daltónico). Van a la escala de los enemigos.
+    Small world pieces that used to be drawn with rectangles: Lil Key's speaker, the clapperboard of
+    D. Lynx's actors, the TVs of Mr. Ad's advert and the elite symbols (colourblind mode). They use
+    the enemies' scale."""
+    mix, dark, ellipse_d, star_d = ms.mix, ms.dark, ms.ellipse_d, ms.star_d
+
+    def hs(d, base, sh=0.4, rim=0.5):
+        i = ms.uid()
+        return ("<defs><clipPath id='c%s'><path d='%s'/></clipPath></defs><path d='%s' fill='%s'/>"
+                "<g clip-path='url(#c%s)'><path d='%s%s' transform='translate(-3,-3)' fill-rule='evenodd' fill='%s'/>"
+                "<path d='%s%s' transform='translate(2,2)' fill-rule='evenodd' fill='%s'/></g>") % (
+            i, d, d, base, i, ms.BIG, d, mix(base, dark(base, 0.6), sh), ms.BIG, d, mix(base, "#fbf8ff", rim * 0.6))
+
+    def F(d, c):
+        return "<path d='%s' fill='%s'/>" % (d, c)
+
+    def R(x, y, w, h):
+        return "M%g,%g H%g V%g H%g Z" % (x, y, x + w, y + h, x)
+
+    E = ellipse_d
+    # Altavoz (apoyo en el suelo en 0,0) / Speaker (resting on the ground at 0,0)
+    b = hs(R(-14, -40, 28, 40), "#2a2b40")
+    b += hs(E(0, -27, 10, 10), "#4a4f72") + F(E(0, -27, 6, 6), "#1a1b2a") + F(E(0, -27, 3, 3), "#ff6a8a")
+    b += hs(E(0, -8, 5, 5), "#4a4f72") + F(E(0, -8, 2.5, 2.5), "#1a1b2a")
+    b += F(R(-11, -37, 22, 2), "#ff6a8a")
+    ms.add("fx_speaker", -16, -44, 32, 46, b, px=0.5, flat=True, outline="#140e26")
+    # Claqueta (centro en 0,0) / Clapperboard (centre at 0,0)
+    b = hs(R(-12, -4, 24, 16), "#2a2440")
+    for k in range(4):
+        b += F("M%g,-4 L%g,-4 L%g,0 L%g,0 Z" % (-12 + k * 6, -9 + k * 6, -12 + k * 6, -15 + k * 6), "#fbf8ff")
+    b += hs("M-12,-5 L12,-11 L13,-7 L-11,-1 Z", "#2a2440")
+    for k in range(4):
+        b += F("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (-9 + k * 6, -6 - k * 1.5, -6 + k * 6, -6.8 - k * 1.5, -8 + k * 6, -2.6 - k * 1.5, -11 + k * 6, -1.8 - k * 1.5), "#fbf8ff")
+    b += F(R(-9, 3, 18, 1.5), "#8a86a8") + F(R(-9, 7, 12, 1.5), "#8a86a8")
+    ms.add("fx_clapper", -14, -14, 28, 28, b, px=0.5, flat=True, outline="#140e26")
+    # Tele pequeña de los que miran el anuncio / Small TV of those watching the advert
+    b = hs(R(-11, -8, 22, 16), "#6a4a34") + F(R(-8, -5, 16, 10), "#ffc070") + F(R(-8, -5, 16, 2), "#fff0c0")
+    b += "<path d='M-4,-8 L-8,-14 M4,-8 L8,-14' stroke='#2a2440' stroke-width='1.6'/>"
+    ms.add("fx_tv_small", -13, -16, 26, 28, b, px=0.5, flat=True, outline="#140e26")
+    # Tele grande del anuncio (base en 0,0; la pantalla queda en -120..120, -250..-80)
+    # Big advert TV (base at 0,0; the screen sits in -120..120, -250..-80)
+    b = hs(R(-132, -262, 264, 204), "#6a4a34")
+    b += F(R(-122, -252, 244, 174), "#101828")
+    b += hs(R(-60, -58, 120, 10), "#4a3424")
+    b += "<path d='M-50,-58 L-74,0 M50,-58 L74,0' stroke='#4a3424' stroke-width='8'/>"
+    b += "<path d='M-30,-262 L-70,-320 M30,-262 L70,-320' stroke='#2a2440' stroke-width='4'/>"
+    b += hs(E(-70, -320, 6, 6), "#e85d75") + hs(E(70, -320, 6, 6), "#e85d75")
+    for k in range(3):
+        b += hs(E(108 - k * 18, -67, 4, 4), "#ffd27a")
+    ms.add("fx_tv_big", -140, -330, 280, 334, b, px=0.5, flat=True, outline="#140e26")
+    # Símbolos de los élites (centro en 0,0) / Elite symbols (centre at 0,0)
+    ring = hs(E(0, 0, 13, 13), "#fbf8ff") + F(E(0, 0, 10, 10), "#2a2440")
+    sym = {
+        "split": "<path d='M-7,0 L7,0 M-3,-4 L-7,0 L-3,4 M3,-4 L7,0 L3,4' fill='none' stroke='#ff8a1f' stroke-width='2.6'/>",
+        "puddle": F("M0,-8 Q6,0 5,3 Q4,7 0,7 Q-4,7 -5,3 Q-6,0 0,-8 Z", "#2fa8ff"),
+        "haste": F("M4,-10 L-6,1 L-1,1 L-4,10 L7,-2 L2,-2 Z", "#c44dff"),
+    }
+    for k, s in sym.items():
+        ms.add("elite_sym_" + k, -15, -15, 30, 30, ring + s, px=0.5, flat=True, outline="#140e26")
