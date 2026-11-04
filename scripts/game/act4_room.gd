@@ -32,7 +32,7 @@ const LOOK := {
 	"cheese": {"plinth": "e8b468", "curb": "7a4520", "accent": "c8402a", "roof": "e8902a", "flat": "f0b83a", "sign": "6a3818", "haze": "fff0a0", "edge": "5a2e14"},
 	"aero": {"plinth": "ffffff", "curb": "2cc84a", "accent": "1a9ae0", "roof": "1a9ae0", "flat": "7ccaf0", "sign": "1a7ac8", "haze": "4ac0f0", "edge": "1a4a78"},
 	"solarpunk": {"plinth": "f6f0e2", "curb": "4fa85a", "accent": "4fa85a", "roof": "5fb86a", "flat": "e0d8c8", "sign": "3f7a4a", "haze": "fff0c0", "edge": "3a4a3a"},
-	"dieselpunk": {"plinth": "58505a", "curb": "e0b53a", "accent": "e0b53a", "roof": "6a2420", "flat": "3a363c", "sign": "1a1618", "haze": "c86a2a", "edge": "120e10"},
+	"dieselpunk": {"plinth": "6a605a", "curb": "e0b53a", "accent": "e0b53a", "roof": "8a2a22", "flat": "5a4e48", "sign": "1a1210", "haze": "e08a3a", "edge": "140e0c"},
 	"brutalist": {"plinth": "a6a198", "curb": "f2b632", "accent": "f2b632", "roof": "6a6660", "flat": "7e7a74", "sign": "2a2c34", "haze": "6a7080", "edge": "26262a"},
 }
 
@@ -710,6 +710,7 @@ class CityBuilding extends Node2D:
 				"steampunk": _big_gear(hc, hr)
 				"cheese": _cheese_wedge(hc, hr)
 				"solarpunk": _turbine(hc + Vector2(0, hr * 0.6), hr * 1.1)
+				"dieselpunk": _mooring_mast(hc + Vector2(0, hr * 0.5), hr)
 				_: _helipad(hc, hr)
 		_style_roof(Rect2(0, top, w, h), base)
 
@@ -720,11 +721,14 @@ class CityBuilding extends Node2D:
 		"cheese": [3, 11, 11, 12, 2],
 		"aero": [13, 13, 14, 6, 4],
 		"solarpunk": [4, 4, 15, 15, 14, 2],
-		"dieselpunk": [0, 16, 16, 17, 5, 3],
+		"dieselpunk": [16, 16, 17, 20, 21, 21],
 		"brutalist": [18, 18, 19, 1, 3],
 	}
 
 	func _roof_thing(k: int, at: Vector2, base: Color, rng: RandomNumberGenerator) -> void:
+		if k >= 20:
+			_deco(k, at, base)
+			return
 		if k >= 7:
 			_style_thing(k, at, base)
 			return
@@ -870,7 +874,8 @@ class CityBuilding extends Node2D:
 			16:   # foco antiaéreo que barre el cielo / searchlight sweeping the sky
 				var c := at + Vector2(50, 60)
 				var a := -PI / 2 + sin(_t * 0.7 + at.x) * 0.7
-				draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a - 0.12) * 260.0, c + Vector2.from_angle(a + 0.12) * 260.0]), Color(1.0, 0.9, 0.6, 0.12))
+				draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a - 0.16) * 340.0, c + Vector2.from_angle(a + 0.16) * 340.0]), Color(1.0, 0.9, 0.6, 0.1))
+				draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a - 0.07) * 340.0, c + Vector2.from_angle(a + 0.07) * 340.0]), Color(1.0, 0.95, 0.75, 0.16))
 				draw_colored_polygon(room._ellipse(c + Vector2(4, 22), Vector2(36, 10)), shade)
 				draw_rect(Rect2(c + Vector2(-24, 0), Vector2(48, 22)), Color("3a363c"))
 				draw_circle(c, 22.0, Color("58505a"))
@@ -900,6 +905,53 @@ class CityBuilding extends Node2D:
 				for j in 5:
 					draw_rect(Rect2(at + Vector2(10, 14 + j * 9), Vector2(60, 3)), base.lightened(0.1))
 				draw_rect(Rect2(at + Vector2(0, 62), Vector2(80, 6)), acc)
+
+	func _deco(k: int, at: Vector2, base: Color) -> void:
+		var gold := Color("e0b53a")
+		var shade := Color(0, 0, 0, 0.25)
+		if k == 20:   # aguja art déco escalonada / stepped art deco spire
+			var c := at + Vector2(60, 100)
+			draw_colored_polygon(room._ellipse(c + Vector2(10, 4), Vector2(56, 12)), shade)
+			for j in 4:
+				var hw := 50.0 - j * 11.0
+				var y := -j * 28.0
+				draw_rect(Rect2(c + Vector2(-hw, y - 28), Vector2(hw * 2, 28)), base.lightened(0.1 + j * 0.06))
+				draw_rect(Rect2(c + Vector2(-hw, y - 28), Vector2(hw * 2, 4)), gold)
+				draw_rect(Rect2(c + Vector2(-hw, y - 28), Vector2(6, 28)), Color(1, 1, 1, 0.12))
+			draw_line(c + Vector2(0, -112), c + Vector2(0, -170), gold, 5.0)
+			draw_circle(c + Vector2(0, -172), 6.0, Color(1, 0.3, 0.2, 0.5 + 0.5 * sin(_t * 2.5 + at.x)))
+		else:   # depósito remachado sobre patas / riveted tank on legs
+			var c := at + Vector2(56, 40)
+			draw_colored_polygon(room._ellipse(c + Vector2(8, 64), Vector2(50, 12)), shade)
+			for lx in [-34.0, 0.0, 34.0]:
+				draw_line(c + Vector2(lx, 30), c + Vector2(lx * 1.2, 62), Color("2a2220"), 6.0)
+			draw_line(c + Vector2(-40, 50), c + Vector2(40, 50), Color("2a2220"), 3.0)
+			draw_rect(Rect2(c + Vector2(-42, -26), Vector2(84, 58)), Color("6a3a2a"))
+			draw_colored_polygon(room._ellipse(c + Vector2(0, 32), Vector2(42, 10)), Color("5a2e22"))
+			draw_colored_polygon(PackedVector2Array([c + Vector2(-46, -26), c + Vector2(46, -26), c + Vector2(0, -56)]), Color("4a2a20"))
+			for j in 3:
+				for i in 7:
+					draw_circle(c + Vector2(-36 + i * 12, -16 + j * 20), 2.0, Color("a8745a"))
+			draw_rect(Rect2(c + Vector2(-42, -4), Vector2(84, 10)), gold.darkened(0.2))
+			draw_rect(Rect2(c + Vector2(-34, -26), Vector2(8, 58)), Color(1, 1, 1, 0.12))
+
+	## Mástil de amarre de zepelines, con su baliza / Zeppelin mooring mast, with its beacon
+	func _mooring_mast(base_p: Vector2, r: float) -> void:
+		var gold := Color("e0b53a")
+		var h := r * 2.4
+		draw_colored_polygon(room._ellipse(base_p + Vector2(10, 6), Vector2(r * 0.8, r * 0.22)), Color(0, 0, 0, 0.25))
+		draw_rect(Rect2(base_p + Vector2(-r * 0.6, -16), Vector2(r * 1.2, 20)), Color("3a3230"))
+		draw_rect(Rect2(base_p + Vector2(-r * 0.6, -16), Vector2(r * 1.2, 4)), gold)
+		for side in [-1.0, 1.0]:
+			draw_line(base_p + Vector2(side * r * 0.45, -16), base_p + Vector2(side * 8.0, -h), Color("2a2220"), 6.0)
+		for j in 6:
+			var y := -16.0 - (h - 16.0) * (j + 1) / 7.0
+			var hw := lerpf(r * 0.45, 8.0, (j + 1) / 7.0)
+			draw_line(base_p + Vector2(-hw, y), base_p + Vector2(hw, y), Color("2a2220"), 3.0)
+			draw_line(base_p + Vector2(-hw, y), base_p + Vector2(hw * 0.8, y - 14), Color("2a2220"), 2.0)
+		draw_circle(base_p + Vector2(0, -h), 14.0, gold)
+		draw_circle(base_p + Vector2(0, -h - 4), 8.0, Color(1, 0.3, 0.2, 0.5 + 0.5 * sin(_t * 3.0)))
+		draw_circle(base_p + Vector2(0, -h - 4), 26.0 * (0.5 + 0.5 * sin(_t * 3.0)), Color(1, 0.3, 0.2, 0.12))
 
 	func _gear(c: Vector2, r: float, a: float, col: Color) -> void:
 		draw_colored_polygon(room._ellipse(c + Vector2(6, r * 0.8), Vector2(r, r * 0.3)), Color(0, 0, 0, 0.2))
@@ -1079,6 +1131,13 @@ class CityAmbience extends Node2D:
 		var view := room._view_canvas()
 		var haze := room.look("haze")
 		draw_rect(view.grow(40), Color(haze, 0.06))
+		if room.style == "dieselpunk":
+			# La sombra de un zepelín que cruza despacio la ciudad / A zeppelin's shadow slowly crossing the city
+			var zx := fposmod(_t * 60.0, MAP_SIZE.x + 1600.0) - 800.0
+			var zc := Vector2(zx, MAP_SIZE.y * 0.45 + sin(_t * 0.05) * 600.0)
+			draw_colored_polygon(room._ellipse(zc, Vector2(420, 120)), Color(0.05, 0.02, 0.0, 0.18))
+			draw_colored_polygon(PackedVector2Array([zc + Vector2(-380, 0), zc + Vector2(-520, -90), zc + Vector2(-500, 90)]), Color(0.05, 0.02, 0.0, 0.18))
+			draw_rect(Rect2(zc + Vector2(-60, 90), Vector2(120, 40)), Color(0.05, 0.02, 0.0, 0.14))
 		var vel := Vector2.ZERO
 		match room.style:
 			"synthwave", "aero": vel = Vector2(6, -40)

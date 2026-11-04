@@ -33,8 +33,8 @@ STYLES = {
     "solarpunk": dict(sky=("#6ac0d8", "#bfe8d8", "#fff0c0"), far="#a8d8b8", bld=("#f2ece0", "#e0d8c8", "#ffffff"),
                       win=("#2a5a8a", "#3a7aa8", "#bfe8ff"), trim="#4fa85a", road="#8aa878", walk="#d8d0b8", curb="#4fa85a",
                       line="#f6e2a0", car=("#4fa85a", "#f6e2a0"), lamp="#f6e2a0", uni=("#3f7a4a", "#f6d993", "#e8f0d8"), van=("#e8f0d8", "#3f7a4a")),
-    "dieselpunk": dict(sky=("#1a1014", "#5a2418", "#c86a2a"), far="#2a2024", bld=("#2e2a30", "#3e3840", "#58505a"),
-                       win=("#ffd27a", "#e8a03a", "#fff0c0"), trim="#c9961e", road="#2a2628", walk="#3e3a3c", curb="#e0b53a",
+    "dieselpunk": dict(sky=("#1a1014", "#5a2418", "#c86a2a"), far="#2a2024", bld=("#3a2c2c", "#4a3634", "#2e3a3c"),
+                       win=("#ffd27a", "#ffb04a", "#fff0c0"), trim="#e0b53a", road="#3a3430", walk="#4e4844", curb="#e0b53a",
                        line="#e0b53a", car=("#5a1e1e", "#c9961e"), lamp="#ffd27a", uni=("#3a3a2e", "#c83a2a", "#c9961e"), van=("#2e2a30", "#c83a2a")),
     "brutalist": dict(sky=("#6a7080", "#9aa0ac", "#c8ccd4"), far="#7a7e88", bld=("#7e7a74", "#928e86", "#a6a198"),
                       win=("#1e2026", "#2a2e38", "#f2c86a"), trim="#f2b632", road="#8a8680", walk="#b2aea6", curb="#f2b632",
@@ -145,15 +145,34 @@ def build(ms):
                 b += P([(px, top), (px + 36, top), (px + 44, top - 16), (px + 8, top - 16)], "#2a4a8a")
                 b += "<path d='M%g,%g L%g,%g' stroke='#8fb8f0' stroke-width='2'/>" % (px + 4, top - 8, px + 40, top - 8)
         elif name == "dieselpunk":
-            # Aletas verticales art déco / Art deco vertical fins
-            for fx in range(int(x + 20), int(x + w - 10), 30):
-                b += R(fx, top + 10, 8, h - 10, light(col, 0.1))
-            for wy in range(int(top + 30), bottom - 30, 30):
-                for wx in range(int(x + 30), int(x + w - 20), 30):
-                    if rng.random() < 0.55:
-                        b += R(wx, wy, 12, 14, rng.choice(wins))
-            # Remate escalonado dorado / Gold stepped crown
-            b += R(x + 20, top - 16, w - 40, 16, col) + R(x + 50, top - 34, w - 100, 18, col) + R(x + 20, top - 4, w - 40, 4, st["trim"])
+            # Art déco: zócalo de piedra crema, pilastras con remate dorado, ventanas altas con luz cálida,
+            # sol naciente dorado arriba y estandartes rojos colgando
+            # Art deco: cream stone base, pilasters with gold caps, tall warmly lit windows, a gold rising
+            # sun on top and red banners hanging
+            gold, cream, red = st["trim"], "#d8c8a8", "#b8302a"
+            for fx in range(int(x + 12), int(x + w), 42):
+                b += R(fx, top + 34, 10, h - 34, light(col, 0.16)) + R(fx, top + 34, 3, h - 34, light(col, 0.3))
+                b += R(fx - 2, top + 28, 14, 8, gold)
+            for wy in range(int(top + 52), bottom - 40, 44):
+                for wx in range(int(x + 26), int(x + w - 20), 42):
+                    lit = rng.random() < 0.7
+                    b += R(wx, wy, 22, 32, "#1a1210") + R(wx + 2, wy + 2, 18, 28, rng.choice(st["win"]) if lit else "#2a2220")
+                    b += R(wx + 10, wy + 2, 2, 28, "#1a1210") + R(wx + 2, wy + 14, 18, 2, "#1a1210")
+                    if lit:
+                        b += R(wx + 3, wy + 3, 6, 10, "#fff8e0")
+            # Banda superior con abanico dorado / Top band with a gold fan
+            b += R(x, top, w, 28, dark(col, 0.25)) + R(x, top + 24, w, 4, gold) + R(x, top, w, 3, gold)
+            cx = x + w / 2
+            for k in range(9):
+                a = math.pi + math.pi * (k + 0.5) / 9
+                b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='4'/>" % (cx, top + 24, cx + math.cos(a) * 22, top + 24 + math.sin(a) * 20, gold)
+            b += C(cx, top + 24, 8, gold)
+            # Estandarte rojo con insignia / Red banner with an emblem
+            if rng.random() < 0.7:
+                bx = x + rng.choice([40, w - 70])
+                b += P([(bx, top + 32), (bx + 30, top + 32), (bx + 30, top + 120), (bx + 15, top + 108), (bx, top + 120)], red)
+                b += R(bx, top + 32, 30, 4, gold) + C(bx + 15, top + 62, 8, gold) + C(bx + 15, top + 62, 4, red)
+            b += R(x, bottom - 22, w, 22, cream) + R(x, bottom - 22, w, 3, "#f0e4c8") + R(x, bottom - 6, w, 6, dark(cream, 0.3))
         elif name == "brutalist":
             # Hormigón con tablas de encofrado y agujeros de los latiguillos / Concrete with board marks and tie holes
             for by in range(int(top), bottom, 16):
@@ -209,9 +228,12 @@ def build(ms):
                 b += "<rect x='%d' y='%d' width='56' height='56' rx='8' fill='%s'/>" % (x + 2, y + 2, light(walk, 0.06))
             b += R(56, 0, 8, T, "#7fcf7a") + R(0, 56, T, 8, "#7fcf7a")
         elif name == "dieselpunk":
-            b += R(0, 0, T, 3, dark(walk, 0.4)) + R(0, 0, 3, T, dark(walk, 0.4))
-            for (x, y) in ((10, 10), (110, 10), (10, 110), (110, 110)):
-                b += C(x, y, 3, "#6a6468")
+            # Plancha de acero remachada, con óxido / Riveted steel plate, with rust
+            b += R(0, 0, T, 4, dark(walk, 0.45)) + R(0, 0, 4, T, dark(walk, 0.45)) + R(4, 4, T - 4, 2, light(walk, 0.12))
+            for k in range(8, T, 22):
+                b += C(k, 12, 2.5, "#8a8078") + C(12, k, 2.5, "#8a8078")
+            for i in range(2):
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='#7a4a2a' opacity='0.45'/>" % (rng.uniform(30, 100), rng.uniform(30, 100), rng.uniform(8, 16), rng.uniform(5, 9))
         elif name == "brutalist":
             # Losa grande con bisel, juntas y agujeros de encofrado / Big slab with a bevel, joints and formwork holes
             b += R(0, 0, T, 4, dark(walk, 0.3)) + R(0, 0, 4, T, dark(walk, 0.3)) + R(4, 4, T - 4, 3, light(walk, 0.12)) + R(4, 4, 3, T - 4, light(walk, 0.12))
@@ -246,12 +268,15 @@ def build(ms):
             b += R(0, 0, T, 3, "#cfc6a8") + R(0, 0, 3, T, "#cfc6a8") + "<ellipse cx='62' cy='62' rx='10' ry='5' fill='#9fd29a'/>"
         elif name == "dieselpunk":
             b += R(0, 0, T, T, "#3e3a3c")
-            # Chapa estriada / Diamond plate
-            for gy in range(0, T, 25):
-                for gx in range(0, T, 25):
-                    o = 12 if (gy // 25) % 2 else 0
-                    b += "<path d='M%d,%d l8,-4 l3,2 l-8,4 z' fill='#5a5658'/>" % ((gx + o) % T + 6, gy + 14)
-            b += R(0, 0, T, 3, "#2a2628") + R(0, 0, 3, T, "#2a2628")
+            # Terrazo oscuro con cuadrante de sol dorado art déco / Dark terrazzo with an art deco gold sunburst quarter
+            b += R(0, 0, T, T, "#2e2a2c")
+            for i in range(40):
+                b += R(rng.uniform(0, 122), rng.uniform(0, 122), 3, 3, rng.choice(["#4a4446", "#6a6062", "#8a7a5a"]))
+            for k in range(6):
+                a = math.pi / 2 * (k + 0.5) / 6
+                b += "<path d='M0,0 L%g,%g' stroke='#4a3e30' stroke-width='3'/>" % (math.cos(a) * 60, math.sin(a) * 60)
+            b += "<path d='M60,0 A60,60 0 0 1 0,60' fill='none' stroke='#6a5430' stroke-width='4'/>"
+            b += R(0, 0, T, 2, "#7a6030") + R(0, 0, 2, T, "#7a6030")
         elif name == "brutalist":
             b += R(0, 0, T, T, "#8e8a84") + R(0, 0, T, 5, "#6a6660") + R(0, 0, 5, T, "#6a6660")
             b += R(5, 5, T - 5, 3, "#a29e96")
