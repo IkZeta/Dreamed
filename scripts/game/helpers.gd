@@ -172,6 +172,25 @@ func try_guard(source: Node2D) -> bool:
 	return false
 
 
+## Dúo Svinho y SuperK: SuperK baja y remata de chilena al más fuerte. false si está ocupado
+## Svinho & SuperK duo: SuperK swoops in and finishes the toughest one with a bicycle kick. false if busy
+func duo_volley() -> bool:
+	if is_instance_valid(_superk):
+		return false
+	var a := Actor.new()
+	a.helpers = self
+	a.who = "superk"
+	a.power = "punch"
+	a.weapon = "ball"
+	a.set_meta("volley", true)
+	if not a.plan():
+		a.free()
+		return false
+	run._actors.add_child(a)
+	_superk = a
+	return true
+
+
 # --- Ayudas / Utilities ---------------------------------------------------------------
 
 func enemies_alive() -> Array:
@@ -477,10 +496,11 @@ class Actor extends Node2D:
 			return
 		var e := target as Enemy
 		var dir := Vector2(facing, -0.1).normalized()
-		e.hit(GameState.up_value("superk", "dmg", -1, weapon) * run.player.damage_mult, dir * PUNCH_PUSH * e.mass)
+		var dmg := GameState.duo_value("svinho_superk", "dmg") if has_meta("volley") else GameState.up_value("superk", "dmg", -1, weapon)
+		e.hit(dmg * run.player.damage_mult, dir * PUNCH_PUSH * e.mass)
 		run.shake(7.0)
 		run.fx.ring(e.global_position + Vector2(0, -40), 46.0, Color("ffe08a"), 0.35, 2.2)
-		run.fx.text(e.global_position + Vector2(0, -120), "¡POW!" if TranslationServer.get_locale().begins_with("es") else "POW!", Color("ffe08a"), 30)
+		run.fx.text(e.global_position + Vector2(0, -120), tr("DUO_VOLLEY") if has_meta("volley") else ("¡POW!" if TranslationServer.get_locale().begins_with("es") else "POW!"), Color("ffe08a"), 30)
 		Audio.play("punch", -2.0)
 
 	func _grab() -> void:
@@ -553,6 +573,7 @@ class Actor extends Node2D:
 		var tick := _tick <= 0.0
 		if tick:
 			_tick = 0.5
+		var dancers := 0
 		for e: Enemy in helpers.enemies_alive():
 			if e.is_boss():
 				continue
@@ -560,6 +581,10 @@ class Actor extends Node2D:
 			if power == "dance":
 				if e.global_position.distance_to(run.player.global_position) < DANCE_RADIUS or d < DANCE_RADIUS * 0.7:
 					e.dance_t = maxf(e.dance_t, 0.6)
+					dancers += 1
+					# Dúo Doc y Lil Key: el baile pega pelusa / Doc & Lil Key duo: dancing sticks fluff on
+					if tick and GameState.has_duo("doc_lilkey") and e.fluffs.size() < 2:
+						e.add_fluff(1)
 			else:
 				if d < SING_PULL_RADIUS and d > 60.0:
 					var pull := maxf(170.0, e.speed * 1.4)
@@ -568,6 +593,9 @@ class Actor extends Node2D:
 					e.dance_t = maxf(e.dance_t, 0.6)
 					if tick:
 						e.hit(GameState.up_value("lilkey", "dmg", -1, weapon) * 0.5 * run.player.damage_mult)
+		# Dúo Doc y Lil Key: musicoterapia, cada uno que baila te cura / Doc & Lil Key duo: music therapy, every dancer heals you
+		if tick and dancers > 0 and GameState.has_duo("doc_lilkey"):
+			run.player.heal(minf(dancers * GameState.duo_value("doc_lilkey", "heal"), GameState.duo_value("doc_lilkey", "max")) * 0.5)
 
 	func _draw() -> void:
 		var s := SCALE

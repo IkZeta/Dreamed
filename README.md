@@ -239,7 +239,7 @@ Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 d
 
 ### Mejoras dúo
 
-Cada personaje tiene una pareja, y su mejora dúo va con un arma concreta. Solo cuenta el **arma principal** (la segunda, la que se consigue al final del Acto 2, no). Una mejora dúo se desbloquea para siempre al tener **amistad 3 con los dos** personajes, y sale en el plano astral (casi seguro, ocupando un hueco) cuando, en esa partida, las mejoras de los dos con esa arma están **al máximo** (nivel 3). Magnus no da mejoras de arma: para él cuenta haber ganado 2 tratos en la partida. En el menú de personajes se ve con quién hace dúo cada uno.
+Hay nueve mejoras dúo, una por arma; cada personaje sale en dos parejas distintas (salvo Mr. Ad y El Pinche, en una), y cada dúo va con un arma concreta. Solo cuenta el **arma principal** (la segunda, la que se consigue al final del Acto 2, no). Una mejora dúo se desbloquea para siempre al tener **amistad 3 con los dos** personajes, y sale en el plano astral (casi seguro, ocupando un hueco) cuando, en esa partida, las mejoras de los dos con esa arma están **al máximo** (nivel 3). Magnus no da mejoras de arma: para él cuenta haber ganado 2 tratos en la partida. En el menú de personajes se ve con quién hace dúo cada uno.
 
 | Dúo | Arma | Mejora |
 |---|---|---|
@@ -248,6 +248,10 @@ Cada personaje tiene una pareja, y su mejora dúo va con un arma concreta. Solo 
 | SuperK y Lil Key | Escudo | **Concierto benéfico**: SuperK para golpes con +10 % de probabilidad y, cada vez que para uno, Lil Key pone a bailar a los de alrededor 4 s |
 | Mr. Ad y D. Lynx | Portátil | **Pausa publicitaria**: cada 20 s, D. Lynx rueda un anuncio de Mr. Ad en una tele gigante; los enemigos a la vista se paran a mirarlo 3 s y reciben +50 % de daño, y ganas 1 de Realidad Fragmentada por cada 4 que miran (hasta 5) |
 | El Pinche y Magnus | Libro | **Franquicia**: los enemigos que mueren quemados tienen un 30 % de soltar 1 de Realidad Fragmentada y pasan el fuego a los 2 de al lado |
+| Svinho y SuperK | Pelota | **Chilena de héroe**: cada 6 toques de la pelota, SuperK baja volando y remata de chilena al enemigo más fuerte (40 de daño) |
+| Silly y D. Lynx | Aspiradora | **Doble digital**: lo que aspiras 1,5 s seguidos sale escaneado como un doble que actúa para ti 6 s (hasta 3 a la vez; los jefes no) |
+| Stolk y Magnus | Dedo | **Cobro con intereses**: críticos mucho más frecuentes y con +50 % de daño; cada crítico tiene un 15 % de cobrar 1 de Realidad Fragmentada |
+| Doc y Lil Key | Oso de peluche | **Musicoterapia**: cuando Lil Key pone a bailar, cada enemigo que baila te cura 0,3 por segundo (hasta 1,5) y se le pega pelusa |
 
 ### Amistad
 

@@ -47,6 +47,9 @@ func roll_kind() -> String:
 			v *= maxf(0.3, 1.0 + luck / 50.0)
 		if k == "bounce":
 			v += uv("svinho", "chance")
+		# Dúo Stolk y Magnus: muchos más críticos / Stolk & Magnus duo: far more crits
+		if k == "crit" and GameState.has_duo("stolk_magnus") and primary:
+			v *= GameState.duo_value("stolk_magnus", "crit")
 		w[k] = v
 		total += v
 	var roll := randf() * total
@@ -81,7 +84,8 @@ func attack() -> bool:
 	shot.weapon = self
 	shot.kind = kind
 	shot.dir = dir
-	shot.damage = dmg * (CRIT if kind == "crit" else 1.0)
+	var crit := CRIT + (GameState.duo_value("stolk_magnus", "pct") / 100.0 if GameState.has_duo("stolk_magnus") and primary else 0.0)
+	shot.damage = dmg * (crit if kind == "crit" else 1.0)
 	shot.max_travel = RANGE * range_mult() * 1.3
 	shot.bounces = 1 + int(uv("svinho", "extra")) if kind == "bounce" else 0
 	shot.pierces = 2 if kind == "pierce" else 0
@@ -101,7 +105,14 @@ func muzzle() -> Vector2:
 
 
 ## Silly: el láser corrupto ralentiza / Silly: the corrupted laser slows
-func on_laser_hit(e: Node2D) -> void:
+func on_laser_hit(e: Node2D, kind := "") -> void:
+	# Dúo Stolk y Magnus: los críticos a veces cobran / Stolk & Magnus duo: crits sometimes collect
+	if kind == "crit" and GameState.has_duo("stolk_magnus") and primary and GameState.reality_on() \
+			and randf() * 100.0 < GameState.duo_value("stolk_magnus", "chance"):
+		GameState.add_reality(1)
+		run.hud.set_reality()
+		run.fx.text(e.aim_point() + Vector2(0, -90), "+1 ◆", Color("4fd39a"), 20)
+		Audio.play("reality", -10.0, 0.1)
 	if lv("silly") > 0 and randf() * 100.0 < uv("silly", "chance"):
 		e.glitch(0.0, uv("silly", "secs"))
 

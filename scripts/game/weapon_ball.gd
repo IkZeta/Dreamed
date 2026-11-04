@@ -56,7 +56,15 @@ func attack() -> bool:
 
 
 ## Silly: el balón congela / Silly: the ball freezes
+## Dúo Svinho y SuperK: cuenta los toques de la pelota / Svinho & SuperK duo: counts the ball's touches
+var _duo_hits := 0
+
+
 func on_ball_hit(e: Node2D) -> void:
+	if GameState.has_duo("svinho_superk") and primary:
+		_duo_hits += 1
+		if _duo_hits >= int(GameState.duo_value("svinho_superk", "hits")) and run.helpers.duo_volley():
+			_duo_hits = 0
 	if lv("silly") > 0 and randf() * 100.0 < uv("silly", "chance"):
 		e.glitch(uv("silly", "secs"))
 

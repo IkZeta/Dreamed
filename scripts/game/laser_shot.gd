@@ -75,7 +75,7 @@ func _on_hit(e: Node2D) -> void:
 	var col: Color = WeaponFinger.COLORS[kind]
 	var impulse := dir * (PUSH if kind == "push" else 60.0)
 	weapon.deal(e, damage, impulse)
-	weapon.on_laser_hit(e)
+	weapon.on_laser_hit(e, kind)
 	run.fx.ring(e.aim_point(), 14.0 if kind != "crit" else 22.0, col, 0.3, 2.2)
 	if kind == "crit":
 		run.fx.text(e.aim_point() + Vector2(0, -60), "x1.75", col, 18)

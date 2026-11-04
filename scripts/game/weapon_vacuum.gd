@@ -74,11 +74,38 @@ func _physics_process(delta: float) -> void:
 			continue
 		e.external_pull += -to_e.normalized() * PULL * _boost
 		e.vacuumed = true
+		if GameState.has_duo("silly_lynx") and primary:
+			_digitize(e, delta)
 		if do_tick:
 			deal(e, DPS * TICK * _boost * speed_mult(), Vector2.ZERO, 0.3)
 			if lv("silly") > 0:
 				e.glitch(0.0, 0.0, uv("silly", "secs"), 1.0 + uv("silly", "pct") / 100.0)
 	queue_redraw()
+
+
+## Dúo Silly y D. Lynx: lo que aspiras un rato sale convertido en un doble digital que actúa para
+## ti / Silly & D. Lynx duo: whatever you suck in for a while comes out as a digital double acting for you
+func _digitize(e: Node2D, delta: float) -> void:
+	var en := e as Enemy
+	if en == null or not en.can_act():
+		return
+	var t: float = en.get_meta("suck_t", 0.0) + delta
+	en.set_meta("suck_t", t)
+	if t < GameState.duo_value("silly_lynx", "secs"):
+		return
+	var acting := 0
+	for o: Node in run.enemies.get_children():
+		if o is Enemy and (o as Enemy).actor_t > 0.0:
+			acting += 1
+	if acting >= int(GameState.duo_value("silly_lynx", "max")):
+		return
+	en.set_meta("suck_t", 0.0)
+	en.start_acting(GameState.duo_value("silly_lynx", "dur"), 6.0 + 2.0 * lv("lynx"))
+	en.glitch_t = maxf(en.glitch_t, GameState.duo_value("silly_lynx", "dur"))
+	en.knock = _dir * 600.0
+	run.fx.ring(en.aim_point(), 28.0, Color("5ff2ff"), 0.4, 2.4)
+	run.fx.text(en.aim_point() + Vector2(0, -60), tr("LYNX_SHOUT"), Color("ffb0b0"), 18)
+	Audio.play("glitch", -6.0, 0.1)
 
 
 ## Escupe al enemigo con fuerza: sale rebotando / Spits the enemy out hard: it ricochets away

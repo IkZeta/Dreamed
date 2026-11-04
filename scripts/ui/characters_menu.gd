@@ -191,15 +191,16 @@ func _show(id: String) -> void:
 
 ## Con quién hace dúo y en qué arma / Who they team up with and on which weapon
 func _duo_line(id: String) -> String:
+	var out := ""
 	for duo: String in GameState.DUOS:
 		var d: Dictionary = GameState.DUOS[duo]
 		if id != d["a"] and id != d["b"]:
 			continue
 		var other: String = d["b"] if id == d["a"] else d["a"]
 		var key := "CHARS_DUO_READY" if GameState.duo_unlocked(duo) else "CHARS_DUO_LOCKED"
-		return "\n\n" + tr(key).format({"who": tr("GIVER_%s_NAME" % other.to_upper()), "weapon": tr("WEAPON_SHORT_" + String(d["weapon"]).to_upper()),
+		out += ("\n\n" if out == "" else "\n") + tr(key).format({"who": tr("GIVER_%s_NAME" % other.to_upper()), "weapon": tr("WEAPON_SHORT_" + String(d["weapon"]).to_upper()),
 			"name": tr("DUO_%s_NAME" % duo.to_upper()), "lvl": GameState.DUO_FRIEND})
-	return ""
+	return out
 
 
 func _close() -> void:

@@ -717,6 +717,10 @@ const DUOS := {
 	"superk_lilkey": {"a": "superk", "b": "lilkey", "weapon": "shield"},
 	"ad_lynx": {"a": "ad", "b": "lynx", "weapon": "laptop"},
 	"pinche_magnus": {"a": "pinche", "b": "magnus", "weapon": "book"},
+	"svinho_superk": {"a": "svinho", "b": "superk", "weapon": "ball"},
+	"silly_lynx": {"a": "silly", "b": "lynx", "weapon": "vacuum"},
+	"stolk_magnus": {"a": "stolk", "b": "magnus", "weapon": "finger"},
+	"doc_lilkey": {"a": "doc", "b": "lilkey", "weapon": "teddy"},
 }
 ## Valores de cada dúo (las descripciones usan las mismas claves) / Each duo's values (descriptions use the same keys)
 const DUO_VALUES := {
@@ -725,6 +729,10 @@ const DUO_VALUES := {
 	"superk_lilkey": {"secs": 4, "chance": 10},
 	"ad_lynx": {"cd": 20, "secs": 3, "pct": 50, "per": 4, "max": 5},
 	"pinche_magnus": {"chance": 30, "spread": 2},
+	"svinho_superk": {"hits": 6, "dmg": 40},
+	"silly_lynx": {"secs": 1.5, "dur": 6, "max": 3},
+	"stolk_magnus": {"crit": 2, "pct": 50, "chance": 15},
+	"doc_lilkey": {"heal": 0.3, "max": 1.5},
 }
 
 
