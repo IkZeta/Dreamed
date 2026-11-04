@@ -1174,6 +1174,14 @@ class HubWorld extends Control:
 	func _tick_svinho() -> void:
 		var c := _isle_pos("svinho")
 		var foot := c + SV_FOOT
+		# Si Svinho está de visita, el balón se queda quieto en el césped
+		# If Svinho is out visiting, the ball rests still on the grass
+		if _away.has("svinho"):
+			_ball.position = foot
+			_ball.set_meta("h", 0.0)
+			_ball.set_meta("spin", 0.0)
+			_ball.set_meta("in_goal", false)
+			return
 		var n := int(_t / SHOT)
 		var ph := fmod(_t, SHOT) / SHOT
 		# Cada tiro a un sitio: a un palo, al otro, por arriba... / Each shot somewhere else: one post, the other, up high...
