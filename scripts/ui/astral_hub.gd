@@ -107,7 +107,13 @@ func _refresh_hint() -> void:
 		_hint.text = Settings.controls_text(tr("HUB_CONTROLS"))
 
 
+## Cada isla con personaje tiene su tema; el resto del plano suena a plano astral
+## Each island with a character has its own theme; the rest of the plane sounds astral
+const THEMED := ["svinho", "stolk", "silly", "doc", "ad", "pinche", "charo", "magnus", "superk", "lilkey"]
+
+
 func _show_zone(id: String) -> void:
+	Audio.play_music("music_" + id if id in THEMED else "music_astral", 2.0)
 	_zone.text = "·  %s  ·" % tr("HUB_ZONE_" + id.to_upper())
 	_zone.reset_size()
 	if _zone_tw:

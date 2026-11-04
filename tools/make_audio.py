@@ -1069,14 +1069,10 @@ if __name__ == "__main__":
         ("crack", sfx_crack, 0.5, 0.25), ("shoot", sfx_shoot, 0.4, 0.12), ("bone", sfx_bone, 0.4, 0.15),
         ("revive", sfx_revive, 0.45, 0.3), ("stomp", sfx_stomp, 0.6, 0.25), ("boss_wake", sfx_boss_wake, 0.55, 0.35),
         ("throw", sfx_throw, 0.4, 0.1), ("act_clear", sfx_act_clear, 0.5, 0.4),
-        ("giver_svinho", giver_svinho, 0.45, 0.3), ("giver_stolk", giver_stolk, 0.5, 0.3),
-        ("giver_silly", giver_silly, 0.35, 0.25), ("giver_doc", giver_doc, 0.4, 0.35),
-        ("giver_charo", giver_charo, 0.4, 0.3), ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
-        ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2), ("giver_ad", giver_ad, 0.4, 0.3),
+        ("reality", sfx_reality, 0.3, 0.3), ("fire", sfx_fire, 0.25, 0.0),
+        ("sacrifice", sfx_sacrifice, 0.45, 0.35), ("puff", sfx_puff, 0.3, 0.2), ("plate_break", sfx_plate_break, 0.3, 0.2),
         ("pan_clang", sfx_pan_clang, 0.45, 0.2), ("knife", sfx_knife, 0.3, 0.15), ("hack", sfx_hack, 0.3, 0.2),
         ("dash", sfx_dash, 0.35, 0.1), ("laser", sfx_laser, 0.3, 0.1), ("bell", sfx_bell, 0.35, 0.2), ("snap", sfx_snap, 0.4, 0.15), ("fluff", sfx_fluff, 0.3, 0.12),
-        ("giver_pinche", giver_pinche, 0.4, 0.3),
-        ("giver_magnus", giver_magnus, 0.4, 0.3),
         ("turret", sfx_turret, 0.25, 0.1), ("stove_boom", sfx_stove_boom, 0.55, 0.25), ("typing", sfx_typing, 0.3, 0.08),
         ("deal_won", sfx_deal_won, 0.4, 0.3), ("deal_lost", sfx_deal_lost, 0.35, 0.3), ("punch", sfx_punch, 0.45, 0.12),
         ("pant", sfx_pant, 0.3, 0.15), ("shuffle", sfx_shuffle, 0.3, 0.12),
@@ -1084,3 +1080,6 @@ if __name__ == "__main__":
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)
+    # Temas de los personajes y sus leitmotivs / Character themes and their leitmotifs
+    import audio_themes
+    audio_themes.render(only, save)
