@@ -5,13 +5,27 @@
 shader_type canvas_item;
 
 uniform float amount : hint_range(0.0, 1.0) = 1.0;
+// Interferencias de Evil Ad en delirio (0 = nada) / Evil Ad's interference when delirious (0 = none)
+uniform float glitch : hint_range(0.0, 1.0) = 0.0;
 
 float rnd(vec2 p) {
 	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 void fragment() {
-	vec4 c = texture(TEXTURE, UV);
+	vec2 uv = UV;
+	if (glitch > 0.0) {
+		// Bandas que se desplazan de lado / Bands that slip sideways
+		float band = floor(uv.y * 24.0 + floor(TIME * 20.0));
+		if (rnd(vec2(band, 1.0)) > 0.7) {
+			uv.x += (rnd(vec2(band, 2.0)) - 0.5) * 0.06 * glitch;
+		}
+	}
+	vec4 c = texture(TEXTURE, uv);
+	if (glitch > 0.0) {
+		c.r = texture(TEXTURE, uv + vec2(0.008 * glitch, 0.0)).r;
+		c.b = texture(TEXTURE, uv - vec2(0.008 * glitch, 0.0)).b;
+	}
 	float g = dot(c.rgb, vec3(0.299, 0.587, 0.114));
 	g = clamp((g - 0.5) * 1.3 + 0.52, 0.0, 1.0);
 	vec3 grey = vec3(g) * vec3(1.0, 0.98, 0.94);

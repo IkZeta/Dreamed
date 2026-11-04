@@ -161,7 +161,22 @@ Cada ciudad tiene además sus **propias azoteas**: parabólicas y pirámides hol
 | 16 | **Unidad Especial**: una furgo blindada que vuela. Llega con la sirena, da vueltas alrededor de Kroker y suelta **policías** por una cuerda hasta que la derribas; al caer, revienta y daña a los de alrededor. Los policías tienen poca vida, disparan ráfagas de tres con su fusil de asalto y **cada bala hace sangrar**. Su uniforme cambia con la estética de la ciudad |
 | 17 | **Antidisturbios**: salen de las alcantarillas abiertas. No te persiguen ni atacan: se quedan detrás y ponen **escudos** a los demás (dos cada vez, cinco como mucho). Un enemigo con escudo apenas recibe daño ni empujones, y el escudo solo desaparece cuando cae el antidisturbios que lo puso. Kiosco de Charo |
 | 19 | Kiosco de Charo |
-| 20 | **El último sueño**: la ciudad se viene abajo, con derrumbes cada pocos segundos, más alcantarillas abiertas, más furgos y más antidisturbios. Si aguantas, Kroker se despierta de verdad y se acaba la partida |
+| 20 | **El último sueño**: noir retrofuturista y jefe final, **Evil Ad** (ver abajo). Si lo derrotas o aguantas, Kroker se despierta de verdad y se acaba la partida |
+
+#### Sueño 20: noir retrofuturista y Evil Ad
+
+El último sueño siempre tiene la misma estética: **noir retrofuturista**. Todo se ve en blanco y negro con mucho contraste, grano de película, rayas de proyector y viñeta; **solo el rojo conserva su color** (los rótulos de neón, la cinta del sombrero de Kroker... y Evil Ad). Rascacielos art déco con ojos de buey, ventanales con persianas venecianas y rótulos de neón rojos verticales, calles de asfalto mojado, plaza de terrazo a rombos, árboles pelados, farolas de globo, lluvia fuerte, relámpagos, focos que barren el cielo y la sombra de un zepelín. Kroker lleva un sombrero de detective.
+
+- **Cinemática:** el sueño empieza con franjas de cine. Kroker, apoyado en la pared de un edificio, piensa en su viaje como un detective de cine negro, en recuadros de papel que salen letra a letra (la F pasa al siguiente, Esc lo salta). Al acabar, los edificios de alrededor **estallan** uno tras otro (se quedan ardiendo, con las ventanas reventadas y humo), caen un par de rascacielos y Evil Ad baja del cielo: "¡NO CAMBIES DE CANAL!".
+- **Evil Ad:** la versión retorcida y delirante de Mr. Ad. Una tele gigante rajada con ojos de «$» que giran y una sonrisa enorme, cuerpo de chapa roja oxidada con anuncios que pasan a toda velocidad por la barriga, cables que se mueven como tentáculos con megáfonos y teles pequeñas dando vueltas a su alrededor. Flota por encima de la ciudad (no le paran los edificios) y va cambiando de "programa":
+  - **Teletienda:** se mueve alrededor de Kroker rociando abanicos de monedas rojas.
+  - **Pop-ups:** suelta ventanas de anuncio («SALE!», «BUY!»...) que van a por Kroker y **estallan** a los 5 segundos si no las rompes antes.
+  - **Zapping:** carga los ojos (con aviso) y barre la calle con un rayo de interferencias.
+  - **Corte publicitario:** «Volvemos después de la publicidad...»: se mete en la estática (no se le puede dar), aparece un aviso en el suelo donde está Kroker y cae encima con una onda y un anillo de monedas.
+  - **Patrocinado:** llama a policías y otros enemigos de la ciudad.
+  - **Delirio** (a media vida): «¡¡SUPER-MEGA-OFERTAAA!!». Más rápido, espirales de monedas, dos rayos a la vez, el doble de pop-ups, más teles a su alrededor y la imagen entera se descuadra a ratos (interferencias de color).
+- Tiene tiempo límite, como los otros jefes: si aguantas, también despiertas. Derrotarlo da el logro **Fin de la emisión**. Su estatua aparece en el museo del plano astral.
+- Música propia: jazz lento de madrugada para la cinemática y un jingle de anuncio retorcido para la pelea.
 
 ### Jefes con tiempo límite
 

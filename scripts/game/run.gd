@@ -108,6 +108,7 @@ func _ready() -> void:
 		var nm := ShaderMaterial.new()
 		nm.shader = NOIR_SHADER
 		holder.material = nm
+		_noir_mat = nm
 	var vp := SubViewport.new()
 	vp.snap_2d_transforms_to_pixel = true
 	vp.snap_2d_vertices_to_pixel = true
@@ -693,6 +694,17 @@ func _spawn_ufo() -> void:
 ## The last dream's cutscene: Kroker, leaning on a wall, muses on his journey like a film-noir
 ## detective; then the buildings blow up and Evil Ad arrives
 var cam_focus := Vector2.INF
+var _noir_mat: ShaderMaterial = null
+
+
+## La imagen se descuadra un momento (Evil Ad en delirio) / The picture glitches for a moment (Evil Ad delirious)
+func noir_glitch(secs := 0.3, power := 1.0) -> void:
+	if _noir_mat == null:
+		return
+	_noir_mat.set_shader_parameter("glitch", power)
+	var tw := create_tween()
+	tw.tween_interval(secs)
+	tw.tween_callback(_noir_mat.set_shader_parameter.bind("glitch", 0.0))
 
 
 func _noir_intro(depth: int) -> void:

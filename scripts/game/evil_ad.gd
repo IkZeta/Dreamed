@@ -155,6 +155,7 @@ func _go_delirious() -> void:
 	speed *= 1.35
 	run.shake(14.0)
 	run.flash_screen(Color("e0303a"), 0.35)
+	run.noir_glitch(0.8, 1.0)
 	Audio.play("glitch", -2.0)
 	Audio.play("boss_wake", -2.0)
 	run.fx.text(global_position + Vector2(0, -ALT - 330), tr("EVIL_AD_DELIRIUM"), RED, 34)
@@ -202,6 +203,9 @@ func _physics_process(delta: float) -> void:
 		"break": _break(delta)
 		"sponsor": _sponsor(delta, k)
 	_tick_zap(delta)
+	# En delirio, la imagen se descuadra de vez en cuando / When delirious, the picture glitches now and then
+	if _delirium and randf() < delta * 0.7:
+		run.noir_glitch(randf_range(0.12, 0.35), randf_range(0.5, 1.0))
 	if is_dangerous():
 		_touch_player()
 	queue_redraw()

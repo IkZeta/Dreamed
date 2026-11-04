@@ -82,6 +82,7 @@ func _next() -> void:
 	if _i >= _lines.size() or _skipped:
 		var tw := create_tween()
 		tw.tween_property(_box, "modulate:a", 0.0, 0.3)
+		tw.parallel().tween_property(_hint, "modulate:a", 0.0, 0.3)
 		tw.tween_callback(func() -> void:
 			_box.visible = false
 			finished.emit())
