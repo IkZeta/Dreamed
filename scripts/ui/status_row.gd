@@ -89,7 +89,10 @@ func _draw() -> void:
 		var k: float = c["k"]
 		if k < 1.0:
 			draw_arc(center, CHIP * 0.42, -PI / 2.0, -PI / 2.0 + TAU * k, 24, Color(col, 0.5), 3.0)
-		_icon(id, center, col)
+		# El icono en pixel art (16 píxeles, al doble) / The pixel-art icon (16 pixels, doubled)
+		draw_set_transform(center, 0.0, Vector2(0.8, 0.8))
+		Sprites.draw(self, "status_" + id)
+		draw_set_transform(Vector2.ZERO)
 		if c["label"] != "":
 			var f := UITheme.font("caps")
 			draw_string(f, Vector2(r.position.x, r.end.y + 14), String(c["label"]).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, CHIP, 12, col)

@@ -3192,6 +3192,8 @@ def build():
     import hub_props
     hub_props.build(sys.modules[__name__])
     hub_props.dummy(sys.modules[__name__])
+    import ui_icons
+    ui_icons.build(sys.modules[__name__])
 
 
 def pixelize(img, tw, th, colors, ghost):

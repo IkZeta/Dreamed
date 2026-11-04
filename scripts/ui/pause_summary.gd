@@ -41,8 +41,22 @@ func _build(player: Player) -> void:
 	if s.reality_on():
 		rows.append(["REALITY_NAME", "%d ◆" % s.reality])
 	for r in rows:
+		# Cada estadística con su icono / Each stat with its icon
+		var cell := HBoxContainer.new()
+		cell.add_theme_constant_override("separation", 8)
+		var ic := TextureRect.new()
+		ic.custom_minimum_size = Vector2(32, 32)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var stat_id := String(r[0]).trim_prefix("STAT_NAME_").to_lower()
+		if stat_id in GameState.STATS:
+			ic.texture = load("res://assets/sprites/icon_%s.png" % stat_id)
+		cell.add_child(ic)
 		var name_l := UITheme.label(r[0], 24, UITheme.ASH, "body")
-		grid.add_child(name_l)
+		name_l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		cell.add_child(name_l)
+		grid.add_child(cell)
 		var val := UITheme.label(r[1], 24, UITheme.BONE, "body")
 		val.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		grid.add_child(val)

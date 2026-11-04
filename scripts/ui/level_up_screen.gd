@@ -120,8 +120,9 @@ func _card(choice: Dictionary, index: int) -> Control:
 	var icon := RarityStar.new()
 	icon.color = color
 	icon.rarity = r
+	icon.stat = id
 	var icon_px := PixelView.wrap(icon, 3)
-	icon_px.custom_minimum_size = Vector2(0, 110)
+	icon_px.custom_minimum_size = Vector2(0, 150)
 	v.add_child(icon_px)
 	var name_l := UITheme.label("STAT_NAME_" + id.to_upper(), 32, UITheme.BONE, "display")
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -161,10 +162,12 @@ func _pick(index: int) -> void:
 	queue_free()
 
 
-## Estrella que brilla más cuanto más rara es la mejora / Star that shines brighter the rarer the upgrade
+## El icono de la estadística, con un resplandor y unos destellos que crecen con la rareza
+## The stat's icon, with a glow and sparkles that grow with the rarity
 class RarityStar extends Control:
 	var color := Color.WHITE
 	var rarity := 0
+	var stat := ""
 	var _t := 0.0
 
 	func _ready() -> void:
@@ -182,10 +185,14 @@ class RarityStar extends Control:
 		for i in rarity * 2:
 			var a := _t * 0.8 + i * TAU / maxf(1.0, rarity * 2.0)
 			DreamBackground.draw_star(self, c + Vector2(cos(a) * 46.0, sin(a) * 30.0), 2.5, Color(color, 0.8))
-		var pts := PackedVector2Array()
-		var r := 26.0 + rarity * 3.0
-		for i in 10:
-			var a := -PI / 2.0 + i * PI / 5.0 + sin(_t) * 0.05
-			pts.append(c + Vector2(cos(a), sin(a)) * (r if i % 2 == 0 else r * 0.45))
-		draw_colored_polygon(pts, color)
-		draw_circle(c, 4.0, Color(1, 1, 1, 0.8))
+		# Peana de la rareza y el icono encima, flotando / Rarity plinth with the icon floating on top
+		var bob := roundf(sin(_t * 2.0) * 1.5)
+		var base := c + Vector2(0, 19)
+		draw_colored_polygon(PackedVector2Array([base + Vector2(-16, 0), base + Vector2(16, 0), base + Vector2(12, 4), base + Vector2(-12, 4)]), Color(color, 0.55))
+		draw_rect(Rect2(base + Vector2(-16, -1), Vector2(32, 2)), color)
+		for i in rarity + 1:
+			draw_rect(Rect2(base + Vector2(-((rarity + 1) * 4 - 1) / 2.0 + i * 4.0, 6), Vector2(2, 2)), color)
+		if stat != "" and SpriteRects.RECTS.has("icon_" + stat):
+			Sprites.draw(self, "icon_" + stat, Color.WHITE, c + Vector2(0, bob - 4))
+		else:
+			DreamBackground.draw_star(self, c, 12.0, color)

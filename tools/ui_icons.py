@@ -1,0 +1,143 @@
+"""Iconos de la interfaz en pixel art plano, con el mismo sombreado duro que el resto del juego:
+uno por estadística (para las cartas de subir de nivel y la pausa) y uno por estado alterado
+(para la fila de estados bajo la vida). Cada icono se dibuja en un cuadro de 32 x 32 centrado en
+(0, 0); las estadísticas salen a 32 píxeles y los estados a 16.
+UI icons in flat pixel art, with the same hard shading as the rest of the game: one per stat (for
+the level-up cards and the pause screen) and one per status effect (for the status row under the
+health bar). Each icon is drawn in a 32 x 32 box centred on (0, 0); stats render at 32 pixels and
+statuses at 16.
+
+Lo llama tools/make_sprites.py / Called by tools/make_sprites.py
+"""
+
+OUTLINE = "#140e26"
+
+
+def build(ms):
+    mix, light, dark, ellipse_d, star_d = ms.mix, ms.light, ms.dark, ms.ellipse_d, ms.star_d
+
+    def hs(d, base, sh=0.4, rim=0.5):
+        """Forma con sombra dura abajo a la derecha y filo de luz arriba a la izquierda
+        Shape with a hard shadow bottom-right and a light edge top-left"""
+        i = ms.uid()
+        return ("<defs><clipPath id='c%s'><path d='%s'/></clipPath></defs><path d='%s' fill='%s'/>"
+                "<g clip-path='url(#c%s)'><path d='%s%s' transform='translate(-2,-2)' fill-rule='evenodd' fill='%s'/>"
+                "<path d='%s%s' transform='translate(1.4,1.4)' fill-rule='evenodd' fill='%s'/></g>") % (
+            i, d, d, base, i, ms.BIG, d, mix(base, dark(base, 0.6), sh), ms.BIG, d, mix(base, "#fbf8ff", rim * 0.6))
+
+    def F(d, c):
+        return "<path d='%s' fill='%s'/>" % (d, c)
+
+    def P(pts):
+        return "M" + " L".join("%g,%g" % p for p in pts) + " Z"
+
+    def E(cx, cy, rx, ry):
+        return ellipse_d(cx, cy, rx, ry)
+
+    def icon(name, body, px):
+        ms.add(name, -16, -16, 32, 32, body, px=px, flat=True, outline=OUTLINE)
+
+    STEEL, STEEL_D = "#d8dcf0", "#8a90b8"
+    GOLD, GOLD_D = "#f6c95a", "#b8862a"
+    PINK, RED, RED_D = "#ff8fb0", "#e8455a", "#a82a44"
+    WHITE = "#fbf8ff"
+    GREEN, GREEN_D = "#7fdc6a", "#3f9a4a"
+    BLUE, BLUE_D = "#7fb8ff", "#3f6ac8"
+    BROWN = "#8a5a3e"
+    PURPLE = "#b48cff"
+
+    icons = {}
+
+    # Ataque: espada en diagonal / Attack: a diagonal sword
+    b = hs(P([(-11, 11), (-14, 8), (8, -14), (13, -13), (11, -8)]), STEEL)
+    b += F(P([(-9, 9), (8, -8), (9, -9), (-8, 8)]), WHITE)
+    b += hs(P([(-12, 2), (-2, 12), (0, 10), (-10, 0)]), GOLD)
+    b += hs(P([(-13, 9), (-9, 13), (-12, 16), (-16, 12)]), BROWN, rim=0.2)
+    b += hs(E(-15, 15, 2.5, 2.5), GOLD)
+    icons["attack"] = b
+
+    # Defensa: escudo con una luna / Defence: a shield with a moon
+    d = "M0,-14 L12,-10 L12,0 Q12,10 0,15 Q-12,10 -12,0 L-12,-10 Z"
+    b = hs(d, BLUE)
+    b += hs("M0,-10 L8,-7 L8,0 Q8,7 0,11 Q-8,7 -8,0 L-8,-7 Z", BLUE_D, sh=0.2, rim=0.2)
+    b += hs(star_d(0, 0, 7, 0.45), GOLD, rim=0.3)
+    icons["defense"] = b
+
+    # Velocidad: zapatilla con ala / Speed: a winged sneaker
+    b = ""
+    for y, x0 in ((-6, -15), (0, -16), (6, -15)):
+        b += F(P([(x0, y - 1), (x0 + 6, y - 1), (x0 + 6, y + 1), (x0, y + 1)]), BLUE)
+    b += hs("M-8,-4 L-2,-8 L4,-4 Q12,0 14,4 L14,8 L-10,8 Z", PINK)
+    b += F(P([(-10, 8), (14, 8), (14, 11), (-10, 11)]), WHITE)
+    b += F(P([(-2, -2), (4, -1), (3, 1), (-3, 0)]), WHITE)
+    b += F(P([(2, 1), (8, 2), (7, 4), (1, 3)]), WHITE)
+    icons["speed"] = b
+
+    # Velocidad de ataque: cronómetro con un rayo / Attack speed: a stopwatch with a lightning bolt
+    b = hs(E(0, 2, 12, 12), STEEL)
+    b += hs(E(0, 2, 9, 9), WHITE, sh=0.15, rim=0.0)
+    b += hs(P([(-3, -14), (3, -14), (3, -10), (-3, -10)]), GOLD)
+    b += hs(P([(8, -10), (12, -6), (10, -4), (6, -8)]), STEEL_D)
+    b += F(P([(2, -6), (-4, 3), (0, 3), (-2, 10), (5, 0), (1, 0)]), GOLD)
+    icons["attack_speed"] = b
+
+    # Alcance: diana con una flecha clavada / Range: a target with an arrow stuck in it
+    b = hs(E(-2, 2, 12, 12), WHITE)
+    b += F(E(-2, 2, 9, 9), RED)
+    b += F(E(-2, 2, 6, 6), WHITE)
+    b += F(E(-2, 2, 3, 3), RED)
+    b += F(P([(-2, 1), (12, -13), (13, -12), (-1, 2)]), BROWN)
+    b += hs(P([(10, -15), (15, -15), (15, -10), (13, -12), (11, -13)]), PURPLE)
+    icons["range"] = b
+
+    # Recuperación de salud: corazón con una cruz / Health regeneration: a heart with a cross
+    heart = "M0,13 L-12,1 Q-15,-3 -13,-8 Q-10,-13 -5,-12 Q-2,-11 0,-8 Q2,-11 5,-12 Q10,-13 13,-8 Q15,-3 12,1 Z"
+    b = hs(heart, PINK)
+    b += F(P([(-2, -6), (2, -6), (2, -2), (6, -2), (6, 2), (2, 2), (2, 6), (-2, 6), (-2, 2), (-6, 2), (-6, -2), (-2, -2)]), WHITE)
+    icons["regen"] = b
+
+    # Robo de salud: colmillo y gota / Life steal: a fang and a drop
+    # (corazón con dos colmillos que lo muerden y gotean / a heart bitten by two dripping fangs)
+    b = hs("M0,14 L-12,2 Q-15,-2 -13,-7 Q-10,-12 -5,-11 Q-2,-10 0,-7 Q2,-10 5,-11 Q10,-12 13,-7 Q15,-2 12,2 Z", RED)
+    b += hs(P([(-8, -16), (-3, -16), (-5.5, -5)]), WHITE, rim=0.2)
+    b += hs(P([(3, -16), (8, -16), (5.5, -5)]), WHITE, rim=0.2)
+    b += F("M-5.5,-4 Q-3.5,-1 -5.5,1 Q-7.5,-1 -5.5,-4 Z", WHITE)
+    b += F("M5.5,-4 Q7.5,-1 5.5,1 Q3.5,-1 5.5,-4 Z", WHITE)
+    icons["lifesteal"] = b
+
+    # Suerte: trébol de cuatro hojas / Luck: a four-leaf clover
+    b = F("M0,0 Q4,10 2,16 L0,16 Q2,10 -1,1 Z", GREEN_D)
+    for ang in (0, 90, 180, 270):
+        b += "<g transform='rotate(%d)'>%s</g>" % (ang, hs("M0,0 Q-2,-6 -7,-9 Q-10,-11 -10,-7 Q-12,-3 -7,-2 Q-3,-1 0,0 Z", GREEN))
+    b += F(E(0, 0, 2, 2), GREEN_D)
+    icons["luck"] = b
+
+    # Parry: chasquido de dedos con destello / Parry: a finger snap with a flash
+    b = hs("M-8,14 L-12,2 Q-13,-4 -8,-6 L-4,-7 L-6,-14 Q-4,-16 -2,-14 L1,-6 L6,-6 Q10,-5 9,0 L6,8 L2,14 Z", "#f2c4a8")
+    b += F(P([(-4, -7), (1, -6), (0, -3), (-4, -4)]), "#d8a488")
+    b += F(star_d(9, -10, 7, 0.4), GOLD)
+    b += F(star_d(9, -10, 3, 0.5), WHITE)
+    for x1, y1, x2, y2 in ((14, -2, 16, 0), (2, -15, 1, -16), (15, -15, 16, -16)):
+        b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='1.6'/>" % (x1, y1, x2, y2, GOLD)
+    icons["parry"] = b
+
+    for k, body in icons.items():
+        icon("icon_" + k, body, 1.0)
+
+    # --- Estados alterados / Status effects ---
+    st = {}
+    st["bleed"] = hs("M0,-14 Q10,0 9,6 Q8,14 0,14 Q-8,14 -9,6 Q-10,0 0,-14 Z", RED) + F(E(-4, 4, 2.5, 3.5), WHITE)
+    st["rooted"] = (hs(P([(4, -15), (-9, 2), (-1, 2), (-5, 15), (10, -3), (2, -3)]), "#f6d24a"))
+    st["slow"] = (hs("M-14,10 Q-14,4 -8,4 L6,4 Q8,4 10,8 L14,10 Z", "#bfe0ff")
+                  + hs(E(2, -2, 8, 8), BLUE) + hs(E(2, -2, 4, 4), BLUE_D, rim=0.1)
+                  + "<path d='M-10,4 L-13,-6 M-7,4 L-8,-7' stroke='#bfe0ff' stroke-width='2'/>")
+    st["stench"] = (hs("M-12,8 Q-15,2 -9,-1 Q-9,-8 -2,-8 Q3,-13 8,-7 Q15,-6 13,2 Q15,9 8,10 L-8,11 Q-12,11 -12,8 Z", "#8fd14f")
+                    + "<path d='M-6,-11 Q-8,-14 -5,-16 M2,-13 Q0,-16 3,-17' fill='none' stroke='#8fd14f' stroke-width='2'/>"
+                    + F(E(-4, 2, 2, 2), "#3f6a2a") + F(E(4, 2, 2, 2), "#3f6a2a"))
+    st["hack"] = (hs(P([(-13, -10), (13, -10), (13, 8), (-13, 8)]), "#2a2440", sh=0.1, rim=0.2)
+                  + F(P([(-10, -7), (10, -7), (10, 5), (-10, 5)]), "#ff5fd2")
+                  + F(P([(-7, -4), (-3, -4), (-3, -1), (-7, -1)]), "#2a2440") + F(P([(3, -4), (7, -4), (7, -1), (3, -1)]), "#2a2440")
+                  + F(P([(-6, 2), (6, 2), (6, 3), (-6, 3)]), "#2a2440")
+                  + F(P([(-4, 8), (4, 8), (6, 13), (-6, 13)]), "#2a2440") + F(P([(-14, -3), (-10, -3), (-10, -1), (-14, -1)]), "#5ff2ff"))
+    for k, body in st.items():
+        icon("status_" + k, body, 0.5)
