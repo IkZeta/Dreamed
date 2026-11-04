@@ -243,9 +243,7 @@ func _choose(giver: String) -> void:
 	GameState.dream_depth += 1
 	# Suena su leitmotiv, claro: la música baja un momento para dejarle sitio
 	# Their leitmotif plays, clearly: the music dips for a moment to make room for it
-	Audio.fade_music(-20.0, 0.25)
-	Audio.play("giver_" + giver, 1.0)
-	get_tree().create_timer(2.6).timeout.connect(Audio.fade_music.bind(-6.0, 1.2))
+	Audio.leitmotif(giver)
 	get_tree().create_timer(1.6).timeout.connect(Audio.play.bind("astral", -10.0))
 	for b in _buttons:
 		b.disabled = true

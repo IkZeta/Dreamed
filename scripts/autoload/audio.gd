@@ -108,6 +108,25 @@ func play_music(song: String, fade := 1.5, volume_db := -6.0) -> void:
 	tw.chain().tween_callback(old.stop)
 
 
+## El leitmotiv de un personaje, bien claro: la música baja un momento y luego vuelve a donde estaba
+## A character's leitmotif, nice and clear: the music dips for a moment and then returns to where it was
+func leitmotif(who: String, volume_db := 1.0) -> void:
+	var player := _music[_music_idx]
+	if _duck_tw == null or not _duck_tw.is_valid():
+		_duck_back = player.volume_db
+	if _duck_tw and _duck_tw.is_valid():
+		_duck_tw.kill()
+	play("giver_" + who, volume_db)
+	_duck_tw = create_tween()
+	_duck_tw.tween_property(player, "volume_db", minf(_duck_back, -20.0), 0.25)
+	_duck_tw.tween_interval(2.4)
+	_duck_tw.tween_property(player, "volume_db", _duck_back, 1.2)
+
+
+var _duck_tw: Tween
+var _duck_back := -6.0
+
+
 func fade_music(volume_db: float, time := 1.0) -> void:
 	create_tween().tween_property(_music[_music_idx], "volume_db", volume_db, time)
 

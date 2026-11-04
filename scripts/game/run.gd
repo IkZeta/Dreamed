@@ -392,7 +392,7 @@ func _spawn_charo(kiosk: bool) -> CharoNpc:
 func _charo_welcome(then: Callable) -> void:
 	var charo := _spawn_charo(false)
 	get_tree().create_timer(0.9, false).timeout.connect(func() -> void:
-		Audio.play("giver_charo", -4.0)
+		Audio.leitmotif("charo")
 		var lines: Array[String] = []
 		for i in 8:
 			lines.append("CHARO_WELCOME_%d" % (i + 1))

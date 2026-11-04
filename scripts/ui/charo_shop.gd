@@ -133,7 +133,7 @@ func build() -> void:
 
 	root.modulate.a = 0.0
 	create_tween().tween_property(root, "modulate:a", 1.0, 0.3)
-	Audio.play("giver_charo", -3.0)
+	Audio.leitmotif("charo")
 	_focus_first()
 
 
