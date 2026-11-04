@@ -61,8 +61,19 @@ static var _reload := 0.0
 ##  aim (Vector2 dirección de la aspiradora), sucking (bool), walk (fase del paso en radianes),
 ##  moving (0..1 cuánto camina), stretch (0..1 estirarse), lean (inclinación en radianes),
 ##  glasses (bool gafas puestas), armed (bool lleva el arma), yawn (0..1 bostezo)
+static var hires := false
+
+
+## La pieza con más resolución si se pide y existe / The higher-resolution part if asked for and available
+static func _sp(name: String) -> String:
+	return "hk_" + name if hires and SpriteRects.RECTS.has("hk_" + name) else name
+
+
 static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts := {}) -> void:
 	_ci = ci
+	# "hires": piezas con el doble de resolución, para cuando se ve en grande junto a otros personajes
+	# "hires": parts at twice the resolution, for when he's shown large next to other characters
+	hires = opts.get("hires", false)
 	_local = Transform2D.IDENTITY
 	var facing: float = opts.get("facing", 1.0)
 	var flash: float = opts.get("flash", 0.0)
@@ -134,19 +145,19 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var boots: bool = opts.get("boots", outfit == "boots")
 	var thrust: float = opts.get("thrust", 0.0)
 	_limb(swing - 1.25 * float(opts.get("kick_l", 0.0)), Vector2(87, 227))
-	Sprites.draw(ci, "kroker_leg_l_" + o, mod)
+	Sprites.draw(ci, _sp("kroker_leg_l_" + o), mod)
 	if boots:
 		_boot("l", t, thrust, mod)
 	_limb(-swing - 1.25 * float(opts.get("kick_r", 0.0)), Vector2(113, 227))
-	Sprites.draw(ci, "kroker_leg_r_" + o, mod)
+	Sprites.draw(ci, _sp("kroker_leg_r_" + o), mod)
 	if boots:
 		_boot("r", t, thrust, mod)
 
 	# Brazos (detrás del torso) / Arms (behind the torso)
 	_limb(arm_l, SH_L)
-	Sprites.draw(ci, "kroker_arm_l_" + o, mod)
+	Sprites.draw(ci, _sp("kroker_arm_l_" + o), mod)
 	_limb(arm_r, SH_R)
-	Sprites.draw(ci, "kroker_arm_r_" + o, mod)
+	Sprites.draw(ci, _sp("kroker_arm_r_" + o), mod)
 	_use(Transform2D.IDENTITY)
 
 	# En la mano izquierda, todo menos la almohada y el oso va por detrás del cuerpo
@@ -163,7 +174,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 		_use(Transform2D.IDENTITY)
 
 	# Pijama / Pajamas
-	Sprites.draw(ci, "kroker_torso_" + o, mod)
+	Sprites.draw(ci, _sp("kroker_torso_" + o), mod)
 
 	# Cabeza (se inclina un poco al estirarse) / Head (tilts back when stretching)
 	_use(Transform2D(-0.12 * stretch, Vector2(100, 170)) * Transform2D(0.0, Vector2(-100, -170)))
@@ -274,7 +285,7 @@ static func _head(t: float, glasses: bool, yawn: float, mod: Color) -> void:
 		face = "_yawn"
 	elif fposmod(t, 3.7) < 0.13 or yawn > 0.5:
 		face = "_blink"   # parpadea de vez en cuando / blinks now and then
-	Sprites.draw(_ci, "kroker_head" + face + ("_g" if glasses else ""), mod)
+	Sprites.draw(_ci, _sp("kroker_head" + face + ("_g" if glasses else "")), mod)
 
 
 ## Gafas de sol de Lil Key encima de las suyas: cristales negros con un brillo rosa y cian
@@ -332,14 +343,14 @@ static func _bat(t: float, attack: float, hand: Vector2, arm: float, mod: Color,
 	# En la izquierda descansa inclinado hacia atrás y golpea hacia delante / In the left hand it rests tilted back and swings forward
 	var rot := (-0.5 + attack * 1.4 + arm * 0.3) if left else (0.55 - attack * 2.2 + arm * 0.5)
 	_use(Transform2D(rot + sin(t * 1.6) * 0.03, hand + Vector2(2, 2)))
-	Sprites.draw(_ci, "weapon_bat", mod)
+	Sprites.draw(_ci, _sp("weapon_bat"), mod)
 	_use(Transform2D.IDENTITY)
 
 
 static func _pillow(t: float, attack: float, hand: Vector2, mod: Color) -> void:
 	# La sujeta con la mano izquierda y la empuja al atacar / Held in the left hand, shoved forward on attack
 	_use(Transform2D(-0.12 + sin(t * 1.2) * 0.03 + attack * 0.25, hand + Vector2(-8 + attack * 18.0, -26)))
-	Sprites.draw(_ci, "weapon_pillow", mod)
+	Sprites.draw(_ci, _sp("weapon_pillow"), mod)
 	_use(Transform2D.IDENTITY)
 
 
@@ -348,7 +359,7 @@ static func _book(t: float, cast: float, hand: Vector2, mod: Color) -> void:
 	_use(Transform2D(-0.12 - cast * 0.3, hand + Vector2(20, -26 + y)))
 	var glow := 50.0 + cast * 40.0
 	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(-glow, -glow - 6, glow * 2, glow * 2), false, Color(UITheme.GOLD, 0.35 + cast * 0.4))
-	Sprites.draw(_ci, "weapon_book", mod)
+	Sprites.draw(_ci, _sp("weapon_book"), mod)
 	# Chispas eléctricas / Electric sparks
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(t * 8.0)
@@ -374,7 +385,7 @@ static func finger_gun(ci: CanvasItem, base: Transform2D, hand: Vector2, dir: Ve
 	var flip := -1.0 if dir.x < 0.0 else 1.0
 	var local := Transform2D(dir.angle(), Vector2(scale, scale * flip), 0.0, hand)
 	ci.draw_set_transform_matrix(base * local)
-	Sprites.draw(ci, sprite)
+	Sprites.draw(ci, _sp(sprite))
 	if cast > 0.4:
 		var k := (cast - 0.4) / 0.6
 		ci.draw_circle(FINGER_TIP + Vector2(4, 0), 7.0 * k, Color(ACCENT["finger"], 0.8 * k))
@@ -409,7 +420,7 @@ static func _laptop(t: float, cast: float, hand: Vector2, mod: Color) -> void:
 	_use(Transform2D(-0.08 - cast * 0.15, hand + Vector2(14, -4)))
 	var glow := 26.0 + cast * 30.0
 	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(-glow, -16 - glow, glow * 2, glow * 2), false, Color(ACCENT["laptop"], 0.18 + cast * 0.4))
-	Sprites.draw(_ci, "weapon_laptop", mod)
+	Sprites.draw(_ci, _sp("weapon_laptop"), mod)
 	# Líneas de código que van subiendo / Lines of code scrolling up
 	for i in 4:
 		var y := -8.0 - fposmod(t * 18.0 + i * 6.0, 24.0)
@@ -420,7 +431,7 @@ static func _laptop(t: float, cast: float, hand: Vector2, mod: Color) -> void:
 ## Bota steampunk sobre el pie (en el giro de la pierna); el motor del talón echa llamas al patear
 ## Steampunk boot on the foot (in the leg's rotation); the heel engine blows flames when kicking
 static func _boot(side: String, t: float, thrust: float, mod: Color) -> void:
-	Sprites.draw(_ci, "weapon_boot_" + side, mod)
+	Sprites.draw(_ci, _sp("weapon_boot_" + side), mod)
 	var cx := 87.5 if side == "l" else 112.5
 	var heel := Vector2(cx - 23, 286)
 	var puff := 0.25 + 0.15 * sin(t * 9.0 + cx)
@@ -440,7 +451,7 @@ static func _boot(side: String, t: float, thrust: float, mod: Color) -> void:
 ## The boots' remote in the hand, with its antenna and blinking light
 static func _remote(t: float, a: float, hand: Vector2, mod: Color) -> void:
 	_use(Transform2D(-0.15 - a * 0.2, hand + Vector2(4, -2)))
-	Sprites.draw(_ci, "weapon_remote", mod)
+	Sprites.draw(_ci, _sp("weapon_remote"), mod)
 	if fmod(t, 0.8) < 0.4 or a > 0.3:
 		_ci.draw_rect(Rect2(-2, -30, 4, 4), Color("ff5a3a"))
 	_use(Transform2D.IDENTITY)
@@ -450,19 +461,19 @@ static func _remote(t: float, a: float, hand: Vector2, mod: Color) -> void:
 static func _ball(t: float, attack: float, hand: Vector2, mod: Color) -> void:
 	var y := absf(sin(t * 3.0)) * -5.0
 	_use(Transform2D(t * 0.6 + attack, hand + Vector2(16 + attack * 14.0, 10 + y)))
-	Sprites.draw(_ci, "weapon_ball", mod)
+	Sprites.draw(_ci, _sp("weapon_ball"), mod)
 	_use(Transform2D.IDENTITY)
 
 
 ## El osito en la mano izquierda; al atacar lo estira hacia delante / The teddy in the left hand; pushed forward to attack
 static func _teddy(t: float, attack: float, hand: Vector2, mod: Color) -> void:
 	_use(Transform2D(-0.1 + sin(t * 1.3) * 0.05 + attack * 0.3, hand + Vector2(-4 + attack * 14.0, -14)))
-	Sprites.draw(_ci, "weapon_teddy", mod)
+	Sprites.draw(_ci, _sp("weapon_teddy"), mod)
 	_use(Transform2D.IDENTITY)
 
 
 static func _vacuum_tank(t: float, mod: Color) -> void:
-	Sprites.draw(_ci, "weapon_tank", mod)
+	Sprites.draw(_ci, _sp("weapon_tank"), mod)
 	# La ventanita brilla con lo que ha tragado / The little window glows with what it swallowed
 	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(148, 244) - Vector2(16, 18), Vector2(32, 36)), false,
 		Color(ACCENT["vacuum"], 0.3 + 0.2 * sin(t * 4.0)))
@@ -484,7 +495,7 @@ static func _vacuum_nozzle(t: float, aim: Vector2, sucking: bool, hand: Vector2,
 	_ci.draw_line(hand, tip, Color("8f8ab3"), 6.0, true)
 	_ci.draw_line(hand, tip, Color("cfcaea"), 3.5, true)
 	_use(Transform2D(dir.angle(), tip))
-	Sprites.draw(_ci, "weapon_nozzle", mod)
+	Sprites.draw(_ci, _sp("weapon_nozzle"), mod)
 	if sucking:
 		for i in 3:
 			var r := fposmod(t * 40.0 + i * 10.0, 30.0)

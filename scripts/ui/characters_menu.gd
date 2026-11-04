@@ -239,7 +239,7 @@ class CharacterPreview extends Control:
 				if GameState.weapon_unlocked(o):
 					outfits.append(o)
 			var outfit := outfits[int(_t / 2.5) % outfits.size()]
-			KrokerArt.draw(self, xf, outfit, _t, {"lean": sin(_t * 0.9) * 0.04})
+			KrokerArt.draw(self, xf, outfit, _t, {"lean": sin(_t * 0.9) * 0.04, "hires": true})
 		else:
 			NpcArt.draw(self, xf, id, _t)
 

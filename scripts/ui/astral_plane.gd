@@ -100,7 +100,7 @@ func _build() -> void:
 			# Kroker flota en medio, esperando / Kroker floats in the middle, waiting
 			var k := FloatingKroker.new()
 			k.outfit = weapon
-			var k_px := PixelView.wrap(k, 5)
+			var k_px := PixelView.wrap(k, 3)
 			k_px.custom_minimum_size = Vector2(260, 0)
 			row.add_child(k_px)
 
@@ -608,7 +608,7 @@ class FloatingKroker extends Control:
 		for i in 3:
 			var a := _t * 0.8 + i * TAU / 3.0
 			DreamBackground.draw_star(self, Vector2(size.x / 2.0, y) + Vector2(cos(a) * 90.0, sin(a) * 30.0), 2.5, Color(UITheme.GOLD, 0.8))
-		KrokerArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin), outfit, _t, {"lean": sin(_t * 0.9) * 0.05})
+		KrokerArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin), outfit, _t, {"lean": sin(_t * 0.9) * 0.05, "hires": true})
 
 
 ## Cielo del plano astral: violeta y turquesa, cintas de nebulosa y fragmentos flotando

@@ -209,21 +209,27 @@ XF_ARM = (1, 0.65, 0, 106 + DROP - 0.65 * 106)
 XF_LEG = (1, 0.52, 0, 288 - 0.52 * 288)
 
 
-def face_painter(eyes, mouth, glasses):
-    """Pinta la cara píxel a píxel para que se lea a tamaño pequeño.
-    Paints the face pixel by pixel so it reads at a small size."""
+def face_painter(eyes, mouth, glasses, k=1):
+    """Pinta la cara píxel a píxel para que se lea a tamaño pequeño. "k" = tamaño de cada píxel
+    (2 en las piezas con el doble de resolución).
+    Paints the face pixel by pixel so it reads at a small size. "k" = size of each pixel (2 on
+    the double-resolution parts)."""
     def paint(img, to_px):
         pix = img.load()
         w, h = img.size
 
         def put(x, y, c):
-            if 0 <= x < w and 0 <= y < h:
-                pix[x, y] = c
+            # (x, y) en píxeles "gordos" alrededor de un centro ya en píxeles reales
+            # (x, y) in "fat" pixels around a centre already in real pixels
+            for ox in range(k):
+                for oy in range(k):
+                    if 0 <= x + ox < w and 0 <= y + oy < h:
+                        pix[x + ox, y + oy] = c
         dark_c = (42, 34, 56, 255)
         frame = (43, 41, 69, 255)
         for cx in (90, 110):
             ex, ey = to_px(cx, 67)
-            ex, ey = int(round(ex - 0.5)), int(round(ey - 0.5))
+            ex, ey = int(round(ex - 0.5 * k)), int(round(ey - 0.5 * k))
             if glasses:
                 # Montura redonda de 5 x 4 con cristal claro / 5 x 4 round frame with a light lens
                 for gx in range(-2, 3):
@@ -233,29 +239,28 @@ def face_painter(eyes, mouth, glasses):
                         if corner:
                             continue
                         if edge:
-                            put(ex + gx, ey + gy, frame)
+                            put(ex + gx * k, ey + gy * k, frame)
                         else:
-                            r, g, b, a = pix[ex + gx, ey + gy]
                             pass  # el cristal deja ver la piel / the lens shows the skin
             if eyes == "open":
-                put(ex, ey - 1, dark_c)
+                put(ex, ey - k, dark_c)
                 put(ex, ey, dark_c)
             else:
-                put(ex - 1, ey, dark_c)
+                put(ex - k, ey, dark_c)
                 put(ex, ey, dark_c)
-                put(ex + 1, ey, dark_c)
+                put(ex + k, ey, dark_c)
         if glasses:
             bx, by = to_px(100, 66)
-            put(int(round(bx - 0.5)), int(round(by - 1.5)), frame)
+            put(int(round(bx - 0.5 * k)), int(round(by - 1.5 * k)), frame)
         mx, my = to_px(100, 82)
-        mx, my = int(round(mx - 0.5)), int(round(my - 0.5))
+        mx, my = int(round(mx - 0.5 * k)), int(round(my - 0.5 * k))
         if mouth == "smile":
-            put(mx - 1, my, (154, 90, 108, 255))
+            put(mx - k, my, (154, 90, 108, 255))
             put(mx, my + 0, (154, 90, 108, 255))
         else:
             for dx in (-1, 0):
                 for dy in (0, 1):
-                    put(mx + dx, my + dy, (110, 52, 74, 255))
+                    put(mx + dx * k, my + dy * k, (110, 52, 74, 255))
     return paint
 
 
@@ -410,6 +415,8 @@ def kroker_head():
     for suffix, e, m in (("", "open", "smile"), ("_blink", "closed", "smile"), ("_yawn", "closed", "yawn")):
         add("kroker_head" + suffix, 64, 18, 72, 78, head, XF_HEAD, PX_KROKER, 14, post=face_painter(e, m, False), flat=True)
         add("kroker_head" + suffix + "_g", 64, 18, 72, 78, head, XF_HEAD, PX_KROKER, 14, post=face_painter(e, m, True), flat=True)
+        SPRITES["kroker_head" + suffix]["face"] = (e, m, False)
+        SPRITES["kroker_head" + suffix + "_g"]["face"] = (e, m, True)
 
 
 
@@ -3197,6 +3204,7 @@ def build():
     ui_icons.wares(sys.modules[__name__])
     ui_icons.fx(sys.modules[__name__])
     ui_icons.weapon_icons(sys.modules[__name__])
+    ui_icons.kroker_hires(sys.modules[__name__])
 
 
 def pixelize(img, tw, th, colors, ghost):

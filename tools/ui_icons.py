@@ -289,3 +289,16 @@ def weapon_icons(ms):
         sp = dict(ms.SPRITES[name])
         ms.add("wicon_" + name[len("weapon_"):], sp["x"], sp["y"], sp["w"], sp["h"], sp["body"], xf=sp["xf"], px=px,
                colors=sp["colors"], ghost=sp["ghost"], post=None, flat=sp["flat"], outline=sp["outline"])
+
+
+def kroker_hires(ms):
+    """Kroker y sus armas con el doble de resolución ("hk_"), para el plano astral, donde sale al
+    lado de los personajes (que tienen más detalle) / Kroker and his weapons at twice the resolution
+    ("hk_"), for the astral plane, where he stands next to the characters (who have more detail)"""
+    for name in list(ms.SPRITES):
+        if name.startswith("kroker_") or name.startswith("weapon_"):
+            sp = ms.SPRITES[name]
+            # La cara va pintada a mano: al doble, con píxeles de 2 / The face is hand-painted: at double size, with 2-pixel dots
+            post = ms.face_painter(*sp["face"], k=2) if "face" in sp else sp["post"]
+            ms.add("hk_" + name, sp["x"], sp["y"], sp["w"], sp["h"], sp["body"], xf=sp["xf"], px=sp["px"] * 2.0,
+                   colors=sp["colors"], ghost=sp["ghost"], post=post, flat=sp["flat"], outline=sp["outline"])

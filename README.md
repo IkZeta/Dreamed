@@ -392,6 +392,8 @@ docs/screenshots/       capturas de este README
 
 ## Herramientas
 
+- **tools/ui_icons.py** (lo llama make_sprites.py): iconos de interfaz en pixel art con el mismo sombreado duro del resto del juego. Estadísticas (`icon_<stat>`, cartas de subir de nivel y pausa), estados alterados (`status_<id>`), artículos del kiosco (`ware_<id>`), piezas pequeñas del mundo (altavoz de Lil Key, claqueta de los actores, teles del anuncio, símbolos de élite), armas en grande para la pantalla de la segunda arma (`wicon_<arma>`) y Kroker con el doble de resolución (`hk_*`, en el plano astral, para que tenga el mismo detalle que los personajes; la cara se pinta con píxeles de 2).
+
 Todo el arte y el sonido se generan con los scripts de `tools/`:
 
 | Script | Qué genera | Necesita |
