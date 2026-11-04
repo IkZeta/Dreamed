@@ -47,7 +47,7 @@ func _ready() -> void:
 	tw.tween_callback(flash.queue_free)
 	# Cada personaje se presenta con su propio tema / Each character introduces itself with its own motif
 	for i in _offer.size():
-		get_tree().create_timer(0.5 + i * 1.1).timeout.connect(Audio.play.bind("giver_" + _offer[i], -4.0))
+		get_tree().create_timer(0.5 + i * 1.1).timeout.connect(Audio.play.bind("giver_" + _offer[i], -8.0))
 	if not _buttons.is_empty():
 		_buttons[0].grab_focus()
 
@@ -241,9 +241,12 @@ func _choose(giver: String) -> void:
 	else:
 		GameState.add_upgrade(giver, _target.get(giver, ""))
 	GameState.dream_depth += 1
-	Audio.play("giver_" + giver, -1.0)
-	Audio.play("pickup", -4.0)
-	Audio.play("astral", -2.0)
+	# Suena su leitmotiv, claro: la música baja un momento para dejarle sitio
+	# Their leitmotif plays, clearly: the music dips for a moment to make room for it
+	Audio.fade_music(-20.0, 0.25)
+	Audio.play("giver_" + giver, 1.0)
+	get_tree().create_timer(2.6).timeout.connect(Audio.fade_music.bind(-6.0, 1.2))
+	get_tree().create_timer(1.6).timeout.connect(Audio.play.bind("astral", -10.0))
 	for b in _buttons:
 		b.disabled = true
 	# Se van los demás y queda solo el elegido, que te habla

@@ -1032,11 +1032,14 @@ def sfx_pickup():
 
 
 def sfx_hover():
-    return glock(midi(81), 0.4, 0.15)
+    """Pasar por un botón: un toque de kalimba grave, corto y apagado (nada de agudos que piquen)
+    Hovering a button: a low, short, muffled kalimba touch (no piercing highs)."""
+    return lp(bar(midi(62), 0.25, 0.3, "kalimba", 0.1), 1800)
 
 
 def sfx_click():
-    return mix(glock(midi(76), 0.6, 0.25), np.pad(glock(midi(83), 0.6, 0.2), (int(SR * 0.04), 0)), thump(160, 0.06, 0.12, 20))
+    """Pulsar: dos notas de kalimba graves y suaves, sin brillo / Pressing: two low, soft kalimba notes, no shine."""
+    return lp(mix(bar(midi(62), 0.35, 0.3, "kalimba", 0.15), np.pad(bar(midi(69), 0.35, 0.22, "kalimba", 0.15), (int(SR * 0.05), 0))), 2200)
 
 
 def sfx_foox_die():
@@ -1073,7 +1076,7 @@ def sfx_chime():
 
 
 SFX = {"hit": (sfx_hit, 0.4, 0.1), "swing": (sfx_swing, 0.42, 0.1), "hurt": (sfx_hurt, 0.52, 0.12),
-       "pickup": (sfx_pickup, 0.4, 0.3), "ui_hover": (sfx_hover, 0.22, 0.12), "ui_click": (sfx_click, 0.32, 0.12),
+       "pickup": (sfx_pickup, 0.4, 0.3), "ui_hover": (sfx_hover, 0.16, 0.1), "ui_click": (sfx_click, 0.24, 0.1),
        "foox_die": (sfx_foox_die, 0.38, 0.3), "win": (sfx_win, 0.5, 0.35), "lose": (sfx_lose, 0.5, 0.35),
        "chime": (sfx_chime, 0.35, 0.25)}
 
