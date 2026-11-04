@@ -72,6 +72,12 @@ func _build(won: bool) -> void:
 		v.add_child(_text("[b]%s[/b] %s." % [tr("PAUSE_COMBOS") + ":", ", ".join(names)]))
 	v.add_child(_gap(8))
 
+	# Pegatinas nuevas para el álbum / New stickers for the album
+	if not s.new_stickers.is_empty():
+		var st_names := PackedStringArray()
+		for stk: Array in s.new_stickers:
+			st_names.append(StickerAlbum.sticker_name(stk[0], stk[1]))
+		v.add_child(_text("[b]%s[/b] %s." % [tr("DIARY_STICKERS"), ", ".join(st_names)]))
 	# Quien más le ayudó, con su frase / Whoever helped most, with their line
 	var best := _best_helper()
 	if best != "":

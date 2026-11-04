@@ -247,6 +247,7 @@ func _prompt_text(spot: Dictionary) -> String:
 		"npc": return Settings.controls_text(tr("HUB_TALK"))
 		"fountain": return Settings.controls_text(tr("HUB_DREAM"))
 		"training": return Settings.controls_text(tr("HUB_TRAIN"))
+		"album": return Settings.controls_text(tr("HUB_OPEN_ALBUM"))
 		"pajama":
 			if not GameState.weapon_unlocked(spot["id"]):
 				return ""
@@ -325,6 +326,9 @@ func _open(spot: Dictionary) -> void:
 		"training":
 			_go_training()
 			return
+		"album":
+			_open_album()
+			return
 	_talking = spot
 	_world.frozen = true
 	_box_hearts.visible = false
@@ -392,6 +396,16 @@ func _close_box() -> void:
 	_box_deco.visible = false
 	_typing = false
 	_world.frozen = false
+
+
+## El álbum de pegatinas del diario, en el atril del museo / The diary's sticker album, on the museum lectern
+func _open_album() -> void:
+	_world.frozen = true
+	Audio.play("fluff", -6.0)
+	var album := StickerAlbum.make()
+	add_child(album)
+	_start_panel = album
+	album.closed.connect(_close_start)
 
 
 ## Ponerse un pijama del armario / Put on a pajama from the wardrobe
@@ -921,6 +935,22 @@ class HubWorld extends Control:
 
 	func _build_museum() -> void:
 		var c := _isle_pos("museum")
+		# Atril con el álbum de pegatinas del diario / Lectern with the diary's sticker album
+		var lec := c + Vector2(166, 90)
+		_blocks.append({"c": lec, "r": Vector2(12, 4)})
+		_spots.append({"kind": "album", "id": "album", "pos": lec + Vector2(0, 10), "height": 64.0})
+		_prop(lec, func(ci: CanvasItem) -> void:
+			_shadow(ci, Vector2.ZERO, Vector2(14, 4))
+			ci.draw_rect(Rect2(-3, -30, 6, 30), Color("8a6a4a"))
+			ci.draw_rect(Rect2(-10, -2, 20, 3), Color("6a4e36"))
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(-16, -34), Vector2(16, -34), Vector2(13, -28), Vector2(-13, -28)]), Color("6a4e36"))
+			# Libreta abierta con pegatinas / Open notebook with stickers
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(-15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(-15, -36)]), Color("efe6cf"))
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(15, -36)]), Color("e6dcc0"))
+			ci.draw_circle(Vector2(-8, -39), 2.5, Color("ff9ad0"))
+			ci.draw_circle(Vector2(7, -39), 2.5, Color("e0a93a"))
+			var tw := 0.5 + 0.5 * sin(_t * 2.0)
+			ci.draw_circle(Vector2(0, -50 - tw * 3.0), 1.5, Color(1, 1, 1, 0.4 + 0.4 * tw)))
 		for p: Vector2 in [Vector2(-246, -62), Vector2(246, -62), Vector2(-262, 52), Vector2(262, 52)]:
 			_piece(c + p, "hub_column", Vector2(10, 4))
 		for i in Progress.BESTIARY.size():

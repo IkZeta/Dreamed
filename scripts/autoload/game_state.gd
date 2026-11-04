@@ -247,6 +247,8 @@ var lynx_retake_used := false
 var duos: Array = []
 ## Combos que ya se han anunciado en esta partida / Combos already announced this run
 var combos_seen: Array = []
+## Pegatinas nuevas del álbum ganadas en esta partida: [[tipo, id], ...] / New album stickers won this run
+var new_stickers: Array = []
 ## Lo último que le hizo daño (id del bestiario, "bleed"...) / The last thing that hurt him (bestiary id, "bleed"...)
 var last_hit := ""
 var run_deals_won := 0
@@ -335,7 +337,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen", "new_stickers"]
 
 
 func save_run() -> void:
@@ -391,6 +393,7 @@ func reset_run() -> void:
 	lynx_retake_used = false
 	duos = []
 	combos_seen = []
+	new_stickers = []
 	last_hit = ""
 	run_deals_won = 0
 	city_styles = []
@@ -686,6 +689,8 @@ func add_upgrade(giver: String, weapon := "") -> void:
 	ups[giver] = mini(max_level(giver, weapon), int(ups.get(giver, 0)) + 1)
 	if int(ups[giver]) >= LEGEND_LEVEL:
 		Progress.flag("legend")
+		if not god_mode and Progress.sticker("legend", giver):
+			new_stickers.append(["legend", giver])
 	if int(ups[giver]) >= MAX_UPGRADE_LEVEL:
 		Progress.flag("max_gift")
 	# La vida máxima que da Doc llega llena / The max health Doc gives arrives full
@@ -821,6 +826,8 @@ func add_duo(id: String) -> void:
 	if not has_duo(id):
 		duos.append(id)
 		Progress.flag("duo")
+		if not god_mode and Progress.sticker("duo", id):
+			new_stickers.append(["duo", id])
 
 
 func duo_desc(id: String) -> String:
@@ -906,7 +913,8 @@ func check_combos() -> void:
 		if id in combos_seen:
 			continue
 		combos_seen.append(id)
-		Progress.stats["combo_" + id] = 1
+		if not god_mode and Progress.sticker("combo", id):
+			new_stickers.append(["combo", id])
 		Progress.note(tr("COMBO_NEW"), "[b]%s[/b] · %s" % [tr("COMBO_%s_NAME" % id.to_upper()), tr("COMBO_%s_DESC" % id.to_upper())], Color("ff9ad0"), 5.0)
 
 

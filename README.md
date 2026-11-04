@@ -324,9 +324,13 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 
 Al despertar, ganes o pierdas, sale una hoja del diario de Kroker (papel de libreta con margen rojo y estrellitas a boli): cuántos sueños soñó, cuánto duró, a cuántos tumbó, tiró por agujeros y cuántos golpes recibió, **qué le despertó** (el enemigo o el ataque que le dio el último golpe, o el sangrado), las mejoras, dúos y combos que llevaba, y una frase del personaje que más le ayudó.
 
+### Álbum de pegatinas
+
+Cada combo que descubres, cada mejora dúo y cada mejora legendaria que consigues por primera vez se pega en el **álbum de pegatinas del diario**: el diario de fin de partida dice cuáles son nuevas, y el álbum está en un atril del **museo** del plano astral. Hay 29 pegatinas (11 combos con los colores de quienes lo forman, 9 dúos con las caras de la pareja y 9 leyendas, medallas doradas con la cara del personaje). Las que faltan salen en gris con una pista.
+
 ### Accesibilidad y consejos
 
-En Ajustes → Accesibilidad: fuerza del temblor de pantalla, modo daltónico (avisos en amarillo y, además, un símbolo sobre cada élite: flechas para el que se divide, gota para el de los charcos y rayo para el rápido), números de daño, vibración, **reducir destellos** (los fogonazos de pantalla, los glitches del sueño 20 y los fundidos a blanco se suavizan), **texto grande** (un 25 % más, en las pantallas que se abran después) y **consejos la primera vez**: un cartelito corto la primera vez que pasa algo (al empezar, el primer trozo de estrella, el primer agujero, el primer élite, el primer sangrado, la primera Realidad Fragmentada y el primer jefe).
+En Ajustes → Accesibilidad: fuerza del temblor de pantalla, modo daltónico (avisos en amarillo y, además, un símbolo sobre cada élite: flechas para el que se divide, gota para el de los charcos y rayo para el rápido), números de daño, vibración, **reducir destellos** (los fogonazos de pantalla, los glitches del sueño 20 y los fundidos a blanco se suavizan), **texto grande** (un 25 % más, en las pantallas que se abran después) y **consejos la primera vez**: un cartelito corto la primera vez que pasa algo (si en partidas anteriores ya te había pasado, no sale) (al empezar, el primer trozo de estrella, el primer agujero, el primer élite, el primer sangrado, la primera Realidad Fragmentada y el primer jefe).
 
 ### Modo Dios (para probar)
 

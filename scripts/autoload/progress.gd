@@ -83,6 +83,41 @@ var _toast: CanvasLayer
 
 func _ready() -> void:
 	load_progress()
+	_skip_known_tips()
+
+
+## Los consejos solo salen la primera vez que hacen falta: si en partidas anteriores ya te ha
+## pasado (ya has cogido trozos, tirado enemigos por agujeros, visto élites...), no salen.
+## Tips only show the first time they're needed: if it already happened in earlier runs (you've
+## picked up shards, pushed enemies down holes, seen elites...), they don't show.
+func _skip_known_tips() -> void:
+	var known := {
+		"move": int(stats.get("dreams", 0)) > 0,
+		"shard": int(stats.get("dreams", 0)) > 0,
+		"hole": int(stats.get("falls", 0)) > 0,
+		"elite": has_seen("elite"),
+		"bleed": has_seen("puppet") or has_seen("police") or has_seen("boss_chef"),
+		"reality": stats.has("charo_met"),
+		"boss": has_seen("boss_bed") or has_seen("boss_shelf") or has_seen("boss_chest"),
+	}
+	for id: String in known:
+		if known[id]:
+			stats["tip_" + id] = 1
+
+
+## Álbum de pegatinas del diario: combos descubiertos, dúos y legendarias conseguidos. true si es nueva
+## The diary's sticker album: combos discovered, duos and legendaries obtained. true if it's new
+func sticker(kind: String, id: String) -> bool:
+	var key := "%s_%s" % [kind, id]
+	if int(stats.get(key, 0)) > 0:
+		return false
+	stats[key] = 1
+	save_progress()
+	return true
+
+
+func has_sticker(kind: String, id: String) -> bool:
+	return int(stats.get("%s_%s" % [kind, id], 0)) > 0
 
 
 func see(id: String) -> void:
