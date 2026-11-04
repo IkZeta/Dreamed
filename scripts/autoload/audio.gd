@@ -96,16 +96,24 @@ func play_music(song: String, fade := 1.5, volume_db := -6.0) -> void:
 	if song == _music_name:
 		return
 	_music_name = song
+	# Si había otro fundido a medias, se corta: si no, ese fundido apagaba (y paraba) la canción nueva
+	# when se cambiaba dos veces seguidas (p. ej., el sueño del jefe y enseguida la música del jefe)
+	# If another crossfade was half-way, cut it: otherwise that fade turned down (and stopped) the new
+	# song when switching twice in a row (e.g. the boss dream and right away the boss music)
+	if _music_tw and _music_tw.is_valid():
+		_music_tw.kill()
+	if _duck_tw and _duck_tw.is_valid():
+		_duck_tw.kill()
 	var old := _music[_music_idx]
 	_music_idx = 1 - _music_idx
 	var new := _music[_music_idx]
 	new.stream = _looped(song)
 	new.volume_db = -40.0
 	new.play()
-	var tw := create_tween().set_parallel()
-	tw.tween_property(new, "volume_db", volume_db, fade)
-	tw.tween_property(old, "volume_db", -60.0, fade)
-	tw.chain().tween_callback(old.stop)
+	_music_tw = create_tween().set_parallel()
+	_music_tw.tween_property(new, "volume_db", volume_db, fade)
+	_music_tw.tween_property(old, "volume_db", -60.0, fade)
+	_music_tw.chain().tween_callback(old.stop)
 
 
 ## El leitmotiv de un personaje, bien claro: la música baja un momento y luego vuelve a donde estaba
@@ -124,6 +132,7 @@ func leitmotif(who: String, volume_db := 1.0) -> void:
 
 
 var _duck_tw: Tween
+var _music_tw: Tween
 var _duck_back := -6.0
 
 

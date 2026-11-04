@@ -584,7 +584,8 @@ func _open_sacrifice() -> void:
 
 ## El jefe del acto: los muebles despiertan de uno en uno / The act boss: the furniture wakes up one at a time
 func _spawn_boss() -> void:
-	Audio.play_music("music_boss", 1.0)
+	if _wave.get("boss_kind", "") == "":
+		Audio.play_music("music_boss", 1.0)
 	if _wave.get("boss_kind", "") == "chef":
 		_spawn_chef()
 		return
