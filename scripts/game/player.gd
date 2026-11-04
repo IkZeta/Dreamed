@@ -171,7 +171,9 @@ func _physics_process(delta: float) -> void:
 		_update_bleed(delta)
 		slow_t = maxf(0.0, slow_t - delta)
 		var spd := speed * (0.6 if slow_t > 0.0 else 1.0)
-		_vel = _vel.lerp(input * spd + push, minf(1.0, delta * 14.0))
+		# Suelo helado: cuesta arrancar y frenar / Icy floor: hard to get going and to stop
+		var grip := 2.2 if run.event == "ice" else 14.0
+		_vel = _vel.lerp(input * spd + push, minf(1.0, delta * grip))
 		if _dash_t > 0.0:
 			_dash_t -= delta
 			_vel = _dash_vel

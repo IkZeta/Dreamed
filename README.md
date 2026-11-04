@@ -152,11 +152,16 @@ Los jefes tienen cuenta atrás: 2:30 los muebles del Acto 1, 2:00 El Chef y 2:30
 
 ### Eventos
 
-Desde el sueño 2, algunos sueños traen un evento al azar:
+Desde el sueño 2, más de la mitad de los sueños (55 %) traen un evento al azar, nunca el mismo que en el sueño anterior:
 
 - **Apagón:** solo ves alrededor de Kroker y, si la chimenea está encendida, alrededor del fuego.
 - **Suelo inclinado:** todo resbala hacia un lado y luego hacia otro.
-- **Timbre del colegio** (solo en el Acto 3, el más probable allí): avisa de que va a sonar, suena y durante un rato sale un montón de enemigos de las puertas.
+- **Lluvia de estrellas:** caen estrellas del cielo sin parar. Antes de caer se marca en el suelo dónde van a dar; hacen daño a los enemigos de alrededor y a Kroker si no se aparta (algunas caen cerca de él).
+- **Suelo helado:** una capa de escarcha; Kroker resbala y le cuesta arrancar, frenar y girar.
+- **Fiebre de estrellas:** los enemigos salen más a menudo y van más rápido, pero cada uno suelta un trozo de estrella más.
+- **Sonámbulos:** los enemigos van medio dormidos, muy lentos y con zetas en la cabeza, pero salen muchos más.
+
+**Timbre del colegio** (Acto 3, aparte del evento): suena en todos los sueños del pasillo, la primera vez a los 6-12 s y luego otra vez cada 14-22 s después de cada recreo. Mientras dura el recreo sale un montón de enemigos de las puertas.
 
 Además, muy de vez en cuando aparece un **Foox dorado**: no hace daño y huye. Si lo pillas antes de que se esfume, te llueven estrellas.
 

@@ -581,6 +581,14 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	if elite:
 		_draw_horns(head_top() + Vector2(0, bob), a)
+	# Sonámbulos: zetas que suben de la cabeza / Sleepwalkers: z's rising from the head
+	if run and run.event == "sleepy" and not is_boss() and state == State.ALIVE:
+		for i in 2:
+			var ph := fposmod(_t * 0.6 + _phase + i * 0.5, 1.0)
+			var zp := head_top() + Vector2(8 + ph * 14.0, -6 - ph * 26.0)
+			var zs := 4.0 + i * 2.0
+			draw_polyline(PackedVector2Array([zp + Vector2(-zs, -zs), zp + Vector2(zs, -zs), zp + Vector2(-zs, zs), zp + Vector2(zs, zs)]),
+				Color(UITheme.MIST, (1.0 - ph) * 0.85 * a), 2.0)
 	if glitch_t > 0.0:
 		for i in 3:
 			var y := randf_range(-aim_height * 2.5, 6)

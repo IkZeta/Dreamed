@@ -208,6 +208,8 @@ var run_falls := 0      # enemigos tirados por agujeros / enemies pushed down ho
 var run_elites := 0     # élites derrotados / elites defeated
 ## Kroker lleva las gafas de sol de la taquilla durante toda esta partida / Kroker wears the locker sunglasses for this whole run
 var run_shades := false
+## Evento del sueño anterior, para no repetirlo / Previous dream's event, so it isn't repeated
+var last_event := ""
 ## Vida con la que acabó el último sueño (−1 = empezar con la vida llena)
 ## Health at the end of the last dream (−1 = start at full health)
 var saved_hp := -1.0

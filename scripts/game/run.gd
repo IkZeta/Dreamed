@@ -39,7 +39,7 @@ var bosses: Array[Enemy] = []
 var _boss_total := 0.0
 var _boss_step := 0
 var _level_screen: LevelUpScreen
-## Evento de este sueño: "", "dark", "tilt" o "bell" / This dream's event
+## Evento de este sueño: "" o uno de EVENTS (el timbre del colegio va aparte) / This dream's event: "" or one of EVENTS (the school bell is separate)
 var event := ""
 var _tilt := Vector2.ZERO
 var _tilt_t := 0.0
@@ -50,6 +50,8 @@ var _golden_done := false
 ## Timbre del colegio (Acto 3): espera hasta que suena y luego sale gente de las puertas un rato
 ## School bell (Act 3): waits until it rings, then people pour out of the doors for a while
 const BELL_TIME := 10.0
+const BELL_FIRST := Vector2(6.0, 12.0)    # primer timbre (s) / first bell (s)
+const BELL_AGAIN := Vector2(14.0, 22.0)   # entre recreos (s) / between breaks (s)
 const BELL_EVERY := 0.45
 const BELL_MAX_ALIVE := 30
 var _bell_wait := -1.0
@@ -829,7 +831,7 @@ func _physics_process(delta: float) -> void:
 			return
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
-		_spawn_timer = _wave["spawn_every"]
+		_spawn_timer = float(_wave["spawn_every"]) * (FRENZY_SPAWN if event == "frenzy" else (SLEEPY_SPAWN if event == "sleepy" else 1.0))
 		_spawn_group()
 	if room.follows_camera():
 		_recycle_far_enemies()
@@ -999,7 +1001,7 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		e = GoldenFoox.new()
 		Audio.play("chime", -2.0)
 		fx.ring(pos + Vector2(0, -20), 30.0, UITheme.GOLD, 0.8, 2.6)
-	e.setup(self)
+	e.setup(self, 1.0, FRENZY_SPEED if event == "frenzy" else (SLEEPY_SPEED if event == "sleepy" else 1.0))
 	e.position = pos
 	# Élites desde el Sueño 2 / Elites from Dream 2
 	if GameState.dream_depth >= 2 and not e is GoldenFoox and randf() < (0.12 if GameState.difficulty == "nightmare" else 0.07):
@@ -1107,7 +1109,8 @@ func on_enemy_killed(e: Node) -> void:
 	# In boss fights the surrounding enemies drop a third of the stars (so a long fight doesn't
 	# grant ten levels); elites still drop them all
 	var shard_k := 0.34 if _wave.get("boss", false) and not elite and not e.is_boss() else 1.0
-	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult() * shard_k))
+	var bonus := 1 if event == "frenzy" and not e.is_boss() else 0
+	drop_shards(e.global_position, roundi(int(e.get("shards")) * GameState.shard_mult() * shard_k) + bonus)
 	# Los objetos solo salen de los enemigos y es raro; la suerte los hace más probables
 	# Items only drop from enemies and rarely; luck makes them likelier
 	if randf() < item_drop_chance(elite) * float(e.get("drop_mult")):
@@ -1151,22 +1154,44 @@ func freeze_flash() -> void:
 # --- Eventos del sueño / Dream events ----------------------------------------------
 
 ## Algunos sueños traen un evento al azar / Some dreams bring a random event
+## Eventos posibles de un sueño / Possible events in a dream
+const EVENTS: Array[String] = ["dark", "tilt", "meteors", "ice", "frenzy", "sleepy"]
+const EVENT_CHANCE := 0.55
+## Fiebre de estrellas y sonámbulos: velocidad de los enemigos y cada cuánto salen
+## Star fever and sleepwalkers: enemy speed and how often they spawn
+const FRENZY_SPEED := 1.2
+const FRENZY_SPAWN := 0.7
+const SLEEPY_SPEED := 0.55
+const SLEEPY_SPAWN := 0.6
+
+
 func _roll_event(depth: int) -> void:
 	event = ""
-	if _wave.get("boss", false) or depth < 2 or randf() > 0.4:
+	# En el colegio el timbre suena en todos los sueños, varias veces, aparte del evento
+	# At school the bell rings in every dream, several times, on top of the event
+	if room is Act3Room and not _wave.get("boss", false):
+		_bell_wait = randf_range(BELL_FIRST.x, BELL_FIRST.y)
+	if _wave.get("boss", false) or depth < 2 or randf() > EVENT_CHANCE:
 		return
-	var pool := ["dark", "tilt"]
-	# En el colegio también puede sonar el timbre (y es lo más probable) / At school the bell can ring too (and it's the likeliest)
-	if room is Act3Room:
-		pool += ["bell", "bell"]
+	# Nunca el mismo que en el sueño anterior / Never the same as in the previous dream
+	var pool := EVENTS.duplicate()
+	pool.erase(GameState.last_event)
 	event = pool[randi() % pool.size()]
+	GameState.last_event = event
 	match event:
+		"meteors":
+			var m := MeteorShower.new()
+			m.run = self
+			world.add_child(m)
+		"ice":
+			var ice := IceFloor.new()
+			ice.run = self
+			world.add_child(ice)
+			world.move_child(ice, room.get_index() + 1)
 		"dark":
 			var d := Darkness.new()
 			d.run = self
 			world.add_child(d)
-		"bell":
-			_bell_wait = randf_range(8.0, 16.0)
 		"tilt":
 			var tf := TiltFloor.new()
 			tf.run = self
@@ -1191,8 +1216,8 @@ func _update_event(delta: float) -> void:
 			_camera.rotation = lerpf(_camera.rotation, -_tilt.x / 75.0 * 0.06, minf(1.0, delta * 2.0))
 			_camera.offset += _tilt * 0.35
 			hud.set_tilt(_tilt)
-		"bell":
-			_update_bell(delta)
+	if _bell_wait > 0.0 or _bell_t > 0.0 or (room is Act3Room and (room as Act3Room).bell_open > 0.0):
+		_update_bell(delta)
 
 
 ## Suena el timbre: las puertas se abren y salen enemigos sin parar durante un rato
@@ -1222,7 +1247,9 @@ func _update_bell(delta: float) -> void:
 				fx.dissipate(p + Vector2(0, -30), Color("f6d993"))
 				_spawn_enemy(kind, p)
 		if _bell_t <= 0.0:
-			hud.show_event("")
+			hud.show_event(event)
+			# Y al rato vuelve a sonar / And after a while it rings again
+			_bell_wait = randf_range(BELL_AGAIN.x, BELL_AGAIN.y)
 	else:
 		hall.bell_open = maxf(0.0, hall.bell_open - delta * 1.5)
 
