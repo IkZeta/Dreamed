@@ -157,11 +157,18 @@ func _build_static() -> void:
 			match row[c]:
 				"T": _static.append(Rect2(p + Vector2(30, 40), Vector2(60, 70)))
 				"h": _static.append(Rect2(p + Vector2(0, 50), Vector2(T, 60)))
-				"W": _static.append(Rect2(p, Vector2(T, T)))
+				"W":
+					# La fuente y el estanque son redondos: se ponen aparte / The fountain and the pond are round: added separately
+					if not FOUNTAIN.has_point(p + Vector2(1, 1)) and not POND.has_point(p + Vector2(1, 1)):
+						_static.append(Rect2(p, Vector2(T, T)))
 				"l": _static.append(Rect2(p + Vector2(48, 70), Vector2(24, 24)))
 				"b": _static.append(Rect2(p + Vector2(10, 50), Vector2(100, 40)))
 	for b: Array in CityLayout.BUILDINGS:
 		_static.append(Rect2(Vector2(b[0], b[1]) * T, Vector2(b[2], b[3]) * T))
+	# Fuente y estanque: tiras horizontales que siguen la elipse del pilón y de la orilla
+	# Fountain and pond: horizontal strips that follow the ellipse of the basin and the bank
+	_add_ellipse(FOUNTAIN.get_center() + Vector2(0, 14), Vector2(FOUNTAIN.size.x * 0.5 - 16.0, FOUNTAIN.size.y * 0.5 - 30.0))
+	_add_ellipse(POND.get_center(), POND.size * 0.5 - Vector2(28, 26))
 	for i in _static.size():
 		var r: Rect2 = _static[i]
 		for by in range(floori(r.position.y / BUCKET), floori(r.end.y / BUCKET) + 1):
@@ -245,6 +252,19 @@ func _free(r: Rect2) -> bool:
 		if b.grow(40.0).intersects(r):
 			return false
 	return true
+
+
+## Tapa una elipse con tiras horizontales (para que no haya esquinas invisibles)
+## Covers an ellipse with horizontal strips (so there are no invisible corners)
+func _add_ellipse(c: Vector2, r: Vector2) -> void:
+	var step := 22.0
+	var y := -r.y
+	while y < r.y:
+		var mid := y + step * 0.5
+		var hw := r.x * sqrt(maxf(0.0, 1.0 - (mid / r.y) ** 2))
+		if hw > 4.0:
+			_static.append(Rect2(c + Vector2(-hw, y), Vector2(hw * 2.0, minf(step, r.y - y))))
+		y += step
 
 
 ## Un edificio se ha derrumbado: sus escombros cortan el paso un rato / A building has collapsed: its rubble blocks the way for a while

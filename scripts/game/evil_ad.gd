@@ -26,7 +26,7 @@ signal defeated
 const HP := 1400.0
 const ALT := 70.0                 # flota a esta altura / floats at this height
 const DELIRIUM_AT := 0.5
-const PROGRAMS: Array[String] = ["shop", "popups", "zap", "shop", "break", "sponsor"]
+const PROGRAMS: Array[String] = ["shop", "popups", "zap", "spam", "shop", "break", "sponsor"]
 const COIN_DAMAGE := 3.0
 const COIN_SPEED := 360.0
 const POPUP_N := 3
@@ -136,6 +136,8 @@ func die(counted: bool) -> void:
 	if _dying >= 0.0:
 		return
 	_dying = 0.0
+	if _spam and is_instance_valid(_spam):
+		_spam.queue_free()
 	_zap = {}
 	_zap2 = {}
 	run.drop_shards(global_position, roundi(50 * GameState.shard_mult()))
@@ -202,6 +204,7 @@ func _physics_process(delta: float) -> void:
 		"zap": _zap_prog(delta, k)
 		"break": _break(delta)
 		"sponsor": _sponsor(delta, k)
+		"spam": _spam_prog(delta)
 	_tick_zap(delta)
 	# En delirio, la imagen se descuadra de vez en cuando / When delirious, the picture glitches now and then
 	if _delirium and randf() < delta * 0.7:
@@ -359,6 +362,33 @@ func _break(_delta: float) -> void:
 		for i in 12 if _delirium else 8:
 			_coin(global_position + Vector2(0, -40), Vector2.from_angle(TAU * i / (12 if _delirium else 8)), COIN_SPEED * 0.7)
 	if _prog_t > BREAK_TIME + 1.4:
+		_next_program()
+
+
+## Spam: te llena la pantalla de pop-ups que hay que cerrar con QTE, mientras sigue tirando
+## monedas despacio / Spam: fills your screen with pop-ups to close with QTEs, while still throwing
+## coins slowly
+var _spam: AdSpam = null
+
+
+func _spam_prog(delta: float) -> void:
+	_float(delta, 460.0)
+	if _prog_t < delta * 1.5:
+		_laugh = 1.5
+		run.fx.text(global_position + Vector2(0, -ALT - 320), tr("EVIL_AD_SPAM"), RED, 28)
+		Audio.play("glitch", -4.0)
+		_spam = AdSpam.new()
+		_spam.run = run
+		_spam.count = 8 if _delirium else 5
+		run.add_child(_spam)
+	_coin_cd -= delta
+	if _coin_cd <= 0.0:
+		_coin_cd = 2.2
+		var from := global_position + Vector2(0, -ALT - 110)
+		var dir: Vector2 = (run.player.global_position + Player.HURT - from).normalized()
+		for i in 3:
+			_coin(from, dir.rotated((i - 1) * 0.25), COIN_SPEED * 0.75)
+	if (_spam == null or not is_instance_valid(_spam) or _spam.done()) and _prog_t > 1.5:
 		_next_program()
 
 

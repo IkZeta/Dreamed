@@ -56,14 +56,19 @@ func control_name(what: String) -> String:
 		return tr("CTRL_KB_" + what.to_upper())
 	if what == "interact":
 		what = "accept"   # en el mando, interactuar es el mismo botón que aceptar / on the gamepad, interact is the accept button
-	var joy := Input.get_joy_name(0).to_lower() if not Input.get_connected_joypads().is_empty() else ""
-	var family := "XBOX"
-	if "ps" in joy or "dualshock" in joy or "dualsense" in joy or "sony" in joy or "playstation" in joy:
-		family = "PS"
-	elif "nintendo" in joy or "switch" in joy or "joy-con" in joy:
-		family = "NIN"
+	var family := pad_family()
 	var key := "CTRL_PAD_%s_%s" % [family, what.to_upper()]
 	return tr(key) if tr(key) != key else tr("CTRL_PAD_" + what.to_upper())
+
+
+## Qué mando es: "XBOX", "PS" o "NIN" / Which gamepad it is: "XBOX", "PS" or "NIN"
+func pad_family() -> String:
+	var joy := Input.get_joy_name(0).to_lower() if not Input.get_connected_joypads().is_empty() else ""
+	if "ps" in joy or "dualshock" in joy or "dualsense" in joy or "sony" in joy or "playstation" in joy:
+		return "PS"
+	if "nintendo" in joy or "switch" in joy or "joy-con" in joy:
+		return "NIN"
+	return "XBOX"
 
 
 ## Cambia {move}, {pause}, {special}, {accept} y {back} por los controles del dispositivo en uso
@@ -292,6 +297,24 @@ func _ensure_input() -> void:
 		start.device = -1
 		start.button_index = JOY_BUTTON_START
 		InputMap.action_add_event("pause", start)
+	# Para cerrar los pop-ups de Evil Ad (QTE): teclas 1-4 o los cuatro botones de la cara del mando
+	# (abajo, derecha, izquierda, arriba)
+	# To close Evil Ad's pop-ups (QTE): keys 1-4 or the gamepad's four face buttons (bottom, right,
+	# left, top)
+	var qte := [[KEY_1, KEY_KP_1, JOY_BUTTON_A], [KEY_2, KEY_KP_2, JOY_BUTTON_B], [KEY_3, KEY_KP_3, JOY_BUTTON_X], [KEY_4, KEY_KP_4, JOY_BUTTON_Y]]
+	for i in 4:
+		var action := "qte_%d" % (i + 1)
+		if InputMap.has_action(action):
+			continue
+		InputMap.add_action(action)
+		for kc in [qte[i][0], qte[i][1]]:
+			var k := InputEventKey.new()
+			k.physical_keycode = kc
+			InputMap.action_add_event(action, k)
+		var jb := InputEventJoypadButton.new()
+		jb.device = -1
+		jb.button_index = qte[i][2]
+		InputMap.action_add_event(action, jb)
 
 
 func _ensure_buses() -> void:

@@ -842,6 +842,9 @@ func _evil_end(killed: bool) -> void:
 	update_boss_hp()
 	running = false
 	Audio.stop_loops()
+	for n: Node in get_children():
+		if n is AdSpam:
+			n.queue_free()
 	for e: Node in enemies.get_children():
 		if not e.is_boss():
 			e.die(false)
