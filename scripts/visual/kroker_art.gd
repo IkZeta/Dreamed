@@ -170,6 +170,8 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod)
 	if opts.get("shades", false):
 		_shades(t)
+	if opts.get("fedora", false):
+		_fedora()
 	_use(Transform2D.IDENTITY)
 
 	# Armas en las manos / Weapons in the hands
@@ -290,6 +292,23 @@ static func _shades(t: float) -> void:
 	var g := fposmod(t, 3.0)
 	if g < 0.25:
 		_ci.draw_rect(Rect2(82.0 + g * 120.0, 141.0, 3.0, 8.0), Color(1, 1, 1, 0.7))
+
+
+## Sombrero de detective del último sueño: fieltro oscuro con cinta roja
+## The last dream's detective hat: dark felt with a red band
+static func _fedora() -> void:
+	var felt := Color("2a2830")
+	var dark := Color("17161c")
+	var ink := Color("0c0b10")
+	# Copa con la hendidura arriba / Crown with the dent on top
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(78, 116), Vector2(80, 92), Vector2(90, 86), Vector2(100, 90), Vector2(110, 86), Vector2(120, 92), Vector2(122, 116)]), ink)
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(80, 114), Vector2(82, 94), Vector2(90, 89), Vector2(100, 93), Vector2(110, 89), Vector2(118, 94), Vector2(120, 114)]), felt)
+	_ci.draw_rect(Rect2(84, 94, 4, 18), Color(1, 1, 1, 0.08))
+	_ci.draw_rect(Rect2(80, 104, 40, 8), Color("c8283a"))
+	_ci.draw_rect(Rect2(80, 104, 40, 2), Color("e85a68"))
+	# Ala ancha, un poco ladeada / Wide brim, slightly tilted
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(62, 118), Vector2(78, 111), Vector2(122, 109), Vector2(140, 114), Vector2(136, 121), Vector2(100, 120), Vector2(66, 124)]), ink)
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(65, 118), Vector2(79, 113), Vector2(121, 111), Vector2(137, 115), Vector2(134, 119), Vector2(100, 118), Vector2(68, 121)]), dark)
 
 
 ## Cabeza dormida sobre la almohada (vista desde arriba) / Sleeping head on the pillow (top view)

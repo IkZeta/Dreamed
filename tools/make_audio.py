@@ -483,6 +483,69 @@ def city_theme() -> np.ndarray:
     return loop_render(build, bar_len * bars, 0.3)
 
 
+def noir_theme() -> np.ndarray:
+    """Sueño 20, la cinemática noir: jazz lento de madrugada en Re menor. Contrabajo que camina,
+    escobillas en la caja, acordes de piano eléctrico y una melodía de vibráfono que suspira.
+    Dream 20, the noir cutscene: slow late-night jazz in D minor. A walking double bass, brushes on
+    the snare, electric-piano chords and a sighing vibraphone tune."""
+    beat = 60.0 / 66
+    bar_len = beat * 4
+    chords = [[38, 53, 57, 60, 64], [43, 53, 58, 62, 65], [36, 52, 55, 58, 62], [45, 52, 55, 59, 61]]
+    walk = [[38, 41, 45, 48], [43, 46, 50, 41], [36, 40, 43, 46], [45, 44, 43, 37]]
+    melody = [(0, 1, 74), (0, 2.5, 72), (1, 0, 70), (1, 2, 69), (2, 0.5, 67), (2, 2, 64), (3, 0, 69), (3, 2, 73)]
+    bars = 4
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i]
+            s = off + i * bar_len
+            for b in (0.0, 2.5):
+                for k, n in enumerate(ch[1:]):
+                    place(buf, bar(midi(n), 2.2, 0.04, "kalimba", 0.15), s + b * beat + k * 0.012, -0.3 + k * 0.15)
+            for b in range(4):
+                place(buf, pluck(midi(walk[i][b] - 12), beat * 1.3, 0.3, 0.18, 0.993), s + b * beat, -0.1)
+                # Escobillas / Brushes
+                place(buf, lp(breath(beat * 0.9, 1800, 7000, 0.05), 6000) * env_ar(int(beat * 0.9 * SR), 0.05, 0.4), s + b * beat, 0.3)
+            place(buf, thump(70, 0.3, 0.12, 8.0), s, 0.0)
+        for bi, b, n in melody:
+            place(buf, bar(midi(n), 2.6, 0.13, "kalimba", 0.25), off + bi * bar_len + b * beat, 0.1)
+
+    return loop_render(build, bar_len * bars, 0.45, 1.8)
+
+
+def evil_ad_theme() -> np.ndarray:
+    """Jefe final, Evil Ad: un jingle de anuncio retorcido y acelerado en Mi menor. Marimba en
+    semicorcheas, bombo a negras, palmas, un bajo que salta y una melodía de kalimba que "vende".
+    Final boss, Evil Ad: a twisted, sped-up advert jingle in E minor. Sixteenth-note marimba, a
+    four-on-the-floor kick, claps, a bouncing bass and a "salesy" kalimba tune."""
+    beat = 60.0 / 138
+    bar_len = beat * 4
+    chords = [[40, 52, 55, 59], [36, 52, 55, 60], [43, 55, 59, 62], [42, 54, 57, 61],
+              [40, 52, 55, 59], [36, 52, 55, 60], [38, 54, 57, 62], [35, 51, 54, 59]]
+    melody = [(0, 0, 76), (0, 0.5, 79), (0, 1, 83), (0, 2, 81), (0, 3, 79), (1, 0, 76), (1, 1.5, 72), (1, 2, 76),
+              (2, 0, 79), (2, 0.5, 81), (2, 1, 83), (2, 2, 86), (3, 0, 85), (3, 2, 81), (4, 0, 76), (4, 0.5, 79),
+              (4, 1, 83), (4, 2, 88), (5, 0, 84), (5, 2, 81), (6, 0, 78), (6, 1, 81), (6, 2, 86), (7, 0, 83), (7, 2, 75)]
+    bars = 8
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 0.6, 0.045, 0.3, 0.8, 1400), s, human=False)
+            for b in range(4):
+                place(buf, thump(58, 0.25, 0.26, 12.0), s + b * beat)
+                place(buf, pluck(midi(ch[0] - 12 + (12 if b % 2 else 0)), beat * 0.9, 0.24, 0.3, 0.99), s + b * beat + beat * 0.5)
+            for b in (1, 3):
+                place(buf, lp(breath(0.12, 900, 4000, 0.16), 5000) * env_ar(int(0.12 * SR), 0.002, 0.1), s + b * beat, 0.2)
+            for k in range(16):
+                n = ch[1 + (k * 2) % 3] + 12
+                place(buf, bar(midi(n), 0.3, 0.035, "marimba", 0.55), s + k * beat / 4, -0.35 + 0.05 * (k % 8))
+        for bi, b, n in melody:
+            place(buf, bar(midi(n), 0.9, 0.12, "kalimba", 0.45), off + bi * bar_len + b * beat, 0.05)
+
+    return loop_render(build, bar_len * bars, 0.25)
+
+
 # --- Efectos / Sound effects -------------------------------------------------
 
 def sfx_hover():
@@ -991,6 +1054,10 @@ if __name__ == "__main__":
         save("music_chef", chef_theme(), 0.55, room=0)
     if not only or "music_city" in only:
         save("music_city", city_theme(), 0.55, room=0)
+    if not only or "music_noir" in only:
+        save("music_noir", noir_theme(), 0.5, room=0)
+    if not only or "music_evil_ad" in only:
+        save("music_evil_ad", evil_ad_theme(), 0.55, room=0)
     for name, fn, peak, room in [
         ("ui_hover", sfx_hover, 0.25, 0.12), ("ui_click", sfx_click, 0.35, 0.12), ("swing", sfx_swing, 0.45, 0.1),
         ("pillow", sfx_pillow, 0.55, 0.12), ("zap", sfx_zap, 0.45, 0.25), ("vacuum", sfx_vacuum, 0.3, 0.0),

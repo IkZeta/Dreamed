@@ -934,7 +934,7 @@ class HubWorld extends Control:
 				top.position = Vector2(0, -19)
 				# Los jefes son enormes: en estatua, más pequeños / Bosses are huge: as statues, smaller
 				if id.begins_with("boss_"):
-					top.scale = Vector2.ONE * (0.55 if id == "boss_ufo" else 0.72)
+					top.scale = Vector2.ONE * (0.55 if id == "boss_ufo" else (0.4 if id == "boss_evil_ad" else 0.72))
 				holder.add_child(top)
 				var st: Control = Statue.new()
 				st.id = id

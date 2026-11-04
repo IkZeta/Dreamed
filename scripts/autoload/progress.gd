@@ -7,7 +7,7 @@ extends Node
 const PATH := "user://progress.cfg"
 
 ## Entradas del bestiario en orden / Bestiary entries in order
-const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "cyber", "puppet", "golem", "police", "van", "riot", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef", "boss_ufo"]
+const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "cyber", "puppet", "golem", "police", "van", "riot", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef", "boss_ufo", "boss_evil_ad"]
 const DIFFICULTIES: Array[String] = ["normal", "nightmare"]
 
 ## id → veces derrotado (si aparece aquí, ya se ha visto) / id → times defeated (present = seen)
@@ -69,6 +69,7 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "lilkey", "flag": true, "goal": 1, "drawing": "lilkey"},
 	# Superar el Acto 4: el final de la partida / Clear Act 4: the end of the run
 	{"id": "act4", "check": "act4", "goal": 1},
+	{"id": "evil_ad", "flag": true, "goal": 1},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4

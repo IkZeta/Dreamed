@@ -39,6 +39,11 @@ STYLES = {
     "brutalist": dict(sky=("#6a7080", "#9aa0ac", "#c8ccd4"), far="#7a7e88", bld=("#7e7a74", "#928e86", "#a6a198"),
                       win=("#1e2026", "#2a2e38", "#f2c86a"), trim="#f2b632", road="#8a8680", walk="#b2aea6", curb="#f2b632",
                       line="#e8e8e0", car=("#5a6a7a", "#c8c8c4"), lamp="#e8d8a0", uni=("#4a4e58", "#e8e8e0", "#c83a3a"), van=("#4a4e58", "#e8e8e0")),
+    # Sueño 20: noir retrofuturista (en el juego se ve casi en blanco y negro, salvo el rojo)
+    # Dream 20: retro-futurist noir (in game it shows almost in black and white, except red)
+    "noir": dict(sky=("#0a0a10", "#1a1a24", "#3a3a48"), far="#1a1a22", bld=("#2c2a30", "#3c3a42", "#504c54"),
+                 win=("#f0d8a0", "#d8bc80", "#fff0c8"), trim="#b8b0a0", road="#18181e", walk="#2e2e36", curb="#8a8478",
+                 line="#e0303a", car=("#2a2a30", "#e0303a"), lamp="#ffe8b0", uni=("#26262c", "#e0303a", "#d8d0c0"), van=("#1c1c22", "#e0303a")),
 }
 ORDER = list(STYLES)
 
@@ -173,6 +178,36 @@ def build(ms):
                 b += P([(bx, top + 32), (bx + 30, top + 32), (bx + 30, top + 120), (bx + 15, top + 108), (bx, top + 120)], red)
                 b += R(bx, top + 32, 30, 4, gold) + C(bx + 15, top + 62, 8, gold) + C(bx + 15, top + 62, 4, red)
             b += R(x, bottom - 22, w, 22, cream) + R(x, bottom - 22, w, 3, "#f0e4c8") + R(x, bottom - 6, w, 6, dark(cream, 0.3))
+        elif name == "noir":
+            # Art déco retrofuturista: escalonado, ojos de buey, ventanales con persianas venecianas,
+            # aletas cromadas y un rótulo de neón rojo vertical
+            # Retro-futurist art deco: setbacks, portholes, tall windows with venetian blinds, chrome
+            # fins and a vertical red neon sign
+            chrome = "#c8c4cc"
+            for fx in range(int(x + 8), int(x + w), 62):
+                b += R(fx, top, 6, h, light(col, 0.12)) + R(fx + 6, top, 2, h, dark(col, 0.3))
+            for wy in range(int(top + 46), bottom - 40, 52):
+                for wx in range(int(x + 22), int(x + w - 30), 62):
+                    lit = rng.random() < 0.55
+                    b += R(wx, wy, 34, 38, "#0e0e12")
+                    if lit:
+                        b += R(wx + 2, wy + 2, 30, 34, rng.choice(st["win"]))
+                        for k in range(4):
+                            b += R(wx + 2, wy + 6 + k * 8, 30, 3, "#6a5a40")
+                    else:
+                        b += R(wx + 2, wy + 2, 30, 34, "#1c1c24") + R(wx + 4, wy + 4, 8, 14, "#3a3a46")
+            # Ojos de buey arriba / Portholes on top
+            for px in range(int(x + 30), int(x + w - 20), 62):
+                b += C(px, top + 24, 11, chrome) + C(px, top + 24, 7, "#101016")
+                b += C(px - 2, top + 22, 2.5, "#fff0c8")
+            # Rótulo de neón vertical / Vertical neon sign
+            if rng.random() < 0.6:
+                sx = x + rng.choice([14, w - 40])
+                b += R(sx, top + 40, 26, 130, "#0e0e12") + R(sx + 3, top + 43, 20, 124, "#2a0a0e")
+                for k in range(5):
+                    b += R(sx + 7, top + 52 + k * 24, 12, 14, "#e0303a") + R(sx + 9, top + 54 + k * 24, 8, 3, "#ff9a9a")
+            b += R(x, top, w, 10, chrome) + R(x, top + 10, w, 3, dark(col, 0.4))
+            b += R(x, bottom - 18, w, 18, dark(col, 0.25)) + R(x, bottom - 18, w, 3, chrome)
         elif name == "brutalist":
             # Hormigón con tablas de encofrado y agujeros de los latiguillos / Concrete with board marks and tie holes
             for by in range(int(top), bottom, 16):
@@ -241,6 +276,13 @@ def build(ms):
                 b += C(x, y, 3, dark(walk, 0.3))
             for i in range(10):
                 b += R(rng.uniform(8, 112), rng.uniform(8, 112), 3, 3, dark(walk, 0.1) if i % 2 else light(walk, 0.08))
+        if name == "noir":
+            # Asfalto mojado con reflejos / Wet asphalt with reflections
+            b += R(0, 0, T, 3, dark(walk, 0.4)) + R(0, 0, 3, T, dark(walk, 0.4))
+            for i in range(3):
+                x, y = rng.uniform(10, 100), rng.uniform(10, 110)
+                b += R(x, y, rng.uniform(14, 30), 3, light(walk, 0.25))
+            b += "<ellipse cx='%g' cy='%g' rx='22' ry='8' fill='#4a4a58'/>" % (rng.uniform(30, 90), rng.uniform(30, 90))
         room_add("city_%s_pave" % name, 0, 0, T, T, b, colors=8, outline=None, tile=True)
         # Baldosa de la plaza (dibujo propio) / Plaza tile (own pattern)
         b = R(0, 0, T, T, road)
@@ -283,9 +325,17 @@ def build(ms):
             for (x, y) in ((24, 24), (100, 24), (24, 100), (100, 100)):
                 b += C(x, y, 3, "#5a5650")
             b += R(54, 54, 18, 18, "#f2b632") + R(54, 54, 18, 4, "#ffd878") + R(58, 58, 10, 10, "#2a2c34")
+        if name == "noir":
+            # Terrazo a cuadros en diagonal, blanco y negro / Diagonal black-and-white checked terrazzo
+            b = R(0, 0, T, T, "#2a2a30")
+            b += P([(T / 2, 0), (T, T / 2), (T / 2, T), (0, T / 2)], "#44434a")
+            b += P([(T / 2, 14), (T - 14, T / 2), (T / 2, T - 14), (14, T / 2)], "#4e4d55")
+            for i in range(12):
+                b += R(rng.uniform(4, 118), rng.uniform(4, 118), 3, 3, "#5a5862" if i % 2 else "#222228")
+            b += R(0, 0, T, 2, "#16161a") + R(0, 0, 2, T, "#16161a")
         room_add("city_%s_plaza" % name, 0, 0, T, T, b, colors=8, outline=None, tile=True)
         # Césped y flores / Grass and flowers
-        gcol = {"cheese": "#a8c850", "synthwave": "#2a6a5a", "dieselpunk": "#3a5a3a", "brutalist": "#5a7a4a", "aero": "#3cd060"}.get(name, "#5fb86a")
+        gcol = {"cheese": "#a8c850", "synthwave": "#2a6a5a", "dieselpunk": "#3a5a3a", "brutalist": "#5a7a4a", "aero": "#3cd060", "noir": "#2a3a2e"}.get(name, "#5fb86a")
         b = R(0, 0, T, T, gcol)
         for i in range(14):
             x, y = rng.uniform(0, 112), rng.uniform(0, 112)
@@ -297,7 +347,7 @@ def build(ms):
             b += C(x, y, 5, col) + C(x, y, 2, "#fff0a0")
         room_add("city_%s_flowers" % name, 0, 0, T, T, b, colors=10, outline=None, tile=True)
         # Agua (del color de cada sueño) / Water (in each dream's colour)
-        wcol = {"cheese": "#ff9a3a", "synthwave": "#3a1a8a", "steampunk": "#3a5a6a", "dieselpunk": "#2a3a4a", "brutalist": "#5a7a8a"}.get(name, "#4ac0f0")
+        wcol = {"cheese": "#ff9a3a", "synthwave": "#3a1a8a", "steampunk": "#3a5a6a", "dieselpunk": "#2a3a4a", "brutalist": "#5a7a8a", "noir": "#1a2030"}.get(name, "#4ac0f0")
         b = R(0, 0, T, T, wcol)
         for i in range(5):
             x, y = rng.uniform(0, 100), rng.uniform(0, 110)
@@ -341,9 +391,9 @@ def build(ms):
 
     # --- Árbol, seto, farola, banco, rascacielos y escombros / Tree, hedge, lamp, bench, skyscraper and rubble ---
     def props(name, st):
-        trunk = {"steampunk": "#4a3a3a", "dieselpunk": "#3a3438", "brutalist": "#5a5a58"}.get(name, "#7a5236")
+        trunk = {"steampunk": "#4a3a3a", "dieselpunk": "#3a3438", "brutalist": "#5a5a58", "noir": "#26242a"}.get(name, "#7a5236")
         leaf = {"synthwave": "#ff3aa0", "cheese": "#f6c83a", "aero": "#5fd07a", "steampunk": "#8a6a3a", "dieselpunk": "#4a6a4a",
-                "brutalist": "#6a8a5a", "solarpunk": "#3f9a4a"}[name]
+                "brutalist": "#6a8a5a", "solarpunk": "#3f9a4a", "noir": "#2e3a30"}[name]
         rng = random.Random(name + "props")
         b = "<ellipse cx='4' cy='0' rx='54' ry='15' fill='#000000' opacity='0.3'/>"
         # Tronco con raíces / Trunk with roots
@@ -367,6 +417,12 @@ def build(ms):
             for (x, y, r) in ((-14, -100, 9), (16, -84, 7), (2, -130, 6), (-30, -74, 5), (26, -110, 5)):
                 b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (x, y, r, r * 0.8, "#d8a020")
                 b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (x + 1, y + 1.5, r * 0.6, r * 0.5, "#b07a10")
+        elif name == "noir":
+            # Árbol pelado, de ramas retorcidas / Bare tree with twisted branches
+            for (x0, y0, x1, y1, w0) in ((0, -72, -34, -140, 9), (0, -72, 30, -150, 9), (-34, -140, -56, -176, 5), (-34, -140, -10, -184, 5),
+                                       (30, -150, 54, -182, 5), (30, -150, 8, -196, 4), (-20, -110, -60, -120, 4), (14, -116, 58, -124, 4)):
+                b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='%g' stroke-linecap='round'/>" % (x0, y0, x1, y1, trunk, w0 + 3)
+                b += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='%g' stroke-linecap='round'/>" % (x0, y0, x1, y1, "#4a4650", w0 - 1)
         elif name == "steampunk":
             # Árbol de engranajes / Clockwork tree
             for (x, y, r) in ((-24, -108, 34), (24, -104, 32), (0, -138, 36)):
@@ -421,6 +477,10 @@ def build(ms):
             b += R(-1.5, -224, 3, 28, pole)
         elif name == "synthwave":
             b += shaded(rect_d(-20, -206, 40, 8), lamp, rim=0.5) + R(-24, -198, 48, 3, "#ff3aa0")
+        elif name == "noir":
+            # Globo de cristal con anillo de cromo, estilo cohete / Glass globe with a chrome ring, rocket style
+            b += shaded("M-10,-196 L10,-196 L0,-232 Z", "#c8c4cc", rim=0.5)
+            b += shaded(ellipse_d(0, -212, 15, 15), lamp, rim=0.5) + R(-20, -214, 40, 4, "#c8c4cc") + C(-5, -217, 4, "#ffffff")
         else:
             b += shaded(ellipse_d(0, -210, 16, 14), lamp, rim=0.5) + C(-5, -215, 4, "#ffffff")
         room_add("city_%s_lamp" % name, -34, -244, 68, 252, b, colors=10)

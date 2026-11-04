@@ -33,6 +33,7 @@ const LOOK := {
 	"aero": {"plinth": "ffffff", "curb": "2cc84a", "accent": "1a9ae0", "roof": "1a9ae0", "flat": "7ccaf0", "sign": "1a7ac8", "haze": "4ac0f0", "edge": "1a4a78"},
 	"solarpunk": {"plinth": "f6f0e2", "curb": "4fa85a", "accent": "4fa85a", "roof": "5fb86a", "flat": "e0d8c8", "sign": "3f7a4a", "haze": "fff0c0", "edge": "3a4a3a"},
 	"dieselpunk": {"plinth": "6a605a", "curb": "e0b53a", "accent": "e0b53a", "roof": "8a2a22", "flat": "5a4e48", "sign": "1a1210", "haze": "e08a3a", "edge": "140e0c"},
+	"noir": {"plinth": "4a4850", "curb": "8a8478", "accent": "e0303a", "roof": "2a2830", "flat": "3a3840", "sign": "141418", "haze": "b0b0c8", "edge": "0a0a0e"},
 	"brutalist": {"plinth": "a6a198", "curb": "f2b632", "accent": "f2b632", "roof": "6a6660", "flat": "7e7a74", "sign": "2a2c34", "haze": "6a7080", "edge": "26262a"},
 }
 
@@ -212,6 +213,25 @@ func tower_sites(count: int) -> Array:
 	return out
 
 
+## Dónde se apoya Kroker en la cinemática del último sueño: delante de una fachada cerca del
+## centro, a un lado de la puerta / Where Kroker leans in the last dream's cutscene: in front of a
+## facade near the middle, to one side of the door
+func lean_spot() -> Vector2:
+	var best := start_point()
+	var best_d := INF
+	for b: Array in CityLayout.BUILDINGS:
+		if b[4] == "tower":
+			continue
+		var spot := Vector2((b[0] + b[2] * 0.25) * T, (b[1] + b[3]) * T + 44.0)
+		if not _free(Rect2(spot - Vector2(40, 30), Vector2(80, 50))):
+			continue
+		var d := spot.distance_to(start_point())
+		if d < best_d:
+			best_d = d
+			best = spot
+	return best
+
+
 func _free(r: Rect2) -> bool:
 	if not walkable().encloses(r):
 		return false
@@ -256,7 +276,7 @@ func _tile(kind: String) -> String:
 
 ## Agua de cada ciudad (como la de sus baldosas) / Each city's water (like its tiles)
 func water_color() -> Color:
-	return Color({"cheese": "ff9a3a", "synthwave": "4a2aa8", "steampunk": "3a6a7a", "dieselpunk": "2a4a5a", "brutalist": "5a7a8a"}.get(style, "3a9ad8"))
+	return Color({"noir": "1a2030", "cheese": "ff9a3a", "synthwave": "4a2aa8", "steampunk": "3a6a7a", "dieselpunk": "2a4a5a", "brutalist": "5a7a8a"}.get(style, "3a9ad8"))
 
 
 func look(key: String) -> Color:
@@ -615,7 +635,23 @@ class CityBuilding extends Node2D:
 	var rect := Rect2()        # huella en el lienzo / footprint on the canvas
 	var kind := "house"
 	var seed := 0
+	var burning := false        # ha estallado: ventanas rotas, fuego y humo / it blew up: broken windows, fire and smoke
+	var _burn_t := 0.0
 	var _t := 0.0
+
+	## Estalla (cinemática del último sueño) / It blows up (last dream's cutscene)
+	func explode() -> void:
+		burning = true
+		_burn_t = 0.0
+		set_process(true)
+		var c := Bedroom.to_world(Vector2(rect.get_center().x, rect.end.y)) + Vector2(0, -FACADE_H * Bedroom.S * 0.6)
+		run.fx.ring(c, 120.0, Color("ffd27a"), 0.6, 2.4)
+		run.fx.ring(c, 60.0, Color("e0303a"), 0.5, 2.0)
+		for i in 5:
+			run.fx.dissipate(c + Vector2(randf_range(-rect.size.x, rect.size.x) * Bedroom.S * 0.4, randf_range(-60, 30)), Color("8a8490"))
+		run.shake(12.0)
+		Audio.play("stomp", -2.0, 0.15)
+		Audio.play("crack", -4.0, 0.2)
 
 	func _ready() -> void:
 		scale = Vector2(Bedroom.S, Bedroom.S)
@@ -629,7 +665,9 @@ class CityBuilding extends Node2D:
 		var top := rect.position.y - T * 0.5
 		var behind := p.x > rect.position.x - 20.0 and p.x < rect.end.x + 20.0 and p.y > top and p.y < rect.end.y + 4.0
 		modulate.a = move_toward(modulate.a, 0.45 if behind else 1.0, delta * 4.0)
-		if kind in ["tower", "shop"]:
+		if burning:
+			_burn_t += delta
+		if kind in ["tower", "shop"] or burning:
 			queue_redraw()
 
 	func _c(key: String) -> Color:
@@ -681,6 +719,30 @@ class CityBuilding extends Node2D:
 			_tower_crown(w, fh, top)
 		# Contorno oscuro de toda la silueta (pixel art) / Dark outline round the whole silhouette (pixel art)
 		draw_rect(Rect2(0, top, w, d + T * 0.5), edge, false, 4.0)
+		if burning:
+			_draw_fire(w, fh, top)
+
+	## Fachada reventada: hollín, ventanas con fuego y humo saliendo del tejado
+	## Blown-out facade: soot, windows on fire and smoke pouring off the roof
+	func _draw_fire(w: float, fh: float, top: float) -> void:
+		var k := minf(1.0, _burn_t * 3.0)
+		draw_rect(Rect2(0, -fh, w, fh), Color(0.05, 0.03, 0.04, 0.45 * k))
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed * 13 + 5
+		for i in int(w / 70.0):
+			var p := Vector2(rng.randf_range(30, w - 50), rng.randf_range(-fh + 40, -60))
+			draw_rect(Rect2(p - Vector2(18, 14), Vector2(36, 28)), Color(0.02, 0.01, 0.02, k))
+			var fl := 0.7 + 0.3 * sin(_t * 9.0 + i * 1.7)
+			for j in 3:
+				var fx := p.x - 12 + j * 12
+				var h := (22.0 + 10.0 * sin(_t * 11.0 + i + j)) * fl
+				draw_colored_polygon(PackedVector2Array([Vector2(fx - 8, p.y + 10), Vector2(fx + 8, p.y + 10), Vector2(fx + sin(_t * 7.0 + j) * 4.0, p.y + 10 - h)]),
+					Color(1.0, 0.45 + 0.2 * j, 0.1, 0.9 * k))
+		# Humo / Smoke
+		for i in 6:
+			var ph := fposmod(_t * 0.25 + i / 6.0, 1.0)
+			var sp := Vector2(w * (0.2 + 0.6 * fposmod(i * 0.37, 1.0)) + ph * 60.0, top - ph * 260.0)
+			draw_circle(sp, 30.0 + ph * 50.0, Color(0.12, 0.1, 0.12, 0.45 * (1.0 - ph) * k))
 
 	## Tejado a dos aguas con tejas / Pitched roof with tiles
 	func _pitched_roof(top: float, h: float, w: float) -> void:
@@ -769,7 +831,7 @@ class CityBuilding extends Node2D:
 				"steampunk": _big_gear(hc, hr)
 				"cheese": _cheese_wedge(hc, hr)
 				"solarpunk": _turbine(hc + Vector2(0, hr * 0.6), hr * 1.1)
-				"dieselpunk": _mooring_mast(hc + Vector2(0, hr * 0.5), hr)
+				"dieselpunk", "noir": _mooring_mast(hc + Vector2(0, hr * 0.5), hr)
 				_: _helipad(hc, hr)
 		_style_roof(Rect2(0, top, w, h), base)
 
@@ -782,6 +844,7 @@ class CityBuilding extends Node2D:
 		"solarpunk": [4, 4, 15, 15, 14, 2],
 		"dieselpunk": [16, 16, 17, 20, 21, 21],
 		"brutalist": [18, 18, 19, 1, 3],
+		"noir": [16, 16, 20, 17, 21, 0],
 	}
 
 	func _roof_thing(k: int, at: Vector2, base: Color, rng: RandomNumberGenerator) -> void:
@@ -1066,6 +1129,15 @@ class CityBuilding extends Node2D:
 	func _style_roof(r: Rect2, base: Color) -> void:
 		var p := r.position + Vector2(r.size.x * (0.25 + fposmod(seed * 0.23, 0.5)), 60)
 		match style:
+			"noir":   # rótulo de neón rojo en la azotea, que parpadea / red neon rooftop sign, flickering
+				var on := 0.25 if fmod(_t + seed * 0.7, 5.0) < 0.12 else 1.0
+				draw_rect(Rect2(p + Vector2(-100, -66), Vector2(200, 60)), Color("0e0e12"))
+				for k in 6:
+					draw_rect(Rect2(p + Vector2(-86 + k * 30, -54), Vector2(20, 36)), Color("e0303a", on))
+					draw_rect(Rect2(p + Vector2(-82 + k * 30, -50), Vector2(12, 6)), Color(1, 0.7, 0.7, on))
+				draw_line(p + Vector2(-80, -6), p + Vector2(-80, 30), Color("0e0e12"), 6.0)
+				draw_line(p + Vector2(80, -6), p + Vector2(80, 30), Color("0e0e12"), 6.0)
+				draw_texture_rect(DreamBackground.soft_texture(), Rect2(p + Vector2(-140, -110), Vector2(280, 150)), false, Color("e0303a", 0.18 * on))
 			"synthwave":   # valla de neón / neon billboard
 				draw_rect(Rect2(p + Vector2(-80, -60), Vector2(160, 70)), _c("edge"))
 				draw_rect(Rect2(p + Vector2(-74, -54), Vector2(148, 58)), Color("2a0a3a"))
@@ -1190,7 +1262,12 @@ class CityAmbience extends Node2D:
 		var view := room._view_canvas()
 		var haze := room.look("haze")
 		draw_rect(view.grow(40), Color(haze, 0.06))
-		if room.style == "dieselpunk":
+		if room.style == "noir":
+			# Relámpago de vez en cuando / Lightning now and then
+			var fl := fmod(_t, 9.0)
+			if fl < 0.08 or (fl > 0.16 and fl < 0.22):
+				draw_rect(view.grow(40), Color(1, 1, 1, 0.22))
+		if room.style == "dieselpunk" or room.style == "noir":
 			# La sombra de un zepelín que cruza despacio la ciudad / A zeppelin's shadow slowly crossing the city
 			var zx := fposmod(_t * 60.0, MAP_SIZE.x + 1600.0) - 800.0
 			var zc := Vector2(zx, MAP_SIZE.y * 0.45 + sin(_t * 0.05) * 600.0)
@@ -1203,7 +1280,7 @@ class CityAmbience extends Node2D:
 			"steampunk": vel = Vector2(30, -14)
 			"dieselpunk": vel = Vector2(14, -50)
 			"cheese", "solarpunk": vel = Vector2(16, 34)
-			"brutalist": vel = Vector2(-140, 620)
+			"brutalist", "noir": vel = Vector2(-140, 620)
 		for i in N:
 			var q := _p[i]
 			var pos := Vector2(q.x, q.y) + vel * _t * q.w + Vector2(sin(_t * 0.8 + q.z) * 30.0, 0)
@@ -1232,3 +1309,7 @@ class CityAmbience extends Node2D:
 					draw_rect(Rect2(pos, Vector2(5, 5) * q.w), Color(1.0, 0.55, 0.2, 0.3 + 0.5 * tw) if i % 3 else Color(0.5, 0.48, 0.5, 0.4))
 				"brutalist":
 					draw_line(pos, pos + Vector2(-6, 34) * q.w, Color(0.75, 0.8, 0.9, 0.35), 2.0)
+				"noir":
+					# Lluvia fuerte, con salpicones / Heavy rain, with splashes
+					draw_line(pos, pos + Vector2(-8, 46) * q.w, Color(0.8, 0.82, 0.9, 0.4), 2.0)
+					draw_line(pos + Vector2(140, 300), pos + Vector2(132, 346) * Vector2(1, 1), Color(0.8, 0.82, 0.9, 0.3), 2.0)

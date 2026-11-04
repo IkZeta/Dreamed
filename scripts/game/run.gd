@@ -102,6 +102,12 @@ func _ready() -> void:
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	screen.add_child(holder)
 	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Último sueño: todo en blanco y negro salvo el rojo, con grano y viñeta (noir)
+	# Last dream: everything black and white except red, with grain and vignette (noir)
+	if act >= 4 and not GameState.training and GameState.city_style(depth) == "noir":
+		var nm := ShaderMaterial.new()
+		nm.shader = NOIR_SHADER
+		holder.material = nm
 	var vp := SubViewport.new()
 	vp.snap_2d_transforms_to_pixel = true
 	vp.snap_2d_vertices_to_pixel = true
@@ -205,6 +211,10 @@ func _ready() -> void:
 	_roll_event(depth)
 	if depth == 1:
 		_play_wake_up(depth)
+	elif depth == GameState.FINAL_DREAM:
+		event = ""
+		player.fedora = true
+		_noir_intro(depth)
 	else:
 		_drop_in(depth)
 
@@ -460,6 +470,7 @@ func gain_reality(n: int, pos: Vector2) -> void:
 
 ## La Metrópolis: de vez en cuando se derrumba un edificio cerca de Kroker
 ## The Metropolis: now and then a building collapses near Kroker
+const NOIR_SHADER := preload("res://assets/shaders/noir.gdshader")
 var _fall_t := 8.0
 var _towers: Array[CityFall] = []
 
@@ -579,6 +590,9 @@ func _spawn_boss() -> void:
 	if _wave.get("boss_kind", "") == "ufo":
 		_spawn_ufo()
 		return
+	if _wave.get("boss_kind", "") == "evil_ad":
+		_spawn_evil_ad()
+		return
 	hud.show_boss("BOSS_NAME")
 	_boss_step = 0
 	if GameState.difficulty == "nightmare":
@@ -649,6 +663,8 @@ func _boss_time_up() -> void:
 		_chef_end(false)
 	elif _wave.get("boss_kind", "") == "ufo":
 		_ufo_end(false)
+	elif _wave.get("boss_kind", "") == "evil_ad":
+		_evil_end(false)
 	else:
 		_on_act_cleared(false)
 
@@ -670,6 +686,138 @@ func _spawn_ufo() -> void:
 	enemies.add_child(ufo)
 	_add_boss(ufo)
 	ufo.defeated.connect(_ufo_end.bind(true))
+
+
+## Cinemática del último sueño: Kroker apoyado en una pared piensa en su viaje como un detective
+## de cine negro; luego estallan los edificios y llega Evil Ad
+## The last dream's cutscene: Kroker, leaning on a wall, muses on his journey like a film-noir
+## detective; then the buildings blow up and Evil Ad arrives
+var cam_focus := Vector2.INF
+
+
+func _noir_intro(depth: int) -> void:
+	var city := room as Act4Room
+	var at := Bedroom.to_world(city.lean_spot())
+	player.position = at
+	player.visible = true
+	player.set_facing(1.0)
+	player.pose_lean = -0.09
+	_camera.position = _camera_clamped(at)
+	var intro := NoirIntro.new()
+	add_child(intro)
+	Audio.play_music("music_noir", 1.5)
+	intro.bars(true)
+	var base_zoom := _camera.zoom
+	create_tween().tween_property(_camera, "zoom", base_zoom * 1.35, 2.5).set_trans(Tween.TRANS_SINE)
+	await get_tree().create_timer(1.4, false).timeout
+	var keys: Array[String] = []
+	for i in 8:
+		keys.append("NOIR_%d" % (i + 1))
+	intro.monologue(keys)
+	await intro.finished
+	# Estallan los edificios / The buildings blow up
+	Audio.fade_music(-30.0, 0.6)
+	player.pose_lean = 0.0
+	create_tween().tween_property(_camera, "zoom", base_zoom, 0.7).set_trans(Tween.TRANS_SINE)
+	await get_tree().create_timer(0.6, false).timeout
+	var blds: Array = []
+	for n: Node in _actors.get_children():
+		if n is Act4Room.CityBuilding:
+			blds.append(n)
+	blds.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.position.distance_to(player.position) < b.position.distance_to(player.position))
+	for i in mini(6, blds.size()):
+		(blds[i] as Act4Room.CityBuilding).explode()
+		flash_screen(Color(1, 0.97, 0.9), 0.25)
+		await get_tree().create_timer(0.32, false).timeout
+	var toppled := 0
+	for t: CityFall in _towers:
+		if toppled < 2 and is_instance_valid(t) and t.standing() and t.position.distance_to(player.position) < 900.0:
+			t.wear = 1.0
+			t.topple()
+			toppled += 1
+	await get_tree().create_timer(1.2, false).timeout
+	# Llega Evil Ad desde el cielo / Evil Ad comes down from the sky
+	_evil = EvilAd.new()
+	_evil.setup(self)
+	_evil.entering = 1.0
+	_evil.position = clamp_to_arena(player.position + Vector2(340, 40), 80.0)
+	enemies.add_child(_evil)
+	cam_focus = (player.position + _evil.position) / 2.0
+	Audio.play("boss_wake", 0.0)
+	Audio.play("glitch", -2.0)
+	var tw := create_tween()
+	tw.tween_property(_evil, "entering", 0.0, 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await tw.finished
+	shake(16.0)
+	flash_screen(Color("e0303a"), 0.4)
+	Audio.play("stomp", 0.0)
+	_evil.laugh(2.5)
+	fx.text(_evil.global_position + Vector2(0, -420), tr("EVIL_AD_SHOUT"), Color("e0303a"), 34)
+	intro.title_card("BOSS_EVIL_AD_NAME", "BOSS_EVIL_AD_SUB")
+	await get_tree().create_timer(2.8, false).timeout
+	intro.bars(false)
+	cam_focus = Vector2.INF
+	get_tree().create_timer(1.0, false).timeout.connect(intro.queue_free)
+	_begin(depth)
+
+
+## Jefe final: Evil Ad (ya ha llegado en la cinemática) / Final boss: Evil Ad (he already arrived in the cutscene)
+var _evil: EvilAd = null
+
+
+func _spawn_evil_ad() -> void:
+	Audio.play_music("music_evil_ad", 0.5)
+	hud.show_boss("BOSS_EVIL_AD_NAME")
+	if _evil == null or not is_instance_valid(_evil):
+		_evil = EvilAd.new()
+		_evil.setup(self)
+		_evil.position = clamp_to_arena(player.position + Vector2(0, -260), 80.0)
+		enemies.add_child(_evil)
+	_add_boss(_evil)
+	_evil.defeated.connect(_evil_end.bind(true))
+
+
+## Fin del último sueño: Evil Ad cae (o Kroker aguanta) y toca despertar
+## End of the last dream: Evil Ad falls (or Kroker holds out) and it's time to wake up
+func _evil_end(killed: bool) -> void:
+	if not running:
+		return
+	update_boss_hp()
+	running = false
+	Audio.stop_loops()
+	for e: Node in enemies.get_children():
+		if not e.is_boss():
+			e.die(false)
+	dream_finished.emit()
+	Progress.add_stat("dreams")
+	_settle_deal()
+	if killed:
+		Progress.flag("evil_ad")
+	GameState.saved_hp = player.hp
+	Progress.save_progress()
+	Audio.fade_music(-30.0, 1.5)
+	Audio.play("act_clear", -1.0)
+	hud.hide_boss()
+	hud.banner("ACT4_CLEAR_TITLE", "EVIL_AD_KILLED_SUB" if killed else "EVIL_AD_SURVIVED_SUB")
+	for s in get_tree().get_nodes_in_group("shards"):
+		s.set("_magnet", true)
+	get_tree().create_timer(3.6, false).timeout.connect(_resolve_level_ups.bind(_after_dream))
+
+
+## Un fogonazo de color en toda la pantalla / A flash of colour over the whole screen
+func flash_screen(color: Color, secs := 0.3) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 25
+	add_child(layer)
+	var r := ColorRect.new()
+	r.color = color
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(r)
+	r.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	r.modulate.a = 0.55
+	var tw := create_tween()
+	tw.tween_property(r, "modulate:a", 0.0, secs)
+	tw.tween_callback(layer.queue_free)
 
 
 ## Fin del Acto 3: el sueño sigue y Kroker cae en la Metrópolis (Acto 4)
@@ -911,9 +1059,10 @@ func _physics_process(delta: float) -> void:
 func _follow_camera(delta: float) -> void:
 	if not room.follows_camera() or not is_instance_valid(player):
 		return
-	_camera.position.x = lerpf(_camera.position.x, player.position.x, minf(1.0, delta * 6.0))
+	var focus := player.position if cam_focus == Vector2.INF else cam_focus
+	_camera.position.x = lerpf(_camera.position.x, focus.x, minf(1.0, delta * 6.0))
 	if room.open_map():
-		_camera.position.y = lerpf(_camera.position.y, player.position.y - 40.0, minf(1.0, delta * 6.0))
+		_camera.position.y = lerpf(_camera.position.y, focus.y - 40.0, minf(1.0, delta * (6.0 if cam_focus == Vector2.INF else 2.0)))
 		_camera.position = _camera_clamped(_camera.position)
 
 

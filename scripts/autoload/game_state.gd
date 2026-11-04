@@ -127,15 +127,18 @@ const WAVES := [
 	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.6, "police": 1.4, "van": 0.25, "riot": 0.35}, "new": "riot", "shop": true},
 	{"duration": 60.0, "spawn_every": 1.7, "group": [3, 5], "max_alive": 16, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.7, "puppet": 1.0, "golem": 0.7, "police": 1.6, "van": 0.3, "riot": 0.4}},
 	{"duration": 60.0, "spawn_every": 1.6, "group": [3, 6], "max_alive": 17, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.8, "puppet": 1.0, "golem": 0.8, "police": 1.8, "van": 0.35, "riot": 0.45}, "shop": true},
-	# Sueño 20, el último: la ciudad se derrumba, más furgos y edificios cayendo sin parar
-	# Dream 20, the last one: the city collapses, more vans and buildings falling all the time
-	{"duration": 80.0, "spawn_every": 1.5, "group": [4, 6], "max_alive": 18, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.8, "puppet": 1.0, "golem": 0.8, "police": 2.0, "van": 0.45, "riot": 0.5}, "final": true, "act_end": true},
+	# Sueño 20, el último: noir retrofuturista. Kroker piensa en voz baja apoyado en una pared,
+	# los edificios estallan y llega el jefe final, Evil Ad. La ciudad se derrumba durante la pelea.
+	# Dream 20, the last one: retro-futurist noir. Kroker muses leaning on a wall, the buildings
+	# blow up and the final boss, Evil Ad, arrives. The city collapses during the fight.
+	{"boss": true, "boss_kind": "evil_ad", "duration": 210.0, "spawn_every": 3.2, "group": [1, 2], "max_alive": 8, "mix": {"thug": 2, "sling": 1, "skeleton": 1, "cyber": 0.5, "police": 2.0}, "final": true, "act_end": true},
 ]
 const BOSS_DEPTH := 5
 ## Primer sueño de cada acto / First dream of each act
 const ACT2_START := 6
 const ACT3_START := 11
 const ACT4_START := 16
+const FINAL_DREAM := 20
 ## Estéticas de la Metrópolis: cada sueño del Acto 4 tiene una (sin repetir en la partida)
 ## Metropolis looks: each Act 4 dream has one (no repeats within the run)
 const CITY_STYLES: Array[String] = ["synthwave", "steampunk", "cheese", "aero", "solarpunk", "dieselpunk", "brutalist"]
@@ -410,6 +413,9 @@ func act_of(depth: int) -> int:
 func city_style(depth := -1) -> String:
 	if depth < 0:
 		depth = dream_depth
+	# El último sueño siempre es noir retrofuturista / The last dream is always retro-futurist noir
+	if depth >= FINAL_DREAM:
+		return "noir"
 	if city_styles.size() != CITY_STYLES.size():
 		city_styles = CITY_STYLES.duplicate()
 		city_styles.shuffle()

@@ -92,6 +92,18 @@ func _draw() -> void:
 		draw_line(tl, Vector2.ZERO, Color("ffb04a", 0.5), 6.0)
 		draw_line(tl * 0.6, Vector2.ZERO, Color("fff0a0"), 3.0)
 		return
+	if kind == "coin":
+		# Moneda roja de Evil Ad, girando, con su «$» / Evil Ad's red coin, spinning, with its "$"
+		var sx := absf(cos(_spin * 1.5))
+		draw_circle(-velocity.normalized() * 12.0, radius * 0.7, Color("e0303a", 0.25))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(maxf(0.25, sx), 1.0))
+		draw_circle(Vector2.ZERO, radius + 2.0, Color("3a0810"))
+		draw_circle(Vector2.ZERO, radius, Color("e0303a"))
+		draw_circle(Vector2.ZERO, radius * 0.7, Color("ff6a6a"))
+		draw_line(Vector2(0, -6), Vector2(0, 6), Color("3a0810"), 3.0)
+		draw_arc(Vector2(0, -2), 4.0, PI * 0.3, PI * 1.6, 6, Color("3a0810"), 2.0)
+		draw_set_transform(Vector2.ZERO)
+		return
 	if kind == "laser":
 		# Rayo láser del Ovni: trazo rojo con el centro blanco / UFO laser bolt: red streak with a white core
 		var tail := -velocity.normalized() * 44.0

@@ -27,6 +27,8 @@ const HURT_R := 20.0
 var armed := true            # lleva el arma en la mano / holds the weapon
 var hurt_lean := 0.0         # retroceso al recibir daño / recoil when hit
 var hop := 0.0               # altura de un salto en píxeles / jump height in pixels
+var fedora := false         # sombrero de detective del último sueño / the last dream's detective hat
+var pose_lean := 0.0        # inclinación de pose (apoyado en la pared) / posing lean (leaning on the wall)
 var shield_charges := 0      # golpes que para la almohada recogida / hits the picked-up pillow blocks
 var slow_t := 0.0            # frenado por un charco / slowed by a puddle
 var push := Vector2.ZERO     # empuje del suelo inclinado / push from a tilted floor
@@ -380,9 +382,9 @@ func _draw() -> void:
 	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift)),
 		outfit, _t, {"facing": facing, "boots": boots != null and armed, "reload": reload_anim,
-		"shades": GameState.run_shades or (run.helpers != null and run.helpers.shades), "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
+		"shades": GameState.run_shades or (run.helpers != null and run.helpers.shades), "fedora": fedora, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
 		"thrust": maxf(boots.thrust, 1.0 if _dash_t > 0.0 else 0.0) if boots else 0.0, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
-		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean,
+		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
 		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),

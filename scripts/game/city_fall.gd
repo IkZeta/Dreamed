@@ -99,11 +99,13 @@ func _land() -> void:
 	state = State.LANDED
 	room.add_rubble(rect)
 	var wr := Bedroom.rect_world(rect)
-	for e: Node in run.enemies.get_children():
-		if e is Enemy and (e as Enemy).is_targetable() and wr.grow(20.0).has_point((e as Node2D).global_position):
-			(e as Enemy).hit(ENEMY_DAMAGE * GameState.enemy_hp_mult() * (0.3 if e.is_boss() else 1.0), Vector2(0, 400))
-	if wr.grow(10.0).has_point(run.player.global_position):
-		run.player.take_damage(PLAYER_DAMAGE * GameState.enemy_dmg_mult(), null)
+	# En la cinemática del último sueño no hace daño / In the last dream's cutscene it doesn't hurt
+	if run.running:
+		for e: Node in run.enemies.get_children():
+			if e is Enemy and (e as Enemy).is_targetable() and wr.grow(20.0).has_point((e as Node2D).global_position):
+				(e as Enemy).hit(ENEMY_DAMAGE * GameState.enemy_hp_mult() * (0.3 if e.is_boss() else 1.0), Vector2(0, 400))
+		if wr.grow(10.0).has_point(run.player.global_position):
+			run.player.take_damage(PLAYER_DAMAGE * GameState.enemy_dmg_mult(), null)
 	run.shake(12.0)
 	run.fx.ring(wr.get_center(), wr.size.x * 0.6, Color("c8c4d8"), 0.6, 1.3)
 	for i in 4:
