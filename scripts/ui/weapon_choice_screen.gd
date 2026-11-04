@@ -13,6 +13,9 @@ var _ready_t := 0.5
 var _done := false
 
 
+var _card_w := 440.0
+
+
 func build() -> void:
 	layer = 20
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -44,10 +47,14 @@ func build() -> void:
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 40)
+	var options := GameState.other_weapons()
+	# Con cinco armas las cartas se estrechan para que quepan todas / With five weapons the cards narrow so they all fit
+	var gap_x := 40 if options.size() <= 4 else 24
+	_card_w = minf(440.0, (1840.0 - gap_x * (options.size() - 1)) / maxf(1.0, options.size()))
+	row.add_theme_constant_override("separation", gap_x)
 	col.add_child(row)
 	var first: Button = null
-	for id in GameState.other_weapons():
+	for id in options:
 		var b := _card(row, id)
 		if first == null:
 			first = b
@@ -61,7 +68,7 @@ func _card(row: Control, id: String) -> Button:
 	var c: Dictionary = GameState.get_character(id)
 	var accent: Color = KrokerArt.ACCENT.get(id, UITheme.GOLD)
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(440, 520)
+	card.custom_minimum_size = Vector2(_card_w, 520)
 	card.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.92), Color(accent, 0.7), Color(accent, 0.16), 20, 18, 26))
 	row.add_child(card)
 	var v := VBoxContainer.new()
@@ -140,13 +147,14 @@ class WeaponIcon extends Control:
 				draw_set_transform(c, sin(_t) * 0.1, Vector2(s, s) * 1.4)
 				Sprites.draw(self, "weapon_teddy")
 			"ball":
-				draw_set_transform(c + Vector2(0, -absf(sin(_t * 2.0)) * 10.0), _t, Vector2(s, s) * 2.2)
+				# Bota sin girar (girar el pixel art lo deforma) / Bounces without spinning (spinning pixel art warps it)
+				draw_set_transform((c + Vector2(0, -absf(sin(_t * 2.0)) * 10.0)).round(), 0.0, Vector2(s, s) * 1.35)
 				Sprites.draw(self, "weapon_ball")
 			"laptop":
-				draw_set_transform(c + Vector2(0, 20), sin(_t) * 0.08, Vector2(s, s) * 2.6)
+				draw_set_transform((c + Vector2(0, 14)).round(), 0.0, Vector2(0.8, 0.8))
 				Sprites.draw(self, "weapon_laptop")
 			"boots":
-				var bs := s * 2.4
+				var bs := s * 1.6
 				draw_set_transform(c - Vector2(100, 278) * bs + Vector2(0, -absf(sin(_t * 2.0)) * 6.0), 0.0, Vector2(bs, bs))
 				Sprites.draw(self, "weapon_boot_r")
 				Sprites.draw(self, "weapon_boot_l")

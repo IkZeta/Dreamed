@@ -146,6 +146,7 @@ func _ready() -> void:
 	_clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_clock_box.add_child(_clock)
 	_clock_box.visible = false
+	_backdrop(root, _clock_box, Vector2(26, 10))
 	# Sueño y tiempo (arriba en el centro) / Dream and timer (top center)
 	# Arriba a la derecha, para no tapar la ventana / Top right, clear of the window
 	var center := VBoxContainer.new()
@@ -156,6 +157,9 @@ func _ready() -> void:
 	center.offset_left = -260
 	center.offset_right = -56
 	center.offset_top = 36
+	# El mismo fondo suave que la vida, para que se lea en las ciudades claras
+	# The same soft backdrop as the health, so it reads over bright cities
+	_backdrop(root, center, Vector2(18, 12))
 	_dream = UITheme.label("", 14, UITheme.GOLD, "caps")
 	_dream.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	_dream.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -215,6 +219,27 @@ func _ready() -> void:
 	_intro_new.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_intro.add_child(_intro_new)
 	_refresh_texts()
+
+
+## Panel suave detrás de un bloque del HUD, que sigue su tamaño y si se ve o no
+## Soft panel behind a HUD block, following its size and visibility
+func _backdrop(root: Control, box: Control, pad: Vector2) -> void:
+	var bg := Panel.new()
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.03, 0.12, 0.55)
+	sb.set_corner_radius_all(8)
+	bg.add_theme_stylebox_override("panel", sb)
+	root.add_child(bg)
+	root.move_child(bg, box.get_index())
+	var fit := func() -> void:
+		bg.position = box.position - pad
+		bg.size = box.size + pad * 2.0
+		bg.visible = box.visible and box.size.y > 4.0
+	box.resized.connect(fit)
+	box.ready.connect(fit)
+	box.visibility_changed.connect(fit)
+	box.item_rect_changed.connect(fit)
 
 
 func start(depth: int) -> void:

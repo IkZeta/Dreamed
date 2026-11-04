@@ -707,32 +707,32 @@ class CityBillboard extends Node2D:
 		ci.draw_rect(r.grow(8), dark)
 		ci.draw_rect(r, Color("1a0a10"))
 		var c := r.get_center()
-		var font := ThemeDB.fallback_font
+		var font := UITheme.font("display")   # la letra pixel del juego / the game's pixel font
 		match kind:
 			0:   # la sonrisa de Evil Ad / Evil Ad's grin
 				ci.draw_rect(r.grow(-6), Color(red, 0.25 * on))
 				for side in [-1.0, 1.0]:
 					ci.draw_circle(c + Vector2(side * 40, -22), 18.0, Color(red, on))
 					ci.draw_circle(c + Vector2(side * 40, -22), 12.0, dark)
-					ci.draw_string(font, c + Vector2(side * 40 - 6, -14), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("ffd84a", on))
+					ci.draw_string(font, c + Vector2(side * 40 - 6, -14), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color("ffd84a", on))
 				var pts := PackedVector2Array()
 				for i in 9:
 					pts.append(c + Vector2(-64 + i * 16, 18 + sin(i / 8.0 * PI) * 16))
 				ci.draw_polyline(pts, Color(red, on), 6.0)
 			1:
-				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.62), "BUY NOW", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 46, Color(red, on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.62), "BUY NOW", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 48, Color(red, on))
 			2:
 				ci.draw_rect(Rect2(r.position + Vector2(10, 10), r.size - Vector2(20, 20)), Color(cream, 0.9 * on))
 				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.64), "OBEY", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 60, Color(dark, on))
 			3:
-				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.45), "SALE", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 40, Color(cream, on))
-				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.85), "-99%", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 44, Color(red, on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.45), "SALE", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 36, Color(cream, on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.85), "-99%", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 48, Color(red, on))
 			4:
 				for i in 3:
 					ci.draw_string(font, c + Vector2(-70 + i * 50, 18), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 60, Color(red if i != 1 else cream, on))
 			5:
-				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.42), "DON'T", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 34, Color(cream, on))
-				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.82), "WAKE UP", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 38, Color(red, on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.42), "DON'T", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 36, Color(cream, on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.82), "WAKE UP", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 36, Color(red, on))
 		# Bombillas del marco / Frame bulbs
 		for i in 8:
 			var lit := int(t * 6.0 + i) % 2 == 0

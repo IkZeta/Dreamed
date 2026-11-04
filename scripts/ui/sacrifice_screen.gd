@@ -57,6 +57,10 @@ func build() -> void:
 				"up": tr(GameState.upgrade_key(g, weapon, "NAME")),
 				"from": lvl, "to": lvl - 1, "n": GameState.sacrifice_value(g, weapon),
 			})
+			# La cara del personaje a la izquierda / The character's face on the left
+			var badge := FaceBadge.make(g, 56.0)
+			badge.position = Vector2(10, 8)
+			b.add_child(badge)
 			b.pressed.connect(_pick.bind(g, weapon))
 			b.mouse_entered.connect(b.grab_focus)
 			col.add_child(b)

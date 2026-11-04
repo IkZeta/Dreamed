@@ -554,8 +554,8 @@ func _face(scr: Rect2, a: float) -> void:
 		draw_rect(Rect2(scr.position.x, y, scr.size.x, 3), Color(RED, 0.12 * a))
 	if glitchy:
 		var words := ["BUY", "OBEY", "CONSUME", "$$$"]
-		var font := ThemeDB.fallback_font
-		draw_string(font, c + Vector2(-80, 14), words[int(_t * 7.0) % words.size()], HORIZONTAL_ALIGNMENT_CENTER, 160, 42, Color(RED, a))
+		var font := UITheme.font("display")
+		draw_string(font, c + Vector2(-80, 14), words[int(_t * 7.0) % words.size()], HORIZONTAL_ALIGNMENT_CENTER, 160, 48, Color(RED, a))
 		return
 	for side in [-1.0, 1.0]:
 		var e := c + Vector2(side * 46.0, -24.0)
@@ -667,8 +667,8 @@ class PopupAd extends Enemy:
 		draw_rect(Rect2(r.end.x - 12, r.position.y + 1, 10, 10), Color("1a0a10", a))
 		draw_line(Vector2(r.end.x - 10, r.position.y + 3), Vector2(r.end.x - 4, r.position.y + 9), Color.WHITE, 2.0)
 		draw_line(Vector2(r.end.x - 4, r.position.y + 3), Vector2(r.end.x - 10, r.position.y + 9), Color.WHITE, 2.0)
-		var font := ThemeDB.fallback_font
+		var font := UITheme.font("display")
 		var word: String = ["SALE!", "WIN!", "BUY!", "50%"][_word]
-		draw_string(font, Vector2(r.position.x, c.y + 12), word, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 16, Color("e0303a", a))
+		draw_string(font, Vector2(r.position.x, c.y + 12), word, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 24, Color("e0303a", a))
 		# Cuenta atrás / Countdown
 		draw_rect(Rect2(r.position + Vector2(4, r.size.y - 6), Vector2((r.size.x - 8) * _life / LIFE, 3)), Color("e0303a", a))
