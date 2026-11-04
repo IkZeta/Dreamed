@@ -725,9 +725,356 @@ GIVERS = {"giver_svinho": giver_svinho, "giver_stolk": giver_stolk, "giver_silly
 
 
 def render(only: set, save) -> None:
+    for name, (fn, peak) in MUSIC.items():
+        if not only or name in only:
+            save(name, fn(), peak, room=0)
+    for name, (fn, peak, room) in SFX.items():
+        if not only or name in only:
+            save(name, fn(), peak, room)
     for name, (fn, peak) in THEMES.items():
         if not only or name in only:
             save(name, fn(), peak, room=0)
     for name, fn in GIVERS.items():
         if not only or name in only:
             save(name, fn(), 0.42, 0.3)
+
+
+# --- Música mejorada del resto del juego / Improved music for the rest of the game -------------
+
+def menu_theme() -> np.ndarray:
+    """Menú: nana de arpa y kalimba en Re mayor, ahora con una segunda parte con cuerdas suaves y
+    una contramelodía de caja de música.
+    Menu: a harp and kalimba lullaby in D major, now with a second part with soft strings and a
+    music-box countermelody."""
+    beat = 60.0 / 66
+    bar_len = beat * 4
+    chords = [[50, 57, 62, 66], [47, 54, 59, 62], [43, 50, 55, 59], [45, 52, 57, 61],
+              [43, 55, 59, 62], [45, 57, 61, 64], [47, 54, 59, 62], [45, 52, 57, 61]]
+    mel_a = [(0, 0, 74, 2), (0, 2, 73, 1), (0, 3, 71, 1), (1, 0, 69, 3), (2, 0, 71, 2), (2, 2, 74, 2),
+             (3, 0, 73, 4), (4, 0, 78, 2), (4, 2, 76, 1), (4, 3, 74, 1), (5, 0, 71, 3), (6, 0, 69, 2),
+             (6, 2, 71, 1), (6, 3, 73, 1), (7, 0, 74, 4)]
+    mel_b = [(0, 0, 79, 2), (0, 2, 78, 2), (1, 0, 76, 3), (1, 3, 73, 1), (2, 0, 74, 2), (2, 2, 78, 2),
+             (3, 0, 76, 4), (4, 0, 74, 1), (4, 1, 76, 1), (4, 2, 78, 2), (5, 0, 81, 3), (6, 0, 78, 2), (6, 2, 76, 2), (7, 0, 74, 4)]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 4] if i < 8 else chords[4 + i % 4]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 2.0, 0.09, 1.2, 2.0, 1300), s, human=False)
+            place(buf, pluck(midi(ch[0] - 12), 4.0, 0.3, 0.2, 0.998), s)
+            A._arp(buf, ch, s, beat, 4, 0.06)
+            if i >= 8:
+                place(buf, saw_pad([midi(ch[1] + 12), midi(ch[2] + 12)], bar_len + 1.0, 0.05, 1.8, 1.5, 2400), s, 0.0, human=False)
+        for bi, b, n, _ in mel_a:
+            place(buf, bar(midi(n), 2.5, 0.22, "kalimba", 0.3), off + bi * bar_len + b * beat, 0.15)
+        for bi, b, n, _ in mel_b:
+            place(buf, bar(midi(n), 2.5, 0.2, "kalimba", 0.3), off + (bi + 8) * bar_len + b * beat, 0.15)
+            place(buf, glock(midi(n + 12), 1.4, 0.05), off + (bi + 8) * bar_len + b * beat + beat * 0.5, -0.4)
+
+    return loop_render(build, bar_len * bars, 0.35)
+
+
+def dream_theme() -> np.ndarray:
+    """Acto 1, el cuarto: lenta y un poco rara, con un acorde que se tuerce. Marimba, arpa, una
+    caja de música lejana y escobillas muy suaves en la segunda parte.
+    Act 1, the bedroom: slow and a little strange, with a chord that bends. Marimba, harp, a distant
+    music box and very soft brushes in the second part."""
+    beat = 60.0 / 58
+    bar_len = beat * 4
+    chords = [[50, 57, 62, 64], [47, 54, 59, 62], [46, 53, 58, 62], [45, 52, 57, 61]]
+    mel_a = [(0, 0, 69), (0, 3, 67), (1, 0, 66), (2, 0, 65), (2, 2, 62), (3, 0, 64),
+             (4, 0, 69), (4, 2, 71), (5, 0, 67), (6, 0, 65), (6, 3, 62), (7, 0, 61)]
+    mel_b = [(0, 0, 74), (0, 2, 73), (1, 0, 71), (1, 2, 69), (2, 0, 70), (2, 2, 69), (3, 0, 67),
+             (4, 0, 69), (4, 1, 71), (4, 2, 74), (5, 0, 73), (6, 0, 70), (6, 2, 67), (7, 0, 69)]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 4]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 2.4, 0.1, 2.0, 2.4, 1100), s, human=False)
+            place(buf, pluck(midi(ch[0] - 12), 4.0, 0.3, 0.15, 0.998), s)
+            for b, idx in ((0.5, 1), (1.5, 2), (2.5, 3), (3.5, 2)):
+                place(buf, bar(midi(ch[idx] + 12), 1.6, 0.07, "marimba", 0.3), s + b * beat, -0.4 + 0.25 * idx)
+            if i >= 8:
+                for b in range(4):
+                    place(buf, lp(breath(beat * 0.8, 1800, 6500, 0.03), 6000) * env_ar(int(beat * 0.8 * SR), 0.05, 0.4), s + b * beat, 0.3)
+                place(buf, thump(60, 0.4, 0.1, 6.0), s, 0.0)
+        for bi, b, n in mel_a:
+            place(buf, pluck(midi(n), 3.0, 0.2, 0.45), off + bi * bar_len + b * beat, 0.1)
+        for bi, b, n in mel_b:
+            place(buf, glock(midi(n), 2.2, 0.1), off + (bi + 8) * bar_len + b * beat, 0.1)
+            place(buf, pluck(midi(n - 12), 3.0, 0.12, 0.4), off + (bi + 8) * bar_len + b * beat, -0.2)
+
+    return loop_render(build, bar_len * bars, 0.45, 1.6)
+
+
+def astral_theme() -> np.ndarray:
+    """Plano astral: acordes suspendidos que flotan, kalimba lejana, un coro de "aaah" muy suave y
+    destellos de campanitas.
+    Astral plane: floating suspended chords, a distant kalimba, a very soft "aaah" choir and
+    glimmers of little bells."""
+    beat = 60.0 / 52
+    bar_len = beat * 4
+    chords = [[43, 55, 62, 67, 69], [40, 52, 59, 64, 66], [36, 48, 55, 62, 64], [38, 50, 57, 62, 64]]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 4]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 3.0, 0.11, 2.5, 3.0, 1200), s, human=False)
+            place(buf, pluck(midi(ch[0]), 4.0, 0.22, 0.15, 0.998), s)
+            for b, idx in ((1.0, 3), (2.5, 4), (3.25, 2)):
+                place(buf, bar(midi(ch[idx] + 12), 2.5, 0.09, "kalimba", 0.2), s + b * beat, RNG.uniform(-0.6, 0.6))
+            if i >= 8 and i % 2 == 0:
+                place(buf, vowel(bar_len * 1.8, midi(ch[2]), midi(ch[2]), 0.05), s, -0.3, human=False)
+                place(buf, vowel(bar_len * 1.8, midi(ch[3]), midi(ch[3]), 0.04), s + 0.3, 0.3, human=False)
+            for k in range(3):
+                place(buf, glock(midi(ch[1 + k] + 24), 2.0, 0.025), s + RNG.uniform(0, bar_len), RNG.uniform(-0.8, 0.8))
+
+    return loop_render(build, bar_len * bars, 0.55, 1.8)
+
+
+def boss_theme() -> np.ndarray:
+    """Jefe del Acto 1: los muebles despiertan. Pulso de tambor de fieltro, bombo y caja, acordes
+    de metal que avisan y marimba inquieta.
+    Act 1 boss: the furniture wakes. A felt-drum pulse, kick and snare, warning brass chords and an
+    uneasy marimba."""
+    beat = 60.0 / 100
+    bar_len = beat * 4
+    roots = [38, 38, 34, 36, 38, 41, 34, 33]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            r = roots[i % 8]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(r + 12), midi(r + 15), midi(r + 19)], bar_len + 1.2, 0.09, 0.5, 1.2, 900), s, human=False)
+            for b in range(4):
+                place(buf, kick(0.35, 50, 7), s + b * beat, 0.0)
+                place(buf, pluck(midi(r - 12 + 12), beat * 1.2, 0.22, 0.25, 0.99), s + b * beat)
+            for b in (1, 3):
+                place(buf, snare(0.16), s + b * beat, 0.1)
+            for k in range(8):
+                place(buf, hat(0.03), s + k * beat / 2 + beat / 4, 0.4)
+            for b in (0.5, 1.5, 2.75, 3.5):
+                place(buf, bar(midi(r + 24 + (3 if (i + int(b)) % 2 else 0)), 0.9, 0.11, "marimba", 0.5), s + b * beat,
+                      -0.5 if b < 2 else 0.5)
+            if i % 4 == 0:
+                place(buf, brass([midi(r + 12), midi(r + 15), midi(r + 18)], beat * 1.5, 0.1, 0.1, 0.4, 2000), s, -0.2)
+        for k, n in enumerate([62, 61, 58, 57, 62, 65, 64, 61, 62, 65, 69, 68, 65, 62, 61, 57]):
+            place(buf, pluck(midi(n), 3.0, 0.15, 0.4), off + k * bar_len + beat * 0.5, 0.2)
+
+    return loop_render(build, bar_len * bars, 0.3)
+
+
+def school_theme() -> np.ndarray:
+    """Acto 3, el pasillo del cole: un xilófono y una flauta dulce de clase de música, un piano de
+    juguete, palmadas y el din-don del timbre... pero el acorde se tuerce, como si el pasillo no
+    acabara nunca.
+    Act 3, the school hallway: a xylophone and a music-class recorder, a toy piano, claps and the
+    ding-dong of the bell... but the chord bends, as if the hallway never ended."""
+    beat = 60.0 / 104
+    bar_len = beat * 4
+    chords = [[43, 59, 62, 67], [40, 59, 64, 67], [36, 60, 64, 67], [38, 57, 62, 66],
+              [43, 59, 62, 67], [39, 58, 63, 67], [36, 60, 63, 67], [38, 57, 62, 66]]
+    melody = [(0, 0, 74), (0, 1, 71), (0, 2, 67), (0, 3, 71), (1, 0, 72), (1, 2, 76), (2, 0, 74), (2, 1, 72), (2, 2, 71),
+              (3, 0, 69), (4, 0, 74), (4, 1, 79), (4, 2, 78), (5, 0, 75), (5, 2, 70), (6, 0, 72), (6, 1, 70), (6, 2, 67), (7, 0, 69)]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 8]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 1.0, 0.05, 0.6, 1.0, 1300), s, human=False)
+            for b in range(4):
+                place(buf, pluck(midi(ch[0] - 12 + (7 if b % 2 else 0)), beat * 0.9, 0.22, 0.3, 0.99), s + b * beat)
+            for k in range(8):
+                n = ch[1 + k % 3] + 12
+                place(buf, bar(midi(n), 0.35, 0.05, "marimba", 0.8), s + k * beat / 2, -0.35 + 0.1 * (k % 4))
+            place(buf, rim(0.07), s + beat, 0.3)
+            place(buf, rim(0.07), s + 3 * beat, 0.3)
+            if i >= 8:
+                place(buf, clap(0.08), s + 3 * beat, -0.2)
+                place(buf, kick(0.18, 60, 10), s, 0.0)
+                place(buf, kick(0.14, 60, 10), s + 2 * beat, 0.0)
+        for second in (False, True):
+            base = off + (8 * bar_len if second else 0.0)
+            for bi, b, n in melody:
+                if second:
+                    place(buf, glock(midi(n + 12), 1.0, 0.07), base + bi * bar_len + b * beat, 0.3)
+                place(buf, whistle(midi(n), beat * 0.95, 0.12, 4.5), base + bi * bar_len + b * beat, -0.05)
+        # El timbre al final de la vuelta / The bell at the end of the loop
+        for k, n in enumerate([79, 76, 72, 79]):
+            place(buf, glock(midi(n), 1.8, 0.07), off + 15 * bar_len + k * beat * 0.5, 0.0, human=False)
+
+    return loop_render(build, bar_len * bars, 0.3)
+
+
+def ufo_theme() -> np.ndarray:
+    """El Ovni: ciencia ficción de los 50. Un theremin que se desliza, arpegios burbujeantes,
+    pulso de bombo, acordes misteriosos y pitidos de radar.
+    The UFO: 1950s sci-fi. A gliding theremin, bubbly arpeggios, a kick pulse, mysterious chords
+    and radar blips."""
+    beat = 60.0 / 112
+    bar_len = beat * 4
+    roots = [40, 40, 36, 38, 40, 43, 36, 35]
+    melody = [(0, 0, 76, 2), (0, 2, 79, 2), (1, 0, 78, 3), (1, 3, 75, 1), (2, 0, 72, 2), (2, 2, 76, 2), (3, 0, 74, 4),
+              (4, 0, 76, 1), (4, 1, 83, 3), (5, 0, 82, 2), (5, 2, 79, 2), (6, 0, 77, 2), (6, 2, 72, 2), (7, 0, 71, 4)]
+    bars = 16
+
+    def theremin(n0, n1, dur, amp):
+        t = t_axis(dur)
+        k = np.clip(t / 0.18, 0, 1)
+        f = midi(n0) * (2 ** ((n1 - n0) / 12 * k)) * (1 + 0.012 * np.sin(2 * np.pi * 6.0 * t))
+        return np.sin(2 * np.pi * np.cumsum(f) / SR) * env_ar(len(t), 0.06, 0.25) * amp
+
+    def build(buf, off):
+        for i in range(bars):
+            r = roots[i % 8]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(r + 12), midi(r + 15), midi(r + 19), midi(r + 22)], bar_len + 1.0, 0.06, 0.8, 1.0, 1100), s, human=False)
+            for b in range(4):
+                place(buf, kick(0.3, 50, 8), s + b * beat, 0.0)
+            for k in range(16):
+                n = r + 24 + [0, 7, 12, 15, 19, 15, 12, 7][k % 8]
+                place(buf, pulse(midi(n), beat / 4, 0.03, 0.5, 18, 2500), s + k * beat / 4, -0.5 + (k % 8) * 0.12, human=False)
+            place(buf, np.sin(2 * np.pi * 2200 * t_axis(0.06)) * np.exp(-t_axis(0.06) * 40) * 0.03, s + 2.5 * beat, 0.6, human=False)
+            for b in (1, 3):
+                place(buf, snare(0.1, 0.18), s + b * beat, 0.1)
+        prev = 76
+        for second in (False, True):
+            base = off + (8 * bar_len if second else 0.0)
+            for bi, b, n, d in melody:
+                place(buf, theremin(prev, n + (12 if second else 0), beat * d, 0.13), base + bi * bar_len + b * beat, 0.1, human=False)
+                prev = n + (12 if second else 0)
+
+    return loop_render(build, bar_len * bars, 0.35, 1.6)
+
+
+def city_theme() -> np.ndarray:
+    """Acto 4, la Metrópolis: paseo por una ciudad grande, alegre y con prisa. Bajo que camina,
+    arpa a contratiempo, marimba, una kalimba que canta y ahora una batería suave y metales.
+    Act 4, the Metropolis: a stroll through a big city, cheerful and busy. Walking bass, offbeat
+    harp, marimba, a singing kalimba and now a soft drum kit and brass."""
+    beat = 60.0 / 104
+    bar_len = beat * 4
+    chords = [[43, 55, 59, 62], [40, 55, 59, 64], [36, 55, 60, 64], [38, 54, 57, 62],
+              [43, 55, 59, 62], [40, 55, 59, 64], [36, 52, 55, 60], [38, 54, 57, 62]]
+    melody = [(0, 0, 74), (0, 1, 76), (0, 1.5, 74), (0, 2, 71), (1, 0, 72), (1, 1.5, 71), (1, 2, 67),
+              (2, 0, 69), (2, 1, 71), (2, 2, 72), (3, 0, 74), (3, 2, 69), (4, 0, 79), (4, 1, 78), (4, 1.5, 76),
+              (4, 2, 74), (5, 0, 76), (5, 2, 71), (6, 0, 72), (6, 1, 74), (6, 2, 76), (7, 0, 74)]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 8]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 1.2, 0.05, 0.6, 1.2, 1200), s, human=False)
+            for b in range(4):
+                n = ch[0] - 12 + [0, 7, 12, 7][b]
+                place(buf, pluck(midi(n), beat * 1.1, 0.22, 0.25, 0.99), s + b * beat)
+                place(buf, kick(0.22, 60, 9), s + b * beat if b % 2 == 0 else s + b * beat + beat * 0.5, 0.0)
+            for b in (1, 3):
+                place(buf, snare(0.12, 0.18), s + b * beat, 0.1)
+            for k in range(8):
+                place(buf, hat(0.035 if k % 2 else 0.05), s + k * beat / 2, 0.4)
+            for b in (0.5, 1.5, 2.5, 3.5):
+                for k, n in enumerate(ch[1:]):
+                    place(buf, pluck(midi(n + 12), 0.6, 0.03, 0.4), s + b * beat + k * 0.01, -0.4 + k * 0.4)
+            for k in range(8):
+                n = ch[1 + k % 3] + 12
+                place(buf, bar(midi(n), 0.4, 0.04, "marimba", 0.5), s + k * beat / 2, 0.4 - 0.1 * k)
+        for bi, b, n in melody:
+            place(buf, bar(midi(n), 1.4, 0.15, "kalimba", 0.4), off + bi * bar_len + b * beat, 0.05)
+            place(buf, brass([midi(n)], beat * 0.7, 0.08, 0.04, 0.15, 2600), off + (bi + 8) * bar_len + b * beat, 0.1)
+            place(buf, bar(midi(n + 12), 1.0, 0.05, "kalimba", 0.4), off + (bi + 8) * bar_len + b * beat, -0.3)
+
+    return loop_render(build, bar_len * bars, 0.28)
+
+
+MUSIC = {"music_menu": (menu_theme, 0.55), "music_dream1": (dream_theme, 0.55), "music_astral": (astral_theme, 0.55),
+         "music_boss": (boss_theme, 0.55), "music_school": (school_theme, 0.55), "music_ufo": (ufo_theme, 0.55),
+         "music_city": (city_theme, 0.55)}
+
+
+# --- Efectos mejorados / Improved sound effects ------------------------------------------
+
+def sfx_hit():
+    """Golpe con cuerpo: madera, un golpe sordo y un chasquido / A hit with body: wood, a thud and a snap."""
+    return mix(bar(RNG.uniform(260, 320), 0.3, 0.45, "wood", 0.7), thump(110, 0.18, 0.35, 14),
+               hp(noise(0.04), 2500) * np.exp(-t_axis(0.04) * 90) * 0.25)
+
+
+def sfx_swing():
+    """Zumbido de aire que pasa de un lado a otro / A swish of air passing from one side to the other."""
+    x = A.sweep_noise(0.24, 300, 1800, 2.2, 0.5)
+    n = len(x)
+    pan = np.linspace(-0.6, 0.6, n)
+    a = (pan + 1) * np.pi / 4
+    return np.stack([x * np.cos(a), x * np.sin(a)], axis=1) * 1.3
+
+
+def sfx_hurt():
+    """Golpe que duele, un "uf" y un pequeño crujido / A painful thump, an "oof" and a little crunch."""
+    return mix(thump(85, 0.35, 0.65, 10), vowel(0.28, 280, 190, 0.32), bp(noise(0.08), 800, 3000) * np.exp(-t_axis(0.08) * 50) * 0.2)
+
+
+def sfx_pickup():
+    """Trozo de estrella: arpegio de campanitas con un destello / Star shard: a bell arpeggio with a sparkle."""
+    x = np.zeros((int(SR * 1.6), 2))
+    for i, n in enumerate([74, 78, 81, 86]):
+        place(x, glock(midi(n), 1.2, 0.22), i * 0.045, -0.4 + i * 0.27, human=False)
+    place(x, hp(noise(0.2), 8000) * np.exp(-t_axis(0.2) * 20) * 0.08, 0.15, 0.3, human=False)
+    return x
+
+
+def sfx_hover():
+    return glock(midi(81), 0.4, 0.15)
+
+
+def sfx_click():
+    return mix(glock(midi(76), 0.6, 0.25), np.pad(glock(midi(83), 0.6, 0.2), (int(SR * 0.04), 0)), thump(160, 0.06, 0.12, 20))
+
+
+def sfx_foox_die():
+    """Un fantasma que se deshace: campanitas que bajan y un soplo / A ghost dissolving: falling bells and a puff."""
+    x = np.zeros((int(SR * 1.4), 2))
+    for i, n in enumerate([81, 76, 72, 69]):
+        place(x, glock(midi(n), 1.0, 0.18), i * 0.06, 0.3 - i * 0.2, human=False)
+    return mix(x, A.sweep_noise(0.6, 1200, 300, 2.0, 0.2))
+
+
+def sfx_win():
+    """Sueño superado: arpa que sube, metales y campanas / Dream cleared: a rising harp, brass and bells."""
+    x = np.zeros((int(SR * 4.0), 2))
+    for i, n in enumerate([62, 66, 69, 73, 74, 78, 81]):
+        place(x, pluck(midi(n), 2.8, 0.22, 0.5), i * 0.1, -0.6 + i * 0.2, human=False)
+    place(x, brass([midi(62), midi(66), midi(69), midi(74)], 2.4, 0.12, 0.2, 1.2, 2600), 0.6, 0.0, human=False)
+    for i, n in enumerate([86, 90, 93]):
+        place(x, glock(midi(n), 2.0, 0.08), 0.7 + i * 0.08, 0.4, human=False)
+    place(x, saw_pad([midi(n) for n in (50, 57, 62, 66)], 3.8, 0.1, 0.3, 2.0, 1500), 0, human=False)
+    return x
+
+
+def sfx_lose():
+    x = np.zeros((int(SR * 4.0), 2))
+    for i, n in enumerate([74, 70, 69, 65, 62]):
+        place(x, pluck(midi(n), 2.8, 0.22, 0.35), i * 0.28, 0.5 - i * 0.25, human=False)
+    place(x, saw_pad([midi(n) for n in (50, 53, 57, 62)], 3.8, 0.11, 0.5, 2.2, 900), 0.1, human=False)
+    place(x, brass([midi(50), midi(53)], 2.5, 0.07, 0.4, 1.4, 1200, True), 1.0, 0.0, human=False)
+    return x
+
+
+def sfx_chime():
+    return mix(glock(midi(86), 1.4, 0.3), np.pad(glock(midi(93), 1.4, 0.22), (int(SR * 0.08), 0)), bar(midi(74), 1.2, 0.15, "kalimba", 0.3))
+
+
+SFX = {"hit": (sfx_hit, 0.4, 0.1), "swing": (sfx_swing, 0.42, 0.1), "hurt": (sfx_hurt, 0.52, 0.12),
+       "pickup": (sfx_pickup, 0.4, 0.3), "ui_hover": (sfx_hover, 0.22, 0.12), "ui_click": (sfx_click, 0.32, 0.12),
+       "foox_die": (sfx_foox_die, 0.38, 0.3), "win": (sfx_win, 0.5, 0.35), "lose": (sfx_lose, 0.5, 0.35),
+       "chime": (sfx_chime, 0.35, 0.25)}
+
+OVERRIDES = set(MUSIC) | set(SFX)

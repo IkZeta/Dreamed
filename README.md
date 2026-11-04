@@ -356,6 +356,7 @@ Todo el arte y el sonido se generan con los scripts de `tools/`:
 | `make_sprites.py` | Dibuja cada pieza en SVG, la rasteriza con Chromium y la reduce a pixel art (paleta corta y contorno de 1 píxel). Crea `assets/sprites/*.png` y `scripts/visual/sprite_rects.gd` | Python 3, Pillow, Playwright con Chromium |
 | `make_hub.py` | El terreno del plano astral píxel a píxel: islas de piedra astral con losas irregulares, canto, panza de roca con cristales y el suelo de cada personaje. Crea `assets/sprites/hub_isle_*.png` y `scripts/visual/hub_layout.gd` (posiciones y zonas por las que se anda). Los muebles del plano astral están en `hub_props.py` y los dibuja `make_sprites.py` | Python 3, numpy, Pillow |
 | `make_audio.py` | Música y efectos con síntesis por modelado físico, siempre suaves | Python 3, numpy, scipy, ffmpeg (para .ogg) |
+| `audio_themes.py` | Lo usa `make_audio.py`: instrumentos extra (piano eléctrico FM, onda cuadrada, acordeón, metales, silbido, glockenspiel, batería, 808...), el tema de cada personaje, sus leitmotivs y la versión mejorada de la música y los efectos principales | lo mismo |
 | `make_font.py` | La fuente pixel art Dreampix en formato BMFont | Python 3, Pillow |
 
 ```bash
@@ -368,7 +369,34 @@ python3 tools/make_font.py
 godot --headless --path . --import                # que Godot importe lo nuevo
 ```
 
-En los `.wav` nuevos hay que poner `compress/mode=0` en su `.import`, y en los que hacen bucle, también `edit/loop_mode=2`.
+En los `.wav` nuevos hay que poner `compress/mode=0` en su `.import`, y en los que hacen bucle, también `edit/loop_mode=2`. En los `.ogg` de música, `loop=true`.
+
+### Música
+
+Cada lugar y cada personaje tiene su tema (todos en bucle y suaves):
+
+| Tema | Dónde suena | Cómo suena |
+|---|---|---|
+| Menú | Menú principal | Nana de arpa y kalimba, con una segunda parte con cuerdas y caja de música |
+| Cuarto | Acto 1 | Lenta y un poco rara, marimba, arpa, caja de música y escobillas |
+| Salón | Acto 2 | Vals de caja de música con el tic-tac del reloj |
+| Colegio | Acto 3 | Xilófono, flauta dulce de clase de música, palmas y el timbre... con acordes que se tuercen |
+| Metrópolis | Acto 4 | Paseo alegre por la ciudad con bajo que camina, batería suave y metales |
+| Noir / Evil Ad | Sueño 20 | Jazz de madrugada / jingle de anuncio retorcido |
+| Jefes | Muebles, El Chef, El Ovni | Tambor de fieltro y metales que avisan / cocina con prisa / ciencia ficción de los 50 con theremin |
+| Plano astral | Cruce de los sueños, museo, vestidor | Acordes que flotan, kalimba lejana y coro muy suave |
+| **Svinho** | Su isla | Bossa nova con guitarra de nailon, surdo, silbido; en la segunda vuelta, murmullo de estadio y el silbato del árbitro |
+| **Stolk** | Su isla | Medio tiempo pesado y chulesco, bajo saturado, metales a golpes y el clonc de una pesa |
+| **Silly** | Su isla | Chiptune de hacker: arpegios de 8 bits, su teclado hace de charles y glitches al final de las frases |
+| **Doc** | Su isla | Consulta tranquila: piano eléctrico, un latido de bombo, el pitido del monitor afinado y caja de música |
+| **Mr. Ad** | Su isla | Jingle de anuncio de juguetes con ukelele y glockenspiel... con notas que se desafinan y la tele que chisporrotea |
+| **Pinche** | Su isla | Tarantela de cocina con acordeón, pandereta, cazos, cuchillo picando y la sartén chisporroteando |
+| **Charo** | Su isla | Vals de abuela con acordeón, guitarra, caja de música y las agujas de punto |
+| **Magnus** | Su isla | Jazz de despacho con swing, trompeta con sordina y caja registradora |
+| **SuperK** | Su isla | Fanfarria de héroe: cuerdas, timbales, redobles y metales que suben |
+| **Lil Key** | Su isla | Dembow con 808, sinte con eco y un «¡eh!» de coro |
+
+En el plano astral, la música cambia con un fundido al entrar en la isla de cada personaje. Lo que suena al hablar con ellos es el arranque de su tema (su leitmotiv).
 
 ### Bot de equilibrio
 

@@ -1043,17 +1043,14 @@ def sfx_plate_break():
 if __name__ == "__main__":
     import sys
     only = set(sys.argv[1:])   # p. ej. "giver_svinho giver_doc" para rehacer solo esos / e.g. to remake only those
-    if not only:
-        save("music_menu", menu_theme(), 0.55, room=0)
-        save("music_dream1", dream_theme(), 0.55, room=0)
-        save("music_astral", astral_theme(), 0.55, room=0)
-        save("music_boss", boss_theme(), 0.55, room=0)
+    import audio_themes
+    # Lo que audio_themes.py rehace no se genera aquí / What audio_themes.py remakes isn't generated here
+    skip = audio_themes.OVERRIDES
     if not only or "music_living" in only:
         save("music_living", living_theme(), 0.55, room=0)
     if not only or "music_chef" in only:
         save("music_chef", chef_theme(), 0.55, room=0)
-    if not only or "music_city" in only:
-        save("music_city", city_theme(), 0.55, room=0)
+
     if not only or "music_noir" in only:
         save("music_noir", noir_theme(), 0.5, room=0)
     if not only or "music_evil_ad" in only:
@@ -1078,8 +1075,7 @@ if __name__ == "__main__":
         ("pant", sfx_pant, 0.3, 0.15), ("shuffle", sfx_shuffle, 0.3, 0.12),
         ("siren", sfx_siren, 0.3, 0.2), ("burst", sfx_burst, 0.3, 0.1), ("rumble", sfx_rumble, 0.5, 0.25),
     ]:
-        if not only or name in only:
+        if (not only or name in only) and name not in skip:
             save(name, fn(), peak, room)
-    # Temas de los personajes y sus leitmotivs / Character themes and their leitmotifs
-    import audio_themes
+    # Temas de los personajes, leitmotivs y lo mejorado / Character themes, leitmotifs and the improved bits
     audio_themes.render(only, save)
