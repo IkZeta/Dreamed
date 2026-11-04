@@ -125,7 +125,7 @@ El resto del salón:
   - Acto 3: **caja de cerillas** (20 % de que quien derrotas queme a los de al lado), **despertador** (con poca vida suena y congela 2,5 s a los de alrededor, una vez por sueño), **piñata** (los élites siempre sueltan un objeto y 2 ◆ más).
   - Acto 4: **bola de nieve** (al subir de nivel congela 2 s toda la pantalla) y **caja de música** (cada 14 s, una nana duerme 3 s a los de alrededor y reciben un 50 % más de daño).
 - **En la pausa** se ve lo que has comprado en el kiosco, con cuántos de cada (por ejemplo, *Pila del despertador x2*).
-- **La chimenea:** en algunos sueños está encendida. Ponte delante y pulsa la **F** (A en el mando) para echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada, más cuanto más nivel tenga (8, 12 o 16).
+- **La chimenea:** en algunos sueños está encendida. Ponte delante y pulsa la **F** (A en el mando) para echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada, más cuanto más nivel tenga (16, 24 o 32; 40 si es legendaria).
 
 ![El kiosco de Charo](docs/screenshots/kiosco.jpg)
 

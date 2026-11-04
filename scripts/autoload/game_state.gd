@@ -279,7 +279,7 @@ const REALITY_CHEF := 10
 const REALITY_FALL := 1
 const FALL_REALITY_CHANCE := 0.35
 const FALL_REALITY_CHANCE_BOSS := 0.1
-const REALITY_SACRIFICE := 4
+const REALITY_SACRIFICE := 8
 
 
 ## --- Modo Dios (para probar) / God mode (for testing) ----------------------------
@@ -1558,8 +1558,8 @@ func ware_heal(id: String) -> float:
 	return 0.0
 
 
-## Realidad Fragmentada que da sacrificar una mejora: más cuanto más nivel tiene (8, 12, 16)
-## Fragmented Reality a sacrifice gives: more the higher its level (8, 12, 16)
+## Realidad Fragmentada que da sacrificar una mejora: más cuanto más nivel tiene (16, 24, 32; 40 la legendaria)
+## Fragmented Reality a sacrifice gives: more the higher its level (16, 24, 32; 40 for a legendary)
 ## "before" = el nivel ya se ha restado (se llama después de sacrificar) / the level was already taken away
 func sacrifice_value(giver: String, weapon := "", before := false) -> int:
 	var lvl := level(giver, weapon) + (1 if before else 0)
