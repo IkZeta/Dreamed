@@ -218,7 +218,7 @@ func _finish_typing() -> void:
 	_box_text.visible_characters = -1
 	_portrait.talking = false
 	# En una charla con más frases, «Seguir»; si no, «Cerrar» / In a chat with more lines, "Next"; otherwise "Close"
-	var more := not _talking.is_empty() and _talking["kind"] == "chat" and int(_talking["i"]) < (_talking["lines"] as Array).size() - 1
+	var more: bool = not _talking.is_empty() and _talking["kind"] == "chat" and int(_talking["i"]) < (_talking["lines"] as Array).size() - 1
 	_box_next.text = Settings.controls_text(tr("HUB_NEXT" if more else "HUB_CLOSE"))
 	create_tween().tween_property(_box_next, "modulate:a", 1.0, 0.2)
 
