@@ -32,6 +32,13 @@ var _box_text: RichTextLabel
 var _box_hearts: FriendHearts
 var _portrait: TalkPortrait
 var _portrait_view: PixelView
+var _portrait_frame: PanelContainer
+var _box_style: StyleBoxFlat
+var _box_deco: BoxDeco
+var _box_next: Label
+var _typing := false
+var _type_t := 0.0
+const TYPE_SPEED := 55.0   # letras por segundo / letters per second
 var _talking := {}
 var _leaving := false
 ## Carta del pijama del soporte que tienes cerca / Card of the pajama on the stand you're near
@@ -111,20 +118,32 @@ func _show_zone(id: String) -> void:
 	_zone_tw.tween_property(_zone, "modulate:a", 0.0, 0.8)
 
 
-## Recuadro de charla, abajo / Talk box, at the bottom
+## Recuadro de charla, abajo, al estilo de Celeste: marco con adornos en las esquinas, el texto
+## que va saliendo letra a letra y, a la derecha, la cara del que habla en un marco cuadrado
+## Talk box at the bottom, Celeste style: a frame with corner ornaments, text that appears letter
+## by letter and, on the right, the speaker's face in a square frame
 func _build_box() -> void:
 	_box = PanelContainer.new()
-	_box.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.94), Color(UITheme.LINE, 0.8), Color(UITheme.MIST, 0.12), 18, 16, 26))
+	_box_style = UITheme.glow_box(Color("140f2e", 0.96), Color(UITheme.LINE, 0.9), Color(0, 0, 0, 0.35), 10, 4, 22)
+	_box_style.border_width_left = 3
+	_box_style.border_width_right = 3
+	_box_style.border_width_top = 3
+	_box_style.border_width_bottom = 3
+	_box.add_theme_stylebox_override("panel", _box_style)
 	add_child(_box)
 	_box.set_anchors_and_offsets_preset(PRESET_CENTER_BOTTOM)
-	_box.custom_minimum_size = Vector2(1100, 220)
+	_box.custom_minimum_size = Vector2(1180, 236)
 	_box.grow_horizontal = GROW_DIRECTION_BOTH
 	_box.grow_vertical = GROW_DIRECTION_BEGIN
-	_box.position.y -= 90
+	_box.position.y -= 100
 	_box.visible = false
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 26)
+	_box.add_child(row)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)
-	_box.add_child(v)
+	v.size_flags_horizontal = SIZE_EXPAND_FILL
+	row.add_child(v)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 16)
 	v.add_child(head)
@@ -140,26 +159,66 @@ func _build_box() -> void:
 	_box_hearts.size_flags_vertical = SIZE_SHRINK_CENTER
 	head.add_child(_box_hearts)
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.5)))
-	_box_text = Keywords.label("", 24, UITheme.BONE, "italic")
-	_box_text.custom_minimum_size.x = 1040
+	_box_text = Keywords.label("", 30, UITheme.BONE, "body")
+	_box_text.custom_minimum_size.x = 860
+	_box_text.size_flags_vertical = SIZE_EXPAND_FILL
 	v.add_child(_box_text)
-	var next := UITheme.label("", 14, Color(UITheme.ASH, 0.8), "caps")
-	next.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
-	next.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	next.text = Settings.controls_text(tr("HUB_CLOSE"))
-	v.add_child(next)
-	# Retrato del que habla, de pie junto al recuadro / Portrait of whoever is talking, standing by the box
+	_box_next = UITheme.label("", 14, Color(UITheme.ASH, 0.8), "caps")
+	_box_next.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+	_box_next.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_box_next.text = Settings.controls_text(tr("HUB_CLOSE"))
+	v.add_child(_box_next)
+	# La cara del que habla, en su marco / The speaker's face, in its frame
+	_portrait_frame = PanelContainer.new()
+	_portrait_frame.custom_minimum_size = Vector2(192, 192)
+	_portrait_frame.size_flags_vertical = SIZE_SHRINK_CENTER
+	row.add_child(_portrait_frame)
 	_portrait = TalkPortrait.new()
 	_portrait_view = PixelView.wrap(_portrait, 3)
-	_portrait_view.size = Vector2(330, 480)
-	_portrait_view.visible = false
-	add_child(_portrait_view)
+	_portrait_frame.add_child(_portrait_view)
+	# Adornos de las esquinas, por encima del recuadro / Corner ornaments, over the box
+	_box_deco = BoxDeco.new()
+	_box_deco.mouse_filter = MOUSE_FILTER_IGNORE
+	_box_deco.visible = false
+	add_child(_box_deco)
 
 
-func _process(_delta: float) -> void:
-	if _portrait_view.visible:
-		# A la izquierda del recuadro, con los pies a su altura / Left of the box, feet level with it
-		_portrait_view.position = Vector2(_box.position.x - _portrait_view.size.x + 40.0, _box.position.y + _box.size.y - _portrait_view.size.y).round()
+## Pone el texto y lo va escribiendo / Sets the text and starts typing it out
+func _type(text: String) -> void:
+	Keywords.set_text(_box_text, text)
+	_box_text.visible_characters = 0
+	_type_t = 0.0
+	_typing = true
+	_box_next.modulate.a = 0.0
+
+
+func _update_typing(delta: float) -> void:
+	if not _typing:
+		return
+	_type_t += delta
+	var total := _box_text.get_total_character_count()
+	var n := mini(total, int(_type_t * TYPE_SPEED))
+	if n != _box_text.visible_characters:
+		if n % 3 == 0 and not _talking.is_empty() and _talking["kind"] == "npc":
+			Audio.play("ui_click", -30.0, 0.2)
+		_box_text.visible_characters = n
+	_portrait.talking = true
+	if n >= total:
+		_finish_typing()
+
+
+func _finish_typing() -> void:
+	_typing = false
+	_box_text.visible_characters = -1
+	_portrait.talking = false
+	create_tween().tween_property(_box_next, "modulate:a", 1.0, 0.2)
+
+
+func _process(delta: float) -> void:
+	_update_typing(delta)
+	if _box_deco.visible:
+		_box_deco.position = _box.position - Vector2(14, 14)
+		_box_deco.size = _box.size + Vector2(28, 28)
 	# Aviso encima de lo que tengas cerca / Prompt over whatever is close
 	var spot := _world.near_spot()
 	var busy := not _talking.is_empty() or _start_panel != null
@@ -231,7 +290,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
-		if not _talking.is_empty():
+		if _typing:
+			_finish_typing()
+		elif not _talking.is_empty():
 			_close_box()
 		else:
 			var spot := _world.near_spot()
@@ -268,27 +329,37 @@ func _open(spot: Dictionary) -> void:
 			_box_hearts.visible = true
 			_box_hearts.color = HubLayout.ISLES[id]["aura"]
 			_box_hearts.set_level(Progress.friend_level(id))
-			Keywords.set_text(_box_text, _next_line(id))
+			_type(_next_line(id))
 			Audio.play("giver_" + id, -8.0)
+			var aura: Color = HubLayout.ISLES[id]["aura"]
 			_portrait.who = id
-			_portrait.aura = HubLayout.ISLES[id]["aura"]
+			_portrait.aura = aura
 			_portrait.pop()
-			_portrait_view.visible = true
-			_portrait_view.modulate.a = 0.0
-			create_tween().tween_property(_portrait_view, "modulate:a", 1.0, 0.2)
+			_portrait_frame.visible = true
+			_portrait_frame.add_theme_stylebox_override("panel", UITheme.box(aura.darkened(0.7), aura, 3, 4, 0.0))
+			_box_style.border_color = Color(aura, 0.85)
+			_box_deco.color = aura
 		"statue":
 			if Progress.has_seen(id):
 				_box_title.text = tr("BEST_%s_NAME" % id.to_upper())
 				_box_role.text = tr("BESTIARY_DEFEATED") % int(Progress.kills.get(id, 0))
-				Keywords.set_text(_box_text, tr("BEST_%s_DESC" % id.to_upper()))
+				_type(tr("BEST_%s_DESC" % id.to_upper()))
 			else:
 				_box_title.text = "???"
 				_box_role.text = ""
-				Keywords.set_text(_box_text, tr("HUB_EMPTY_PEDESTAL"))
+				_type(tr("HUB_EMPTY_PEDESTAL"))
 			Audio.play("ui_click", -6.0)
+	if spot["kind"] != "npc":
+		_portrait_frame.visible = false
+		_box_style.border_color = Color(UITheme.LINE, 0.9)
+		_box_deco.color = UITheme.LINE
 	_box.visible = true
+	_box_deco.visible = true
 	_box.modulate.a = 0.0
-	create_tween().tween_property(_box, "modulate:a", 1.0, 0.15)
+	_box_deco.modulate.a = 0.0
+	var tw := create_tween().set_parallel()
+	tw.tween_property(_box, "modulate:a", 1.0, 0.15)
+	tw.tween_property(_box_deco, "modulate:a", 1.0, 0.15)
 
 
 ## Cada vez que hablas con alguien dice otra cosa, de las que ya te ha contado por amistad
@@ -312,7 +383,8 @@ func _next_line(id: String) -> String:
 func _close_box() -> void:
 	_talking = {}
 	_box.visible = false
-	_portrait_view.visible = false
+	_box_deco.visible = false
+	_typing = false
 	_world.frozen = false
 
 
@@ -1554,11 +1626,19 @@ class HubWorld extends Control:
 		return pts
 
 
-## El que habla, de cuerpo entero sobre un halo de su color; da un saltito al empezar a hablar
-## Whoever is talking, full body over a halo in their colour; it gives a little hop when it starts talking
+## La cara del que habla de cerca (cabeza y hombros), sobre un fondo de su color con rayos; mueve
+## la cabeza al hablar y da un saltito al empezar
+## A close-up of the speaker (head and shoulders) on a background in their colour with rays; it
+## bobs while talking and gives a little hop when it starts
 class TalkPortrait extends Control:
+	## Dónde está la cara de cada uno en su dibujo (lienzo de 200 de ancho) / Where each face is in their drawing (200-wide canvas)
+	const FACE := {"svinho": Vector2(100, 62), "stolk": Vector2(100, 60), "silly": Vector2(100, 70), "doc": Vector2(100, 66),
+		"ad": Vector2(100, 64), "pinche": Vector2(100, 60), "magnus": Vector2(100, 72), "superk": Vector2(100, 58),
+		"lilkey": Vector2(100, 62), "charo": Vector2(100, 74)}
+	const ZOOM := 2.3
 	var who := "svinho"
 	var aura := Color.WHITE
+	var talking := false
 	var _t := 0.0
 	var _pop := 0.0
 
@@ -1571,19 +1651,57 @@ class TalkPortrait extends Control:
 		queue_redraw()
 
 	func _draw() -> void:
-		var s := minf(size.x / 200.0, size.y / 330.0)
-		var hop := -sin(_pop * PI) * 10.0
-		var feet := Vector2(size.x / 2.0, size.y - 14.0)
-		draw_texture_rect(DreamBackground.soft_texture(), Rect2(feet - Vector2(95, 150) * s, Vector2(190, 170) * s), false, Color(aura, 0.3))
-		var ring := PackedVector2Array()
-		for i in 24:
-			var a := TAU * i / 24.0
-			ring.append(feet + Vector2(cos(a) * 46.0, sin(a) * 10.0) * s)
-		draw_colored_polygon(ring, Color(aura, 0.22))
-		ring.append(ring[0])
-		draw_polyline(ring, Color(aura, 0.6), 1.0)
-		for i in 3:
-			var a := _t * 0.7 + i * TAU / 3.0
-			DreamBackground.draw_star(self, feet + Vector2(cos(a) * 52.0, -90.0 + sin(a) * 14.0) * s, 2.0, Color(aura, 0.7))
-		var origin := feet + Vector2(-100.0, -296.0) * s + Vector2(0, hop + sin(_t * 1.4) * 2.0)
+		var c := size / 2.0
+		draw_rect(Rect2(Vector2.ZERO, size), aura.darkened(0.55))
+		for i in 12:
+			var a := TAU * i / 12.0 + _t * 0.15
+			draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a - 0.12) * 90.0, c + Vector2.from_angle(a + 0.12) * 90.0]), Color(aura, 0.16))
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - size * 0.5, size), false, Color(aura, 0.35))
+		var s := size.x / 200.0 * ZOOM
+		var bob := (sin(_t * 16.0) * 1.0 if talking else sin(_t * 1.6) * 0.6) - sin(_pop * PI) * 4.0
+		var face: Vector2 = FACE.get(who, Vector2(100, 66))
+		var origin := Vector2(c.x, size.y * 0.47 + bob) - face * s
 		NpcArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin), who, _t)
+		# Viñeta en los bordes / Vignette at the edges
+		draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.25), false, 2.0)
+
+
+## Adornos de las esquinas del recuadro: volutas y rombos del color del que habla
+## The box's corner ornaments: scrolls and diamonds in the speaker's colour
+class BoxDeco extends Control:
+	var color := Color.WHITE:
+		set(v):
+			color = v
+			queue_redraw()
+
+	func _draw() -> void:
+		var w := size.x
+		var h := size.y
+		var dark := Color("140f2e")
+		for corner in [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1), Vector2(1, 1)]:
+			var p := Vector2(corner.x * w, corner.y * h)
+			var sx := 1.0 if corner.x == 0 else -1.0
+			var sy := 1.0 if corner.y == 0 else -1.0
+			var q := p + Vector2(sx * 6, sy * 6)
+			# Escuadra gruesa por fuera del borde que acaba en voluta / Thick bracket outside the border ending in a scroll
+			for arm in [Vector2(sx, 0), Vector2(0, sy)]:
+				var end: Vector2 = q + arm * 84.0
+				draw_line(q, end, dark, 9.0)
+				draw_line(q, end, color, 5.0)
+				var side: Vector2 = Vector2(arm.y, arm.x) * Vector2(sx, sy).abs() * Vector2(sx if arm.y != 0 else 1.0, sy if arm.x != 0 else 1.0)
+				var curl := PackedVector2Array()
+				for k in 10:
+					var t := float(k) / 9.0
+					var ang := t * PI * 1.5
+					curl.append(end + arm * sin(ang) * 10.0 + side * (1.0 - cos(ang)) * 10.0)
+				draw_polyline(curl, dark, 8.0)
+				draw_polyline(curl, color, 4.0)
+			var d := q
+			draw_colored_polygon(PackedVector2Array([d + Vector2(0, -16), d + Vector2(16, 0), d + Vector2(0, 16), d + Vector2(-16, 0)]), dark)
+			draw_colored_polygon(PackedVector2Array([d + Vector2(0, -12), d + Vector2(12, 0), d + Vector2(0, 12), d + Vector2(-12, 0)]), color)
+			draw_colored_polygon(PackedVector2Array([d + Vector2(0, -5), d + Vector2(5, 0), d + Vector2(0, 5), d + Vector2(-5, 0)]), dark)
+		# Rombo en el centro de arriba y de abajo / Diamond at the top and bottom centre
+		for y in [14.0, h - 14.0]:
+			var d := Vector2(w / 2.0, y)
+			draw_colored_polygon(PackedVector2Array([d + Vector2(0, -12), d + Vector2(18, 0), d + Vector2(0, 12), d + Vector2(-18, 0)]), dark)
+			draw_colored_polygon(PackedVector2Array([d + Vector2(0, -8), d + Vector2(13, 0), d + Vector2(0, 8), d + Vector2(-13, 0)]), color)
