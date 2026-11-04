@@ -398,6 +398,9 @@ func start_training() -> void:
 
 func _refresh_texts() -> void:
 	_dream.text = tr("TRAINING_TITLE") if _training else tr("RUN_DREAM") % _depth
+	# En la Metrópolis, también la estética de la ciudad / In the Metropolis, also the city's look
+	if not _training and GameState.act_of(_depth) >= 4:
+		_dream.text += "  ·  " + tr("CITY_" + GameState.city_style(_depth).to_upper())
 	_intro_title.text = tr("RUN_DREAM") % _depth
 	if _lvl:
 		_lvl.text = tr("HUD_LEVEL") % GameState.plevel

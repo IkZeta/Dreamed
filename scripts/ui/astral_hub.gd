@@ -828,7 +828,8 @@ class HubWorld extends Control:
 			_piece(c + p, "hub_column", Vector2(10, 4))
 		for i in Progress.BESTIARY.size():
 			var id: String = Progress.BESTIARY[i]
-			var at := c + Vector2(-182 + (i % 8) * 52, -46 + (i / 8) * 92)
+			# Tres filas de siete / Three rows of seven
+			var at := c + Vector2(-156 + (i % 7) * 52, -70 + (i / 7) * 78)
 			_blocks.append({"c": at + Vector2(0, -6), "r": Vector2(15, 6)})
 			_spots.append({"kind": "statue", "id": id, "pos": at + Vector2(0, 6), "height": 86.0})
 			_prop(at, func(ci: CanvasItem) -> void:

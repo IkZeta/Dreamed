@@ -179,6 +179,21 @@ var _blockers: Array[Rect2] = []
 var _blockers_frame := -1
 
 
+## Donde aparece Kroker al caer en el sueño (en el lienzo) / Where Kroker appears on dropping into the dream (on the canvas)
+func start_point() -> Vector2:
+	return START_POINT
+
+
+## Ciudad abierta del Acto 4: la cámara sigue en las dos direcciones / Act 4's open city: the camera follows both ways
+func open_map() -> bool:
+	return false
+
+
+## Lo que estorba cerca de un punto del mundo (por defecto, todo) / What's in the way near a world point (by default, everything)
+func blockers_near(_world_p: Vector2) -> Array[Rect2]:
+	return blockers()
+
+
 func blockers() -> Array[Rect2]:
 	var frame := Engine.get_physics_frames()
 	if frame != _blockers_frame:

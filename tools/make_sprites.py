@@ -1377,8 +1377,10 @@ def rect_d(x, y, w, h):
     return "M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y, x + w, y, x + w, y + h, x, y + h)
 
 
-def room_add(name, x, y, w, h, body, colors=24, outline="#1a1024"):
+def room_add(name, x, y, w, h, body, colors=24, outline="#1a1024", tile=False):
     add(name, x, y, w, h, body, px=PX_ROOM, colors=colors, flat=True, outline=outline)
+    # Baldosa sin margen: mide justo lo que ocupa / Margin-free tile: exactly its own size
+    SPRITES[name]["tile"] = tile
 
 
 def room():
@@ -3100,6 +3102,8 @@ def build():
     living_room()
     school_hall()
     drawings()
+    import city
+    city.build(sys.modules[__name__])
     FLAT_SHADED = False
     act2_npcs()
     act2_enemies()
@@ -3175,7 +3179,7 @@ def render(only=None):
         for name, sp in SPRITES.items():
             sx, sy, tx, ty = sp["xf"]
             px = sp["px"]
-            pad = 1.5 / px
+            pad = 0.0 if sp.get("tile") else 1.5 / px
             # Rectángulo final ya transformado y con margen / Final rectangle, transformed and padded
             x0 = sp["x"] * sx + tx - pad
             y0 = sp["y"] * sy + ty - pad

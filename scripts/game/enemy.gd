@@ -47,6 +47,10 @@ var vacuumed := false
 var stun_t := 0.0
 ## Bailando con Lil Key: quieto y sin hacer daño / Dancing to Lil Key: still and harmless
 var dance_t := 0.0
+var _detour := Vector2.ZERO
+## Escudo de un antidisturbios (mientras ese siga en pie) / A riot officer's shield (while that one stands)
+var shield_by: Node = null
+var _detour_t := 0.0
 var slow_t := 0.0
 var vuln_t := 0.0
 var vuln_mult := 1.5
@@ -140,6 +144,12 @@ func _physics_process(delta: float) -> void:
 	_t += delta
 	_flash = maxf(0.0, _flash - delta * 5.0)
 	stun_t = maxf(0.0, stun_t - delta)
+	# El escudo se rompe cuando cae su antidisturbios / The shield breaks when its riot officer falls
+	if shield_by != null and not shielded():
+		shield_by = null
+		if state == State.ALIVE:
+			run.fx.ring(aim_point(), 34.0, Color("8fd8ff"), 0.35, 2.2)
+			run.fx.dissipate(aim_point(), Color("bfe8ff"))
 	if dance_t > 0.0:
 		dance_t = maxf(0.0, dance_t - delta)
 		stun_t = maxf(stun_t, minf(dance_t, 0.1))
@@ -219,6 +229,10 @@ func _move(delta: float) -> void:
 		var min_d := radius + float(other.get("radius"))
 		if dist > 0.01 and dist < min_d:
 			vel += d / dist * (min_d - dist) * 6.0
+	# Rodeando un edificio de la ciudad / Going round a city building
+	if _detour_t > 0.0:
+		_detour_t -= delta
+		vel = vel * 0.25 + _detour * speed * fluff_speed_mult()
 	vel += knock + external_pull
 	# Pegado a otro por la pelusa: tiran el uno del otro / Stuck to another by fluff: they pull on each other
 	# En una bola de pelusa: todos tiran hacia el centro / In a fluff clump: everyone pulls to the middle
@@ -241,6 +255,14 @@ func _move(delta: float) -> void:
 	if absf(vel.x) > 5.0:
 		_facing = signf(vel.x)
 	var clamped: Vector2 = run.clamp_to_arena(position, radius)
+	# En la ciudad, si un obstáculo le corta el paso, lo rodea por el lado que da a Kroker
+	# In the city, if an obstacle blocks its way, it goes round on Kroker's side
+	if run.room.open_map() and _detour_t <= 0.0 and clamped.distance_to(position) > 0.5:
+		var side: Vector2 = (clamped - position).normalized().orthogonal()
+		if side.dot(run.player.global_position - global_position) < 0.0:
+			side = -side
+		_detour = side
+		_detour_t = 0.7
 	if bounce_t > 0.0 and clamped != position:
 		var n := (clamped - position).normalized()
 		if n != Vector2.ZERO:
@@ -480,6 +502,10 @@ func _dot_hit(amount: float) -> void:
 		die(true)
 
 
+func shielded() -> bool:
+	return shield_by != null and is_instance_valid(shield_by) and (shield_by as Enemy).is_targetable()
+
+
 func is_targetable() -> bool:
 	return state != State.DYING
 
@@ -507,6 +533,11 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 		amount /= BLEED_DEFENSE
 	if is_stuck() and stuck_bonus > 0.0:
 		amount *= 1.0 + stuck_bonus / 100.0
+	# Escudo de antidisturbios: casi no le hace nada / Riot shield: barely anything gets through
+	if shielded():
+		amount *= Riot.SHIELD_PASS
+		impulse *= Riot.SHIELD_PASS
+		run.fx.ring(aim_point(), 22.0, Color("8fd8ff"), 0.25, 1.8)
 	hp -= amount
 	knock += impulse / mass
 	_flash = 1.0
@@ -581,6 +612,17 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	if elite:
 		_draw_horns(head_top() + Vector2(0, bob), a)
+	# Burbuja del escudo de antidisturbios / Riot shield bubble
+	if shielded():
+		var top := head_top()
+		var c := Vector2(0, top.y * 0.5)
+		var rr := Vector2(radius + 22.0, -top.y * 0.5 + 12.0)
+		var pts := PackedVector2Array()
+		for i in 25:
+			var ang := TAU * i / 24.0
+			pts.append(c + Vector2(cos(ang) * rr.x, sin(ang) * rr.y))
+		draw_colored_polygon(pts, Color("8fd8ff", 0.12 * a))
+		draw_polyline(pts, Color("bfe8ff", (0.45 + 0.2 * sin(_t * 4.0)) * a), 2.0)
 	# Sonámbulos: zetas que suben de la cabeza / Sleepwalkers: z's rising from the head
 	if run and run.event == "sleepy" and not is_boss() and state == State.ALIVE:
 		for i in 2:

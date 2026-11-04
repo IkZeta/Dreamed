@@ -116,12 +116,29 @@ const WAVES := [
 	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8, "golem": 0.6}, "new": "golem"},
 	{"duration": 60.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.7, "puppet": 1.0, "golem": 0.8}, "shop": true},
 	# Sueño 15: el Ovni destroza el pasillo / Dream 15: the UFO wrecks the hallway
-	{"boss": true, "boss_kind": "ufo", "duration": 150.0, "spawn_every": 3.6, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1, "puppet": 1, "skeleton": 1}, "act_end": true},
+	{"boss": true, "boss_kind": "ufo", "duration": 150.0, "spawn_every": 3.6, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1, "puppet": 1, "skeleton": 1}},
+	# --- Acto 4 (el final): la Metrópolis, con una estética distinta en cada sueño. El 16 trae la
+	# Unidad Especial (furgo voladora que suelta policías), el 17 los Antidisturbios (salen de los
+	# agujeros y ponen escudos a los demás) y el 20 es el último sueño: la ciudad se viene abajo.
+	# --- Act 4 (the final one): the Metropolis, with a different look in every dream. Dream 16
+	# brings the Special Unit (a flying van that drops police), 17 the Riot Police (they climb out
+	# of the holes and shield the others) and 20 is the last dream: the city comes crashing down.
+	{"duration": 50.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.5, "police": 1.2, "van": 0.25}, "new": "van"},
+	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.6, "police": 1.4, "van": 0.25, "riot": 0.35}, "new": "riot", "shop": true},
+	{"duration": 60.0, "spawn_every": 1.7, "group": [3, 5], "max_alive": 16, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.7, "puppet": 1.0, "golem": 0.7, "police": 1.6, "van": 0.3, "riot": 0.4}},
+	{"duration": 60.0, "spawn_every": 1.6, "group": [3, 6], "max_alive": 17, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.8, "puppet": 1.0, "golem": 0.8, "police": 1.8, "van": 0.35, "riot": 0.45}, "shop": true},
+	# Sueño 20, el último: la ciudad se derrumba, más furgos y edificios cayendo sin parar
+	# Dream 20, the last one: the city collapses, more vans and buildings falling all the time
+	{"duration": 80.0, "spawn_every": 1.5, "group": [4, 6], "max_alive": 18, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.8, "puppet": 1.0, "golem": 0.8, "police": 2.0, "van": 0.45, "riot": 0.5}, "final": true, "act_end": true},
 ]
 const BOSS_DEPTH := 5
 ## Primer sueño de cada acto / First dream of each act
 const ACT2_START := 6
 const ACT3_START := 11
+const ACT4_START := 16
+## Estéticas de la Metrópolis: cada sueño del Acto 4 tiene una (sin repetir en la partida)
+## Metropolis looks: each Act 4 dream has one (no repeats within the run)
+const CITY_STYLES: Array[String] = ["synthwave", "steampunk", "cheese", "aero", "solarpunk", "dieselpunk", "brutalist"]
 ## Armas cuerpo a cuerpo y a distancia: la segunda arma tiene que ser del otro tipo
 ## Melee and ranged weapons: the second weapon must be of the other kind
 const MELEE: Array[String] = ["bat", "shield", "teddy", "boots"]
@@ -210,6 +227,8 @@ var run_elites := 0     # élites derrotados / elites defeated
 var run_shades := false
 ## Evento del sueño anterior, para no repetirlo / Previous dream's event, so it isn't repeated
 var last_event := ""
+## Orden de las estéticas de la Metrópolis en esta partida / Order of the Metropolis looks this run
+var city_styles: Array = []
 ## Vida con la que acabó el último sueño (−1 = empezar con la vida llena)
 ## Health at the end of the last dream (−1 = start at full health)
 var saved_hp := -1.0
@@ -291,7 +310,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles"]
 
 
 func save_run() -> void:
@@ -344,6 +363,7 @@ func reset_run() -> void:
 	saved_hp = -1.0
 	run_time = 0.0
 	run_shades = false
+	city_styles = []
 	run_kills = 0
 	run_hits = 0
 	run_falls = 0
@@ -379,9 +399,21 @@ const HEAL_BETWEEN_DREAMS := 0.05
 
 ## Acto del sueño actual (1 = la habitación, 2 = el salón) / Act of the current dream (1 = bedroom, 2 = living room)
 func act_of(depth: int) -> int:
+	if depth >= ACT4_START:
+		return 4
 	if depth >= ACT3_START:
 		return 3
 	return 1 if depth < ACT2_START else 2
+
+
+## Estética de la ciudad en este sueño (las baraja al llegar al Acto 4) / City look this dream (shuffled on reaching Act 4)
+func city_style(depth := -1) -> String:
+	if depth < 0:
+		depth = dream_depth
+	if city_styles.size() != CITY_STYLES.size():
+		city_styles = CITY_STYLES.duplicate()
+		city_styles.shuffle()
+	return city_styles[posmod(depth - ACT4_START, city_styles.size())]
 
 
 func act() -> int:
@@ -401,7 +433,7 @@ func add_reality(n: int) -> void:
 
 ## Multiplicadores de la pesadilla y del Acto 2 / Nightmare and Act 2 multipliers
 func enemy_hp_mult() -> float:
-	return (1.6 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.35, 1.7][act()]
+	return (1.6 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.35, 1.7, 1.7][act()]
 
 
 ## Desde el sueño 13 los enemigos (no los jefes) aguantan cada vez más: +40 % por sueño
@@ -411,7 +443,11 @@ const LATE_HP_STEP := 0.4
 
 
 func late_hp_mult() -> float:
-	return 1.0 + LATE_HP_STEP * maxi(0, dream_depth - LATE_DEPTH + 1) if not training else 1.0
+	if training:
+		return 1.0
+	# Del 13 al 15, +40 % por sueño; en el Acto 4 sigue subiendo, +25 % por sueño
+	# From 13 to 15, +40% per dream; in Act 4 it keeps rising, +25% per dream
+	return 1.0 + LATE_HP_STEP * maxi(0, mini(dream_depth, ACT4_START - 1) - LATE_DEPTH + 1) + 0.25 * maxi(0, dream_depth - ACT4_START + 1)
 
 
 ## Los jefes atacan más a menudo y pegan más fuerte (en las dos dificultades)
@@ -420,7 +456,7 @@ const BOSS_POWER := 1.25
 
 
 func enemy_dmg_mult() -> float:
-	return (1.5 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.2, 1.4][act()]
+	return (1.5 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.2, 1.4, 1.55][act()]
 
 
 func shard_mult() -> float:

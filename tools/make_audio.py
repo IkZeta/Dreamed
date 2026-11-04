@@ -448,6 +448,41 @@ def chef_theme() -> np.ndarray:
     return loop_render(build, bar_len * bars, 0.28)
 
 
+def city_theme() -> np.ndarray:
+    """Acto 4, la Metrópolis: paseo por una ciudad grande, alegre y con prisa. Bajo que camina,
+    acordes de arpa a contratiempo, marimba en corcheas y una melodía de kalimba en Sol mayor.
+    Act 4, the Metropolis: a stroll through a big city, cheerful and busy. Walking bass, offbeat harp
+    chords, eighth-note marimba and a kalimba tune in G major."""
+    beat = 60.0 / 104
+    bar_len = beat * 4
+    chords = [[43, 55, 59, 62], [40, 55, 59, 64], [36, 55, 60, 64], [38, 54, 57, 62],
+              [43, 55, 59, 62], [40, 55, 59, 64], [36, 52, 55, 60], [38, 54, 57, 62]]
+    melody = [(0, 0, 74), (0, 1, 76), (0, 1.5, 74), (0, 2, 71), (1, 0, 72), (1, 1.5, 71), (1, 2, 67),
+              (2, 0, 69), (2, 1, 71), (2, 2, 72), (3, 0, 74), (3, 2, 69), (4, 0, 79), (4, 1, 78), (4, 1.5, 76),
+              (4, 2, 74), (5, 0, 76), (5, 2, 71), (6, 0, 72), (6, 1, 74), (6, 2, 76), (7, 0, 74)]
+    bars = 8
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 1.2, 0.06, 0.6, 1.2, 1200), s, human=False)
+            for b in range(4):
+                n = ch[0] - 12 + [0, 7, 12, 7][b]
+                place(buf, pluck(midi(n), beat * 1.1, 0.22, 0.25, 0.99), s + b * beat)
+                place(buf, thump(62, 0.2, 0.18, 10.0), s + b * beat)
+            for b in (0.5, 1.5, 2.5, 3.5):
+                for k, n in enumerate(ch[1:]):
+                    place(buf, pluck(midi(n + 12), 0.6, 0.035, 0.4), s + b * beat + k * 0.01, -0.4 + k * 0.4)
+            for k in range(8):
+                n = ch[1 + k % 3] + 12
+                place(buf, bar(midi(n), 0.4, 0.05, "marimba", 0.5), s + k * beat / 2, 0.4 - 0.1 * k)
+        for bi, b, n in melody:
+            place(buf, bar(midi(n), 1.4, 0.15, "kalimba", 0.4), off + bi * bar_len + b * beat, 0.05)
+
+    return loop_render(build, bar_len * bars, 0.3)
+
+
 # --- Efectos / Sound effects -------------------------------------------------
 
 def sfx_hover():
@@ -781,6 +816,33 @@ def sfx_laser():
     return mix(stereo(lp(tone, 2600)), lp(sweep_noise(0.12, 1500, 600, 2.0, 0.05), 3000))
 
 
+def sfx_siren():
+    """Sirena de la Unidad Especial, suave: dos notas de kalimba que se alternan
+    The Special Unit's siren, soft: two kalimba notes taking turns"""
+    out = np.zeros(int(SR * 1.8))
+    for i in range(6):
+        x = bar(midi(81 if i % 2 == 0 else 76), 0.5, 0.22, "kalimba", 0.5)
+        at = int(SR * i * 0.26)
+        end = min(len(out), at + len(x))
+        out[at:end] += x[:end - at]
+    return stereo(lp(out, 3500))
+
+
+def sfx_burst():
+    """Ráfaga del fusil, amortiguada / Muffled rifle burst"""
+    x = np.zeros((int(SR * 0.3), 2))
+    place(x, mix(lp(noise(0.08), 1800) * np.exp(-np.arange(int(0.08 * SR)) / SR * 40) * 1.5, thump(110, 0.08, 0.4, 20)), 0.0, 0.0, human=False)
+    return x
+
+
+def sfx_rumble():
+    """Un edificio que cruje y empieza a caer / A building creaking as it starts to fall"""
+    n = int(SR * 2.0)
+    env = np.minimum(1.0, np.arange(n) / (SR * 0.6)) * np.exp(-np.arange(n) / SR * 1.2)
+    r = lp(noise(2.0), 120, 4) * env * 3.0
+    return mix(r, bar(90, 1.5, 0.25, "wood", 0.4))
+
+
 def sfx_bell():
     # Timbre del cole, en suave: un "ding-dong-ding" de campanitas que se repite (nada de chicharra)
     # School bell, soft version: a repeating "ding-dong-ding" of little bells (no buzzer)
@@ -927,6 +989,8 @@ if __name__ == "__main__":
         save("music_living", living_theme(), 0.55, room=0)
     if not only or "music_chef" in only:
         save("music_chef", chef_theme(), 0.55, room=0)
+    if not only or "music_city" in only:
+        save("music_city", city_theme(), 0.55, room=0)
     for name, fn, peak, room in [
         ("ui_hover", sfx_hover, 0.25, 0.12), ("ui_click", sfx_click, 0.35, 0.12), ("swing", sfx_swing, 0.45, 0.1),
         ("pillow", sfx_pillow, 0.55, 0.12), ("zap", sfx_zap, 0.45, 0.25), ("vacuum", sfx_vacuum, 0.3, 0.0),
@@ -949,6 +1013,7 @@ if __name__ == "__main__":
         ("turret", sfx_turret, 0.25, 0.1), ("stove_boom", sfx_stove_boom, 0.55, 0.25), ("typing", sfx_typing, 0.3, 0.08),
         ("deal_won", sfx_deal_won, 0.4, 0.3), ("deal_lost", sfx_deal_lost, 0.35, 0.3), ("punch", sfx_punch, 0.45, 0.12),
         ("pant", sfx_pant, 0.3, 0.15), ("shuffle", sfx_shuffle, 0.3, 0.12),
+        ("siren", sfx_siren, 0.3, 0.2), ("burst", sfx_burst, 0.3, 0.1), ("rumble", sfx_rumble, 0.5, 0.25),
     ]:
         if not only or name in only:
             save(name, fn(), peak, room)

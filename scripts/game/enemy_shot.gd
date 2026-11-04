@@ -12,6 +12,8 @@ var life := 3.0
 var _spin := 0.0
 ## Devuelto por el giro de las botas: ahora daña a los enemigos / Sent back by the boots' spin: now it hurts enemies
 var reflected := false
+## Segundos de sangrado al dar a Kroker (las balas de la policía) / Seconds of bleeding on hitting Kroker (police bullets)
+var bleed := 0.0
 
 
 ## Lo devuelve hacia el enemigo más cercano (o por donde vino) / Sends it back towards the nearest enemy (or the way it came)
@@ -68,7 +70,10 @@ func _physics_process(delta: float) -> void:
 				queue_free()
 				return
 	elif run.running and global_position.distance_to(player.global_position + Player.HURT) < radius + Player.HURT_R:
+		var before: float = player.hp
 		player.take_damage(damage * GameState.enemy_dmg_mult())
+		if bleed > 0.0 and player.hp < before:
+			player.start_bleed(bleed)
 		run.fx.ring(global_position, 14.0, UITheme.EMBER, 0.3, 2.0)
 		queue_free()
 		return
@@ -81,6 +86,12 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if kind == "bullet":
+		# Bala del fusil: trazo corto amarillo / Rifle bullet: a short yellow streak
+		var tl := -velocity.normalized() * 22.0
+		draw_line(tl, Vector2.ZERO, Color("ffb04a", 0.5), 6.0)
+		draw_line(tl * 0.6, Vector2.ZERO, Color("fff0a0"), 3.0)
+		return
 	if kind == "laser":
 		# Rayo láser del Ovni: trazo rojo con el centro blanco / UFO laser bolt: red streak with a white core
 		var tail := -velocity.normalized() * 44.0

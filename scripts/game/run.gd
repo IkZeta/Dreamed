@@ -78,7 +78,7 @@ func _ready() -> void:
 	else:
 		# Se guarda al empezar cada sueño (para "Continuar") / Saved at the start of every dream (for "Continue")
 		GameState.save_run()
-		Audio.play_music(["", "music_dream1", "music_living", "music_dream1"][act], 2.5)
+		Audio.play_music(["", "music_dream1", "music_living", "music_dream1", "music_city"][act], 2.5)
 	# Llegar al salón por primera vez desbloquea a Mr. Ad / Reaching the living room for the first time unlocks Mr. Ad
 	# El Acto 2 también desbloquea la pistola de dedos; el Acto 3, el oso de peluche y El Pinche
 	# Act 2 also unlocks the finger gun; Act 3, the teddy bear and the Kitchen Boy
@@ -121,8 +121,14 @@ func _ready() -> void:
 
 	if GameState.training:
 		room = TrainingRoom.new()
+	elif act >= 4:
+		# Acto 4: la Metrópolis, con la estética de este sueño / Act 4: the Metropolis, with this dream's look
+		var city := Act4Room.new()
+		city.style = GameState.city_style(depth)
+		city.weird = depth - GameState.ACT4_START + 1
+		city.final = bool(_wave.get("final", false))
+		room = city
 	elif act >= 3:
-		# Acto 3 (provisional) / Act 3 (placeholder)
 		room = Act3Room.new()
 		room.weird = depth - GameState.ACT3_START + 1
 		if not boss_wave():
@@ -161,6 +167,10 @@ func _ready() -> void:
 	enemies.y_sort_enabled = true
 	actors.add_child(enemies)
 	# Los muebles del medio del salón se ordenan con los personajes / Mid-room furniture sorts with the characters
+	# Edificios, árboles y farolas de la ciudad / The city's buildings, trees and lamps
+	if room is Act4Room:
+		for prop: Node2D in (room as Act4Room).make_props(self):
+			actors.add_child(prop)
 	if room is LivingRoom:
 		for sprite: String in LivingRoom.PROPS:
 			var prop := LivingRoom.Prop.new()
@@ -222,9 +232,11 @@ func _begin_training() -> void:
 ## and faceplants on the floor, climbs out of one of the holes in the floor, or appears in a
 ## glow, like when he left but in reverse.
 func _drop_in(depth: int) -> void:
-	var start := Bedroom.to_world(Bedroom.START_POINT)
+	var start := Bedroom.to_world(room.start_point())
 	player.position = start
 	player.visible = true
+	if room.open_map():
+		_camera.position = _camera_clamped(start)
 	var ways := ["fall", "glow"]
 	if room.hole_count() > 0:
 		ways.append("hole")
@@ -445,6 +457,39 @@ func gain_reality(n: int, pos: Vector2) -> void:
 
 # --- Chimenea del salón / Living-room fireplace ----------------------------------------
 
+## La Metrópolis: de vez en cuando se derrumba un edificio cerca de Kroker
+## The Metropolis: now and then a building collapses near Kroker
+var _fall_t := 8.0
+
+
+func _update_city(delta: float) -> void:
+	if not room is Act4Room:
+		return
+	var city := room as Act4Room
+	_fall_t -= delta
+	if _fall_t > 0.0:
+		return
+	_fall_t = randf_range(6.0, 10.0) if city.final else randf_range(14.0, 22.0)
+	# Un sitio de la calle cerca, que no esté dentro de nada / A nearby street spot that isn't inside anything
+	for attempt in 20:
+		var p: Vector2 = player.position + Vector2.from_angle(randf() * TAU) * randf_range(140.0, 420.0)
+		var c := (p - Bedroom.OFFSET) / Bedroom.S
+		var r := Rect2(c - Vector2(CityFall.LENGTH / 2.0, CityFall.DEPTH / 2.0), Vector2(CityFall.LENGTH, CityFall.DEPTH))
+		if not city.walkable().encloses(r):
+			continue
+		var clear := true
+		for o in city.obstacles_list():
+			if o.intersects(r):
+				clear = false
+				break
+		if not clear:
+			continue
+		var f := CityFall.new()
+		f.setup(self, c, 1.0 if randf() < 0.5 else -1.0)
+		_actors.add_child(f)
+		return
+
+
 ## La taquilla abierta del pasillo: con la F, Kroker se pone las gafas de sol de Lil Key
 ## The hallway's open locker: with F, Kroker puts on Lil Key's sunglasses
 func _update_locker() -> void:
@@ -612,7 +657,8 @@ func _spawn_ufo() -> void:
 	ufo.defeated.connect(_ufo_end.bind(true))
 
 
-## Fin del Acto 3 y de la partida: Kroker se despierta / End of Act 3 and of the run: Kroker wakes up
+## Fin del Acto 3: el sueño sigue y Kroker cae en la Metrópolis (Acto 4)
+## End of Act 3: the dream goes on and Kroker falls into the Metropolis (Act 4)
 func _ufo_end(killed: bool) -> void:
 	if not running:
 		return
@@ -623,13 +669,21 @@ func _ufo_end(killed: bool) -> void:
 		if not e.is_boss():
 			e.die(false)
 	dream_finished.emit()
+	Progress.clear_act(GameState.selected_character, GameState.difficulty, 3)
+	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
+		Progress.flag("no_hit")
 	Progress.add_stat("dreams")
+	Audio.fade_music(-30.0, 1.5)
+	Audio.play("act_clear", -1.0)
+	GameState.saved_hp = player.hp
 	Progress.save_progress()
 	hud.hide_boss()
 	hud.banner("ACT3_CLEAR_TITLE", "BOSS_KILLED_SUB" if killed else "BOSS_SURVIVED_SUB")
+	if killed:
+		_boss_bonus()
 	for s in get_tree().get_nodes_in_group("shards"):
 		s.set("_magnet", true)
-	get_tree().create_timer(3.4, false).timeout.connect(_end_run_victory)
+	get_tree().create_timer(3.4, false).timeout.connect(_resolve_level_ups.bind(_flash_to_astral))
 
 
 func _on_chef_defeated() -> void:
@@ -820,6 +874,7 @@ func _physics_process(delta: float) -> void:
 		hud.set_invest()
 	_update_hearth(delta)
 	_update_locker()
+	_update_city(delta)
 	if float(_wave.get("duration", 0.0)) > 0.0:
 		_time_left -= delta
 		hud.set_time(_time_left)
@@ -842,6 +897,16 @@ func _follow_camera(delta: float) -> void:
 	if not room.follows_camera() or not is_instance_valid(player):
 		return
 	_camera.position.x = lerpf(_camera.position.x, player.position.x, minf(1.0, delta * 6.0))
+	if room.open_map():
+		_camera.position.y = lerpf(_camera.position.y, player.position.y - 40.0, minf(1.0, delta * 6.0))
+		_camera.position = _camera_clamped(_camera.position)
+
+
+## En la ciudad la cámara no se sale del mapa / In the city the camera doesn't leave the map
+func _camera_clamped(p: Vector2) -> Vector2:
+	var m: Rect2 = room.map_world_rect()
+	var half := Vector2(960, 540)
+	return Vector2(clampf(p.x, m.position.x + half.x, m.end.x - half.x), clampf(p.y, m.position.y + half.y, m.end.y - half.y + 60.0))
 
 
 ## Los enemigos que se quedan muy atrás vuelven a aparecer por delante (como en Vampire Survivors)
@@ -849,6 +914,16 @@ func _follow_camera(delta: float) -> void:
 func _recycle_far_enemies() -> void:
 	for e: Node in enemies.get_children():
 		if not e is Enemy or e.is_boss() or e is GoldenFoox or not e.is_targetable():
+			continue
+		if room.open_map():
+			# En la ciudad: los que se quedan lejos vuelven por fuera de la pantalla, cerca / In the city: those left far away come back just off screen
+			if e.position.distance_to(player.position) > 1600.0:
+				for attempt in 8:
+					var q: Vector2 = player.position + Vector2.from_angle(randf() * TAU) * randf_range(1100.0, 1300.0)
+					q = clamp_to_arena(q, 40.0)
+					if not _blocked(q, 40.0) and q.distance_to(player.position) > 900.0:
+						e.position = q
+						break
 			continue
 		var dx: float = e.position.x - player.position.x
 		if absf(dx) > 1700.0:
@@ -924,7 +999,7 @@ func _pick_kind() -> String:
 	var new_kind: String = _wave.get("new", "")
 	if new_kind != "" and _spawned_new < 2:
 		_spawned_new += 1
-		if new_kind == "cyber" and _spawned_new > 1:
+		if new_kind in ["cyber", "van", "riot"] and _spawned_new > 1:
 			pass   # solo sale uno seguro / only one is guaranteed
 		elif new_kind != "nest" or _count_alive(Nest) < 3:
 			return new_kind
@@ -947,8 +1022,20 @@ func _pick_kind() -> String:
 				return "thug"
 			if k == "puppet" and _count_alive(Puppet) >= 3:
 				return "foox"
+			# Acto 4: pocas furgos y antidisturbios a la vez / Act 4: few vans and riot officers at once
+			var fin := bool(_wave.get("final", false))
+			if k == "van" and _count_alive(Van) >= (2 if fin else 1):
+				return "police"
+			if k == "riot" and _count_alive(Riot) >= (3 if fin else 2):
+				return "police"
+			if k == "police" and _count_alive(Police) >= 10:
+				return "thug"
 			return k
 	return "foox"
+
+
+func count_alive(type: Variant) -> int:
+	return _count_alive(type)
 
 
 func _count_alive(type: Variant) -> int:
@@ -962,7 +1049,9 @@ func _count_alive(type: Variant) -> int:
 func _spawn_point() -> Vector2:
 	var area := arena_rect().grow(-30)
 	# En el pasillo infinito salen alrededor de lo que se ve / In the endless hallway they spawn around the view
-	if room.follows_camera():
+	if room.open_map():
+		area = view_rect().grow(220.0).intersection(area)
+	elif room.follows_camera():
 		var v := view_rect()
 		area = Rect2(Vector2(v.position.x - 200.0, area.position.y), Vector2(v.size.x + 400.0, area.size.y))
 	for attempt in 30:
@@ -991,6 +1080,9 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"cyber": e = Cyberpunk.new()
 		"puppet": e = Puppet.new()
 		"golem": e = Golem.new()
+		"police": e = Police.new()
+		"van": e = Van.new()
+		"riot": e = Riot.new()
 		_: e = Foox.new()
 	# Muy de vez en cuando, en lugar del enemigo sale un Foox dorado (la suerte ayuda un poco)
 	# Every so often a golden Foox turns up instead (luck helps a little)
@@ -1003,8 +1095,19 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		fx.ring(pos + Vector2(0, -20), 30.0, UITheme.GOLD, 0.8, 2.6)
 	e.setup(self, 1.0, FRENZY_SPEED if event == "frenzy" else (SLEEPY_SPEED if event == "sleepy" else 1.0))
 	e.position = pos
+	# Los antidisturbios salen de una alcantarilla abierta / Riot officers climb out of an open manhole
+	if e is Riot and room is Act4Room and room.hole_count() > 0:
+		var best := Vector2.INF
+		var list: Array[Rect2] = room.holes_list()
+		for i in room.hole_count():
+			var c := Bedroom.rect_world(list[i]).get_center()
+			if view_rect().grow(150.0).has_point(c) and c.distance_to(player.position) > 300.0 and (best == Vector2.INF or c.distance_to(pos) < best.distance_to(pos)):
+				best = c
+		if best != Vector2.INF:
+			e.position = best + Vector2(0, 50)
+			(e as Riot).rise = 1.0
 	# Élites desde el Sueño 2 / Elites from Dream 2
-	if GameState.dream_depth >= 2 and not e is GoldenFoox and randf() < (0.12 if GameState.difficulty == "nightmare" else 0.07):
+	if GameState.dream_depth >= 2 and not e is GoldenFoox and not e is Van and not e is Riot and randf() < (0.12 if GameState.difficulty == "nightmare" else 0.07):
 		e.elite = true
 	enemies.add_child(e)
 
@@ -1050,7 +1153,7 @@ func _near_boss(p: Vector2) -> bool:
 
 
 func _blocked(p: Vector2, margin: float) -> bool:
-	for r in room.blockers():
+	for r in room.blockers_near(p):
 		if Bedroom.rect_world(r).grow(margin).has_point(p):
 			return true
 	return false
@@ -1061,7 +1164,7 @@ func _blocked(p: Vector2, margin: float) -> bool:
 func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
 	var r := arena_rect().grow(-margin * 0.5)
 	p = Vector2(clampf(p.x, r.position.x, r.end.x), clampf(p.y, r.position.y, r.end.y))
-	for o in room.blockers():
+	for o in room.blockers_near(p):
 		var g := Bedroom.rect_world(o).grow(margin * 0.6)
 		if g.has_point(p):
 			# Empuja hacia el borde más cercano / Push out through the nearest edge
@@ -1350,10 +1453,14 @@ func _wake_scene(won: bool) -> void:
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
 func _build_real_room(won: bool) -> void:
 	for n: Node in world.get_children():
-		if n is Darkness or n is TiltFloor or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
+		if n is Darkness or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
 			n.queue_free()
 	for e: Node in enemies.get_children():
 		e.queue_free()
+	# Los edificios, árboles y escombros de la ciudad / The city's buildings, trees and rubble
+	for n: Node in _actors.get_children():
+		if n is Act4Room.CityBuilding or n is Act4Room.CityProp or n is CityFall or n is Helpers.Actor:
+			n.queue_free()
 	fx.clear()
 	hud.visible = false
 	player.visible = false
@@ -1410,6 +1517,9 @@ func _on_wave_cleared() -> void:
 	Audio.fade_music(-20.0, 1.0)
 	Audio.play("win", -2.0)
 	hud.set_time(0.0)
+	# El último sueño: la ciudad se queda en silencio / The last dream: the city falls silent
+	if _wave.get("final", false):
+		hud.banner("ACT4_CLEAR_TITLE", "FINAL_SUB")
 	for e: Node in enemies.get_children():
 		e.die(false)
 	# Los trozos que quedan vuelan hacia Kroker / Leftover shards fly to Kroker
