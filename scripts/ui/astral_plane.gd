@@ -460,7 +460,7 @@ func _leave() -> void:
 
 ## Personaje sobre una roca flotante / A character standing on a floating rock
 class GiverFigure extends Control:
-	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a"), "superk": Color("b48cff"), "lilkey": Color("ff6a8a")}
+	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a"), "superk": Color("b48cff"), "lilkey": Color("ff6a8a"), "lynx": Color("e0303a")}
 	var who := "svinho"
 	var highlight := false
 	var _t := 0.0

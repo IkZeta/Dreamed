@@ -82,6 +82,8 @@ ISLES = {
     # SuperK, high up, next to Magnus; Lil Key, far left, next to Svinho and Stolk
     "superk": dict(pos=(300, -720), r=(165, 100), aura="#b48cff", seed=13, floor="roof", inset=(125, 70, 0, 4)),
     "lilkey": dict(pos=(-1090, 85), r=(165, 100), aura="#ff6a8a", seed=14, floor="stage", inset=(125, 68, 0, 4)),
+    # D. Lynx, a la derecha del todo, junto a Doc y Mr. Ad: su plató / D. Lynx, far right, next to Doc and Mr. Ad: his film set
+    "lynx": dict(pos=(1090, 85), r=(170, 102), aura="#e0303a", seed=15, floor="zigzag", inset=(128, 70, 0, 4)),
 }
 
 
@@ -421,7 +423,21 @@ def floor_stage(lx, ly, rng, irx, iry):
     return out
 
 
-FLOORS = {"grass": floor_grass, "gym": floor_gym, "dark": floor_dark, "clinic": floor_clinic, "street": floor_street,
+def floor_zigzag(lx, ly, rng, irx, iry):
+    """Plató de D. Lynx: suelo en zigzag blanco y negro, con un foco cálido en el centro
+    D. Lynx's film set: a black-and-white zigzag floor, with a warm spotlight in the middle"""
+    A, B = night("#2a2830"), night("#d8d4cc")
+    band = ((ly + 400) // 10).astype(int)
+    zig = np.abs(((lx + 400) % 24) - 12)
+    stripe = (((ly + 400 + zig) // 10).astype(int) % 2 == 0)
+    out = np.where(stripe[..., None], A, B)
+    d = np.sqrt(lx ** 2 + ((ly + 6) * 1.6) ** 2)
+    k = (np.floor(np.clip(1.0 - d / 70.0, 0.0, 0.999) * 3.0) / 3.0)[..., None] * 0.25
+    out = out + (rgb("#fff0c0") - out) * k
+    return out
+
+
+FLOORS = {"zigzag": floor_zigzag, "grass": floor_grass, "gym": floor_gym, "dark": floor_dark, "clinic": floor_clinic, "street": floor_street,
           "kitchen": floor_kitchen, "bedroom": floor_bedroom, "charo": floor_charo, "magnus": floor_magnus, "marble": floor_marble, "dojo": floor_dojo,
           "roof": floor_roof, "stage": floor_stage}
 
@@ -629,7 +645,7 @@ def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flower
         img[top & (np.abs(rr - 36) < 0.8)] = GOLD_D
         for name2, isle in ISLES.items():
             # Las islas lejanas no tienen puente desde el centro / The far islands have no bridge from the centre
-            if name2 in ("nexus", "training", "superk", "lilkey"):
+            if name2 in ("nexus", "training", "superk", "lilkey", "lynx"):
                 continue
             vx, vy = isle["pos"]
             a = math.atan2(vy, vx)

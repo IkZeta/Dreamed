@@ -3074,6 +3074,72 @@ def lilkey():
     add("npc_lilkey_arm", 44, 100, 34, 92, a, px=PX_NPC, flat=True)
 
 
+def lynx():
+    """D. Lynx: director de cine de sueños raros. Alto y flaco, con un tupé blanco enorme que se
+    le levanta hacia arriba, camisa blanca abrochada hasta el cuello (sin corbata), traje negro,
+    pantalón gris y zapatos negros, con una taza de café en la mano. El otro brazo, con el megáfono,
+    va aparte para animarlo (lo sube para gritar "¡Acción!").
+    D. Lynx: a director of strange dreams. Tall and thin, with a huge white quiff swept upwards, a
+    white shirt buttoned to the collar (no tie), a black suit, grey trousers and black shoes, with a
+    cup of coffee in his hand. The other arm, with the megaphone, is separate so it can be animated
+    (he raises it to shout "Action!")."""
+    K1, K2, K3 = "#16151c", "#24232e", "#3a3948"
+    W, W1 = "#f4f1ea", "#c8c4d8"
+    G1, G2 = "#5a5866", "#7a7888"
+    S, S1 = "#e8c4a8", "#c49a80"
+    H1, H2, H3 = "#e8e6ee", "#c4c2d0", "#9a98aa"
+    b = ""
+    # Piernas con pantalón gris y zapatos negros / Legs in grey trousers and black shoes
+    for x in (82, 102):
+        b += flat("M%g,190 L%g,190 L%g,272 L%g,272 Z" % (x, x + 16, x + 17, x - 1), G2)
+        b += flat("M%g,190 L%g,190 L%g,272 L%g,272 Z" % (x + 11, x + 16, x + 17, x + 11), G1)
+        b += flat("M%g,270 L%g,270 C%g,270 %g,276 %g,282 L%g,288 L%g,288 Z" % (x - 4, x + 18, x + 24, x + 26, x + 26, x + 26, x - 4), K1)
+        b += flat("M%g,271 L%g,271 L%g,274 L%g,274 Z" % (x, x + 14, x + 14, x), K3)
+    # Chaqueta negra larga / Long black jacket
+    b += flat("M74,94 L126,94 L140,106 L138,204 L62,204 L60,106 Z", K2)
+    b += flat("M126,94 L140,106 L138,204 L124,204 C128,170 128,126 120,96 Z", K1)
+    b += flat("M64,110 C66,104 70,100 76,98 L76,104 C71,106 67,110 66,116 Z", K3)
+    # Camisa blanca abrochada hasta arriba y solapas / White shirt buttoned to the top and lapels
+    b += flat("M88,92 L112,92 L108,150 L100,158 L92,150 Z", W)
+    b += flat("M104,92 L112,92 L108,150 L104,152 Z", W1)
+    b += flat("M88,92 L96,92 L100,104 L92,110 Z", W1) + flat("M112,92 L104,92 L100,104 L108,110 Z", W1)
+    for y in (112, 124, 136):
+        b += flat(ellipse_d(100, y, 1.4, 1.4), W1)
+    b += flat("M88,94 L80,100 L90,150 L96,150 Z", K1) + flat("M112,94 L120,100 L110,150 L104,150 Z", K1)
+    # Brazo izquierdo con la taza de café / Left arm with the coffee cup
+    b += flat("M60,106 L74,108 L72,166 L58,164 Z", K2) + flat("M60,108 L64,108 L62,162 L60,162 Z", K3)
+    b += flat("M57,162 L73,164 L72,170 L57,168 Z", W)
+    b += flat(ellipse_d(65, 174, 7, 7), S)
+    b += flat("M52,160 L70,160 L68,182 L54,182 Z", W) + flat("M52,160 L70,160 L70,164 L52,164 Z", W1)
+    b += "<path d='M52,166 C44,166 44,176 53,176' fill='none' stroke='%s' stroke-width='3'/>" % W1
+    b += flat("M54,162 L68,162 L68,165 L54,165 Z", "#3a2418")
+    # Cuello y cabeza alargada / Neck and long head
+    b += flat("M93,80 L107,80 L107,94 L93,94 Z", S1)
+    b += flat("M80,50 C80,36 90,32 100,32 C110,32 120,36 120,50 L120,64 C120,80 111,88 100,88 C89,88 80,80 80,64 Z", S)
+    b += flat("M112,36 C118,40 120,46 120,54 L120,66 C120,78 114,86 106,88 C112,80 114,72 114,64 L114,52 C114,46 114,40 112,36 Z", S1)
+    b += flat(ellipse_d(79, 60, 3.5, 7), S) + flat(ellipse_d(121, 60, 3.5, 7), S1)
+    # Ojos con mirada intensa, cejas y boca seria / Intense eyes, brows and a serious mouth
+    b += flat("M86,56 L96,56 L96,60 L86,60 Z", W) + flat("M104,56 L114,56 L114,60 L104,60 Z", W)
+    b += flat("M89,56 L93,56 L93,60 L89,60 Z", "#3a5a8a") + flat("M107,56 L111,56 L111,60 L107,60 Z", "#3a5a8a")
+    b += flat("M84,50 L97,52 L97,54 L84,53 Z", H3) + flat("M103,52 L116,50 L116,53 L103,54 Z", H3)
+    b += flat("M98,60 L102,60 L103,70 L97,70 Z", S1)
+    b += flat("M92,76 L108,76 L108,78 L92,78 Z", "#8a5a50")
+    # El tupé blanco enorme, hacia arriba / The huge white quiff, swept up
+    b += flat("M78,46 C76,30 80,14 92,6 C98,2 108,0 116,4 C124,8 126,18 122,30 C121,38 120,42 120,48 L114,40 C110,36 104,36 98,38 C90,40 84,42 78,46 Z", H1)
+    b += flat("M108,2 C118,4 126,12 124,24 C122,34 120,40 120,48 L116,42 C118,34 119,24 116,16 C114,10 112,6 108,2 Z", H2)
+    b += "<path d='M86,30 C90,18 98,10 108,8 M90,38 C94,26 102,18 112,16 M98,36 C102,28 108,24 116,24' fill='none' stroke='%s' stroke-width='2'/>" % H3
+    b += flat("M78,46 C78,52 80,56 82,58 L82,48 Z", H2) + flat("M120,46 C120,52 119,56 118,58 L118,48 Z", H3)
+    add("npc_lynx", 44, 0, 120, 292, b, px=PX_NPC, flat=True)
+    # Brazo derecho con el megáfono: hombro en (134,108), apuntando abajo; se gira en el juego
+    # Right arm with the megaphone: shoulder at (134,108), pointing down; rotated in game
+    a = flat("M128,106 L142,108 L142,166 L128,164 Z", K2) + flat("M136,110 L140,110 L140,160 L136,160 Z", K1)
+    a += flat("M127,162 L143,164 L142,170 L127,168 Z", W)
+    a += flat(ellipse_d(135, 174, 7, 7), S)
+    a += flat("M130,178 L140,178 L150,206 L120,206 Z", "#e8e4f0") + flat("M120,204 L150,204 L152,212 L118,212 Z", "#c83a3a")
+    a += flat("M132,180 L138,180 L140,186 L130,186 Z", K1)
+    add("npc_lynx_arm", 44, 100, 120, 116, a, px=PX_NPC, flat=True)
+
+
 def act2_npcs():
     charo_body(False)
     charo_body(True)
@@ -3117,6 +3183,7 @@ def build():
     magnus()
     superk()
     lilkey()
+    lynx()
     turrets()
     pickups()
     thug()

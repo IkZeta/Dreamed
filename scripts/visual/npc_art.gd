@@ -29,6 +29,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float, opts :=
 		"magnus": _magnus(t)
 		"superk": _superk(t, opts)
 		"lilkey": _lilkey(t, opts)
+		"lynx": _lynx(t, opts)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -343,3 +344,28 @@ static func _lilkey(t: float, opts := {}) -> void:
 		_ci.draw_circle(p, 4.0, col)
 		_ci.draw_line(p + Vector2(3.5, 0), p + Vector2(3.5, -13), col, 2.0)
 		_ci.draw_line(p + Vector2(3.5, -13), p + Vector2(9, -10), col, 2.0)
+
+
+## D. Lynx con su café (el humo sube despacio, haciendo eses) y el megáfono, que levanta para
+## gritar "¡Acción!" cuando "shout" (0..1). Cuando no grita, mira a lo lejos, muy quieto.
+## D. Lynx with his coffee (the steam rises slowly, curling) and the megaphone, which he raises to
+## shout "Action!" when "shout" (0..1). When he isn't shouting, he gazes into the distance, very still.
+static func _lynx(t: float, opts := {}) -> void:
+	var shout: float = opts.get("shout", 0.0)
+	Sprites.draw(_ci, "npc_lynx")
+	# Humo del café / Coffee steam
+	for i in 3:
+		var ph := fposmod(t * 0.35 + i / 3.0, 1.0)
+		var p := Vector2(61 + sin(ph * 8.0 + i) * 4.0, 156 - ph * 36.0)
+		_ci.draw_circle(p, 2.5 + ph * 2.0, Color(1, 1, 1, 0.35 * (1.0 - ph)))
+	var shoulder := Vector2(135, 110)
+	var arm := lerpf(0.0, -2.4, shout) + sin(t * 1.1) * 0.03
+	_ci.draw_set_transform_matrix(_xf * Transform2D(arm, shoulder) * Transform2D(0.0, -shoulder))
+	Sprites.draw(_ci, "npc_lynx_arm")
+	_ci.draw_set_transform_matrix(_xf)
+	# Ondas del megáfono al gritar / Megaphone waves when shouting
+	if shout > 0.6:
+		var tip := shoulder + Vector2(0, 100).rotated(arm)
+		for i in 3:
+			var k := fposmod(t * 3.0 + i / 3.0, 1.0)
+			_ci.draw_arc(tip, 8.0 + k * 24.0, arm + PI * 0.5 - 0.6, arm + PI * 0.5 + 0.6, 8, Color(1, 1, 1, 0.7 * (1.0 - k)), 2.0)

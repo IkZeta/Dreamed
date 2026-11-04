@@ -70,6 +70,7 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	# Superar el Acto 4: el final de la partida / Clear Act 4: the end of the run
 	{"id": "act4", "check": "act4", "goal": 1},
 	{"id": "evil_ad", "flag": true, "goal": 1},
+	{"id": "lynx", "flag": true, "goal": 1},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4
@@ -259,7 +260,7 @@ func unlock_everything() -> void:
 	for id in BESTIARY:
 		if not kills.has(id):
 			kills[id] = 0
-	for g in ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey"]:
+	for g in ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey", "lynx"]:
 		stats["met_" + g] = 1
 	stats["charo_met"] = 1
 	stats["unlock_all"] = 1

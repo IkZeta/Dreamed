@@ -601,11 +601,77 @@ def lilkey_theme() -> np.ndarray:
     return loop_render(build, bar_len * bars, 0.2)
 
 
+def vibes(freq: float, dur: float = 3.0, amp: float = 0.15, trem: float = 4.2) -> np.ndarray:
+    """Vibráfono: barra de metal suave con el trémolo del motor / Vibraphone: a soft metal bar with the motor's tremolo."""
+    t = t_axis(dur)
+    tone = np.sin(2 * np.pi * freq * t) + np.sin(2 * np.pi * freq * 4.0 * t) * 0.18 * np.exp(-t * 6)
+    tone += np.sin(2 * np.pi * freq * 10.0 * t) * 0.05 * np.exp(-t * 20)
+    e = np.exp(-t * 0.9) * (1 - 0.35 * (0.5 + 0.5 * np.sin(2 * np.pi * trem * t)))
+    return tone * e * env_ar(len(t), 0.003, 0.3) * amp
+
+
+def twang(freq: float, dur: float = 2.5, amp: float = 0.12) -> np.ndarray:
+    """Guitarra eléctrica limpia con trémolo de palanca, la de las pelis raras / A clean electric guitar with whammy wobble, the weird-film one."""
+    t = t_axis(dur)
+    f = freq * (1 + 0.004 * np.sin(2 * np.pi * 5.0 * t) * np.clip(t / 0.6, 0, 1))
+    ph = np.cumsum(f) / SR
+    y = np.sin(2 * np.pi * ph) + 0.35 * np.sin(4 * np.pi * ph) + 0.12 * np.sin(6 * np.pi * ph)
+    return lp(y, 2400) * np.exp(-t * 1.1) * env_ar(len(t), 0.004, 0.4) * amp
+
+
+def lynx_theme() -> np.ndarray:
+    """D. Lynx: jazz lento y raro en Re menor, como un club vacío a las tres de la mañana. Un pad
+    oscuro que respira, contrabajo que pisa poco, escobillas casi sin tocar, vibráfono con trémolo y
+    una guitarra eléctrica con mucho eco que canta despacio. Un acorde se tuerce a mitad de vuelta.
+    D. Lynx: slow, strange jazz in D minor, like an empty club at three in the morning. A dark pad
+    that breathes, a sparse double bass, barely-there brushes, a tremolo vibraphone and a
+    heavily-echoed electric guitar singing slowly. One chord bends halfway through the loop."""
+    beat = 60.0 / 62
+    bar_len = beat * 4
+    chords = [[38, 53, 57, 60, 64], [34, 53, 58, 62, 65], [31, 53, 58, 62, 64], [33, 52, 55, 61, 64],
+              [38, 53, 57, 60, 64], [36, 52, 55, 58, 63], [34, 50, 53, 58, 61], [33, 49, 55, 57, 64]]
+    melody = [(0, 0, 69, 3), (0, 3, 67, 1), (1, 0, 65, 2), (1, 2, 62, 2), (2, 0, 64, 1.5), (2, 1.5, 65, 0.5),
+              (2, 2, 67, 2), (3, 0, 61, 4), (4, 0, 69, 2), (4, 2, 72, 2), (5, 0, 70, 3), (5, 3, 67, 1),
+              (6, 0, 65, 2), (6, 2, 61, 2), (7, 0, 62, 4)]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 8]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 2.5, 0.07, 1.8, 2.5, 800), s, 0.0, human=False)
+            place(buf, pluck(midi(ch[0]), beat * 2.5, 0.3, 0.12, 0.996), s, -0.1)
+            place(buf, pluck(midi(ch[0] + 7), beat * 1.5, 0.18, 0.12, 0.995), s + 2.5 * beat, -0.1)
+            for b in range(4):
+                place(buf, lp(breath(beat * 0.9, 1500, 6000, 0.025), 5000) * env_ar(int(beat * 0.9 * SR), 0.1, 0.4), s + b * beat, 0.3)
+            if i % 2 == 1:
+                place(buf, hat(0.025, True), s + 3.66 * beat, 0.45)
+            for k, n in enumerate(ch[2:]):
+                place(buf, vibes(midi(n + 12), 3.0, 0.045), s + 1.5 * beat + k * 0.12, -0.4 + k * 0.3)
+        for second in (False, True):
+            base = off + (8 * bar_len if second else 0.0)
+            for bi, b, n, d in melody:
+                at = base + bi * bar_len + b * beat
+                if second:
+                    g = twang(midi(n), beat * d + 1.2, 0.11)
+                    place(buf, g, at, -0.1)
+                    place(buf, g * 0.3, at + beat * 0.75, 0.4)
+                    place(buf, g * 0.12, at + beat * 1.5, -0.4)
+                else:
+                    place(buf, vibes(midi(n + 12), beat * d + 1.5, 0.11), at, 0.1)
+        # Un viento que sube al final de la vuelta / A wind rising at the end of the loop
+        at = off + 14 * bar_len
+        w = lp(noise(bar_len * 2), 900) * np.linspace(0, 1, int(bar_len * 2 * SR)) ** 2 * 0.04
+        place(buf, w, at, 0.0, human=False)
+
+    return loop_render(build, bar_len * bars, 0.45, 2.0)
+
+
 THEMES = {
     "music_svinho": (svinho_theme, 0.48), "music_stolk": (stolk_theme, 0.55), "music_silly": (silly_theme, 0.5),
     "music_doc": (doc_theme, 0.5), "music_ad": (ad_theme, 0.55), "music_pinche": (pinche_theme, 0.55),
     "music_charo": (charo_theme, 0.5), "music_magnus": (magnus_theme, 0.55), "music_superk": (superk_theme, 0.55),
-    "music_lilkey": (lilkey_theme, 0.55),
+    "music_lilkey": (lilkey_theme, 0.55), "music_lynx": (lynx_theme, 0.5),
 }
 
 
@@ -719,9 +785,21 @@ def giver_lilkey():
     return _motif(f, 2.4)
 
 
+def giver_lynx():
+    def f(x):
+        place(x, saw_pad([midi(n) for n in (53, 57, 60, 64)], 2.8, 0.1, 0.6, 1.4, 800), 0.0, 0.0, human=False)
+        place(x, pluck(midi(38), 2.0, 0.35, 0.12, 0.996), 0.0, -0.1)
+        for at, n in ((0.0, 81), (0.5, 79), (1.0, 77)):
+            place(x, vibes(midi(n), 2.0, 0.16), at, 0.1)
+        g = twang(midi(61), 1.8, 0.16)
+        place(x, g, 1.5, -0.1)
+        place(x, g * 0.3, 1.9, 0.4)
+    return _motif(f, 3.2)
+
+
 GIVERS = {"giver_svinho": giver_svinho, "giver_stolk": giver_stolk, "giver_silly": giver_silly, "giver_doc": giver_doc,
           "giver_ad": giver_ad, "giver_pinche": giver_pinche, "giver_charo": giver_charo, "giver_magnus": giver_magnus,
-          "giver_superk": giver_superk, "giver_lilkey": giver_lilkey}
+          "giver_superk": giver_superk, "giver_lilkey": giver_lilkey, "giver_lynx": giver_lynx}
 
 
 def render(only: set, save) -> None:

@@ -149,7 +149,7 @@ const RANGED: Array[String] = ["book", "vacuum", "finger", "ball", "laptop"]
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
-const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey"]
+const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey", "lynx"]
 ## SuperK y Lil Key no cambian el arma: aparecen en el mapa y ayudan. Cada arma tiene uno de sus
 ## poderes (las armas del mismo poder comparten nombre y descripción).
 ## SuperK and Lil Key don't change the weapon: they show up on the map and help. Each weapon gets
@@ -159,6 +159,10 @@ const HELPER_POWER := {
 		"book": "laser", "finger": "laser", "laptop": "laser", "vacuum": "throw", "ball": "throw"},
 	"lilkey": {"bat": "dance", "shield": "dance", "teddy": "dance", "boots": "dance",
 		"book": "sing", "vacuum": "sing", "finger": "sing", "ball": "sing", "laptop": "sing"},
+	# D. Lynx: "actor" (enemigos que luchan para ti), "retake" (una vida extra) y "cut" (sueños más cortos)
+	# D. Lynx: "actor" (enemies that fight for you), "retake" (an extra life) and "cut" (shorter dreams)
+	"lynx": {"bat": "actor", "boots": "actor", "vacuum": "actor", "shield": "retake", "teddy": "retake", "ball": "retake",
+		"book": "cut", "finger": "cut", "laptop": "cut"},
 }
 
 
@@ -228,6 +232,8 @@ var run_falls := 0      # enemigos tirados por agujeros / enemies pushed down ho
 var run_elites := 0     # élites derrotados / elites defeated
 ## Kroker lleva las gafas de sol de la taquilla durante toda esta partida / Kroker wears the locker sunglasses for this whole run
 var run_shades := false
+## D. Lynx ya ha dado su "toma 2" en esta partida / D. Lynx has already given his "take 2" this run
+var lynx_retake_used := false
 ## Evento del sueño anterior, para no repetirlo / Previous dream's event, so it isn't repeated
 var last_event := ""
 ## Orden de las estéticas de la Metrópolis en esta partida / Order of the Metropolis looks this run
@@ -313,7 +319,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles"]
+	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used"]
 
 
 func save_run() -> void:
@@ -366,6 +372,7 @@ func reset_run() -> void:
 	saved_hp = -1.0
 	run_time = 0.0
 	run_shades = false
+	lynx_retake_used = false
 	city_styles = []
 	run_kills = 0
 	run_hits = 0
@@ -691,6 +698,7 @@ func giver_unlocked(g: String) -> bool:
 		"magnus": return Progress.has_achieved("magnus")
 		"superk": return Progress.has_achieved("superk")
 		"lilkey": return Progress.has_achieved("lilkey")
+		"lynx": return Progress.has_achieved("lynx")
 	return true
 
 
@@ -999,7 +1007,46 @@ const UPGRADE_VALUES := {
 		"laptop": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
 		"boots": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
 	},
+	## D. Lynx: "¡Acción!" (cada "cd" s, "count" enemigos de alrededor se vuelven actores "secs" s y
+	## pegan a los demás con "dmg"), "¡Corten! Toma 2" (una vez por partida, si te matan vuelves con
+	## "hp" % de vida y "inv" s sin que te hagan daño) y "Montaje" (los sueños duran "pct" % menos)
+	## D. Lynx: "Action!" (every "cd" s, "count" nearby enemies turn into actors for "secs" s and hit
+	## the others for "dmg"), "Cut! Take 2" (once per run, if you're killed you come back with "hp" %
+	## health and "inv" s of invulnerability) and "Montage" (dreams last "pct" % less)
+	"lynx": {
+		"bat": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
+		"boots": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
+		"vacuum": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
+		"shield": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
+		"teddy": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
+		"ball": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
+		"book": {"pct": [10, 18, 25]},
+		"finger": {"pct": [10, 18, 25]},
+		"laptop": {"pct": [10, 18, 25]},
+	},
 }
+
+
+## Lo que recorta D. Lynx de cada sueño (0..0.5) / How much D. Lynx trims off each dream (0..0.5)
+func lynx_cut() -> float:
+	var total := 0.0
+	for w in weapons():
+		if helper_power("lynx", w) == "cut":
+			total += up_value("lynx", "pct", -1, w)
+	return clampf(total / 100.0, 0.0, 0.5)
+
+
+## La "toma 2" de D. Lynx, si queda: {"hp", "inv"} o vacío / D. Lynx's "take 2", if there's one left: {"hp", "inv"} or empty
+func lynx_retake() -> Dictionary:
+	if lynx_retake_used:
+		return {}
+	var best := {}
+	for w in weapons():
+		if helper_power("lynx", w) == "retake" and level("lynx", w) > 0:
+			var hp := up_value("lynx", "hp", -1, w)
+			if best.is_empty() or hp > float(best["hp"]):
+				best = {"hp": hp, "inv": up_value("lynx", "inv", -1, w)}
+	return best
 
 
 ## --- Amistad: cada nivel mejora los dones de ese personaje un 6 % (un 30 % al máximo) ---------

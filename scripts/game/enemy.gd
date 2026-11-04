@@ -47,6 +47,13 @@ var vacuumed := false
 var stun_t := 0.0
 ## Bailando con Lil Key: quieto y sin hacer daño / Dancing to Lil Key: still and harmless
 var dance_t := 0.0
+## Actuando para D. Lynx: lucha contra los demás enemigos y las armas no le apuntan
+## Acting for D. Lynx: it fights the other enemies and the weapons don't aim at it
+var actor_t := 0.0
+var actor_dmg := 0.0
+var _actor_tick := 0.0
+const ACTOR_REACH := 16.0
+const ACTOR_EVERY := 0.55
 var _detour := Vector2.ZERO
 ## Escudo de un antidisturbios (mientras ese siga en pie) / A riot officer's shield (while that one stands)
 var shield_by: Node = null
@@ -153,6 +160,12 @@ func _physics_process(delta: float) -> void:
 	if dance_t > 0.0:
 		dance_t = maxf(0.0, dance_t - delta)
 		stun_t = maxf(stun_t, minf(dance_t, 0.1))
+	if actor_t > 0.0:
+		actor_t = maxf(0.0, actor_t - delta)
+		if actor_t <= 0.0 and state == State.ALIVE:
+			# "¡Corten!": hace una reverencia y vuelve a ser malo / "Cut!": takes a bow and turns bad again
+			stun_t = maxf(stun_t, 0.8)
+			run.fx.text(global_position + Vector2(0, -aim_height * 3.0 - 20.0), tr("LYNX_CUT"), Color("ffb0b0"), 18)
 	slow_t = maxf(0.0, slow_t - delta)
 	vuln_t = maxf(0.0, vuln_t - delta)
 	glitch_t = maxf(0.0, glitch_t - delta)
@@ -192,10 +205,13 @@ func _physics_process(delta: float) -> void:
 					run.spawn_puddle(global_position)
 			if bounce_t > 0.0:
 				_ricochet()
-			if stun_t <= 0.0 and is_dangerous():
-				_touch_player()
-			if stun_t <= 0.0:
-				_act(delta)
+			if actor_t > 0.0:
+				_actor_strike(delta)
+			else:
+				if stun_t <= 0.0 and is_dangerous():
+					_touch_player()
+				if stun_t <= 0.0:
+					_act(delta)
 	queue_redraw()
 
 
@@ -219,7 +235,8 @@ func is_dangerous() -> bool:
 func _move(delta: float) -> void:
 	var vel := Vector2.ZERO
 	if stun_t <= 0.0:
-		vel = _desired_velocity() * (0.5 if slow_t > 0.0 else 1.0) * fluff_speed_mult()
+		var want := _actor_velocity() if actor_t > 0.0 else _desired_velocity()
+		vel = want * (0.5 if slow_t > 0.0 else 1.0) * fluff_speed_mult()
 	# Se separa de los demás enemigos / Keeps apart from other enemies
 	for other: Node2D in run.enemies.get_children():
 		if other == self:
@@ -507,7 +524,62 @@ func shielded() -> bool:
 
 
 func is_targetable() -> bool:
-	return state != State.DYING
+	return state != State.DYING and actor_t <= 0.0
+
+
+## ¿Puede D. Lynx ponerlo a actuar? Los jefes y los que no persiguen (nidos, furgonetas,
+## antidisturbios, el zorro dorado, el muñeco) no / Can D. Lynx make it act? Bosses and the ones that
+## don't chase (nests, vans, riot officers, the golden fox, the dummy) can't
+func can_act() -> bool:
+	return state == State.ALIVE and actor_t <= 0.0 and not is_boss() and not (self is Nest or self is Van or self is Riot or self is GoldenFoox or self is TrainingDummy)
+
+
+## Se pone a actuar para D. Lynx durante "secs" / Starts acting for D. Lynx for "secs"
+func start_acting(secs: float, dmg: float) -> void:
+	actor_t = secs
+	actor_dmg = dmg
+	_actor_tick = 0.2
+	dance_t = 0.0
+	shield_by = null
+
+
+func _actor_target() -> Enemy:
+	var best: Enemy = null
+	var best_d := INF
+	for o: Node in run.enemies.get_children():
+		if o == self or not o is Enemy or not (o as Enemy).is_targetable():
+			continue
+		var d := global_position.distance_squared_to((o as Node2D).global_position)
+		if d < best_d:
+			best_d = d
+			best = o
+	return best
+
+
+## Actuando: va a por el enemigo más cercano; si no hay, se queda junto a Kroker
+## Acting: goes for the nearest enemy; if there's none, stays by Kroker
+func _actor_velocity() -> Vector2:
+	var foe := _actor_target()
+	var to: Vector2 = (foe.global_position if foe else run.player.global_position + Vector2(_facing * 60.0, 20.0)) - global_position
+	if to.length() < radius + 6.0:
+		return Vector2.ZERO
+	return to.normalized() * maxf(speed, 110.0) * 1.15
+
+
+func _actor_strike(delta: float) -> void:
+	_actor_tick -= delta
+	if _actor_tick > 0.0:
+		return
+	_actor_tick = ACTOR_EVERY
+	for o: Node in run.enemies.get_children():
+		if o == self or not o is Enemy or not (o as Enemy).is_targetable():
+			continue
+		var e := o as Enemy
+		var d := e.global_position - global_position
+		if d.length() < radius + e.radius + ACTOR_REACH:
+			e.hit(actor_dmg * run.player.damage_mult, d.normalized() * 260.0 / maxf(0.5, e.mass))
+			run.fx.ring(e.aim_point(), 18.0, Color("ff6a6a"), 0.25, 2.0)
+			_facing = signf(d.x) if absf(d.x) > 1.0 else _facing
 
 
 ## Cuánto más cerca llegan las armas a un enemigo grande / How much closer weapons reach on a big enemy
@@ -636,10 +708,29 @@ func _draw() -> void:
 			var y := randf_range(-aim_height * 2.5, 6)
 			draw_rect(Rect2(randf_range(-40, 10), y, randf_range(20, 50), 3), Color([GLITCH_A, GLITCH_B, Color.WHITE][i], 0.5 * a))
 	_draw_statuses(bob, a)
+	if actor_t > 0.0 and state == State.ALIVE:
+		_draw_actor_mark(a)
 	if stun_t > 0.0:
 		for i in 3:
 			var ang := _t * 4.0 + i * TAU / 3.0
 			DreamBackground.draw_star(self, Vector2(cos(ang) * 18.0, -aim_height * 3.0 + sin(ang) * 5.0), 2.0, Color(UITheme.GOLD, a))
+
+
+## Actuando para D. Lynx: una claqueta encima y un foco a sus pies / Acting for D. Lynx: a clapperboard above and a spotlight at its feet
+func _draw_actor_mark(a: float) -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.35))
+	draw_circle(Vector2.ZERO, radius + 14.0, Color(1.0, 0.95, 0.8, 0.16 * a))
+	draw_arc(Vector2.ZERO, radius + 14.0, 0.0, TAU, 24, Color("e0303a", 0.7 * a), 3.0)
+	draw_set_transform(Vector2.ZERO)
+	var c := head_top() + Vector2(0, -16.0 + sin(_t * 3.0) * 2.0)
+	var snap := absf(sin(_t * 4.0)) * 0.35
+	draw_rect(Rect2(c + Vector2(-11, -4), Vector2(22, 14)), Color("16141a", a))
+	draw_rect(Rect2(c + Vector2(-11, -4), Vector2(22, 14)), Color(1, 1, 1, 0.8 * a), false, 1.5)
+	var top := PackedVector2Array([Vector2(-11, 0), Vector2(11, 0), Vector2(11, -4), Vector2(-11, -4)])
+	var xf := Transform2D(-snap, c + Vector2(-11, -4)) * Transform2D(0.0, Vector2(11, 4))
+	draw_colored_polygon(xf * top, Color("16141a", a))
+	for k in 3:
+		draw_line(xf * Vector2(-9 + k * 7, -4), xf * Vector2(-5 + k * 7, 0), Color(1, 1, 1, 0.9 * a), 2.0)
 
 
 func elite_color() -> Color:

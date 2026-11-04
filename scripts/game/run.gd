@@ -89,7 +89,12 @@ func _ready() -> void:
 		Progress.flag("two_weapons")
 		Progress.flag("teddy")
 		Progress.flag("pinche")
+	# D. Lynx recorta el sueño (en los jefes no, que se acaban al vencerlos) / D. Lynx trims the dream (not on bosses, which end when beaten)
 	_time_left = float(_wave.get("duration", 0.0))
+	if not _wave.get("boss", false):
+		_time_left *= 1.0 - GameState.lynx_cut()
+	if depth >= GameState.FINAL_DREAM and not GameState.training:
+		Progress.flag("lynx")
 
 	# Pantalla pequeña donde vive el mundo / Small screen where the world lives
 	var screen := CanvasLayer.new()

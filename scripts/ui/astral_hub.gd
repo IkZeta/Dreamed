@@ -109,7 +109,7 @@ func _refresh_hint() -> void:
 
 ## Cada isla con personaje tiene su tema; el resto del plano suena a plano astral
 ## Each island with a character has its own theme; the rest of the plane sounds astral
-const THEMED := ["svinho", "stolk", "silly", "doc", "ad", "pinche", "charo", "magnus", "superk", "lilkey"]
+const THEMED := ["svinho", "stolk", "silly", "doc", "ad", "pinche", "charo", "magnus", "superk", "lilkey", "lynx"]
 
 
 func _show_zone(id: String) -> void:
@@ -587,7 +587,7 @@ class HubWorld extends Control:
 	const RING: Array[String] = ["wardrobe", "magnus", "doc", "ad", "pinche", "museum", "silly", "stolk", "svinho", "charo"]
 	## Islas lejanas: de dónde sale su puente (la primera que esté; Lil Key, de todas)
 	## Far islands: where their bridge comes from (the first one present; Lil Key, from all of them)
-	const FAR := {"training": ["wardrobe"], "superk": ["magnus", "wardrobe"], "lilkey": ["svinho", "stolk"]}
+	const FAR := {"training": ["wardrobe"], "superk": ["magnus", "wardrobe"], "lilkey": ["svinho", "stolk"], "lynx": ["doc", "ad"]}
 
 	var frozen := false
 	var _pos := SPAWN
@@ -686,7 +686,7 @@ class HubWorld extends Control:
 				continue
 			var done := 0
 			for from: String in FAR[id]:
-				if _isles.has(from) and (done == 0 or id == "lilkey"):
+				if _isles.has(from) and (done == 0 or id == "lilkey" or id == "lynx"):
 					_add_bridge(from, id)
 					done += 1
 			if done == 0:
@@ -757,6 +757,7 @@ class HubWorld extends Control:
 				"magnus": _build_magnus()
 				"superk": _build_superk()
 				"lilkey": _build_lilkey()
+				"lynx": _build_lynx()
 
 	## Puente de piedras flotantes de una isla a otra / Bridge of floating stones from one island to another
 	func _add_bridge(from_id: String, id: String, lanterns := true) -> void:
@@ -1446,6 +1447,30 @@ class HubWorld extends Control:
 				var side := (to - from).orthogonal().normalized() * 14.0
 				ci.draw_colored_polygon(PackedVector2Array([from, to + side, to - side]), col))
 
+	# --- D. Lynx: en su plató, entre telones rojos, con la cámara y los focos / on his film set, between red curtains, with the camera and the lights ---
+
+	func _build_lynx() -> void:
+		var c := _isle_pos("lynx")
+		_piece(c + Vector2(-118, -40), "hub_curtain", Vector2(16, 4))
+		_piece(c + Vector2(118, -40), "hub_curtain", Vector2(16, 4))
+		_piece(c + Vector2(-58, 14), "hub_filmcam", Vector2(10, 4))
+		_piece(c + Vector2(84, 22), "hub_spotlight", Vector2(8, 3))
+		_piece(c + Vector2(-92, 30), "hub_spotlight", Vector2(8, 3))
+		_piece(c + Vector2(40, -20), "hub_dirchair", Vector2(9, 3))
+		_piece(c + Vector2(-20, 30), "hub_clapper")
+		var lx := _npc_prop("lynx", c + Vector2(10, -8))
+		lx.painter = func(ci: CanvasItem) -> void:
+			# De vez en cuando levanta el megáfono / Now and then he raises the megaphone
+			var ph := fmod(_t, 9.0)
+			var shout := clampf(minf(ph - 6.0, 8.2 - ph) * 3.0, 0.0, 1.0)
+			_draw_npc(ci, "lynx", Vector2.ZERO, false, {"shout": shout})
+		# Haz de los focos hacia el centro / The spotlights' beams towards the middle
+		_prop(c + Vector2(0, -40), func(ci: CanvasItem) -> void:
+			for src: Vector2 in [Vector2(84, 30), Vector2(-92, 38)]:
+				var to := Vector2(10 + sin(_t * 0.4) * 6.0, 34)
+				var side: Vector2 = (to - src).orthogonal().normalized() * 18.0
+				ci.draw_colored_polygon(PackedVector2Array([src, to + side, to - side]), Color(1.0, 0.95, 0.8, 0.08)))
+
 	# --- Kroker ---
 
 	func _draw_kroker(ci: CanvasItem) -> void:
@@ -1640,7 +1665,7 @@ class TalkPortrait extends Control:
 	## Dónde está la cara de cada uno en su dibujo (lienzo de 200 de ancho) / Where each face is in their drawing (200-wide canvas)
 	const FACE := {"svinho": Vector2(100, 62), "stolk": Vector2(100, 60), "silly": Vector2(100, 70), "doc": Vector2(100, 66),
 		"ad": Vector2(100, 64), "pinche": Vector2(100, 60), "magnus": Vector2(100, 72), "superk": Vector2(100, 58),
-		"lilkey": Vector2(100, 62), "charo": Vector2(100, 74)}
+		"lilkey": Vector2(100, 62), "lynx": Vector2(100, 58), "charo": Vector2(100, 74)}
 	const ZOOM := 2.3
 	var who := "svinho"
 	var aura := Color.WHITE

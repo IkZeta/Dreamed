@@ -12,6 +12,10 @@ extends Node
 ## - "dance": aparece a tu lado y los enemigos de alrededor se ponen a bailar (no hacen daño).
 ## - "sing": canta lejos de ti; los enemigos van hacia él y les hace daño poco a poco.
 ## Si Lil Key ya ha salido en este sueño, Kroker lleva puestas sus gafas de sol.
+## D. Lynx:
+## - "actor": aparece en su silla con el megáfono, grita "¡Acción!" y unos cuantos enemigos se ponen
+##   a actuar de su parte un rato (luchan contra los demás). Sus otros poderes ("retake" y "cut")
+##   no salen al mapa: los usan Kroker y la partida.
 ##
 ## SuperK and Lil Key in the run: they don't change the weapon, they show up on the map and help.
 ## Each weapon Kroker carries has one of their powers (GameState.HELPER_POWER) with its cooldown.
@@ -20,7 +24,9 @@ extends Node
 ## enemies with his eye lasers), throw (grabs an enemy and hurls it down the nearest hole, or slams
 ## it into the others). Lil Key: dance (turns up beside you and nearby enemies dance, dealing no
 ## damage), sing (sings away from you; enemies flock to him and slowly take damage). Once Lil Key
-## has shown up in this dream, Kroker wears his sunglasses.
+## has shown up in this dream, Kroker wears his sunglasses. D. Lynx: actor (shows up in his chair with
+## the megaphone, shouts "Action!" and a few enemies act on his side for a while, fighting the rest).
+## His other powers (retake and cut) don't show up on the map: Kroker and the run use them.
 
 const SCALE := 0.5               # misma escala que Kroker / same scale as Kroker
 const FLY_SPEED := 1500.0
@@ -30,6 +36,8 @@ const SLAM_RADIUS := 150.0
 const DANCE_RADIUS := 330.0
 const SING_PULL_RADIUS := 560.0
 const SING_HURT_RADIUS := 170.0
+const ACTOR_RADIUS := 520.0      # hasta dónde llega el grito de D. Lynx / how far D. Lynx's shout reaches
+const LYNX_SHOW := 1.8           # lo que se queda en el plató / how long he stays on set
 
 var run: Node
 ## Kroker se pone las gafas de sol (Lil Key ya ha salido en este sueño)
@@ -39,14 +47,15 @@ var _timers := {}                # "giver:weapon" → segundos que faltan / seco
 var _guard_cd := 0.0
 var _superk: Actor
 var _lilkey: Actor
+var _lynx: Actor
 var _t := 0.0
 
 
 func setup(r: Node) -> void:
 	run = r
 	for w: String in GameState.weapons():
-		for g: String in ["superk", "lilkey"]:
-			if GameState.level(g, w) > 0:
+		for g: String in ["superk", "lilkey", "lynx"]:
+			if GameState.level(g, w) > 0 and GameState.UPGRADE_VALUES[g][w].has("cd"):
 				# La primera vez sale a media recarga / The first time comes at half cooldown
 				_timers[g + ":" + w] = GameState.up_value(g, "cd", -1, w) * 0.5
 
@@ -66,7 +75,7 @@ func _physics_process(delta: float) -> void:
 		if float(_timers[key]) > 0.0:
 			continue
 		# Si ya está ocupado, espera un poco / If he's busy, wait a moment
-		if (g == "superk" and is_instance_valid(_superk)) or (g == "lilkey" and is_instance_valid(_lilkey)):
+		if (g == "superk" and is_instance_valid(_superk)) or (g == "lilkey" and is_instance_valid(_lilkey)) or (g == "lynx" and is_instance_valid(_lynx)):
 			_timers[key] = 0.5
 			continue
 		if _start(g, power, w):
@@ -96,6 +105,8 @@ func _start(g: String, power: String, w: String) -> bool:
 	run._actors.add_child(a)
 	if g == "superk":
 		_superk = a
+	elif g == "lynx":
+		_lynx = a
 	else:
 		_lilkey = a
 		shades = true
@@ -273,6 +284,32 @@ class Actor extends Node2D:
 				_secs = GameState.up_value("lilkey", "secs", -1, weapon)
 				phase = "show"
 				_appear()
+			"actor":
+				# Los más cercanos a Kroker que se puedan poner a actuar / The ones closest to Kroker that can be made to act
+				var cast: Array = []
+				for e: Enemy in foes:
+					if e.can_act() and helpers.in_view(e.global_position) and e.global_position.distance_to(kroker) < ACTOR_RADIUS:
+						cast.append(e)
+				if cast.size() < 2:
+					return false
+				cast.sort_custom(func(a: Enemy, b: Enemy) -> bool: return a.global_position.distance_squared_to(kroker) < b.global_position.distance_squared_to(kroker))
+				cast.resize(mini(cast.size(), int(GameState.up_value("lynx", "count", -1, weapon))))
+				flying = false
+				facing = 1.0 if randf() < 0.5 else -1.0
+				position = run.clamp_to_arena(kroker + Vector2(-facing * 120.0, -40.0), 40.0)
+				_secs = LYNX_SHOW
+				phase = "show"
+				_fade = 0.0
+				var secs := GameState.up_value("lynx", "secs", -1, weapon)
+				var dmg := GameState.up_value("lynx", "dmg", -1, weapon)
+				for e: Enemy in cast:
+					e.start_acting(secs, dmg)
+					run.fx.ring(e.global_position + Vector2(0, -20), 30.0, Color("e0303a"), 0.4, 2.4)
+				set_meta("cast", cast)
+				run.fx.ring(position + Vector2(0, -50), 60.0, Color("e0303a"), 0.5, 2.4)
+				run.fx.text(position + Vector2(0, -180), tr("LYNX_SHOUT"), Color("ffb0b0"), 24)
+				Audio.play("snap", -4.0, 0.05)
+				Audio.leitmotif("lynx", -2.0, -14.0)
 		return true
 
 	func _appear() -> void:
@@ -352,12 +389,13 @@ class Actor extends Node2D:
 					_fly_out()
 			"show":
 				_secs -= delta
-				_lilkey_effect(delta)
+				if who == "lilkey":
+					_lilkey_effect(delta)
 				if _secs <= 0.0:
 					phase = "gone"
 					_phase_t = 0.0
 					_dur = 0.35
-					run.fx.ring(position + Vector2(0, -50), 40.0, Color("ff6a8a"), 0.4, 2.0)
+					run.fx.ring(position + Vector2(0, -50), 40.0, Color("e0303a" if who == "lynx" else "ff6a8a"), 0.4, 2.0)
 			"gone":
 				_fade = 1.0 - k
 				if k >= 1.0:
@@ -464,8 +502,11 @@ class Actor extends Node2D:
 
 	func _draw() -> void:
 		var s := SCALE
-		var a := _fade if who == "lilkey" else 1.0
+		var a := _fade if who != "superk" else 1.0
 		modulate.a = a
+		if who == "lynx":
+			_draw_lynx(s)
+			return
 		if who == "lilkey":
 			draw_colored_polygon(_ring(Vector2.ZERO, Vector2(46, 12)), Color(0, 0, 0, 0.25))
 			# Altavoz a sus pies y ondas de sonido / Speaker at his feet and sound waves
@@ -500,6 +541,24 @@ class Actor extends Node2D:
 				draw_line(eyes + Vector2(0, off), ground + Vector2(0, off * 2.0), Color("ff4a5a", 0.9), 4.0)
 				draw_line(eyes + Vector2(0, off), ground + Vector2(0, off * 2.0), Color("ffe0e0"), 1.5)
 			draw_circle(ground, 14.0 + sin(_t * 30.0) * 3.0, Color("ff4a5a", 0.5))
+
+	## D. Lynx en el plató: foco desde arriba, silla de director y el megáfono en alto; una tira de
+	## película une su silla con cada enemigo que actúa / D. Lynx on set: a spotlight from above, the
+	## director's chair and the megaphone up; a film strip links his chair to each acting enemy
+	func _draw_lynx(s: float) -> void:
+		draw_colored_polygon(PackedVector2Array([Vector2(-20, -260), Vector2(20, -260), Vector2(70, 0), Vector2(-70, 0)]), Color(1.0, 0.95, 0.8, 0.10))
+		draw_colored_polygon(_ring(Vector2.ZERO, Vector2(60, 14)), Color(1.0, 0.95, 0.8, 0.18))
+		for e: Variant in get_meta("cast", []):
+			if is_instance_valid(e) and (e as Enemy).actor_t > 0.0:
+				var to: Vector2 = (e as Node2D).global_position - global_position + Vector2(0, -30)
+				var k := clampf(_phase_t * 3.0, 0.0, 1.0)
+				var end := Vector2(0, -60).lerp(to, k)
+				draw_line(Vector2(0, -60), end, Color("16141a", 0.8), 7.0)
+				var n := int(Vector2(0, -60).distance_to(end) / 12.0)
+				for i in n:
+					draw_rect(Rect2(Vector2(0, -60).lerp(end, (i + 0.5) / maxf(1.0, n)) - Vector2(1.5, 1.5), Vector2(3, 3)), Color(1, 1, 1, 0.7))
+		var xf := Transform2D(0.0, Vector2(s * facing, s), 0.0, Vector2(-100.0 * s * facing, -288.0 * s))
+		NpcArt.draw(self, xf, "lynx", _t, {"shout": clampf(_phase_t * 4.0, 0.0, 1.0)})
 
 	func _ring(c: Vector2, r: Vector2) -> PackedVector2Array:
 		var pts := PackedVector2Array()

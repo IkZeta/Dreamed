@@ -308,6 +308,37 @@ def build(ms):
         b += R(x - 3, -68, 6, 6, BK) + E(x, -62, 2.4, 1.6, ng(c, 0.05), stroke=False, rim=0)
     put("hub_truss", -16, -76, 32, 78, b)
 
+    # --- D. Lynx: plató de cine / film set ---
+    RED, RED_D = ng("#b8283a"), ng("#8a1828")
+    # Telón rojo con pliegues / Red curtain with folds
+    b = R(-30, -80, 60, 80, RED)
+    for x in range(-26, 28, 8):
+        b += F(x, -78, 2, 76, RED_D)
+    b += R(-32, -84, 64, 6, ng("#c9961e"))
+    put("hub_curtain", -34, -88, 68, 90, b)
+    # Silla de director con el respaldo de lona / Director's chair with a canvas back
+    WOOD = ng("#8a5a36")
+    b = R(-9, -14, 2, 14, WOOD) + R(7, -14, 2, 14, WOOD) + R(-10, -16, 20, 3, ng("#2a2830"))
+    b += R(-9, -30, 2, 15, WOOD) + R(7, -30, 2, 15, WOOD) + R(-9, -28, 18, 7, ng("#2a2830"))
+    b += F(-6, -26, 12, 2, ng("#f4f1ea"))
+    put("hub_dirchair", -12, -34, 24, 36, b)
+    # Cámara de cine antigua en su trípode / Old film camera on its tripod
+    MET = ng("#3a3948")
+    b = "<path d='M0,-22 L-9,0 M0,-22 L9,0 M0,-22 L0,0' stroke='%s' stroke-width='2'/>" % ng("#2a2830")
+    b += R(-9, -34, 18, 12, MET) + R(9, -31, 6, 6, ng("#5a5866"))
+    b += E(-5, -39, 5, 5, MET) + E(5, -39, 5, 5, MET) + E(-5, -39, 2, 2, ng("#7a7888")) + E(5, -39, 2, 2, ng("#7a7888"))
+    put("hub_filmcam", -16, -46, 34, 48, b)
+    # Foco de plató / Studio spotlight
+    b = "<path d='M0,-30 L-7,0 M0,-30 L7,0' stroke='%s' stroke-width='2'/>" % ng("#2a2830")
+    b += R(-7, -40, 14, 11, ng("#24232e")) + E(0, -35, 4, 4, ng("#fff0c0", 0.05), stroke=False, rim=0)
+    put("hub_spotlight", -10, -44, 20, 46, b)
+    # Claqueta / Clapperboard
+    b = R(-8, -10, 16, 10, ng("#16151c")) + F(-6, -7, 12, 1, ng("#f4f1ea")) + F(-6, -4, 8, 1, ng("#f4f1ea"))
+    b += R(-8, -14, 16, 4, ng("#f4f1ea"))
+    for x in (-6, -1, 4):
+        b += F(x, -14, 2, 4, ng("#16151c"))
+    put("hub_clapper", -10, -16, 20, 18, b)
+
     # --- Charo: sillón de tejer / knitting armchair ---
     TEAL, TEAL_D = ng("#4fa89a"), ng("#3f8a7e")
     b = hs("M-20,-12 L-20,-44 Q-20,-50 -12,-50 L12,-50 Q20,-50 20,-44 L20,-12 Z", TEAL)

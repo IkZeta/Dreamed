@@ -264,9 +264,36 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 	hurt_lean = -0.18
 	run.fx.text(global_position + Vector2(0, -88), "-%d" % roundi(dmg), UITheme.EMBER, 26)
 	run.on_player_hit(dmg)
-	if hp <= 0.0:
+	if hp <= 0.0 and not _retake():
 		alive = false
 		run.on_player_died()
+
+
+## La "toma 2" de D. Lynx: una vez por partida, en vez de caer, "¡Corten!" y vuelve con vida.
+## true = se ha salvado / D. Lynx's "take 2": once per run, instead of falling, "Cut!" and he's back
+## with health. true = he was saved
+func _retake() -> bool:
+	var rt := GameState.lynx_retake()
+	if rt.is_empty():
+		return false
+	GameState.lynx_retake_used = true
+	hp = maxf(1.0, max_hp * float(rt["hp"]) / 100.0)
+	_invuln = float(rt["inv"])
+	bleed_t = 0.0
+	run.hud.set_hp(hp, max_hp)
+	run.flash_screen(Color(1, 1, 1, 0.8), 0.5)
+	run.shake(6.0)
+	run.fx.text(global_position + Vector2(0, -150), tr("LYNX_RETAKE"), Color("ffb0b0"), 30)
+	run.fx.ring(global_position + Vector2(0, -36), 220.0, Color("e0303a"), 0.6, 1.4)
+	Audio.play("snap", -2.0)
+	Audio.leitmotif("lynx", -2.0, -14.0)
+	for e: Node in run.enemies.get_children():
+		if e is Enemy and (e as Enemy).is_targetable() and not (e as Enemy).is_boss():
+			var d: Vector2 = (e as Node2D).global_position - global_position
+			if d.length() < 260.0:
+				(e as Enemy).knock += d.normalized() * 900.0
+				(e as Enemy).stun_t = maxf((e as Enemy).stun_t, 1.0)
+	return true
 
 
 const PARRY_RADIUS := 170.0
@@ -326,7 +353,7 @@ func _update_bleed(delta: float) -> void:
 	run.fx.text(global_position + Vector2(randf_range(-14, 14), -80), "-1", Color("e8455a"), 20)
 	run.fx.dissipate(global_position + Vector2(randf_range(-10, 10), -40), Color("c8304a"))
 	run.hud.set_hp(hp, max_hp)
-	if hp <= 0.0:
+	if hp <= 0.0 and not _retake():
 		alive = false
 		run.on_player_died()
 
