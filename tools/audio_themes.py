@@ -1153,7 +1153,20 @@ def sfx_chime():
     return mix(glock(midi(86), 1.4, 0.3), np.pad(glock(midi(93), 1.4, 0.22), (int(SR * 0.08), 0)), bar(midi(74), 1.2, 0.15, "kalimba", 0.3))
 
 
-SFX = {"hit": (sfx_hit, 0.4, 0.1), "swing": (sfx_swing, 0.42, 0.1), "hurt": (sfx_hurt, 0.52, 0.12),
+def sfx_parry():
+    """Parry: un chasquido seco y claro, un golpe grave que se nota en el pecho y un brillo de dos
+    notas que sube, como en las pelis cuando el héroe chasca los dedos.
+    Parry: a crisp, dry snap, a low thump you feel in your chest and a rising two-note shimmer,
+    like in films when the hero snaps his fingers."""
+    t = t_axis(0.09)
+    snap = (bp(noise(0.09), 2200, 7000) * np.exp(-t * 70) * 0.9 + np.sin(2 * np.pi * 1300 * t) * np.exp(-t * 55) * 0.25)
+    whomp = thump(70, 0.35, 0.45, 9)
+    x = mix(np.pad(snap, (int(SR * 0.02), 0)), np.pad(whomp, (int(SR * 0.02), 0)),
+            np.pad(glock(midi(91), 1.0, 0.18), (int(SR * 0.05), 0)), np.pad(glock(midi(98), 1.0, 0.14), (int(SR * 0.12), 0)))
+    return x
+
+
+SFX = {"hit": (sfx_hit, 0.4, 0.1), "parry": (sfx_parry, 0.42, 0.25), "swing": (sfx_swing, 0.42, 0.1), "hurt": (sfx_hurt, 0.52, 0.12),
        "pickup": (sfx_pickup, 0.4, 0.3), "ui_hover": (sfx_hover, 0.16, 0.1), "ui_click": (sfx_click, 0.24, 0.1),
        "foox_die": (sfx_foox_die, 0.38, 0.3), "win": (sfx_win, 0.5, 0.35), "lose": (sfx_lose, 0.5, 0.35),
        "chime": (sfx_chime, 0.35, 0.25)}

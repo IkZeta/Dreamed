@@ -311,10 +311,14 @@ const PARRY_BOSS_DAMAGE := 30.0
 func _parry(source: Node2D) -> void:
 	_invuln = HIT_INVULN
 	cast_anim = 1.0
-	Audio.play("snap", -2.0, 0.05)
-	run.shake(5.0)
-	run.fx.text(global_position + Vector2(0, -140), tr("PARRY_SNAP"), Color.WHITE, 26)
-	run.fx.ring(global_position + HURT, PARRY_RADIUS, Color.WHITE, 0.4, 1.2)
+	# Se tiene que notar: chasquido con brillo, temblor, un fogonazo suave y un instante a cámara lenta
+	# It has to be felt: a shimmering snap, shake, a soft flash and a moment of slow motion
+	Audio.play("parry", 0.0, 0.04)
+	run.shake(9.0)
+	run.flash_screen(Color(1.0, 0.95, 0.75, 0.55), 0.2)
+	Settings.rumble(0.6, 0.4, 0.15)
+	run.fx.text(global_position + Vector2(0, -150), tr("PARRY_SNAP"), Color("ffd84a"), 34)
+	_hit_stop()
 	# Quién le atacaba (o el más cercano si fue un disparo) / Who attacked (or the nearest if it was a shot)
 	var victims: Array[Node2D] = []
 	if source is Enemy and source.is_targetable():
@@ -328,12 +332,27 @@ func _parry(source: Node2D) -> void:
 		if victims.size() >= PARRY_EXTRA + 1:
 			break
 		victims.append(e)
+	var burst := ParryBurst.new()
+	burst.radius = PARRY_RADIUS
+	burst.position = global_position
+	for e in victims:
+		burst.targets.append((e as Node2D).global_position - global_position)
+	run.world.add_child(burst)
 	for e in victims:
 		run.fx.ring(e.global_position + Vector2(0, -30), 24.0, Color.WHITE, 0.3, 2.0)
 		if e.is_boss():
 			e.hit(PARRY_BOSS_DAMAGE)
 		else:
 			e.die(true)
+
+
+## Un instante casi parado tras el parry (en tiempo real, para que no dependa de la cámara lenta)
+## A near-frozen instant after the parry (in real time, so it doesn't depend on the slow motion)
+func _hit_stop() -> void:
+	if Engine.time_scale < 1.0:
+		return
+	Engine.time_scale = 0.12
+	get_tree().create_timer(0.11, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
 
 
 ## Sangra: pierde 1 de vida cada 1,3 s (sin parpadeo de invulnerabilidad) y su defensa baja al 75 %
