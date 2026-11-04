@@ -141,3 +141,74 @@ def build(ms):
                   + F(P([(-4, 8), (4, 8), (6, 13), (-6, 13)]), "#2a2440") + F(P([(-14, -3), (-10, -3), (-10, -1), (-14, -1)]), "#5ff2ff"))
     for k, body in st.items():
         icon("status_" + k, body, 0.5)
+
+
+def wares(ms):
+    """Los artículos del kiosco de Charo (32 x 32, a 32 píxeles) / Charo's kiosk wares (32 x 32, at 32 pixels)"""
+    mix, dark, ellipse_d, star_d = ms.mix, ms.dark, ms.ellipse_d, ms.star_d
+
+    def hs(d, base, sh=0.4, rim=0.5):
+        i = ms.uid()
+        return ("<defs><clipPath id='c%s'><path d='%s'/></clipPath></defs><path d='%s' fill='%s'/>"
+                "<g clip-path='url(#c%s)'><path d='%s%s' transform='translate(-2,-2)' fill-rule='evenodd' fill='%s'/>"
+                "<path d='%s%s' transform='translate(1.4,1.4)' fill-rule='evenodd' fill='%s'/></g>") % (
+            i, d, d, base, i, ms.BIG, d, mix(base, dark(base, 0.6), sh), ms.BIG, d, mix(base, "#fbf8ff", rim * 0.6))
+
+    def F(d, c):
+        return "<path d='%s' fill='%s'/>" % (d, c)
+
+    def P(pts):
+        return "M" + " L".join("%g,%g" % p for p in pts) + " Z"
+
+    def R(x, y, w, h):
+        return P([(x, y), (x + w, y), (x + w, y + h), (x, y + h)])
+
+    E = ellipse_d
+    W, INK, PINK, RED, GOLD, BLUE, GREEN, CREAM = "#fbf8ff", "#2a2440", "#f2b8d8", "#e85d75", "#ffd27a", "#7fb8ff", "#8fd17a", "#f4ecdc"
+    out = {}
+    # Nivel 1 / Tier 1
+    out["milk"] = (hs(P([(-8, -8), (8, -8), (9, 14), (-9, 14)]), PINK) + hs(P([(-8, -12), (8, -12), (8, -8), (-8, -8)]), W)
+                   + F(R(-4, -2, 8, 8), W) + "<path d='M3,-12 L8,-19' stroke='%s' stroke-width='2.4'/>" % RED + F(E(0, 2, 2.5, 2.5), PINK))
+    out["candy"] = (hs(P([(-8, 0), (-15, -7), (-15, 7)]), RED) + hs(P([(8, 0), (15, -7), (15, 7)]), RED)
+                    + hs(E(0, 0, 9, 9), "#f6c86a") + "<path d='M-6,-3 Q0,-8 6,-3 M-6,3 Q0,-2 6,3' fill='none' stroke='%s' stroke-width='2'/>" % W)
+    out["glasses"] = (hs(E(-7, 0, 7, 6), "#7a2e4a") + hs(E(7, 0, 7, 6), "#7a2e4a") + F(E(-7, 0, 5, 4), "#cfe0ff") + F(E(7, 0, 5, 4), "#cfe0ff")
+                      + F(R(-1, -2, 2, 2), "#7a2e4a") + F(R(-9, -2, 2, 2), W) + F(R(5, -2, 2, 2), W))
+    out["sneakers"] = (hs("M-14,8 L-13,-4 L-5,-7 L1,0 Q12,1 14,4 L14,8 Z", BLUE) + F(R(-14, 8, 28, 4), W)
+                       + "<path d='M-6,-4 L0,-1 M-8,0 L-2,2' stroke='%s' stroke-width='1.6'/>" % W + F(E(-9, 10, 1.5, 1.5), RED) + F(E(0, 10, 1.5, 1.5), GOLD) + F(E(9, 10, 1.5, 1.5), GREEN))
+    out["plasters"] = ("<g transform='rotate(35)'>%s%s</g>" % (hs(R(-14, -4, 28, 8), "#f2c4a8"), F(R(-4, -4, 8, 8), "#e6d0c0"))
+                       + "<g transform='rotate(-35)'>%s%s</g>" % (hs(R(-14, -4, 28, 8), "#f2c4a8"), F(R(-4, -4, 8, 8), "#e6d0c0")))
+    # Nivel 2 / Tier 2
+    out["gum"] = hs(E(0, -2, 11, 11), "#f2a6c8") + F(E(-4, -6, 3, 3), W) + hs(R(-7, 9, 14, 5), "#e3a6c4")
+    out["soda"] = (hs(R(-8, -12, 16, 25), RED) + hs(R(-8, -14, 16, 3), "#cfc8ec") + F(R(-8, -3, 16, 6), W)
+                   + F(E(-2, -18, 1.5, 1.5), W) + F(E(3, -21, 1.5, 1.5), W))
+    out["stickers"] = (hs(R(-12, -13, 19, 23), "#cfc8ec") + hs(R(-7, -10, 19, 23), W) + F(R(-5, -8, 15, 13), BLUE)
+                       + F(E(2, -3, 3, 3), "#f1cfbb") + F(R(-1, 0, 6, 4), "#2f9e5b"))
+    out["sandwich"] = (hs(P([(-14, 2), (-10, -7), (10, -7), (14, 2)]), "#e0a95a") + F(R(-14, 2, 28, 3), "#c9534a") + F(R(-13, 5, 26, 2), GREEN)
+                       + hs(P([(-14, 7), (14, 7), (12, 12), (-12, 12)]), "#e0a95a"))
+    out["battery"] = (hs(R(-7, -12, 14, 25), "#4fa89a") + hs(R(-3, -15, 6, 3), "#cfc8ec") + F(R(-7, 2, 14, 11), GOLD)
+                      + F(P([(1, -9), (-3, 0), (0, 0), (-1, 8), (4, -1), (1, -1)]), W))
+    out["newspaper"] = (hs(R(-13, -10, 26, 21), CREAM) + F(R(-11, -8, 22, 3), INK) + F(R(-11, -2, 10, 9), BLUE)
+                        + F(R(1, -2, 10, 1.5), mix(INK, CREAM, 0.4)) + F(R(1, 1.5, 10, 1.5), mix(INK, CREAM, 0.4)) + F(R(1, 5, 10, 1.5), mix(INK, CREAM, 0.4)))
+    # Nivel 3 / Tier 3
+    out["gold_sticker"] = (hs(R(-12, -13, 19, 23), "#cfc8ec") + hs(R(-7, -10, 19, 23), GOLD) + F(R(-5, -8, 15, 13), "#e0a93a")
+                           + F(star_d(2, -2, 5, 0.45), W) + F(star_d(12, -12, 3, 0.4), W))
+    out["cake"] = (hs(R(-13, -2, 26, 14), PINK) + hs(R(-13, -5, 26, 4), W) + F(E(-8, -1, 1.6, 1.6), W) + F(E(0, -1, 1.6, 1.6), W) + F(E(8, -1, 1.6, 1.6), W)
+                   + F(R(-1, -13, 2, 8), BLUE) + F(E(0, -15, 2.4, 3), GOLD))
+    out["coin"] = hs(E(0, 0, 12, 12), "#e0a93a") + F(E(0, 0, 9, 9), GOLD) + "".join(F(E(x, y, 2.5, 2.5), "#2f9e5b") for x, y in ((-3, -3), (3, -3), (-3, 3), (3, 3)))
+    out["batteries"] = "".join(hs(R(x - 5, y - 11, 10, 22), GOLD) + hs(R(x - 2, y - 14, 4, 3), "#cfc8ec") + F(R(x - 5, y + 2, 10, 9), RED)
+                               for x, y in ((-7, -1), (7, 2)))
+    out["sunday_paper"] = (hs(R(-9, -13, 24, 21), "#d8ceb8") + hs(R(-14, -9, 24, 21), CREAM) + F(R(-12, -7, 20, 3), INK) + F(R(-12, -2, 9, 9), GOLD)
+                           + F(R(-1, -2, 9, 1.5), mix(INK, CREAM, 0.4)) + F(R(-1, 2, 9, 1.5), mix(INK, CREAM, 0.4)))
+    # Nivel 4 / Tier 4
+    out["energy_drink"] = (hs(R(-8, -13, 16, 26), "#2a2a3a") + hs(R(-8, -15, 16, 3), "#cfc8ec")
+                           + F(P([(2, -9), (-4, 1), (0, 1), (-2, 9), (5, -2), (1, -2)]), "#9cff5a"))
+    out["lucky_cat"] = (hs(E(0, 5, 11, 9), W) + hs(E(0, -6, 9, 8), W) + hs(P([(-8, -9), (-6, -16), (-2, -12)]), W) + hs(P([(8, -9), (6, -16), (2, -12)]), W)
+                        + F(R(-5, -7, 3, 1.5), INK) + F(R(2, -7, 3, 1.5), INK) + F(R(-8, 2, 16, 2), RED) + F(E(0, 6, 3, 3), GOLD)
+                        + hs(P([(9, -1), (13, -9), (15, -8), (11, 1)]), W))
+    out["first_aid"] = (hs(R(-13, -9, 26, 20), W) + hs(R(-5, -13, 10, 4), "#cfc8ec") + F(R(-2, -6, 4, 14), RED) + F(R(-7, -1, 14, 4), RED))
+    out["comic"] = (hs(R(-11, -14, 22, 28), BLUE) + F(R(-9, -12, 18, 6), GOLD) + hs(P([(0, -4), (8, 10), (-8, 10)]), RED)
+                    + F(P([(-3, 2), (-1, 2), (-1, 4), (1, 2), (3, 2), (0, 5), (3, 8), (1, 8), (-1, 6), (-1, 8), (-3, 8)]), W))
+    out["encyclopedia"] = "".join(hs(R(-13 + k * 9, -13, 8, 26), c) + F(R(-12 + k * 9, -8, 6, 2), GOLD) + F(R(-12 + k * 9, 6, 6, 2), GOLD)
+                                  for k, c in enumerate(("#7a2e4a", "#2f5e9e", "#2f9e5b")))
+    for k, body in out.items():
+        ms.add("ware_" + k, -16, -20, 32, 36, body, px=1.0, flat=True, outline=OUTLINE)

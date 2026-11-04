@@ -77,10 +77,11 @@ func _build(player: Player) -> void:
 				continue
 			var item := HBoxContainer.new()
 			item.add_theme_constant_override("separation", 6)
-			var icon := CharoShop.WareIcon.new()
-			icon.ware = id
-			var icon_px := PixelView.wrap(icon, 4)
-			icon_px.custom_minimum_size = Vector2(52, 52)
+			var icon_px := TextureRect.new()
+			icon_px.texture = load("res://assets/sprites/ware_%s.png" % id)
+			icon_px.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			icon_px.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+			icon_px.custom_minimum_size = Vector2(36, 40)
 			item.add_child(icon_px)
 			var lbl := UITheme.label("%s x%d" % [tr("WARE_%s_NAME" % id.to_upper()), n], 24, UITheme.BONE, "body")
 			lbl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
