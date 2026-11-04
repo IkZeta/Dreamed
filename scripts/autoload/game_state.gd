@@ -501,14 +501,39 @@ func shard_mult() -> float:
 	return 1.5 if difficulty == "nightmare" else 1.0
 
 
-## Regeneración que de verdad cura: a partir de 2 rinde la mitad, para no ser inmortal
-## Regeneration that actually heals: above 2 it's worth half, so you can't be immortal
-const REGEN_SOFT_CAP := 2.0
+## Regeneración que de verdad cura: a partir de 1,5 rinde el 40 %, para no ser inmortal
+## Regeneration that actually heals: above 1.5 it's worth 40%, so you can't be immortal
+const REGEN_SOFT_CAP := 1.5
 
 
 func regen_effective() -> float:
 	var r := stat("regen")
-	return r if r <= REGEN_SOFT_CAP else REGEN_SOFT_CAP + (r - REGEN_SOFT_CAP) * 0.5
+	return r if r <= REGEN_SOFT_CAP else REGEN_SOFT_CAP + (r - REGEN_SOFT_CAP) * 0.4
+
+
+## Robo de salud que cuenta: a partir de 8 rinde la mitad / Life steal that counts: above 8 it's worth half
+const STEAL_SOFT_CAP := 8.0
+
+
+func lifesteal_effective() -> float:
+	var l := stat("lifesteal")
+	return l if l <= STEAL_SOFT_CAP else STEAL_SOFT_CAP + (l - STEAL_SOFT_CAP) * 0.5
+
+
+## Defensa que cuenta: a partir de 6 rinde la mitad / Defence that counts: above 6 it's worth half
+const DEFENSE_SOFT_CAP := 6.0
+
+
+func armor_effective(a: float) -> float:
+	return a if a <= DEFENSE_SOFT_CAP else DEFENSE_SOFT_CAP + (a - DEFENSE_SOFT_CAP) * 0.5
+
+
+## Curación continua (regeneración y robo de salud) que cabe por segundo, con un pequeño colchón.
+## Sin esto, con defensa alta los golpes flojos quitaban menos de lo que se curaba y no se moría nunca.
+## Continuous healing (regeneration and life steal) allowed per second, with a small buffer.
+## Without it, with high defence weak hits took off less than was healed and you never died.
+const SUSTAIN_PER_SEC := 0.5
+const SUSTAIN_BUFFER := 3.0
 
 
 func stat(id: String) -> float:
@@ -1640,7 +1665,7 @@ func stats_for(id: String) -> Dictionary:
 		s["speed"] = float(s["speed"]) * (1.0 - up_value("doc", "pct", -1, "vacuum") / 100.0)
 	# Estadísticas ganadas al subir de nivel / Stats gained by levelling up
 	s["damage_mult"] = float(s["damage_mult"]) + stat("attack") / 100.0
-	s["armor"] = float(s["armor"]) + stat("defense")
+	s["armor"] = armor_effective(float(s["armor"]) + stat("defense"))
 	s["speed"] = float(s["speed"]) * (1.0 + stat("speed") / 100.0)
 	return s
 

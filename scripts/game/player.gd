@@ -119,7 +119,7 @@ func refresh_stats() -> void:
 
 ## El robo de salud cura como mucho 1 cada STEAL_GAP segundos (las armas rápidas lo disparaban)
 ## Life steal heals at most 1 every STEAL_GAP seconds (fast weapons were spamming it)
-const STEAL_GAP := 0.5
+const STEAL_GAP := 1.0
 var _steal_t := 0.0
 
 
@@ -129,6 +129,22 @@ func steal_ready() -> bool:
 		return false
 	_steal_t = now
 	return true
+
+
+## Curación continua (regeneración y robo de salud): sale de un "depósito" que se rellena a
+## SUSTAIN_PER_SEC; si está vacío, no cura / Continuous healing (regeneration and life steal): comes
+## out of a "tank" that refills at SUSTAIN_PER_SEC; if it's empty, it doesn't heal
+var _sustain := GameState.SUSTAIN_BUFFER
+
+
+func heal_sustain(amount: float) -> void:
+	if hp >= max_hp:
+		return
+	var a := minf(amount, _sustain)
+	if a <= 0.01:
+		return
+	_sustain -= a
+	heal(a)
 
 
 func heal(amount: float) -> void:
@@ -145,12 +161,13 @@ func heal(amount: float) -> void:
 func _physics_process(delta: float) -> void:
 	_t += delta
 	_heal_text = maxf(0.0, _heal_text - delta)
+	_sustain = minf(GameState.SUSTAIN_BUFFER, _sustain + GameState.SUSTAIN_PER_SEC * delta)
 	# Recuperación de salud: "regen" de vida cada 5 s / Health regeneration: "regen" health every 5 s
 	var regen := GameState.regen_effective()
 	if regen > 0.0 and alive and run.running:
 		_regen_acc += regen / 5.0 * delta
 		if _regen_acc >= 0.5:
-			heal(_regen_acc)
+			heal_sustain(_regen_acc)
 			_regen_acc = 0.0
 	_invuln = maxf(0.0, _invuln - delta)
 	shock_t = maxf(0.0, shock_t - delta)

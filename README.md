@@ -288,6 +288,10 @@ Los enemigos sueltan **trozos de estrella**; cuanto más duro es el enemigo, má
 
 Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud, suerte y parry.
 
+- **Defensa, recuperación y robo de salud rinden menos cuanto más tienes**, para que juntarlas no te haga inmortal:
+  - La defensa resta daño a cada golpe, pero nunca más de la mitad; por encima de 6, cada punto vale la mitad.
+  - La recuperación por encima de 1,5 rinde el 40 %, y el robo de salud por encima del 8 %, la mitad (y cura como mucho una vez por segundo).
+  - Entre recuperación y robo de salud no se cura más de 0,5 de vida por segundo, con un pequeño colchón de 3. Los objetos, el batido y las curas de los personajes no cuentan para ese tope.
 - La **suerte** hace más probables las rarezas altas, los consumibles y que vuelvan los personajes que ya te dieron un don. Puedes cambiar las tres opciones a cambio de 2 de suerte.
 - El **parry** es una probabilidad de esquivar un golpe: Kroker chasquea los dedos y el que le iba a pegar, y hasta 3 enemigos de alrededor, caen fulminados (a los jefes solo les hace daño). Nunca pasa del 20 % (30 % con el Guardián). Se nota: el juego se congela un instante, suena un chasquido con brillo y un golpe grave, la pantalla da un fogonazo suave y tiembla, de Kroker sale una estrella de rayos con una onda que se abre y un rayo dorado va hasta cada enemigo que cae.
 
