@@ -276,3 +276,16 @@ def fx(ms):
     }
     for k, s in sym.items():
         ms.add("elite_sym_" + k, -15, -15, 30, 30, ring + s, px=0.5, flat=True, outline="#140e26")
+
+
+def weapon_icons(ms):
+    """Las armas en grande para la pantalla de la segunda arma: el mismo dibujo que en la mano de
+    Kroker, pero con más resolución (así no salen pixeladas a lo bestia al ampliarlas).
+    The weapons drawn large for the second-weapon screen: the same drawing as in Kroker's hand,
+    but at a higher resolution (so they don't come out crudely blocky when enlarged)."""
+    scales = {"weapon_bat": 0.48, "weapon_pillow": 0.6, "weapon_book": 0.6, "weapon_tank": 0.6, "weapon_nozzle": 0.6,
+              "weapon_teddy": 0.84, "weapon_ball": 0.81, "weapon_laptop": 0.8, "weapon_boot_r": 0.96, "weapon_boot_l": 0.96}
+    for name, px in scales.items():
+        sp = dict(ms.SPRITES[name])
+        ms.add("wicon_" + name[len("weapon_"):], sp["x"], sp["y"], sp["w"], sp["h"], sp["body"], xf=sp["xf"], px=px,
+               colors=sp["colors"], ghost=sp["ghost"], post=None, flat=sp["flat"], outline=sp["outline"])

@@ -128,34 +128,34 @@ class WeaponIcon extends Control:
 		var s := 0.6
 		match id:
 			"bat":
-				draw_set_transform(c + Vector2(0, 30), 0.5, Vector2(s, s))
-				Sprites.draw(self, "weapon_bat")
+				draw_set_transform(c + Vector2(0, 24), 0.5, Vector2(0.48, 0.48))
+				Sprites.draw(self, "wicon_bat")
 			"shield":
 				draw_set_transform(c, sin(_t) * 0.1, Vector2(s, s))
-				Sprites.draw(self, "weapon_pillow")
+				Sprites.draw(self, "wicon_pillow")
 			"book":
 				draw_set_transform(c, sin(_t) * 0.1, Vector2(s, s))
-				Sprites.draw(self, "weapon_book")
+				Sprites.draw(self, "wicon_book")
 			"vacuum":
 				draw_set_transform(c - Vector2(150, 253) * s, 0.0, Vector2(s, s))
-				Sprites.draw(self, "weapon_tank")
+				Sprites.draw(self, "wicon_tank")
 				draw_set_transform(c + Vector2(14, -10), -0.5, Vector2(s, s))
-				Sprites.draw(self, "weapon_nozzle")
+				Sprites.draw(self, "wicon_nozzle")
 			"finger":
 				KrokerArt.finger_gun(self, Transform2D(-0.12, c + Vector2(-6, 6)), Vector2.ZERO, Vector2(1, 0), 0.6 + 0.4 * sin(_t * 3.0), "icon_finger", 1.25)
 			"teddy":
 				draw_set_transform(c, sin(_t) * 0.1, Vector2(s, s) * 1.4)
-				Sprites.draw(self, "weapon_teddy")
+				Sprites.draw(self, "wicon_teddy")
 			"ball":
 				# Bota sin girar (girar el pixel art lo deforma) / Bounces without spinning (spinning pixel art warps it)
 				draw_set_transform((c + Vector2(0, -absf(sin(_t * 2.0)) * 10.0)).round(), 0.0, Vector2(s, s) * 1.35)
-				Sprites.draw(self, "weapon_ball")
+				Sprites.draw(self, "wicon_ball")
 			"laptop":
 				draw_set_transform((c + Vector2(0, 14)).round(), 0.0, Vector2(0.8, 0.8))
-				Sprites.draw(self, "weapon_laptop")
+				Sprites.draw(self, "wicon_laptop")
 			"boots":
 				var bs := s * 1.6
 				draw_set_transform(c - Vector2(100, 278) * bs + Vector2(0, -absf(sin(_t * 2.0)) * 6.0), 0.0, Vector2(bs, bs))
-				Sprites.draw(self, "weapon_boot_r")
-				Sprites.draw(self, "weapon_boot_l")
+				Sprites.draw(self, "wicon_boot_r")
+				Sprites.draw(self, "wicon_boot_l")
 		draw_set_transform(Vector2.ZERO)
