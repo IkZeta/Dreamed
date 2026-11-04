@@ -210,6 +210,44 @@ def wares(ms):
                     + F(P([(-3, 2), (-1, 2), (-1, 4), (1, 2), (3, 2), (0, 5), (3, 8), (1, 8), (-1, 6), (-1, 8), (-3, 8)]), W))
     out["encyclopedia"] = "".join(hs(R(-13 + k * 9, -13, 8, 26), c) + F(R(-12 + k * 9, -8, 6, 2), GOLD) + F(R(-12 + k * 9, 6, 6, 2), GOLD)
                                   for k, c in enumerate(("#7a2e4a", "#2f5e9e", "#2f9e5b")))
+    # Cachivaches con efecto propio / Knick-knacks with an effect of their own
+    YEL, ORANGE, PURPLE, BROWN, ICE = "#ffd84a", "#ff9a3a", "#b77bff", "#9a5a3a", "#bfe8ff"
+    out["rubber_duck"] = (hs(E(0, 6, 12, 8), YEL) + hs(E(-4, -5, 7, 7), YEL) + F(P([(-11, -5), (-16, -3), (-11, -1)]), ORANGE)
+                          + F(E(-5, -7, 1.5, 1.5), INK) + F(E(-6, -8, 0.6, 0.6), W) + hs(P([(4, 2), (12, 0), (9, 8)]), "#f6c43a"))
+    out["firecrackers"] = ("".join(hs(R(x - 3, y - 10, 6, 20), RED) + F(R(x - 3, y - 4, 6, 3), GOLD)
+                                   + "<path d='M%g,%g q3,-4 1,-7' fill='none' stroke='%s' stroke-width='1.6'/>" % (x, y - 10, INK)
+                                   for x, y in ((-8, 3), (0, -1), (8, 3)))
+                           + F(star_d(2, -16, 4, 0.4), YEL))
+    out["piggy_bank"] = (hs(E(0, 2, 13, 10), PINK) + hs(E(-12, 1, 3.5, 4), "#f29ac0") + F(E(-13, 0, 0.8, 1.2), "#a8507a") + F(E(-13, 2.5, 0.8, 1.2), "#a8507a")
+                         + hs(P([(-6, -6), (-4, -12), (-1, -7)]), PINK) + F(R(-2, -9, 6, 2), INK) + F(E(-6, -1, 1.3, 1.3), INK)
+                         + F(R(-8, 10, 4, 4), "#e48ab0") + F(R(5, 10, 4, 4), "#e48ab0") + F(E(4, -14, 4, 4), GOLD) + F(E(4, -14, 2.5, 2.5), "#e0a93a"))
+    out["water_balloon"] = (hs(P([(0, -14), (9, -8), (11, 2), (6, 10), (0, 12), (-6, 10), (-11, 2), (-9, -8)]), "#4fa8e8")
+                            + F(E(-4, -5, 3, 4), ICE) + hs(P([(-2, 12), (2, 12), (3, 16), (-3, 16)]), "#2a6fae")
+                            + F(E(10, 12, 1.5, 2), "#7fd0ff") + F(E(-11, 10, 1.2, 1.6), "#7fd0ff"))
+    out["whistle"] = (hs("M-12,-2 L4,-2 Q12,-2 12,6 Q12,13 4,13 Q-3,13 -3,6 L-12,6 Z", "#cfc8ec") + F(R(-12, -2, 3, 8), "#a39cc4")
+                      + F(E(4, 6, 3.5, 3.5), "#7a7298") + "<path d='M10,-1 Q16,-8 13,-14' fill='none' stroke='%s' stroke-width='1.8'/>" % RED
+                      + F(R(-4, -6, 4, 4), INK))
+    out["voodoo"] = (hs(E(0, -8, 7, 7), "#c9a074") + hs(P([(-6, -2), (6, -2), (8, 13), (-8, 13)]), "#c9a074") + hs(R(-13, 0, 26, 4), "#c9a074")
+                     + "<path d='M-3,-10 l2,2 m0,-2 l-2,2 M2,-10 l2,2 m0,-2 l-2,2' stroke='%s' stroke-width='1.2'/>" % INK
+                     + F(R(-3, -4, 6, 1.2), INK) + "<path d='M-2,2 L-2,12 M2,4 L3,11' stroke='%s' stroke-width='0.8' stroke-dasharray='1.5,1.5'/>" % BROWN
+                     + "<path d='M4,4 L15,-6' stroke='%s' stroke-width='1.5'/>" % "#cfc8ec" + F(E(15, -6, 2.4, 2.4), RED))
+    out["magnet"] = (hs("M-11,-10 L-4,-10 L-4,3 Q-4,7 0,7 Q4,7 4,3 L4,-10 L11,-10 L11,3 Q11,14 0,14 Q-11,14 -11,3 Z", RED)
+                     + F(R(-11, -14, 7, 4), "#dfe3f0") + F(R(4, -14, 7, 4), "#dfe3f0")
+                     + F(star_d(-14, -2, 3, 0.4), "#ff6fb5") + F(star_d(14, -3, 3, 0.4), "#5fc8ff"))
+    out["matches"] = (hs(R(-12, -4, 24, 16), "#e8b84a") + F(R(-12, 2, 24, 4), RED) + hs(R(-9, -10, 14, 7), "#f4ecdc")
+                      + "".join(F(R(x, -15, 2, 8), "#e0c28a") + F(E(x + 1, -16, 1.8, 2.2), RED) for x in (-8, -4, 0)) + F(E(4, -21, 3, 4), ORANGE) + F(E(4, -20, 1.5, 2), YEL))
+    out["alarm_clock"] = (hs(E(0, 2, 12, 12), RED) + F(E(0, 2, 9, 9), W) + hs(E(-9, -10, 4, 4), GOLD) + hs(E(9, -10, 4, 4), GOLD)
+                          + "<path d='M0,2 L0,-4 M0,2 L4,4' stroke='%s' stroke-width='1.8'/>" % INK
+                          + F(R(-9, 13, 3, 3), INK) + F(R(6, 13, 3, 3), INK))
+    out["pinata"] = (hs(P([(-12, -2), (-6, -8), (8, -8), (13, -2), (11, 8), (-10, 8)]), "#ff6fb5") + F(R(-11, -3, 23, 3), YEL) + F(R(-11, 3, 22, 3), "#5fc8ff")
+                     + hs(P([(-12, -2), (-18, -10), (-14, -12), (-8, -6)]), "#ff6fb5") + F(E(-15, -9, 0.9, 0.9), INK)
+                     + F(R(-8, 8, 3, 6), "#e85d9a") + F(R(6, 8, 3, 6), "#e85d9a") + "<path d='M2,-8 L2,-16' stroke='%s' stroke-width='1'/>" % INK)
+    out["snow_globe"] = (hs(R(-10, 8, 20, 6), BROWN) + hs(E(0, -3, 12, 12), "#9fd4ff") + F(E(-4, -7, 3, 4), "#e6f4ff")
+                         + F(P([(0, -9), (5, 3), (-5, 3)]), "#2f9e5b") + F(R(-1, 3, 2, 3), BROWN)
+                         + "".join(F(E(x, y, 1, 1), W) for x, y in ((-7, -2), (6, -6), (3, 5), (-3, -11), (8, 1))))
+    out["music_box"] = (hs(R(-13, -2, 26, 14), "#7a2e4a") + hs(P([(-13, -2), (-9, -9), (9, -9), (13, -2)]), "#9a4060")
+                        + F(R(-13, 3, 26, 2), GOLD) + F(R(13, 0, 3, 2), GOLD) + F(R(15, -2, 2, 6), GOLD)
+                        + F(E(-5, -14, 2.4, 2), PURPLE) + F(R(-3.2, -21, 1.4, 7), PURPLE) + F(E(4, -17, 2.4, 2), PURPLE) + F(R(5.8, -24, 1.4, 7), PURPLE))
     for k, body in out.items():
         ms.add("ware_" + k, -16, -20, 32, 36, body, px=1.0, flat=True, outline=OUTLINE)
 

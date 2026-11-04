@@ -40,7 +40,7 @@ func _physics_process(delta: float) -> void:
 	var player: Node2D = run.player
 	var target: Vector2 = player.global_position + Vector2(0, -38)
 	var dist := global_position.distance_to(target)
-	if not _magnet and _t > 0.4 and player.alive and dist < MAGNET:
+	if not _magnet and _t > 0.4 and player.alive and dist < MAGNET * Trinkets.magnet_mult():
 		_magnet = true
 		_hop = 0.0
 	if _magnet:

@@ -1357,6 +1357,10 @@ func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
 ## (flojas y baratas); en el 2, sobre todo de nivel 2; en el 3, sobre todo de nivel 3 (las
 ## mejores y más caras). La amistad con Charo no baja los precios: da cambios gratis,
 ## ofertas y más huecos en el mostrador.
+## Desde el Acto 2 todo cuesta bastante más que en el 1 (el nivel 1 se queda barato).
+## Los cachivaches (Trinkets) no suben estadísticas: hacen algo propio en la partida.
+## From Act 2 on everything costs a fair bit more than in Act 1 (tier 1 stays cheap).
+## Knick-knacks (Trinkets) don't raise stats: they do something of their own in the run.
 ## Each ware has a tier (1, 2 or 3) and a price. Act 1 only has tier 1 (weak and cheap); Act 2
 ## mostly tier 2; Act 3 mostly tier 3 (the best and priciest). Friendship with Charo doesn't
 ## lower prices: it gives free rerolls, offers and more slots on the counter.
@@ -1367,25 +1371,37 @@ const WARES := {
 	"glasses": {"tier": 1, "price": 5},       # +10 % de alcance / +10% range
 	"sneakers": {"tier": 1, "price": 5},      # +6 % de velocidad / +6% speed
 	"plasters": {"tier": 1, "price": 4},      # +0,5 de regeneración / +0.5 regen
+	"rubber_duck": {"tier": 1, "price": 6},   # para el primer golpe de cada sueño / blocks the first hit each dream
+	"firecrackers": {"tier": 1, "price": 5},  # estallan cuando te dan / burst when you're hit
+	"piggy_bank": {"tier": 1, "price": 5},    # intereses al acabar cada sueño / interest after each dream
 	# Nivel 2 / Tier 2
-	"gum": {"tier": 2, "price": 8},           # estadística rara al azar / random rare stat
-	"soda": {"tier": 2, "price": 8},          # +12 % de velocidad de ataque / +12% attack speed
-	"stickers": {"tier": 2, "price": 9},      # +2 de parry
-	"sandwich": {"tier": 2, "price": 7},      # recupera toda la vida / restores all health
-	"battery": {"tier": 2, "price": 10},      # una subida de nivel / one level-up
-	"newspaper": {"tier": 2, "price": 12},    # sube de nivel una mejora / levels up an upgrade
+	"gum": {"tier": 2, "price": 11},           # estadística rara al azar / random rare stat
+	"soda": {"tier": 2, "price": 11},          # +12 % de velocidad de ataque / +12% attack speed
+	"stickers": {"tier": 2, "price": 13},      # +2 de parry
+	"sandwich": {"tier": 2, "price": 10},      # recupera toda la vida / restores all health
+	"battery": {"tier": 2, "price": 14},      # una subida de nivel / one level-up
+	"newspaper": {"tier": 2, "price": 17},    # sube de nivel una mejora / levels up an upgrade
+	"water_balloon": {"tier": 2, "price": 14}, # cae un globo que ralentiza / a slowing balloon drops
+	"whistle": {"tier": 2, "price": 13},      # curas al tirar enemigos por agujeros / heals on hole falls
+	"voodoo": {"tier": 2, "price": 16},       # quien te pega recibe el triple / attackers take triple
+	"magnet": {"tier": 2, "price": 11},       # trozos de estrella desde más lejos / shards from further away
 	# Nivel 3 / Tier 3
-	"gold_sticker": {"tier": 3, "price": 16}, # estadística épica al azar / random epic stat
-	"cake": {"tier": 3, "price": 15},         # toda la vida y +5 de vida máxima / all health and +5 max health
-	"coin": {"tier": 3, "price": 15},         # +12 de suerte y +1 de parry / +12 luck and +1 parry
-	"batteries": {"tier": 3, "price": 18},    # dos subidas de nivel / two level-ups
-	"sunday_paper": {"tier": 3, "price": 24}, # dos mejoras suben de nivel / two upgrades level up
+	"gold_sticker": {"tier": 3, "price": 24}, # estadística épica al azar / random epic stat
+	"cake": {"tier": 3, "price": 23},         # toda la vida y +5 de vida máxima / all health and +5 max health
+	"coin": {"tier": 3, "price": 23},         # +12 de suerte y +1 de parry / +12 luck and +1 parry
+	"batteries": {"tier": 3, "price": 27},    # dos subidas de nivel / two level-ups
+	"sunday_paper": {"tier": 3, "price": 36}, # dos mejoras suben de nivel / two upgrades level up
+	"matches": {"tier": 3, "price": 26},      # las muertes a veces queman a los de al lado / kills sometimes burn neighbours
+	"alarm_clock": {"tier": 3, "price": 26},  # con poca vida congela a los de alrededor / at low health freezes those around
+	"pinata": {"tier": 3, "price": 28},       # los élites sueltan objeto y Realidad / elites drop an item and Reality
 	# Nivel 4 (Acto 4, la Metrópolis): lo mejor y lo más caro / Tier 4 (Act 4, the Metropolis): the best and priciest
-	"energy_drink": {"tier": 4, "price": 22}, # +20 % de velocidad de ataque y +8 % de velocidad / +20% attack speed and +8% speed
-	"lucky_cat": {"tier": 4, "price": 24},    # +20 de suerte y +2 de parry / +20 luck and +2 parry
-	"first_aid": {"tier": 4, "price": 22},    # toda la vida y +10 de vida máxima / all health and +10 max health
-	"comic": {"tier": 4, "price": 28},        # estadística legendaria al azar / random legendary stat
-	"encyclopedia": {"tier": 4, "price": 34}, # dos mejoras suben de nivel y una subida de nivel / two upgrades level up and one level-up
+	"energy_drink": {"tier": 4, "price": 35}, # +20 % de velocidad de ataque y +8 % de velocidad / +20% attack speed and +8% speed
+	"lucky_cat": {"tier": 4, "price": 38},    # +20 de suerte y +2 de parry / +20 luck and +2 parry
+	"first_aid": {"tier": 4, "price": 35},    # toda la vida y +10 de vida máxima / all health and +10 max health
+	"comic": {"tier": 4, "price": 45},        # estadística legendaria al azar / random legendary stat
+	"encyclopedia": {"tier": 4, "price": 54}, # dos mejoras suben de nivel y una subida de nivel / two upgrades level up and one level-up
+	"snow_globe": {"tier": 4, "price": 42},   # al subir de nivel congela la pantalla / levelling up freezes the screen
+	"music_box": {"tier": 4, "price": 48},    # duerme a los de alrededor cada poco / puts nearby enemies to sleep now and then
 }
 ## Vida máxima que da cada tarta / Max health each cake gives
 const CAKE_HP := 5.0
@@ -1430,7 +1446,7 @@ const OFFER_MULT := 0.5
 
 ## Precio de cambiar el mostrador, que sube cada vez / Price of rerolling the counter, which goes up each time
 func reroll_price(times: int) -> int:
-	return 1 + act() + times
+	return act() * 2 - 1 + times
 
 
 ## Mejoras que aún pueden subir de nivel: [[personaje, arma], ...] / Upgrades that can still level up: [[giver, weapon], ...]

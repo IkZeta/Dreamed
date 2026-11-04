@@ -118,7 +118,12 @@ El resto del salón:
 
 - **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**. Una vez la conoces, también aparece tras el sueño 3 del Acto 1.
 - **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes. Tirar enemigos por los agujeros solo la da a veces (casi nunca durante un jefe).
-- **El kiosco** tiene 21 artículos y mejora con cada acto: en el Acto 1 vende cosas flojas y baratas (4–5 ◆), en el 2 cosas medias (7–12 ◆), en el 3 cosas buenas (14–24 ◆), como la tarta de cumpleaños (+5 de vida máxima), el pack de pilas (dos niveles) o el periódico del domingo (dos mejoras suben de nivel), y en el 4, la Metrópolis (sueños 17 y 19), lo mejor y lo más caro (22–34 ◆): bebida energética (+20 % de velocidad de ataque y +8 % de velocidad), gato de la suerte (+20 de suerte y +2 de parry), botiquín (toda la vida y +10 de vida máxima), cómic de SuperK (una estadística legendaria) y enciclopedia (dos mejoras suben de nivel y un nivel más). Se puede pagar por **cambiar el mostrador**; los artículos ya comprados se quedan.
+- **El kiosco** tiene 33 artículos y mejora con cada acto: en el Acto 1 vende cosas flojas y baratas (4–6 ◆); desde el Acto 2 todo es bastante más caro: en el 2 cosas medias (10–17 ◆), en el 3 cosas buenas (23–36 ◆), como la tarta de cumpleaños (+5 de vida máxima), el pack de pilas (dos niveles) o el periódico del domingo (dos mejoras suben de nivel), y en el 4, la Metrópolis (sueños 17 y 19), lo mejor y lo más caro (35–54 ◆): bebida energética, gato de la suerte, botiquín, cómic de SuperK y enciclopedia. Cambiar el mostrador cuesta 1 ◆ en el Acto 1, 3 en el 2, 5 en el 3 y 7 en el 4 (y 1 más cada vez). Se puede pagar por **cambiar el mostrador**; los artículos ya comprados se quedan.
+- **Cachivaches** (`trinkets.gd`): 12 artículos que no suben estadísticas, sino que hacen algo propio; si compras varios del mismo, el efecto se acumula.
+  - Acto 1: **patito de goma** (para el primer golpe de cada sueño), **petardos** (cuando te dan, estallan: 3 de daño y empujan lejos), **hucha de cerdito** (al acabar cada sueño, 1 ◆ por cada 8 ahorrados, hasta 4).
+  - Acto 2: **globos de agua** (cada 5 s cae uno sobre el enemigo más cercano: 4 de daño y ralentiza), **silbato de árbitro** (cada enemigo que cae por un agujero te cura 2), **muñeco vudú** (quien te hace daño recibe el triple), **imán de nevera** (los trozos de estrella vienen desde el doble de lejos).
+  - Acto 3: **caja de cerillas** (20 % de que quien derrotas queme a los de al lado), **despertador** (con poca vida suena y congela 2,5 s a los de alrededor, una vez por sueño), **piñata** (los élites siempre sueltan un objeto y 2 ◆ más).
+  - Acto 4: **bola de nieve** (al subir de nivel congela 2 s toda la pantalla) y **caja de música** (cada 14 s, una nana duerme 3 s a los de alrededor y reciben un 50 % más de daño).
 - **En la pausa** se ve lo que has comprado en el kiosco, con cuántos de cada (por ejemplo, *Pila del despertador x2*).
 - **La chimenea:** en algunos sueños está encendida. Ponte delante y pulsa la **F** (A en el mando) para echar una de tus mejoras al fuego: pierde un nivel, pero ganas Realidad Fragmentada, más cuanto más nivel tenga (8, 12 o 16).
 
@@ -198,7 +203,7 @@ Desde el sueño 2, más de la mitad de los sueños (55 %) traen un evento al aza
 - **Fiebre de estrellas:** los enemigos salen más a menudo y van más rápido, pero cada uno suelta un trozo de estrella más.
 - **Sonámbulos:** los enemigos van medio dormidos, muy lentos y con zetas en la cabeza, pero salen muchos más.
 
-**Timbre del colegio** (Acto 3, aparte del evento): suena en todos los sueños del pasillo, la primera vez a los 6-12 s y luego otra vez cada 14-22 s después de cada recreo. Mientras dura el recreo sale un montón de enemigos de las puertas.
+**Timbre del colegio** (Acto 3, aparte del evento): suena en todos los sueños del pasillo, la primera vez a los 6-12 s y luego otra vez cada 14-22 s después de cada recreo. Mientras dura el recreo sale un montón de enemigos de las puertas: aparecen enseguida y salen corriendo hacia el pasillo en abanico durante un segundo, así que no se amontonan en la puerta.
 
 Además, muy de vez en cuando aparece un **Foox dorado**: no hace daño y huye. Si lo pillas antes de que se esfume, te llueven estrellas.
 

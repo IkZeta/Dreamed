@@ -20,6 +20,7 @@ var enemies: Node2D
 var fx: FX
 var hud: HUD
 var helpers: Helpers
+var trinkets: Trinkets
 var room: Bedroom
 ## Mundo de la partida, dibujado a 960 x 540 y ampliado x2 sin suavizar (pixel art).
 ## The run's world, drawn at 960 x 540 and scaled up x2 without smoothing (pixel art).
@@ -199,6 +200,10 @@ func _ready() -> void:
 
 	fx = FX.new()
 	world.add_child(fx)
+	# Cachivaches del kiosco de Charo / Charo's kiosk knick-knacks
+	trinkets = Trinkets.new()
+	trinkets.setup(self)
+	world.add_child(trinkets)
 	# SuperK y Lil Key, si te han dado algún don / SuperK and Lil Key, if they've given you a gift
 	helpers = Helpers.new()
 	add_child(helpers)
@@ -373,6 +378,7 @@ func _begin(depth: int) -> void:
 	hud.show_event(event)
 	hud.set_reality()
 	running = true
+	trinkets.on_dream_start()
 	if room is LivingRoom and (room as LivingRoom).fire_lit:
 		hud.show_fire(true)
 		Audio.set_loop("fire", true, -16.0)
@@ -1441,6 +1447,8 @@ func on_enemy_killed(e: Node) -> void:
 		Progress.add_stat("elites")
 		GameState.run_elites += 1
 		gain_reality(GameState.REALITY_ELITE, e.global_position)
+	if e is Enemy:
+		trinkets.on_kill(e as Enemy)
 	if e.get("bestiary_id") == "golden_foox":
 		Progress.add_stat("golden")
 	# En las peleas contra jefes, los enemigos de alrededor sueltan un tercio de estrellas (para no
@@ -1581,10 +1589,19 @@ func _update_bell(delta: float) -> void:
 			var v := view_rect()
 			var pts := hall.door_points((v.position.x - Bedroom.OFFSET.x) / Bedroom.S, (v.end.x - Bedroom.OFFSET.x) / Bedroom.S)
 			if not pts.is_empty():
-				var p := Bedroom.to_world(pts[randi() % pts.size()]) + Vector2(randf_range(-20, 20), randf_range(0, 20))
+				var p := Bedroom.to_world(pts[randi() % pts.size()]) + Vector2(randf_range(-30, 30), randf_range(0, 20))
 				var kind: String = ["foox", "foox", "thug", "sling", "puppet"][randi() % 5]
 				fx.dissipate(p + Vector2(0, -30), Color("f6d993"))
 				_spawn_enemy(kind, p)
+				# Salen corriendo de la puerta y se desperdigan por el pasillo (antes se quedaban
+				# amontonados en la puerta y se barrían de un golpe)
+				# They rush out of the door and scatter down the hall (they used to pile up at the
+				# door and get swept away in one go)
+				var last := enemies.get_child(enemies.get_child_count() - 1) as Enemy
+				if last != null and not last is GoldenFoox:
+					last.spawn_time = 0.15
+					last.rush_t = randf_range(0.7, 1.0)
+					last.rush_dir = Vector2(randf_range(-0.9, 0.9), 1.0).normalized()
 		if _bell_t <= 0.0:
 			hud.show_event(event)
 			# Y al rato vuelve a sonar / And after a while it rings again
@@ -1610,6 +1627,7 @@ func collect_shards(n: int) -> void:
 	Audio.play("pickup", -17.0, 0.2)
 	if ups > 0:
 		GameState.pending_ups += ups
+		trinkets.on_level_up()
 		fx.ring(player.global_position + Vector2(0, -60), 40.0, UITheme.GOLD, 0.7, 2.6)
 		fx.dissipate(player.global_position + Vector2(0, -60), UITheme.GOLD)
 		if running and _level_screen == null:
@@ -1758,6 +1776,7 @@ func _on_wave_cleared() -> void:
 	Progress.add_stat("dreams")
 	running = false
 	_settle_deal()
+	trinkets.on_dream_end()
 	GameState.saved_hp = player.hp
 	Progress.save_progress()
 	Audio.stop_loops()

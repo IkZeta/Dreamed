@@ -271,6 +271,8 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 	hurt_lean = -0.18
 	run.fx.text(global_position + Vector2(0, -88), "-%d" % roundi(dmg), UITheme.EMBER, 26)
 	run.on_player_hit(dmg)
+	if run.trinkets:
+		run.trinkets.on_hurt(dmg, source)
 	if hp <= 0.0 and not _retake():
 		alive = false
 		run.on_player_died()

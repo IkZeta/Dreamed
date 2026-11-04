@@ -59,6 +59,11 @@ var _detour := Vector2.ZERO
 var shield_by: Node = null
 var _detour_t := 0.0
 var slow_t := 0.0
+## Sale corriendo de una puerta (timbre del colegio): aparece rápido y se aleja de la puerta
+## Rushes out of a door (school bell): appears quickly and runs away from the door
+var rush_t := 0.0
+var rush_dir := Vector2.ZERO
+var spawn_time := 0.6
 var vuln_t := 0.0
 var vuln_mult := 1.5
 var glitch_t := 0.0
@@ -168,6 +173,8 @@ func _physics_process(delta: float) -> void:
 			stun_t = maxf(stun_t, 0.8)
 			run.fx.text(global_position + Vector2(0, -aim_height * 3.0 - 20.0), tr("LYNX_CUT"), Color("ffb0b0"), 18)
 	slow_t = maxf(0.0, slow_t - delta)
+	if state == State.ALIVE:
+		rush_t = maxf(0.0, rush_t - delta)
 	vuln_t = maxf(0.0, vuln_t - delta)
 	glitch_t = maxf(0.0, glitch_t - delta)
 	bounce_t = maxf(0.0, bounce_t - delta)
@@ -176,7 +183,7 @@ func _physics_process(delta: float) -> void:
 		_update_dots(delta)
 	match state:
 		State.SPAWNING:
-			_fade = minf(1.0, _fade + delta / 0.6)
+			_fade = minf(1.0, _fade + delta / spawn_time)
 			# Aún no camina, pero la aspiradora, el muñeco o un golpe sí lo mueven poco a poco
 			# (si no, el tirón se acumulaba y al acabar de aparecer daba un salto de golpe)
 			# It doesn't walk yet, but the vacuum, the dummy or a hit do move it bit by bit
@@ -237,6 +244,9 @@ func _move(delta: float) -> void:
 	var vel := Vector2.ZERO
 	if stun_t <= 0.0:
 		var want := _actor_velocity() if actor_t > 0.0 else _desired_velocity()
+		# Saliendo en estampida de la puerta: corre hacia el pasillo / Stampeding out of the door: runs into the hall
+		if rush_t > 0.0:
+			want = rush_dir * maxf(speed, 95.0) * 2.8
 		vel = want * (0.5 if slow_t > 0.0 else 1.0) * fluff_speed_mult()
 	# Se separa de los demás enemigos / Keeps apart from other enemies
 	for other: Node2D in run.enemies.get_children():
@@ -313,6 +323,8 @@ func _start_fall(to: Vector2) -> void:
 	knock = Vector2.ZERO
 	run.fx.text(global_position + Vector2(0, -aim_height - 40), tr("ENEMY_FELL"), UITheme.GOLD, 20)
 	Audio.play("throw", -6.0, 0.15)
+	if run.get("trinkets"):
+		run.trinkets.on_fall(self)
 	_death_sound()
 	run.on_enemy_killed(self)
 	# Tirar enemigos por los agujeros da Realidad Fragmentada / Throwing enemies down holes gives Fragmented Reality

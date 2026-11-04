@@ -17,7 +17,7 @@ Lo usa tools/make_audio.py / Used by tools/make_audio.py
 import numpy as np
 
 import make_audio as A
-from make_audio import SR, midi, t_axis, noise, lp, hp, bp, env_ar, pluck, bar, saw_pad, breath, thump, place, mix, loop_render, vowel
+from make_audio import SR, midi, t_axis, noise, lp, hp, bp, env_ar, pluck, bar, saw_pad, breath, thump, place, mix, loop_render, vowel, sweep_noise
 
 RNG = np.random.default_rng(77)
 
@@ -1170,5 +1170,52 @@ SFX = {"hit": (sfx_hit, 0.4, 0.1), "parry": (sfx_parry, 0.42, 0.25), "swing": (s
        "pickup": (sfx_pickup, 0.4, 0.3), "ui_hover": (sfx_hover, 0.16, 0.1), "ui_click": (sfx_click, 0.24, 0.1),
        "foox_die": (sfx_foox_die, 0.38, 0.3), "win": (sfx_win, 0.5, 0.35), "lose": (sfx_lose, 0.5, 0.35),
        "chime": (sfx_chime, 0.35, 0.25)}
+
+
+def sfx_pin():
+    """Muñeco vudú: un pinchazo suave, un "tic" agudo con un eco grave / Voodoo doll: a soft prick, a high tick with a low echo"""
+    t = t_axis(0.06)
+    tick = bp(noise(0.06), 3000, 8000) * np.exp(-t * 90) * 0.5
+    return mix(tick, np.pad(bar(midi(55), 0.6, 0.18, "kalimba", 0.3), (int(SR * 0.02), 0)), np.pad(glock(midi(82), 0.6, 0.08), (int(SR * 0.03), 0)))
+
+
+def sfx_whistle():
+    """Silbato de árbitro, flojito y corto (con su trino) / Referee's whistle, soft and short (with its trill)"""
+    t = t_axis(0.42)
+    f = 2300 + 120 * np.sin(2 * np.pi * 28 * t)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    env = np.minimum(1.0, t / 0.02) * np.minimum(1.0, (0.42 - t) / 0.08)
+    return lp(np.sin(ph) * env * 0.22 + bp(noise(0.42), 2000, 3000) * env * 0.05, 5000)
+
+
+def sfx_freeze():
+    """Congelar: cristalitos que tintinean y un soplo frío / Freeze: little tinkling crystals and a cold whoosh"""
+    x = lp(sweep_noise(0.7, 4000, 1500, 3.0, 0.18), 6000)
+    for i, n in enumerate([96, 91, 99, 94]):
+        x = mix(x, np.pad(glock(midi(n), 0.9, 0.09), (int(SR * (0.04 + i * 0.07)), 0)))
+    return x
+
+
+def sfx_splash():
+    """Globo de agua: un "plof" blandito y unas gotas / Water balloon: a soft "plop" and a few drops"""
+    plop = thump(160, 0.18, 0.35, 14)
+    wet = lp(sweep_noise(0.35, 2500, 600, 2.0, 0.3), 3500)
+    drops = mix(*[np.pad(bar(midi(n), 0.25, 0.06, "kalimba", 0.6), (int(SR * at), 0)) for n, at in ((88, 0.12), (93, 0.2), (86, 0.27))])
+    return mix(plop, wet, drops)
+
+
+def sfx_music_box():
+    """Caja de música: una nana de cinco notas, muy suave / Music box: a five-note lullaby, very soft"""
+    x = np.zeros(int(SR * 2.4))
+    for i, n in enumerate([79, 84, 83, 79, 76]):
+        g = glock(midi(n), 1.4, 0.16)
+        at = int(SR * i * 0.32)
+        end = min(len(x), at + len(g))
+        x[at:end] += g[:end - at]
+    return lp(x, 6000)
+
+
+SFX.update({"pin": (sfx_pin, 0.3, 0.15), "whistle": (sfx_whistle, 0.28, 0.1), "freeze": (sfx_freeze, 0.32, 0.3),
+            "splash": (sfx_splash, 0.34, 0.15), "music_box": (sfx_music_box, 0.3, 0.4)})
 
 OVERRIDES = set(MUSIC) | set(SFX)
