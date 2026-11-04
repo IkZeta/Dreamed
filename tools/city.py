@@ -24,11 +24,11 @@ STYLES = {
     "steampunk": dict(sky=("#3a2418", "#8a5430", "#e0a45a"), far="#5a3a28", bld=("#6a3e28", "#8a5436", "#a86a42"),
                       win=("#ffd27a", "#ffb04a", "#f6e2a0"), trim="#c9961e", road="#5a4636", walk="#7a5e48", curb="#c9961e",
                       line="#c9961e", car=("#8a5436", "#c9961e"), lamp="#ffb04a", uni=("#2a3456", "#c9961e", "#e8e0d0"), van=("#5a3a28", "#c9961e")),
-    "cheese": dict(sky=("#8fd0ff", "#c8ecff", "#fff6d0"), far="#f2d35a", bld=("#f6c83a", "#ffd95a", "#ffe98a"),
-                   win=("#e0a020", "#c88a10", "#fff2b0"), trim="#ff9a3a", road="#e8b830", walk="#ffd95a", curb="#ff9a3a",
+    "cheese": dict(sky=("#8fd0ff", "#c8ecff", "#fff6d0"), far="#f2d35a", bld=("#f0a828", "#ffc83a", "#ffdc6a"),
+                   win=("#7a4520", "#a85a28", "#fff2b0"), trim="#7a4520", road="#e8a85a", walk="#fff0b8", curb="#7a4520",
                    line="#fff6e0", car=("#ff9a3a", "#fff2b0"), lamp="#fff2b0", uni=("#f2c94c", "#e0702a", "#fff6e0"), van=("#f2c94c", "#e0702a")),
-    "aero": dict(sky=("#2a9fe0", "#8fe0ff", "#f4fdff"), far="#bfe8ff", bld=("#d8f2ff", "#a8e0f8", "#f8feff"),
-                 win=("#4ac0f0", "#7fe0d0", "#ffffff"), trim="#5fd07a", road="#c8e4f0", walk="#e8f6fc", curb="#5fd07a",
+    "aero": dict(sky=("#2a9fe0", "#8fe0ff", "#f4fdff"), far="#bfe8ff", bld=("#3aa8e8", "#5cc4f2", "#8ad8f8"),
+                 win=("#1a7ac8", "#2ad0b0", "#ffffff"), trim="#2cc84a", road="#a8d8f0", walk="#d0ecf8", curb="#2cc84a",
                  line="#ffffff", car=("#4ac0f0", "#ffffff"), lamp="#ffffff", uni=("#f4fbff", "#4ac0f0", "#5fd07a"), van=("#f4fbff", "#4ac0f0")),
     "solarpunk": dict(sky=("#6ac0d8", "#bfe8d8", "#fff0c0"), far="#a8d8b8", bld=("#f2ece0", "#e0d8c8", "#ffffff"),
                       win=("#2a5a8a", "#3a7aa8", "#bfe8ff"), trim="#4fa85a", road="#8aa878", walk="#d8d0b8", curb="#4fa85a",
@@ -36,8 +36,8 @@ STYLES = {
     "dieselpunk": dict(sky=("#1a1014", "#5a2418", "#c86a2a"), far="#2a2024", bld=("#2e2a30", "#3e3840", "#58505a"),
                        win=("#ffd27a", "#e8a03a", "#fff0c0"), trim="#c9961e", road="#2a2628", walk="#3e3a3c", curb="#e0b53a",
                        line="#e0b53a", car=("#5a1e1e", "#c9961e"), lamp="#ffd27a", uni=("#3a3a2e", "#c83a2a", "#c9961e"), van=("#2e2a30", "#c83a2a")),
-    "brutalist": dict(sky=("#6a7080", "#9aa0ac", "#c8ccd4"), far="#7a7e88", bld=("#8a8a8a", "#a0a0a0", "#b8b8b4"),
-                      win=("#2a2c34", "#3a3e48", "#e8d8a0"), trim="#6a6a6a", road="#6e6e70", walk="#9a9a98", curb="#c8c8c4",
+    "brutalist": dict(sky=("#6a7080", "#9aa0ac", "#c8ccd4"), far="#7a7e88", bld=("#7e7a74", "#928e86", "#a6a198"),
+                      win=("#1e2026", "#2a2e38", "#f2c86a"), trim="#f2b632", road="#8a8680", walk="#b2aea6", curb="#f2b632",
                       line="#e8e8e0", car=("#5a6a7a", "#c8c8c4"), lamp="#e8d8a0", uni=("#4a4e58", "#e8e8e0", "#c83a3a"), van=("#4a4e58", "#e8e8e0")),
 }
 ORDER = list(STYLES)
@@ -91,20 +91,47 @@ def build(ms):
             # Chimenea / Chimney
             b += R(x + w / 2 - 10, top - 40, 20, 40, dark(col, 0.3))
         elif name == "cheese":
-            for i in range(int(w * h / 3000)):
-                r = rng.uniform(6, 22)
-                cx, cy = rng.uniform(x + r, x + w - r), rng.uniform(top + r, bottom - r)
-                b += C(cx, cy, r, dark(col, 0.18)) + C(cx - r * 0.2, cy - r * 0.2, r * 0.75, dark(col, 0.3))
-            # Tejado en cuña / Wedge roof
-            b += P([(x, top), (x + w, top), (x + w * 0.5, top - 30)], light(col, 0.15))
-            b += R(x, bottom - 10, w, 10, st["trim"])
+            # Queso con agujeros grandes con fondo y brillo, chorreón de chocolate arriba
+            # Cheese with big holes with depth and a gleam, a chocolate drip on top
+            for i in range(int(w * h / 4200)):
+                r = rng.uniform(10, 28)
+                cx, cy = rng.uniform(x + r, x + w - r), rng.uniform(top + r + 30, bottom - r - 10)
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (cx, cy, r, r * 0.85, dark(col, 0.22))
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (cx + r * 0.12, cy + r * 0.15, r * 0.8, r * 0.62, dark(col, 0.42))
+                b += "<path d='M%g,%g A%g,%g 0 0 1 %g,%g' fill='none' stroke='%s' stroke-width='3'/>" % (cx - r * 0.7, cy + r * 0.35, r, r * 0.85, cx + r * 0.7, cy + r * 0.35, light(col, 0.3))
+            for wy in range(int(top + 60), bottom - 60, 80):
+                for wx in range(int(x + 30), int(x + w - 50), 96):
+                    b += "<rect x='%g' y='%g' width='40' height='44' rx='20' fill='%s'/>" % (wx, wy, "#5a2e14")
+                    b += "<rect x='%g' y='%g' width='32' height='38' rx='16' fill='%s'/>" % (wx + 4, wy + 4, rng.choice(["#fff2b0", "#ffe08a"]))
+                    b += R(wx + 4, wy + 22, 32, 3, "#5a2e14")
+            choc = "#6a3818"
+            d = "M%g,%g L%g,%g" % (x, top, x + w, top)
+            pts = [(x, top)]
+            for k in range(9):
+                px = x + w * (k + 0.5) / 9
+                pts += [(px - 10, top + 22), (px, top + 22 + (rng.uniform(10, 36) if k % 2 else 8)), (px + 10, top + 22)]
+            pts += [(x + w, top + 22), (x + w, top)]
+            b += P(pts, choc) + R(x, top, w, 6, "#8a5028")
+            b += R(x, bottom - 14, w, 14, "#e8b468") + R(x, bottom - 14, w, 3, "#f4cc88")
         elif name == "aero":
-            for wy in range(int(top + 10), bottom - 20, 30):
-                b += R(x + 10, wy, w - 20, 20, wins[0] if (wy // 30) % 2 else wins[1])
-                b += R(x + 10, wy, w - 20, 4, "#ffffff")
-            # Brillo de cristal / Glass gloss
-            b += "<path d='M%g,%g L%g,%g L%g,%g L%g,%g Z' fill='#ffffff' opacity='0.45'/>" % (x + 20, top, x + 60, top, x + 30, bottom, x - 10, bottom)
-            b += "<rect x='%g' y='%g' width='%g' height='14' rx='7' fill='%s'/>" % (x + 14, top - 10, w - 28, st["trim"])
+            # Muro cortina de cristal con degradado, franjas brillantes, burbujas y remate verde
+            # Glass curtain wall with a gradient, glossy bands, bubbles and a green top
+            gid = "ag%d" % rng.randint(0, 99999)
+            b += ("<defs><linearGradient id='%s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%s'/>"
+                  "<stop offset='1' stop-color='%s'/></linearGradient></defs>") % (gid, light(col, 0.25), dark(col, 0.2))
+            b += "<rect x='%g' y='%g' width='%g' height='%g' fill='url(#%s)'/>" % (x, top, w, h, gid)
+            for mx in range(int(x + 40), int(x + w), 52):
+                b += R(mx, top, 4, h, "#ffffff")
+            for wy in range(int(top + 40), bottom - 20, 44):
+                b += R(x, wy, w, 5, "#1a6aa8") + R(x, wy + 5, w, 2, "#ffffff")
+            b += "<path d='M%g,%g L%g,%g L%g,%g L%g,%g Z' fill='#ffffff' opacity='0.4'/>" % (x + 10, top, x + 70, top, x + 20, bottom, x - 40, bottom)
+            b += "<path d='M%g,%g L%g,%g L%g,%g L%g,%g Z' fill='#ffffff' opacity='0.25'/>" % (x + 120, top, x + 140, top, x + 90, bottom, x + 70, bottom)
+            for i in range(3):
+                bx, by, r = rng.uniform(x + 20, x + w - 20), rng.uniform(top + 30, bottom - 40), rng.uniform(8, 16)
+                b += "<circle cx='%g' cy='%g' r='%g' fill='#ffffff' opacity='0.25' stroke='#ffffff' stroke-width='2'/>" % (bx, by, r)
+                b += C(bx - r * 0.35, by - r * 0.35, r * 0.25, "#ffffff")
+            b += "<rect x='%g' y='%g' width='%g' height='18' rx='9' fill='%s'/>" % (x + 6, top + 2, w - 12, st["trim"])
+            b += "<rect x='%g' y='%g' width='%g' height='5' rx='3' fill='#c8ffd0'/>" % (x + 16, top + 5, w - 32)
         elif name == "solarpunk":
             for wy in range(int(top + 20), bottom - 30, 44):
                 for wx in range(int(x + 16), int(x + w - 30), 40):
@@ -128,16 +155,28 @@ def build(ms):
             # Remate escalonado dorado / Gold stepped crown
             b += R(x + 20, top - 16, w - 40, 16, col) + R(x + 50, top - 34, w - 100, 18, col) + R(x + 20, top - 4, w - 40, 4, st["trim"])
         elif name == "brutalist":
-            # Hormigón con marcas de encofrado / Concrete with formwork marks
-            for by in range(int(top), bottom, 24):
-                b += R(x, by, w, 2, dark(col, 0.12))
-            for wy in range(int(top + 24), bottom - 40, 48):
-                for wx in range(int(x + 20), int(x + w - 30), 44):
-                    b += R(wx, wy, 22, 16, wins[0]) + R(wx, wy + 16, 22, 6, dark(col, 0.25))
-                    if rng.random() < 0.12:
-                        b += R(wx + 4, wy + 4, 14, 8, wins[2])
-            # Voladizo / Overhang
-            b += R(x - 10, top, w + 20, 18, light(col, 0.08)) + R(x - 10, top + 18, w + 20, 4, dark(col, 0.3))
+            # Hormigón con tablas de encofrado y agujeros de los latiguillos / Concrete with board marks and tie holes
+            for by in range(int(top), bottom, 16):
+                b += R(x, by, w, 2, dark(col, 0.1))
+                for bx in range(int(x + 12), int(x + w), 40):
+                    b += R(bx + (by // 16 % 2) * 20, by + 6, 3, 3, dark(col, 0.25))
+            # Costillas verticales y ventanas muy hundidas, con su sombra / Vertical ribs and deep-set windows with their shadow
+            for wy in range(int(top + 34), bottom - 50, 62):
+                for wx in range(int(x + 22), int(x + w - 40), 56):
+                    b += R(wx - 6, wy - 6, 42, 42, light(col, 0.12))
+                    b += R(wx, wy, 30, 30, "#16181e")
+                    b += R(wx, wy, 30, 9, "#0c0d10") + R(wx, wy, 6, 30, "#0c0d10")
+                    if rng.random() < 0.3:
+                        b += R(wx + 8, wy + 12, 18, 14, st["win"][2])
+                    b += R(wx - 8, wy + 36, 46, 8, light(col, 0.2)) + R(wx - 8, wy + 44, 46, 3, dark(col, 0.35))
+                    if rng.random() < 0.25:
+                        for k in range(4):
+                            b += C(wx - 4 + k * 12, wy + 46 + (k % 2) * 6, 5, rng.choice(["#4a7a3a", "#5a8a4a"]))
+            for rx in range(int(x), int(x + w), 125):
+                b += R(rx, top, 10, h, dark(col, 0.18)) + R(rx + 10, top, 3, h, light(col, 0.1))
+            # Señalética amarilla pintada y voladizo / Painted yellow signage and an overhang
+            b += R(x, top + 6, w, 22, light(col, 0.1)) + R(x, top + 28, w, 5, dark(col, 0.35))
+            b += R(x + 14, top + 12, 40, 10, st["trim"]) + R(x + 60, top + 12, 10, 10, "#c83a3a")
         return b
 
     # --- Baldosas del suelo (120 x 120, casan por los cuatro lados) / Ground tiles (120 x 120, tile on all four sides) ---
@@ -155,12 +194,16 @@ def build(ms):
                 for x in range(-20 + (gy % 2) * 15, T, 30):
                     b += "<rect x='%d' y='%d' width='27' height='17' rx='6' fill='%s'/>" % (x, y + 1, rng.choice([walk, light(walk, 0.08), dark(walk, 0.1)]))
         elif name == "cheese":
-            b += R(0, 0, T, 4, dark(walk, 0.15)) + R(0, 0, 4, T, dark(walk, 0.15))
-            for i in range(3):
-                r = rng.uniform(6, 14)
-                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (rng.uniform(20, 100), rng.uniform(20, 100), r, r * 0.7, dark(walk, 0.18))
+            # Loncha de queso: canto suave y agujeros con sombra / Cheese slice: soft edge and shaded holes
+            b += R(0, 0, T, 2, dark(walk, 0.08)) + R(0, 0, 2, T, dark(walk, 0.08))
+            for i in range(2):
+                r = rng.uniform(7, 13)
+                cx, cy = rng.uniform(22, 100), rng.uniform(22, 100)
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (cx, cy, r, r * 0.7, dark(walk, 0.16))
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (cx + 1, cy + 2, r * 0.7, r * 0.45, dark(walk, 0.26))
         elif name == "aero":
-            b += R(0, 0, T, 3, "#ffffff") + R(0, 0, 3, T, "#ffffff") + R(6, 6, 50, 6, "#ffffff")
+            b += R(0, 0, T, 3, "#9cd0ec") + R(0, 0, 3, T, "#9cd0ec") + R(3, 3, T - 3, 3, "#ffffff") + R(3, 3, 3, T - 3, "#ffffff")
+            b += "<ellipse cx='40' cy='34' rx='26' ry='8' fill='#ffffff' opacity='0.6'/>"
         elif name == "solarpunk":
             for (x, y) in ((0, 0), (60, 0), (0, 60), (60, 60)):
                 b += "<rect x='%d' y='%d' width='56' height='56' rx='8' fill='%s'/>" % (x + 2, y + 2, light(walk, 0.06))
@@ -170,9 +213,12 @@ def build(ms):
             for (x, y) in ((10, 10), (110, 10), (10, 110), (110, 110)):
                 b += C(x, y, 3, "#6a6468")
         elif name == "brutalist":
-            b += R(0, 0, T, 3, dark(walk, 0.2)) + R(0, 0, 3, T, dark(walk, 0.2))
-            for i in range(6):
-                b += R(rng.uniform(4, 110), rng.uniform(4, 110), 4, 4, dark(walk, 0.12))
+            # Losa grande con bisel, juntas y agujeros de encofrado / Big slab with a bevel, joints and formwork holes
+            b += R(0, 0, T, 4, dark(walk, 0.3)) + R(0, 0, 4, T, dark(walk, 0.3)) + R(4, 4, T - 4, 3, light(walk, 0.12)) + R(4, 4, 3, T - 4, light(walk, 0.12))
+            for (x, y) in ((24, 24), (100, 24), (24, 100), (100, 100)):
+                b += C(x, y, 3, dark(walk, 0.3))
+            for i in range(10):
+                b += R(rng.uniform(8, 112), rng.uniform(8, 112), 3, 3, dark(walk, 0.1) if i % 2 else light(walk, 0.08))
         room_add("city_%s_pave" % name, 0, 0, T, T, b, colors=8, outline=None, tile=True)
         # Baldosa de la plaza (dibujo propio) / Plaza tile (own pattern)
         b = R(0, 0, T, T, road)
@@ -187,9 +233,14 @@ def build(ms):
                     b += "<rect x='%d' y='%d' width='46' height='21' rx='5' fill='%s'/>" % ((gx + o) % T - 2, gy + 2, rng.choice(["#7a5e48", "#86684e", "#6e5440"]))
                     b += "<rect x='%d' y='%d' width='46' height='21' rx='5' fill='%s'/>" % ((gx + o) % T - 2 - T, gy + 2, rng.choice(["#7a5e48", "#86684e", "#6e5440"]))
         elif name == "cheese":
-            b += R(0, 0, T, T, "#ffe98a") + R(0, 0, T, 6, "#ff9a3a") + R(0, 0, 6, T, "#ff9a3a")
+            # Galleta salada con agujeritos / Cracker with little holes
+            b += R(0, 0, T, T, "#e8b468") + R(0, 0, T, 4, "#c8904a") + R(0, 0, 4, T, "#c8904a") + R(4, 4, T - 8, 3, "#f4cc88")
+            for gy in range(22, T, 34):
+                for gx in range(22, T, 34):
+                    b += C(gx, gy, 3.5, "#b07a3a")
         elif name == "aero":
-            b += R(0, 0, T, T, "#e8f8ff") + R(0, 0, T, 3, "#c8ecff") + R(0, 0, 3, T, "#c8ecff") + "<circle cx='62' cy='62' r='8' fill='#bfe8ff'/>"
+            b += R(0, 0, T, T, "#8ad0f0") + R(0, 0, T, 4, "#5ab4e0") + R(0, 0, 4, T, "#5ab4e0")
+            b += R(4, 4, T - 4, 3, "#c8ecfa") + "<ellipse cx='44' cy='30' rx='30' ry='7' fill='#ffffff' opacity='0.45'/>"
         elif name == "solarpunk":
             b += R(0, 0, T, T, "#e8e0c8")
             b += R(0, 0, T, 3, "#cfc6a8") + R(0, 0, 3, T, "#cfc6a8") + "<ellipse cx='62' cy='62' rx='10' ry='5' fill='#9fd29a'/>"
@@ -202,10 +253,14 @@ def build(ms):
                     b += "<path d='M%d,%d l8,-4 l3,2 l-8,4 z' fill='#5a5658'/>" % ((gx + o) % T + 6, gy + 14)
             b += R(0, 0, T, 3, "#2a2628") + R(0, 0, 3, T, "#2a2628")
         elif name == "brutalist":
-            b += R(0, 0, T, T, "#a8a8a6") + R(0, 0, T, 4, "#8a8a88") + R(0, 0, 4, T, "#8a8a88") + R(40, 40, 40, 40, "#b8b8b4")
+            b += R(0, 0, T, T, "#8e8a84") + R(0, 0, T, 5, "#6a6660") + R(0, 0, 5, T, "#6a6660")
+            b += R(5, 5, T - 5, 3, "#a29e96")
+            for (x, y) in ((24, 24), (100, 24), (24, 100), (100, 100)):
+                b += C(x, y, 3, "#5a5650")
+            b += R(54, 54, 18, 18, "#f2b632") + R(54, 54, 18, 4, "#ffd878") + R(58, 58, 10, 10, "#2a2c34")
         room_add("city_%s_plaza" % name, 0, 0, T, T, b, colors=8, outline=None, tile=True)
         # Césped y flores / Grass and flowers
-        gcol = {"cheese": "#c8d860", "synthwave": "#2a6a5a", "dieselpunk": "#3a5a3a", "brutalist": "#6a8a5a"}.get(name, "#5fb86a")
+        gcol = {"cheese": "#a8c850", "synthwave": "#2a6a5a", "dieselpunk": "#3a5a3a", "brutalist": "#5a7a4a", "aero": "#3cd060"}.get(name, "#5fb86a")
         b = R(0, 0, T, T, gcol)
         for i in range(14):
             x, y = rng.uniform(0, 112), rng.uniform(0, 112)

@@ -29,11 +29,11 @@ const TOWER_FACADE_H := 375.0
 const LOOK := {
 	"synthwave": {"plinth": "3a2466", "curb": "ff3aa0", "accent": "5ff2ff", "roof": "c8327e", "flat": "2a1850", "sign": "ff3aa0", "haze": "ff3aa0", "edge": "140a2a"},
 	"steampunk": {"plinth": "8a6a52", "curb": "c9961e", "accent": "c9961e", "roof": "a8542e", "flat": "5a4636", "sign": "2a1a14", "haze": "e0a45a", "edge": "2a1a14"},
-	"cheese": {"plinth": "fff2b0", "curb": "ff9a3a", "accent": "ff9a3a", "roof": "ff9a3a", "flat": "f2c83a", "sign": "e0702a", "haze": "fff0a0", "edge": "8a5a10"},
-	"aero": {"plinth": "ffffff", "curb": "5fd07a", "accent": "4ac0f0", "roof": "4ac0f0", "flat": "c8ecff", "sign": "4ac0f0", "haze": "bfe8ff", "edge": "3a6a8a"},
+	"cheese": {"plinth": "e8b468", "curb": "7a4520", "accent": "c8402a", "roof": "e8902a", "flat": "f0b83a", "sign": "6a3818", "haze": "fff0a0", "edge": "5a2e14"},
+	"aero": {"plinth": "ffffff", "curb": "2cc84a", "accent": "1a9ae0", "roof": "1a9ae0", "flat": "7ccaf0", "sign": "1a7ac8", "haze": "4ac0f0", "edge": "1a4a78"},
 	"solarpunk": {"plinth": "f6f0e2", "curb": "4fa85a", "accent": "4fa85a", "roof": "5fb86a", "flat": "e0d8c8", "sign": "3f7a4a", "haze": "fff0c0", "edge": "3a4a3a"},
 	"dieselpunk": {"plinth": "58505a", "curb": "e0b53a", "accent": "e0b53a", "roof": "6a2420", "flat": "3a363c", "sign": "1a1618", "haze": "c86a2a", "edge": "120e10"},
-	"brutalist": {"plinth": "b8b8b4", "curb": "d8d8d4", "accent": "c83a3a", "roof": "7a7a78", "flat": "8a8a88", "sign": "4a4e58", "haze": "6a7080", "edge": "3a3a3a"},
+	"brutalist": {"plinth": "a6a198", "curb": "f2b632", "accent": "f2b632", "roof": "6a6660", "flat": "7e7a74", "sign": "2a2c34", "haze": "6a7080", "edge": "26262a"},
 }
 
 var style := "synthwave"
@@ -701,12 +701,33 @@ class CityBuilding extends Node2D:
 				if rng.randf() < 0.3:
 					continue
 				var at := cell.position + Vector2(rng.randf_range(4, maxf(5, cw - 150)), rng.randf_range(4, maxf(5, ch - 110)))
-				_roof_thing(rng.randi() % 7, at, base, rng)
+				var pool: Array = ROOF_THINGS[style]
+				_roof_thing(pool[rng.randi() % pool.size()], at, base, rng)
 		if big:
-			_helipad(Vector2(inner.end.x - cw * 0.5, inner.position.y + ch * 0.5), minf(cw, ch) * 0.42)
+			var hc := Vector2(inner.end.x - cw * 0.5, inner.position.y + ch * 0.5)
+			var hr := minf(cw, ch) * 0.42
+			match style:
+				"steampunk": _big_gear(hc, hr)
+				"cheese": _cheese_wedge(hc, hr)
+				"solarpunk": _turbine(hc + Vector2(0, hr * 0.6), hr * 1.1)
+				_: _helipad(hc, hr)
 		_style_roof(Rect2(0, top, w, h), base)
 
+	## Qué hay en las azoteas de cada ciudad (0-6 comunes, 7+ propias) / What's on each city's roofs (0-6 common, 7+ its own)
+	const ROOF_THINGS := {
+		"synthwave": [0, 2, 7, 7, 8, 6],
+		"steampunk": [2, 3, 9, 9, 10, 5],
+		"cheese": [3, 11, 11, 12, 2],
+		"aero": [13, 13, 14, 6, 4],
+		"solarpunk": [4, 4, 15, 15, 14, 2],
+		"dieselpunk": [0, 16, 16, 17, 5, 3],
+		"brutalist": [18, 18, 19, 1, 3],
+	}
+
 	func _roof_thing(k: int, at: Vector2, base: Color, rng: RandomNumberGenerator) -> void:
+		if k >= 7:
+			_style_thing(k, at, base)
+			return
 		var x := at.x
 		var yy := at.y
 		var shade := Color(0, 0, 0, 0.25)
@@ -769,6 +790,151 @@ class CityBuilding extends Node2D:
 					draw_rect(Rect2(o + Vector2(5, 5), Vector2(52, 48)), Color("8fd8ff").lerp(_c("accent"), 0.2))
 					draw_line(o + Vector2(31, 5), o + Vector2(31, 53), _c("edge"), 4.0)
 					draw_line(o + Vector2(10, 46), o + Vector2(26, 10), Color(1, 1, 1, 0.55), 4.0)
+
+	func _style_thing(k: int, at: Vector2, base: Color) -> void:
+		var shade := Color(0, 0, 0, 0.25)
+		var acc := _c("accent")
+		match k:
+			7:   # antena parabólica de neón / neon satellite dish
+				var c := at + Vector2(50, 40)
+				draw_colored_polygon(room._ellipse(c + Vector2(6, 40), Vector2(40, 10)), shade)
+				draw_line(c + Vector2(0, 40), c, Color("2a1850"), 8.0)
+				draw_colored_polygon(room._ellipse(c + Vector2(0, -10), Vector2(44, 30)), Color("3a2466"))
+				draw_colored_polygon(room._ellipse(c + Vector2(4, -12), Vector2(34, 22)), Color("5a3a8a"))
+				var pts := room._ellipse(c + Vector2(0, -10), Vector2(44, 30))
+				pts.append(pts[0])
+				draw_polyline(pts, Color(_c("curb"), 0.6 + 0.4 * sin(_t * 3.0 + at.x)), 4.0)
+				draw_line(c + Vector2(4, -12), c + Vector2(26, -44), Color("5ff2ff"), 3.0)
+				draw_circle(c + Vector2(26, -44), 6.0, Color("5ff2ff", 0.6 + 0.4 * sin(_t * 5.0)))
+			8:   # pirámide de holograma / hologram pyramid
+				var c := at + Vector2(50, 70)
+				draw_rect(Rect2(c + Vector2(-40, -8), Vector2(80, 18)), Color("2a1850"))
+				draw_rect(Rect2(c + Vector2(-40, -8), Vector2(80, 4)), Color("5ff2ff"))
+				var h := 70.0 + sin(_t * 2.0) * 6.0
+				draw_colored_polygon(PackedVector2Array([c + Vector2(-34, -8), c + Vector2(34, -8), c + Vector2(0, -8 - h)]), Color(0.37, 0.95, 1.0, 0.25))
+				draw_polyline(PackedVector2Array([c + Vector2(-34, -8), c + Vector2(0, -8 - h), c + Vector2(34, -8)]), Color(1.0, 0.36, 0.63, 0.8), 3.0)
+				for j in 3:
+					var yy := fposmod(_t * 30.0 + j * 22.0, h)
+					var hw := 34.0 * (1.0 - yy / h)
+					draw_line(c + Vector2(-hw, -8 - yy), c + Vector2(hw, -8 - yy), Color(0.37, 0.95, 1.0, 0.5), 2.0)
+			9:   # caldera de latón con manómetro / brass boiler with a gauge
+				draw_colored_polygon(room._ellipse(at + Vector2(64, 92), Vector2(60, 12)), shade)
+				draw_rect(Rect2(at + Vector2(10, 20), Vector2(110, 70)), Color("8a5a24"))
+				draw_colored_polygon(room._ellipse(at + Vector2(10, 55), Vector2(16, 35)), Color("a8742a"))
+				draw_colored_polygon(room._ellipse(at + Vector2(120, 55), Vector2(16, 35)), Color("c9961e"))
+				for j in 4:
+					draw_rect(Rect2(at + Vector2(30 + j * 24, 20), Vector2(5, 70)), Color("5a3a18"))
+				draw_rect(Rect2(at + Vector2(10, 24), Vector2(110, 8)), Color(1, 0.9, 0.6, 0.3))
+				draw_circle(at + Vector2(66, 10), 16.0, Color("c9961e"))
+				draw_circle(at + Vector2(66, 10), 12.0, Color("f6eedc"))
+				var a := -2.4 + sin(_t * 1.7) * 0.8
+				draw_line(at + Vector2(66, 10), at + Vector2(66, 10) + Vector2.from_angle(a) * 10.0, Color("c83a2a"), 2.0)
+				var ph := fposmod(_t * 0.8, 1.0)
+				draw_circle(at + Vector2(104 + ph * 20, -2 - ph * 50), 8.0 + ph * 14.0, Color(1, 1, 1, 0.5 * (1.0 - ph)))
+				draw_rect(Rect2(at + Vector2(98, -6), Vector2(12, 28)), Color("6a3a24"))
+			10:   # engranajes que giran / turning gears
+				_gear(at + Vector2(40, 40), 34.0, _t * 0.8, Color("c9961e"))
+				_gear(at + Vector2(96, 64), 24.0, -_t * 1.13 + 0.3, Color("a8742a"))
+			11:   # cuña de queso pequeña / small cheese wedge
+				_cheese_wedge(at + Vector2(60, 50), 48.0)
+			12:   # lata de galletas / biscuit tin
+				draw_colored_polygon(room._ellipse(at + Vector2(52, 70), Vector2(50, 14)), shade)
+				draw_rect(Rect2(at + Vector2(6, 20), Vector2(92, 50)), Color("c8402a"))
+				draw_colored_polygon(room._ellipse(at + Vector2(52, 70), Vector2(46, 12)), Color("a83020"))
+				draw_colored_polygon(room._ellipse(at + Vector2(52, 20), Vector2(46, 14)), Color("e8b468"))
+				for j in 5:
+					draw_circle(at + Vector2(22 + j * 15, 20), 2.5, Color("b07a3a"))
+				draw_rect(Rect2(at + Vector2(6, 40), Vector2(92, 8)), Color("f2c83a"))
+			13:   # burbuja de cristal con planta / glass bubble with a plant
+				var c := at + Vector2(54, 50)
+				draw_colored_polygon(room._ellipse(c + Vector2(6, 38), Vector2(44, 10)), shade)
+				draw_colored_polygon(room._ellipse(c + Vector2(0, 30), Vector2(40, 10)), Color("2cc84a"))
+				draw_circle(c + Vector2(-6, 18), 12.0, Color("3cd060"))
+				draw_circle(c + Vector2(10, 14), 10.0, Color("5ae07a"))
+				draw_circle(c, 44.0, Color(0.7, 0.92, 1.0, 0.35))
+				draw_arc(c, 44.0, 0.0, TAU, 32, Color(1, 1, 1, 0.85), 3.0)
+				draw_arc(c, 34.0, 3.6, 4.6, 12, Color(1, 1, 1, 0.9), 6.0)
+				draw_circle(c + Vector2(18, -22), 5.0, Color.WHITE)
+			14:   # mini aerogenerador blanco / small white wind turbine
+				_turbine(at + Vector2(50, 90), 70.0)
+			15:   # bancal del huerto / garden bed
+				draw_rect(Rect2(at + Vector2(6, 64), Vector2(130, 12)), shade)
+				draw_rect(Rect2(at, Vector2(130, 66)), Color("7a5a3a"))
+				draw_rect(Rect2(at + Vector2(6, 6), Vector2(118, 54)), Color("4a3424"))
+				for j in 6:
+					for r in 2:
+						var q := at + Vector2(18 + j * 19, 20 + r * 24)
+						draw_circle(q, 9.0, Color("4fa85a").lightened(0.1 * ((j + r) % 2)))
+						if (j + r) % 3 == 0:
+							draw_circle(q + Vector2(2, -2), 4.0, Color("ff5a4a"))
+			16:   # foco antiaéreo que barre el cielo / searchlight sweeping the sky
+				var c := at + Vector2(50, 60)
+				var a := -PI / 2 + sin(_t * 0.7 + at.x) * 0.7
+				draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a - 0.12) * 260.0, c + Vector2.from_angle(a + 0.12) * 260.0]), Color(1.0, 0.9, 0.6, 0.12))
+				draw_colored_polygon(room._ellipse(c + Vector2(4, 22), Vector2(36, 10)), shade)
+				draw_rect(Rect2(c + Vector2(-24, 0), Vector2(48, 22)), Color("3a363c"))
+				draw_circle(c, 22.0, Color("58505a"))
+				draw_circle(c + Vector2.from_angle(a) * 8.0, 15.0, Color("fff0c0"))
+			17:   # torre de radio / radio mast
+				var c := at + Vector2(50, 100)
+				draw_line(c + Vector2(-24, 0), c + Vector2(0, -110), Color("1a1618"), 4.0)
+				draw_line(c + Vector2(24, 0), c + Vector2(0, -110), Color("1a1618"), 4.0)
+				for j in 4:
+					var y := -20.0 - j * 24.0
+					var hw := 24.0 * (1.0 + y / 110.0)
+					draw_line(c + Vector2(-hw, y), c + Vector2(hw, y), Color("1a1618"), 3.0)
+				draw_circle(c + Vector2(0, -114), 6.0, Color(1, 0.2, 0.15, 0.5 + 0.5 * sin(_t * 3.0)))
+			18:   # bloque de hormigón con franja amarilla / concrete block with a yellow stripe
+				draw_rect(Rect2(at + Vector2(10, 70), Vector2(110, 14)), shade)
+				draw_rect(Rect2(at, Vector2(110, 76)), base.lightened(0.12))
+				draw_rect(Rect2(at, Vector2(110, 14)), base.lightened(0.28))
+				draw_rect(Rect2(at + Vector2(0, 64), Vector2(110, 12)), base.darkened(0.2))
+				for j in 5:
+					draw_colored_polygon(PackedVector2Array([at + Vector2(j * 22, 40), at + Vector2(j * 22 + 12, 40), at + Vector2(j * 22 + 22, 52), at + Vector2(j * 22 + 10, 52)]), acc)
+				draw_rect(Rect2(at + Vector2(20, 22), Vector2(4, 4)), base.darkened(0.3))
+				draw_rect(Rect2(at + Vector2(86, 22), Vector2(4, 4)), base.darkened(0.3))
+			19:   # tiro de ventilación con rejilla / ventilation shaft with a grille
+				draw_rect(Rect2(at + Vector2(8, 70), Vector2(80, 12)), shade)
+				draw_rect(Rect2(at, Vector2(80, 74)), base.darkened(0.08))
+				draw_rect(Rect2(at + Vector2(10, 10), Vector2(60, 46)), Color("1e2026"))
+				for j in 5:
+					draw_rect(Rect2(at + Vector2(10, 14 + j * 9), Vector2(60, 3)), base.lightened(0.1))
+				draw_rect(Rect2(at + Vector2(0, 62), Vector2(80, 6)), acc)
+
+	func _gear(c: Vector2, r: float, a: float, col: Color) -> void:
+		draw_colored_polygon(room._ellipse(c + Vector2(6, r * 0.8), Vector2(r, r * 0.3)), Color(0, 0, 0, 0.2))
+		for j in 10:
+			var d := Vector2.from_angle(a + TAU * j / 10.0)
+			draw_line(c + d * r * 0.8, c + d * (r + 8.0), col, 10.0)
+		draw_circle(c, r, col)
+		draw_circle(c, r * 0.72, col.darkened(0.2))
+		draw_circle(c, r * 0.3, col.lightened(0.3))
+		for j in 4:
+			var d := Vector2.from_angle(a + TAU * j / 4.0)
+			draw_line(c + d * r * 0.3, c + d * r * 0.72, col, 6.0)
+
+	func _big_gear(c: Vector2, r: float) -> void:
+		_gear(c, r, _t * 0.4, Color("c9961e"))
+		_gear(c + Vector2(r * 1.05, r * 0.6), r * 0.45, -_t * 0.9, Color("a8742a"))
+
+	func _cheese_wedge(c: Vector2, r: float) -> void:
+		var top := PackedVector2Array([c + Vector2(-r, 0), c + Vector2(r, -r * 0.2), c + Vector2(r * 0.2, -r * 0.7)])
+		draw_colored_polygon(room._ellipse(c + Vector2(8, r * 0.5), Vector2(r * 1.1, r * 0.25)), Color(0, 0, 0, 0.22))
+		draw_colored_polygon(PackedVector2Array([c + Vector2(-r, 0), c + Vector2(r, -r * 0.2), c + Vector2(r, r * 0.3), c + Vector2(-r, r * 0.5)]), Color("f0a828"))
+		draw_colored_polygon(top, Color("ffd85a"))
+		draw_polyline(PackedVector2Array([c + Vector2(-r, 0), c + Vector2(r, -r * 0.2), c + Vector2(r, r * 0.3), c + Vector2(-r, r * 0.5), c + Vector2(-r, 0), c + Vector2(r * 0.2, -r * 0.7), c + Vector2(r, -r * 0.2)]), Color("8a5a10"), 3.0)
+		for q in [Vector2(-0.5, 0.2), Vector2(0.3, 0.12), Vector2(0.7, 0.05)]:
+			draw_colored_polygon(room._ellipse(c + q * r, Vector2(r * 0.12, r * 0.09)), Color("c8801a"))
+
+	func _turbine(base_p: Vector2, h: float) -> void:
+		draw_colored_polygon(room._ellipse(base_p + Vector2(8, 4), Vector2(h * 0.3, h * 0.08)), Color(0, 0, 0, 0.22))
+		draw_line(base_p, base_p + Vector2(0, -h), Color("e8eef4"), 7.0)
+		draw_line(base_p, base_p + Vector2(0, -h), Color("b8c4d0"), 2.0)
+		var hub := base_p + Vector2(0, -h)
+		for j in 3:
+			var d := Vector2.from_angle(_t * 2.0 + TAU * j / 3.0)
+			draw_colored_polygon(PackedVector2Array([hub, hub + d * h * 0.55 + d.orthogonal() * 6.0, hub + d * h * 0.6]), Color.WHITE)
+		draw_circle(hub, 7.0, Color("d8e0e8"))
 
 	func _helipad(c: Vector2, r: float) -> void:
 		draw_colored_polygon(room._ellipse(c + Vector2(0, 8), Vector2(r, r * 0.8)), Color(0, 0, 0, 0.2))
@@ -936,8 +1102,10 @@ class CityAmbience extends Node2D:
 				"cheese":
 					draw_rect(Rect2(pos, Vector2(8, 6) * q.w), Color(1.0, 0.85, 0.3, 0.6))
 				"aero":
-					draw_arc(pos, 10.0 * q.w, 0, TAU, 14, Color(1, 1, 1, 0.45), 2.0)
-					draw_circle(pos + Vector2(-3, -3) * q.w, 2.5 * q.w, Color(1, 1, 1, 0.7))
+					var br := (10.0 + 10.0 * float(i % 3)) * q.w
+					draw_circle(pos, br, Color(0.75, 0.95, 1.0, 0.12))
+					draw_arc(pos, br, 0, TAU, 18, Color(1, 1, 1, 0.6), 2.0)
+					draw_arc(pos, br * 0.7, 3.6, 4.6, 8, Color(1, 1, 1, 0.8), 3.0)
 				"solarpunk":
 					draw_set_transform(pos, _t * 1.5 + q.z, Vector2.ONE)
 					draw_colored_polygon(room._ellipse(Vector2.ZERO, Vector2(7, 4) * q.w), Color("ffb0c8") if i % 3 else Color("fff8e0"))
