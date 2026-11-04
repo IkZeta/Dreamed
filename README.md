@@ -237,6 +237,10 @@ Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 d
 
 ![Plano astral](docs/screenshots/plano-astral.jpg)
 
+### Visitas entre personajes
+
+Cuando un personaje llega a **amistad 3**, a veces deja su isla y va a ver a otro: al entrar en el plano astral suele haber una visita (con muchos amigos, a veces dos). El visitante se planta al lado del anfitrión, con bocadillos que se turnan encima de los dos, y su isla se queda vacía. Si te acercas, con la F (o A) **escuchas la charla**: cuatro frases que se van turnando, con la cara de quien habla en el recuadro. Hay nueve: Svinho visita a Stolk, Stolk a SuperK, Doc al Pinche, el Pinche a Charo, Charo a Doc, Magnus a Silly, SuperK a Lil Key, Lil Key a Svinho y D. Lynx a Mr. Ad.
+
 ### Mejoras dúo
 
 Hay nueve mejoras dúo, una por arma; cada personaje sale en dos parejas distintas (salvo Mr. Ad y El Pinche, en una), y cada dúo va con un arma concreta. Solo cuenta el **arma principal** (la segunda, la que se consigue al final del Acto 2, no). Una mejora dúo se desbloquea para siempre al tener **amistad 3 con los dos** personajes, y sale en el plano astral (casi seguro, ocupando un hueco) cuando, en esa partida, las mejoras de los dos con esa arma están **al máximo** (nivel 3). Magnus no da mejoras de arma: para él cuenta haber ganado 2 tratos en la partida. En el menú de personajes se ve con quién hace dúo cada uno.

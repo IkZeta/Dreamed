@@ -205,7 +205,7 @@ func _update_typing(delta: float) -> void:
 	var total := _box_text.get_total_character_count()
 	var n := mini(total, int(_type_t * TYPE_SPEED))
 	if n != _box_text.visible_characters:
-		if n % 3 == 0 and not _talking.is_empty() and _talking["kind"] == "npc":
+		if n % 3 == 0 and not _talking.is_empty() and _talking["kind"] in ["npc", "chat"]:
 			Audio.play("ui_click", -30.0, 0.2)
 		_box_text.visible_characters = n
 	_portrait.talking = true
@@ -217,6 +217,9 @@ func _finish_typing() -> void:
 	_typing = false
 	_box_text.visible_characters = -1
 	_portrait.talking = false
+	# En una charla con más frases, «Seguir»; si no, «Cerrar» / In a chat with more lines, "Next"; otherwise "Close"
+	var more := not _talking.is_empty() and _talking["kind"] == "chat" and int(_talking["i"]) < (_talking["lines"] as Array).size() - 1
+	_box_next.text = Settings.controls_text(tr("HUB_NEXT" if more else "HUB_CLOSE"))
 	create_tween().tween_property(_box_next, "modulate:a", 1.0, 0.2)
 
 
@@ -248,6 +251,7 @@ func _prompt_text(spot: Dictionary) -> String:
 		"fountain": return Settings.controls_text(tr("HUB_DREAM"))
 		"training": return Settings.controls_text(tr("HUB_TRAIN"))
 		"album": return Settings.controls_text(tr("HUB_OPEN_ALBUM"))
+		"chat": return Settings.controls_text(tr("HUB_LISTEN"))
 		"pajama":
 			if not GameState.weapon_unlocked(spot["id"]):
 				return ""
@@ -300,7 +304,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _typing:
 			_finish_typing()
 		elif not _talking.is_empty():
-			_close_box()
+			# En una charla entre dos, la F pasa a la siguiente frase / In a two-person chat, F moves to the next line
+			if _talking["kind"] == "chat" and int(_talking["i"]) < (_talking["lines"] as Array).size() - 1:
+				_talking["i"] = int(_talking["i"]) + 1
+				_chat_line()
+			else:
+				_close_box()
 		else:
 			var spot := _world.near_spot()
 			if not spot.is_empty():
@@ -334,21 +343,13 @@ func _open(spot: Dictionary) -> void:
 	_box_hearts.visible = false
 	match spot["kind"]:
 		"npc":
-			_box_title.text = tr("CHARO_NAME") if id == "charo" else tr("GIVER_%s_NAME" % id.to_upper())
-			_box_role.text = tr("CHARS_CHARO_ROLE") if id == "charo" else tr("GIVER_%s_ROLE" % id.to_upper())
-			_box_hearts.visible = true
-			_box_hearts.color = HubLayout.ISLES[id]["aura"]
-			_box_hearts.set_level(Progress.friend_level(id))
+			_speaker(id)
 			_type(_next_line(id))
 			Audio.play("giver_" + id, -8.0)
-			var aura: Color = HubLayout.ISLES[id]["aura"]
-			_portrait.who = id
-			_portrait.aura = aura
-			_portrait.pop()
-			_portrait_frame.visible = true
-			_portrait_frame.add_theme_stylebox_override("panel", UITheme.box(aura.darkened(0.7), aura, 3, 4, 0.0))
-			_box_style.border_color = Color(aura, 0.85)
-			_box_deco.color = aura
+		"chat":
+			spot["i"] = 0
+			Audio.play("giver_" + String(spot["host"]), -10.0)
+			_chat_line()
 		"statue":
 			if Progress.has_seen(id):
 				_box_title.text = tr("BEST_%s_NAME" % id.to_upper())
@@ -359,7 +360,7 @@ func _open(spot: Dictionary) -> void:
 				_box_role.text = ""
 				_type(tr("HUB_EMPTY_PEDESTAL"))
 			Audio.play("ui_click", -6.0)
-	if spot["kind"] != "npc":
+	if not spot["kind"] in ["npc", "chat"]:
 		_portrait_frame.visible = false
 		_box_style.border_color = Color(UITheme.LINE, 0.9)
 		_box_deco.color = UITheme.LINE
@@ -370,6 +371,31 @@ func _open(spot: Dictionary) -> void:
 	var tw := create_tween().set_parallel()
 	tw.tween_property(_box, "modulate:a", 1.0, 0.15)
 	tw.tween_property(_box_deco, "modulate:a", 1.0, 0.15)
+
+
+## Pone el recuadro a nombre de quien habla: nombre, papel, corazones, cara y color
+## Sets the box to whoever is speaking: name, role, hearts, face and colour
+func _speaker(id: String) -> void:
+	_box_title.text = tr("CHARO_NAME") if id == "charo" else tr("GIVER_%s_NAME" % id.to_upper())
+	_box_role.text = tr("CHARS_CHARO_ROLE") if id == "charo" else tr("GIVER_%s_ROLE" % id.to_upper())
+	_box_hearts.visible = true
+	_box_hearts.color = HubLayout.ISLES[id]["aura"]
+	_box_hearts.set_level(Progress.friend_level(id))
+	var aura: Color = HubLayout.ISLES[id]["aura"]
+	_portrait.who = id
+	_portrait.aura = aura
+	_portrait.pop()
+	_portrait_frame.visible = true
+	_portrait_frame.add_theme_stylebox_override("panel", UITheme.box(aura.darkened(0.7), aura, 3, 4, 0.0))
+	_box_style.border_color = Color(aura, 0.85)
+	_box_deco.color = aura
+
+
+## La frase que toca de una charla entre dos personajes / The current line of a chat between two characters
+func _chat_line() -> void:
+	var line: Array = (_talking["lines"] as Array)[int(_talking["i"])]
+	_speaker(line[0])
+	_type(tr(line[1]))
 
 
 ## Cada vez que hablas con alguien dice otra cosa, de las que ya te ha contado por amistad
@@ -772,6 +798,7 @@ class HubWorld extends Control:
 				"superk": _build_superk()
 				"lilkey": _build_lilkey()
 				"lynx": _build_lynx()
+		_plan_visits()
 
 	## Puente de piedras flotantes de una isla a otra / Bridge of floating stones from one island to another
 	func _add_bridge(from_id: String, id: String, lanterns := true) -> void:
@@ -844,7 +871,92 @@ class HubWorld extends Control:
 		_spots.append({"kind": "npc", "id": id, "pos": at, "height": 84.0 - offset.y})
 		return _prop(at, func(ci: CanvasItem) -> void: _draw_npc(ci, id, offset))
 
+	# --- Visitas: con amistad 3, algunos personajes van a ver a otro y charlan / Visits: at friendship 3, some characters go and see another and chat ---
+
+	const VISIT_FRIEND := 3
+	## [visitante, anfitrión]. Solo visitan los que se dibujan enteros (Silly y Mr. Ad reciben)
+	## [visitor, host]. Only those drawn in full visit (Silly and Mr. Ad receive visitors)
+	const CHATS := [["svinho", "stolk"], ["stolk", "superk"], ["doc", "pinche"], ["pinche", "charo"], ["charo", "doc"],
+		["magnus", "silly"], ["superk", "lilkey"], ["lilkey", "svinho"], ["lynx", "ad"]]
+	## Quién está de visita fuera de su isla / Who is away visiting
+	var _away := {}
+	var _drawing_guest := false
+
+	func _plan_visits() -> void:
+		var ok := []
+		for c: Array in CHATS:
+			if _isles.has(c[0]) and _isles.has(c[1]) and Progress.friend_level(c[0]) >= VISIT_FRIEND:
+				ok.append(c)
+		ok.shuffle()
+		# Casi siempre hay alguna visita; con muchos amigos, a veces dos / There's almost always a visit; with many friends, sometimes two
+		var n := 0 if randf() < 0.25 else (2 if ok.size() >= 4 and randf() < 0.4 else 1)
+		var used := {}
+		for c: Array in ok:
+			if n <= 0:
+				break
+			if used.has(c[0]) or used.has(c[1]):
+				continue
+			if _add_visit(c[0], c[1]):
+				used[c[0]] = true
+				used[c[1]] = true
+				n -= 1
+
+	func _add_visit(guest: String, host: String) -> bool:
+		var hs := {}
+		for s in _spots:
+			if s["kind"] == "npc" and s["id"] == host:
+				hs = s
+		if hs.is_empty():
+			return false
+		# Se va de su isla: sin dibujo, sin charla y sin estorbar / Leaves their island: no drawing, no chat and not in the way
+		for s in _spots.duplicate():
+			if s["kind"] == "npc" and s["id"] == guest:
+				_spots.erase(s)
+				for b in _blocks.duplicate():
+					if (b["c"] as Vector2).distance_to(s["pos"]) < 1.0:
+						_blocks.erase(b)
+		_away[guest] = true
+		var centre := _isle_pos(host)
+		var hp: Vector2 = hs["pos"]
+		var side := 1.0 if hp.x <= centre.x else -1.0
+		var at := hp + Vector2(side * 40.0, 10.0)
+		var poly: PackedVector2Array = _walk_polys[host]
+		var tries := 0
+		while not Geometry2D.is_point_in_polygon(at, poly) and tries < 40:
+			at = at.move_toward(centre, 3.0)
+			tries += 1
+		at = at.round()
+		_blocks.append({"c": at, "r": Vector2(10, 5)})
+		var key := "CHAT_%s_%s" % [guest.to_upper(), host.to_upper()]
+		var lines := []
+		for i in 4:
+			lines.append([guest if i % 2 == 0 else host, "%s_%d" % [key, i + 1]])
+		_spots.append({"kind": "chat", "id": guest, "host": host, "lines": lines, "i": 0, "pos": at, "height": 84.0})
+		var flip := side > 0.0   # mira hacia el anfitrión / faces the host
+		_prop(at, func(ci: CanvasItem) -> void:
+			_drawing_guest = true
+			_draw_npc(ci, guest, Vector2.ZERO, flip)
+			_drawing_guest = false
+			# Bocadillos que se turnan encima de los dos / Speech bubbles taking turns above the two
+			var ph := fmod(_t + at.x * 0.01, 5.0)
+			if ph < 2.2:
+				_bubble(ci, Vector2(0, -98))
+			elif ph > 2.5 and ph < 4.7:
+				_bubble(ci, hp - at + Vector2(0, -98)))
+		return true
+
+	func _bubble(ci: CanvasItem, p: Vector2) -> void:
+		var r := Rect2(p - Vector2(14, 9), Vector2(28, 16))
+		ci.draw_rect(r.grow(1), Color(0.1, 0.08, 0.2, 0.6))
+		ci.draw_rect(r, Color("fbf8ff"))
+		ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-4, 7), p + Vector2(3, 7), p + Vector2(-2, 12)]), Color("fbf8ff"))
+		for k in 3:
+			var up := absf(sin(_t * 5.0 - k * 0.7)) * 2.0
+			ci.draw_rect(Rect2(p + Vector2(-8 + k * 6, -2 - up), Vector2(3, 3)), Color("4a4592"))
+
 	func _draw_npc(ci: CanvasItem, id: String, offset := Vector2.ZERO, flip := false, opts := {}) -> void:
+		if _away.has(id) and not _drawing_guest:
+			return
 		var sx := -NPC_SCALE if flip else NPC_SCALE
 		var p := offset
 		if offset.y > -2.0:
