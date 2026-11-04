@@ -30,6 +30,8 @@ var _box_title: Label
 var _box_role: Label
 var _box_text: RichTextLabel
 var _box_hearts: FriendHearts
+var _portrait: TalkPortrait
+var _portrait_view: PixelView
 var _talking := {}
 var _leaving := false
 ## Carta del pijama del soporte que tienes cerca / Card of the pajama on the stand you're near
@@ -146,9 +148,18 @@ func _build_box() -> void:
 	next.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	next.text = Settings.controls_text(tr("HUB_CLOSE"))
 	v.add_child(next)
+	# Retrato del que habla, de pie junto al recuadro / Portrait of whoever is talking, standing by the box
+	_portrait = TalkPortrait.new()
+	_portrait_view = PixelView.wrap(_portrait, 3)
+	_portrait_view.size = Vector2(330, 480)
+	_portrait_view.visible = false
+	add_child(_portrait_view)
 
 
 func _process(_delta: float) -> void:
+	if _portrait_view.visible:
+		# A la izquierda del recuadro, con los pies a su altura / Left of the box, feet level with it
+		_portrait_view.position = Vector2(_box.position.x - _portrait_view.size.x + 40.0, _box.position.y + _box.size.y - _portrait_view.size.y).round()
 	# Aviso encima de lo que tengas cerca / Prompt over whatever is close
 	var spot := _world.near_spot()
 	var busy := not _talking.is_empty() or _start_panel != null
@@ -259,6 +270,12 @@ func _open(spot: Dictionary) -> void:
 			_box_hearts.set_level(Progress.friend_level(id))
 			Keywords.set_text(_box_text, _next_line(id))
 			Audio.play("giver_" + id, -8.0)
+			_portrait.who = id
+			_portrait.aura = HubLayout.ISLES[id]["aura"]
+			_portrait.pop()
+			_portrait_view.visible = true
+			_portrait_view.modulate.a = 0.0
+			create_tween().tween_property(_portrait_view, "modulate:a", 1.0, 0.2)
 		"statue":
 			if Progress.has_seen(id):
 				_box_title.text = tr("BEST_%s_NAME" % id.to_upper())
@@ -295,6 +312,7 @@ func _next_line(id: String) -> String:
 func _close_box() -> void:
 	_talking = {}
 	_box.visible = false
+	_portrait_view.visible = false
 	_world.frozen = false
 
 
@@ -1534,3 +1552,38 @@ class HubWorld extends Control:
 			var a := TAU * i / n
 			pts.append(c + Vector2(cos(a) * r.x, sin(a) * r.y))
 		return pts
+
+
+## El que habla, de cuerpo entero sobre un halo de su color; da un saltito al empezar a hablar
+## Whoever is talking, full body over a halo in their colour; it gives a little hop when it starts talking
+class TalkPortrait extends Control:
+	var who := "svinho"
+	var aura := Color.WHITE
+	var _t := 0.0
+	var _pop := 0.0
+
+	func pop() -> void:
+		_pop = 1.0
+
+	func _process(delta: float) -> void:
+		_t += delta
+		_pop = move_toward(_pop, 0.0, delta * 3.0)
+		queue_redraw()
+
+	func _draw() -> void:
+		var s := minf(size.x / 200.0, size.y / 330.0)
+		var hop := -sin(_pop * PI) * 10.0
+		var feet := Vector2(size.x / 2.0, size.y - 14.0)
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(feet - Vector2(95, 150) * s, Vector2(190, 170) * s), false, Color(aura, 0.3))
+		var ring := PackedVector2Array()
+		for i in 24:
+			var a := TAU * i / 24.0
+			ring.append(feet + Vector2(cos(a) * 46.0, sin(a) * 10.0) * s)
+		draw_colored_polygon(ring, Color(aura, 0.22))
+		ring.append(ring[0])
+		draw_polyline(ring, Color(aura, 0.6), 1.0)
+		for i in 3:
+			var a := _t * 0.7 + i * TAU / 3.0
+			DreamBackground.draw_star(self, feet + Vector2(cos(a) * 52.0, -90.0 + sin(a) * 14.0) * s, 2.0, Color(aura, 0.7))
+		var origin := feet + Vector2(-100.0, -296.0) * s + Vector2(0, hop + sin(_t * 1.4) * 2.0)
+		NpcArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin), who, _t)
