@@ -43,6 +43,7 @@ var _rubble_t: Array[float] = []
 var _static: Array[Rect2] = []          # edificios, árboles, setos, agua... / buildings, trees, hedges, water...
 var _grid := {}                         # cubo (Vector2i) → índices de _static / bucket → indices of _static
 var _holes: Array[Rect2] = []
+var tower_bases: Array[Rect2] = []      # pies de los rascacielos que se caen / feet of the skyscrapers that fall
 var _open := 0
 var _near_cache := {}
 var _near_frame := -1
@@ -118,6 +119,7 @@ func crack_zones() -> Array[Rect2]:
 func obstacles_list() -> Array[Rect2]:
 	var out: Array[Rect2] = _static.duplicate()
 	out.append_array(rubble)
+	out.append_array(tower_bases)
 	return out
 
 
@@ -139,6 +141,7 @@ func blockers_near(world_p: Vector2) -> Array[Rect2]:
 				if not out.has(_static[i]):
 					out.append(_static[i])
 	out.append_array(rubble)
+	out.append_array(tower_bases)
 	for i in _open:
 		out.append(_holes[i].grow(-10))
 	_near_cache[key] = out
@@ -166,6 +169,62 @@ func _build_static() -> void:
 				if not _grid.has(k):
 					_grid[k] = []
 				_grid[k].append(i)
+
+
+## Sitios para los rascacielos que se caen: baldosa de calle con una franja libre a un lado (donde
+## caerán), repartidos por el mapa y lejos de donde empieza Kroker. Devuelve [centro de la franja, lado]
+## Spots for the skyscrapers that fall: street paving with a clear strip to one side (where they'll
+## fall), spread over the map and away from where Kroker starts. Returns [strip centre, side]
+func tower_sites(count: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(style) * 7 + weird
+	var cands: Array = []
+	var start := start_point()
+	for r in CityLayout.ROWS:
+		for c in CityLayout.COLS:
+			if not CityLayout.MAP[r][c] in [".", ":"]:
+				continue
+			var foot := (Vector2(c, r) + Vector2(0.5, 0.5)) * T
+			if foot.distance_to(start) < 520.0 or FOUNTAIN.grow(200.0).has_point(foot):
+				continue
+			for d in [1.0, -1.0]:
+				var center := foot + Vector2(CityFall.LENGTH / 2.0 * d, 0)
+				var strip := Rect2(center - Vector2(CityFall.LENGTH / 2.0, CityFall.DEPTH / 2.0), Vector2(CityFall.LENGTH, CityFall.DEPTH))
+				if _free(strip.grow(10.0)) and _free(Rect2(foot - Vector2(60, 40), Vector2(120, 60))):
+					cands.append([center, d])
+	# Barajar y quedarse con los que están separados / Shuffle and keep the ones far apart
+	for i in range(cands.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = cands[i]
+		cands[i] = cands[j]
+		cands[j] = tmp
+	var out: Array = []
+	for cand: Array in cands:
+		var ok := true
+		for o: Array in out:
+			if (o[0] as Vector2).distance_to(cand[0]) < 700.0:
+				ok = false
+				break
+		if ok:
+			out.append(cand)
+			if out.size() >= count:
+				break
+	return out
+
+
+func _free(r: Rect2) -> bool:
+	if not walkable().encloses(r):
+		return false
+	for o in _static:
+		if o.intersects(r):
+			return false
+	for h in _holes:
+		if h.intersects(r):
+			return false
+	for b in tower_bases:
+		if b.grow(40.0).intersects(r):
+			return false
+	return true
 
 
 ## Un edificio se ha derrumbado: sus escombros cortan el paso un rato / A building has collapsed: its rubble blocks the way for a while

@@ -171,6 +171,7 @@ func _ready() -> void:
 	if room is Act4Room:
 		for prop: Node2D in (room as Act4Room).make_props(self):
 			actors.add_child(prop)
+		_build_towers()
 	if room is LivingRoom:
 		for sprite: String in LivingRoom.PROPS:
 			var prop := LivingRoom.Prop.new()
@@ -460,8 +461,24 @@ func gain_reality(n: int, pos: Vector2) -> void:
 ## La Metrópolis: de vez en cuando se derrumba un edificio cerca de Kroker
 ## The Metropolis: now and then a building collapses near Kroker
 var _fall_t := 8.0
+var _towers: Array[CityFall] = []
 
 
+## Los rascacielos que se caerán, en pie desde el principio / The skyscrapers that will fall, standing from the start
+func _build_towers() -> void:
+	var city := room as Act4Room
+	_towers.clear()
+	for site: Array in city.tower_sites(16 if city.final else 10):
+		var f := CityFall.new()
+		f.run = self
+		f.setup(self, site[0], site[1])
+		city.tower_bases.append(f.base_rect)
+		_towers.append(f)
+		_actors.add_child(f)
+
+
+## Cada cierto tiempo se cae uno de los que están cerca de Kroker (el más deshecho)
+## Every so often one of those near Kroker falls (the most worn out)
 func _update_city(delta: float) -> void:
 	if not room is Act4Room:
 		return
@@ -469,25 +486,23 @@ func _update_city(delta: float) -> void:
 	_fall_t -= delta
 	if _fall_t > 0.0:
 		return
-	_fall_t = randf_range(6.0, 10.0) if city.final else randf_range(14.0, 22.0)
-	# Un sitio de la calle cerca, que no esté dentro de nada / A nearby street spot that isn't inside anything
-	for attempt in 20:
-		var p: Vector2 = player.position + Vector2.from_angle(randf() * TAU) * randf_range(140.0, 420.0)
-		var c := (p - Bedroom.OFFSET) / Bedroom.S
-		var r := Rect2(c - Vector2(CityFall.LENGTH / 2.0, CityFall.DEPTH / 2.0), Vector2(CityFall.LENGTH, CityFall.DEPTH))
-		if not city.walkable().encloses(r):
+	var best: CityFall = null
+	var best_score := -INF
+	for t: CityFall in _towers:
+		if not is_instance_valid(t) or not t.standing():
 			continue
-		var clear := true
-		for o in city.obstacles_list():
-			if o.intersects(r):
-				clear = false
-				break
-		if not clear:
+		var dist := t.position.distance_to(player.position)
+		if dist > 900.0 or dist < 120.0:
 			continue
-		var f := CityFall.new()
-		f.setup(self, c, 1.0 if randf() < 0.5 else -1.0)
-		_actors.add_child(f)
+		var score := t.wear * 2.0 - dist / 900.0 + randf() * 0.4
+		if score > best_score:
+			best_score = score
+			best = t
+	if best == null:
+		_fall_t = 2.5   # ninguno cerca: se mira otra vez enseguida / none near: check again soon
 		return
+	best.topple()
+	_fall_t = randf_range(6.0, 10.0) if city.final else randf_range(14.0, 22.0)
 
 
 ## La taquilla abierta del pasillo: con la F, Kroker se pone las gafas de sol de Lil Key
