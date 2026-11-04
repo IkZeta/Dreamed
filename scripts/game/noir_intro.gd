@@ -71,9 +71,15 @@ func bars(show: bool, secs := 0.8) -> void:
 
 
 ## Muestra los pensamientos uno tras otro; "finished" al acabar / Shows the thoughts one after another; "finished" at the end
+## Las líneas pueden llevar quién habla delante: "evil:CLAVE" (Evil Ad, en una pantalla roja) o
+## "kroker:CLAVE" (Kroker en voz alta); sin prefijo es un pensamiento de Kroker
+## Lines may say who's talking first: "evil:KEY" (Evil Ad, on a red screen) or "kroker:KEY" (Kroker
+## out loud); with no prefix it's one of Kroker's thoughts
 func monologue(keys: Array[String]) -> void:
 	_lines = keys
 	_i = -1
+	_skipped = false
+	_hint.modulate.a = 1.0
 	_next()
 
 
@@ -87,17 +93,41 @@ func _next() -> void:
 			_box.visible = false
 			finished.emit())
 		return
-	Keywords.set_text(_text, tr(_lines[_i]))
+	var line := _lines[_i]
+	var who := ""
+	if line.contains(":"):
+		who = line.get_slice(":", 0)
+		line = line.get_slice(":", 1)
+	var text := tr(line)
+	if who == "kroker":
+		text = "[b]Kroker:[/b] " + text
+	elif who == "evil":
+		text = "[b]EVIL AD:[/b] " + text
+	Keywords.set_text(_text, text)
 	_text.visible_characters = 0
 	_type_t = 0.0
 	_typing = true
 	_box.visible = true
+	# Evil Ad habla desde una pantalla roja; Kroker en papel / Evil Ad speaks from a red screen; Kroker on paper
+	var evil := who == "evil"
+	var st := UITheme.box(Color("16040a") if evil else PAPER, Color("e0303a") if evil else INK, 4, 2, 22.0)
+	st.shadow_color = Color(0, 0, 0, 0.6)
+	st.shadow_offset = Vector2(8, 8)
+	_box.add_theme_stylebox_override("panel", st)
+	_text.add_theme_color_override("default_color", Color("ffb0b0") if evil else INK)
 	_box.reset_size()
 	# Los recuadros van cambiando de sitio, como en las viñetas / The captions move around, like in comic panels
 	var spots := [Vector2(90, BAR_H + 40), Vector2(1920 - 760 - 90, BAR_H + 60), Vector2(130, 1080 - BAR_H - 260)]
-	_box.position = spots[_i % spots.size()]
+	if who == "evil":
+		_box.position = Vector2(1920 - 760 - 110, BAR_H + 50 + (_i % 2) * 20)
+	elif who == "kroker":
+		_box.position = Vector2(110, 1080 - BAR_H - 230 - (_i % 2) * 20)
+	else:
+		_box.position = spots[_i % spots.size()]
 	_box.modulate.a = 0.0
 	_box.rotation = [-0.015, 0.012, -0.008][_i % 3]
+	if evil:
+		Audio.play("glitch", -14.0, 0.2)
 	create_tween().tween_property(_box, "modulate:a", 1.0, 0.25)
 
 
@@ -108,7 +138,8 @@ func _process(delta: float) -> void:
 		var n := mini(total, int(_type_t * TYPE_SPEED))
 		if n != _text.visible_characters:
 			if n % 2 == 0:
-				Audio.play("ui_click", -30.0, 0.25)
+				var evil_line := _lines[_i].begins_with("evil:")
+				Audio.play("typing" if evil_line else "ui_click", -26.0 if evil_line else -30.0, 0.25)
 			_text.visible_characters = n
 		if n >= total:
 			_finish_line()

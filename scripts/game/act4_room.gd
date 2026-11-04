@@ -599,7 +599,177 @@ func make_props(run_node: Node) -> Array[Node2D]:
 			pr.sprite = _tile(d[0])
 			pr.position = Bedroom.to_world(d[1])
 			out.append(pr)
+	# Último sueño: la ciudad está llena de vallas publicitarias / Last dream: the city is full of billboards
+	if style == "noir":
+		var spots: Array[Vector2] = []
+		for r in range(1, CityLayout.ROWS - 1):
+			for c in range(1, CityLayout.COLS - 1):
+				if not CityLayout.MAP[r][c] in [".", ":", ","]:
+					continue
+				var p := (Vector2(c, r) + Vector2(0.5, 0.6)) * T
+				if FOUNTAIN.grow(120.0).has_point(p) or p.distance_to(start_point()) < 260.0:
+					continue
+				if not _free(Rect2(p - Vector2(90, 30), Vector2(180, 40))):
+					continue
+				var ok := true
+				for q in spots:
+					if q.distance_to(p) < 430.0:
+						ok = false
+						break
+				if ok:
+					spots.append(p)
+		var k := 0
+		for p in spots:
+			var bb := CityBillboard.new()
+			bb.room = self
+			bb.ad = k % CityBillboard.ADS
+			bb.position = Bedroom.to_world(p)
+			out.append(bb)
+			k += 1
 	return out
+
+
+## Una valla publicitaria sobre dos postes, con un anuncio que parpadea (sueño 20). Cuando Evil Ad
+## se forma, el panel sale volando y quedan los postes con los bordes rotos.
+## A billboard on two poles, with a flickering advert (dream 20). When Evil Ad forms, the panel flies
+## off and the poles are left with torn edges.
+class CityBillboard extends Node2D:
+	const ADS := 6
+	const PANEL := Rect2(-130, -330, 260, 140)
+	var room: Act4Room
+	var ad := 0
+	var taken := false
+	var _t := 0.0
+
+	func _ready() -> void:
+		scale = Vector2(Bedroom.S, Bedroom.S)
+		_t = randf() * 5.0
+
+	func _process(delta: float) -> void:
+		_t += delta
+		queue_redraw()
+
+	## Dónde está el panel en el mundo / Where the panel is in the world
+	func panel_world() -> Vector2:
+		return global_position + PANEL.get_center() * Bedroom.S
+
+	func take() -> void:
+		taken = true
+
+	func _draw() -> void:
+		var dark := Color("0e0e12")
+		draw_colored_polygon(room._ellipse(Vector2(10, 4), Vector2(120, 16)), Color(0, 0, 0, 0.28))
+		for x in [-90.0, 90.0]:
+			draw_rect(Rect2(x - 7, PANEL.end.y - 6, 14, -PANEL.end.y + 6), Color("2a2a30"))
+			draw_rect(Rect2(x - 7, PANEL.end.y - 6, 4, -PANEL.end.y + 6), Color("4a4a52"))
+			draw_rect(Rect2(x - 14, -8, 28, 10), dark)
+		if taken:
+			# Bordes arrancados / Torn-off edges
+			draw_rect(Rect2(-100, PANEL.end.y - 14, 200, 10), Color("2a2a30"))
+			for i in 6:
+				draw_colored_polygon(PackedVector2Array([Vector2(-100 + i * 34, PANEL.end.y - 14), Vector2(-84 + i * 34, PANEL.end.y - 30 - (i % 2) * 10), Vector2(-70 + i * 34, PANEL.end.y - 14)]), Color("3a3a42"))
+			return
+		draw_ad(self, PANEL, ad, _t)
+
+	## El anuncio (lo usa también el enjambre) / The advert (also used by the swarm)
+	static func draw_ad(ci: CanvasItem, r: Rect2, kind: int, t: float) -> void:
+		var red := Color("e0303a")
+		var cream := Color("e8dcc0")
+		var dark := Color("0e0e12")
+		var on := 0.35 if fmod(t + kind * 0.9, 4.0) < 0.1 else 1.0
+		ci.draw_rect(r.grow(8), dark)
+		ci.draw_rect(r, Color("1a0a10"))
+		var c := r.get_center()
+		var font := ThemeDB.fallback_font
+		match kind:
+			0:   # la sonrisa de Evil Ad / Evil Ad's grin
+				ci.draw_rect(r.grow(-6), Color(red, 0.25 * on))
+				for side in [-1.0, 1.0]:
+					ci.draw_circle(c + Vector2(side * 40, -22), 18.0, Color(red, on))
+					ci.draw_circle(c + Vector2(side * 40, -22), 12.0, dark)
+					ci.draw_string(font, c + Vector2(side * 40 - 6, -14), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("ffd84a", on))
+				var pts := PackedVector2Array()
+				for i in 9:
+					pts.append(c + Vector2(-64 + i * 16, 18 + sin(i / 8.0 * PI) * 16))
+				ci.draw_polyline(pts, Color(red, on), 6.0)
+			1:
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.62), "BUY NOW", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 46, Color(red, on))
+			2:
+				ci.draw_rect(Rect2(r.position + Vector2(10, 10), r.size - Vector2(20, 20)), Color(cream, 0.9 * on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.64), "OBEY", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 60, Color(dark, on))
+			3:
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.45), "SALE", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 40, Color(cream, on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.85), "-99%", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 44, Color(red, on))
+			4:
+				for i in 3:
+					ci.draw_string(font, c + Vector2(-70 + i * 50, 18), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 60, Color(red if i != 1 else cream, on))
+			5:
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.42), "DON'T", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 34, Color(cream, on))
+				ci.draw_string(font, r.position + Vector2(0, r.size.y * 0.82), "WAKE UP", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 38, Color(red, on))
+		# Bombillas del marco / Frame bulbs
+		for i in 8:
+			var lit := int(t * 6.0 + i) % 2 == 0
+			ci.draw_circle(Vector2(lerpf(r.position.x, r.end.x, i / 7.0), r.position.y - 4), 4.0, Color("ffe8b0") if lit else Color("4a4440"))
+
+
+## Lo que forma a Evil Ad: vallas y teles que suben al cielo, giran cada vez más cerca y se juntan
+## What forms Evil Ad: billboards and TVs that rise into the sky, spin closer and closer and merge
+class AdSwarm extends Node2D:
+	signal formed
+	const TIME := 4.6
+	var center := Vector2.ZERO          # en el mundo / in the world
+	var _pieces: Array[Dictionary] = []
+	var _t := 0.0
+	var _done := false
+
+	func add_piece(from: Vector2, kind: String, ad: int, delay: float) -> void:
+		var a := (from - center).angle()
+		_pieces.append({"from": from, "kind": kind, "ad": ad, "delay": delay, "a": a, "r0": maxf(200.0, from.distance_to(center)), "spin": randf_range(-3.0, 3.0)})
+
+	func _ready() -> void:
+		z_index = 50
+
+	func _process(delta: float) -> void:
+		_t += delta
+		if not _done and _t >= TIME:
+			_done = true
+			formed.emit()
+		if _t > TIME + 0.6:
+			queue_free()
+		queue_redraw()
+
+	func _draw() -> void:
+		draw_set_transform(-global_position)
+		var fade := clampf((TIME + 0.6 - _t) / 0.6, 0.0, 1.0)
+		# Remolino de estática en el centro / A whirl of static in the middle
+		var core := clampf(_t / TIME, 0.0, 1.0)
+		for i in int(40 * core):
+			var p := center + Vector2.from_angle(randf() * TAU) * randf() * 160.0 * core
+			draw_rect(Rect2(p, Vector2(8, 4)), Color(1, 1, 1, randf() * 0.6 * fade))
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(center - Vector2(300, 300) * core, Vector2(600, 600) * core), false, Color("e0303a", 0.35 * core * fade))
+		for pc in _pieces:
+			var k := clampf((_t - float(pc["delay"])) / (TIME - float(pc["delay"])), 0.0, 1.0)
+			if k <= 0.0:
+				continue
+			# Primero sube; luego gira alrededor del centro, cada vez más cerca / First it rises; then it circles the centre, closer and closer
+			var up := clampf(k / 0.3, 0.0, 1.0)
+			var orbit := clampf((k - 0.15) / 0.85, 0.0, 1.0)
+			var ang: float = float(pc["a"]) + orbit * orbit * 7.0
+			var rad: float = lerpf(float(pc["r0"]), 20.0, orbit * orbit)
+			var circ: Vector2 = center + Vector2(cos(ang), sin(ang) * 0.55) * rad
+			var rise: Vector2 = (pc["from"] as Vector2) + Vector2(0, -260.0 * up)
+			var p := rise.lerp(circ, smoothstep(0.0, 1.0, orbit))
+			var sc := lerpf(0.75, 0.25, orbit) * fade
+			var rot := float(pc["spin"]) * k * 3.0
+			draw_set_transform(p - global_position, rot, Vector2(sc, sc))
+			if pc["kind"] == "board":
+				CityBillboard.draw_ad(self, Rect2(-130, -70, 260, 140), int(pc["ad"]), _t * 3.0)
+			else:
+				draw_rect(Rect2(-60, -44, 120, 88), Color("0e0e12"))
+				draw_rect(Rect2(-52, -36, 104, 72), Color("8a1420"))
+				for j in 5:
+					draw_rect(Rect2(randf_range(-50, 30), randf_range(-34, 30), 20, 4), Color(1, 1, 1, 0.6))
+		draw_set_transform(Vector2.ZERO)
 
 
 ## Árbol, seto, farola o banco / A tree, hedge, lamp or bench
@@ -635,6 +805,7 @@ class CityBuilding extends Node2D:
 	var rect := Rect2()        # huella en el lienzo / footprint on the canvas
 	var kind := "house"
 	var seed := 0
+	var screen_taken := false   # su pantalla se la ha llevado Evil Ad / Evil Ad has taken its screen
 	var burning := false        # ha estallado: ventanas rotas, fuego y humo / it blew up: broken windows, fire and smoke
 	var _burn_t := 0.0
 	var _t := 0.0
@@ -667,7 +838,7 @@ class CityBuilding extends Node2D:
 		modulate.a = move_toward(modulate.a, 0.45 if behind else 1.0, delta * 4.0)
 		if burning:
 			_burn_t += delta
-		if kind in ["tower", "shop"] or burning:
+		if kind in ["tower", "shop"] or burning or style == "noir":
 			queue_redraw()
 
 	func _c(key: String) -> Color:
@@ -719,8 +890,26 @@ class CityBuilding extends Node2D:
 			_tower_crown(w, fh, top)
 		# Contorno oscuro de toda la silueta (pixel art) / Dark outline round the whole silhouette (pixel art)
 		draw_rect(Rect2(0, top, w, d + T * 0.5), edge, false, 4.0)
+		if style == "noir" and not screen_taken and kind != "house":
+			_draw_screen(w, fh)
 		if burning:
 			_draw_fire(w, fh, top)
+
+	## Pantalla gigante en la fachada (sueño 20) / A giant screen on the facade (dream 20)
+	func screen_world() -> Vector2:
+		var fh := TOWER_FACADE_H if kind == "tower" else FACADE_H
+		return global_position + Vector2(rect.size.x * 0.75, -fh * 0.62) * Bedroom.S
+
+	func _draw_screen(w: float, fh: float) -> void:
+		var r := Rect2(w * 0.75 - 70, -fh * 0.62 - 48, 140, 96)
+		draw_rect(r.grow(8), Color("0e0e12"))
+		draw_rect(r, Color("1a0a10"))
+		var on := fmod(_t * 0.8 + seed, 3.0)
+		if on < 0.12:
+			for i in 8:
+				draw_rect(Rect2(r.position + Vector2(randf() * 120, randf() * 90), Vector2(16, 3)), Color(1, 1, 1, 0.6))
+		else:
+			CityBillboard.draw_ad(self, r.grow(-10), (seed + int(_t / 3.0)) % CityBillboard.ADS, _t)
 
 	## Fachada reventada: hollín, ventanas con fuego y humo saliendo del tejado
 	## Blown-out facade: soot, windows on fire and smoke pouring off the roof

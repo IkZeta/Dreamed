@@ -696,6 +696,7 @@ func _spawn_ufo() -> void:
 ## The last dream's cutscene: Kroker, leaning on a wall, muses on his journey like a film-noir
 ## detective; then the buildings blow up and Evil Ad arrives
 var cam_focus := Vector2.INF
+var _cam_free := false   # la cámara se sale de los límites del mapa (cinemática) / the camera ignores the map limits (cutscene)
 var _noir_mat: ShaderMaterial = null
 
 
@@ -750,18 +751,60 @@ func _noir_intro(depth: int) -> void:
 			t.topple()
 			toppled += 1
 	await get_tree().create_timer(1.2, false).timeout
-	# Llega Evil Ad desde el cielo / Evil Ad comes down from the sky
+	# La cámara se aleja hasta ver toda la ciudad / The camera pulls back to show the whole city
+	var city_c: Vector2 = city.map_world_rect().get_center()
+	_cam_free = true
+	cam_focus = city_c + Vector2(0, 40)
+	create_tween().tween_property(_camera, "zoom", base_zoom * 0.42, 2.4).set_trans(Tween.TRANS_SINE)
+	Audio.play("rumble", -2.0)
+	await get_tree().create_timer(2.5, false).timeout
+	# Las vallas y las pantallas salen volando y se juntan en el cielo / Billboards and screens fly off and gather in the sky
+	var evil_at := clamp_to_arena(city_c + Vector2(0, 260), 80.0)
+	var swarm := Act4Room.AdSwarm.new()
+	swarm.center = evil_at + Vector2(0, -EvilAd.ALT - 250.0)
+	for n: Node in _actors.get_children():
+		if n is Act4Room.CityBillboard:
+			var bb := n as Act4Room.CityBillboard
+			swarm.add_piece(bb.panel_world(), "board", bb.ad, randf_range(0.0, 1.6))
+			get_tree().create_timer(randf_range(0.0, 1.6), false).timeout.connect(bb.take)
+		elif n is Act4Room.CityBuilding and (n as Act4Room.CityBuilding).kind != "house":
+			var bl := n as Act4Room.CityBuilding
+			swarm.add_piece(bl.screen_world(), "tv", 0, randf_range(0.2, 1.8))
+			get_tree().create_timer(randf_range(0.2, 1.8), false).timeout.connect(func() -> void: bl.screen_taken = true)
+	world.add_child(swarm)
+	Audio.play("glitch", -2.0)
+	Audio.play("boss_wake", -4.0)
+	for i in 5:
+		get_tree().create_timer(0.7 + i * 0.8, false).timeout.connect(func() -> void:
+			shake(4.0 + i * 2.0)
+			Audio.play("glitch", -10.0, 0.2))
+	await swarm.formed
+	# Se forma Evil Ad / Evil Ad takes shape
 	_evil = EvilAd.new()
 	_evil.setup(self)
-	_evil.entering = 1.0
-	_evil.position = clamp_to_arena(player.position + Vector2(340, 40), 80.0)
+	_evil.entering = 0.0
+	_evil.position = evil_at
 	enemies.add_child(_evil)
-	cam_focus = (player.position + _evil.position) / 2.0
-	Audio.play("boss_wake", 0.0)
-	Audio.play("glitch", -2.0)
-	var tw := create_tween()
-	tw.tween_property(_evil, "entering", 0.0, 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	await tw.finished
+	shake(18.0)
+	flash_screen(Color("e0303a"), 0.5)
+	noir_glitch(0.5, 1.0)
+	Audio.play("stomp", 0.0)
+	Audio.play("crack", -2.0)
+	_evil.laugh(3.0)
+	await get_tree().create_timer(1.0, false).timeout
+	# Vuelve la cámara y Evil Ad se planta delante de Kroker / The camera comes back and Evil Ad plants himself in front of Kroker
+	var meet := clamp_to_arena(player.position + Vector2(360, 40), 80.0)
+	cam_focus = (player.position + meet) / 2.0
+	var back := create_tween().set_parallel()
+	back.tween_property(_camera, "zoom", base_zoom, 2.2).set_trans(Tween.TRANS_SINE)
+	back.tween_property(_evil, "position", meet, 2.2).set_trans(Tween.TRANS_SINE)
+	await back.finished
+	_cam_free = false
+	player.set_facing(1.0)
+	# Diálogo antes de la pelea / Dialogue before the fight
+	var talk: Array[String] = ["evil:EVIL_TALK_1", "kroker:EVIL_TALK_2", "evil:EVIL_TALK_3", "kroker:EVIL_TALK_4", "evil:EVIL_TALK_5", "kroker:EVIL_TALK_6"]
+	intro.monologue(talk)
+	await intro.finished
 	shake(16.0)
 	flash_screen(Color("e0303a"), 0.4)
 	Audio.play("stomp", 0.0)
@@ -1077,7 +1120,8 @@ func _follow_camera(delta: float) -> void:
 	_camera.position.x = lerpf(_camera.position.x, focus.x, minf(1.0, delta * 6.0))
 	if room.open_map():
 		_camera.position.y = lerpf(_camera.position.y, focus.y - 40.0, minf(1.0, delta * (6.0 if cam_focus == Vector2.INF else 2.0)))
-		_camera.position = _camera_clamped(_camera.position)
+		if not _cam_free:
+			_camera.position = _camera_clamped(_camera.position)
 
 
 ## En la ciudad la cámara no se sale del mapa / In the city the camera doesn't leave the map
