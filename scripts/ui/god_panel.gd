@@ -238,10 +238,10 @@ func _stepper(key: String, text: Callable, step: Callable) -> Control:
 	_refreshers.append(update)
 	minus.pressed.connect(func() -> void:
 		step.call(-1)
-		Audio.play("click", -8.0)
+		Audio.play("ui_click", -8.0)
 		_refresh())
 	plus.pressed.connect(func() -> void:
 		step.call(1)
-		Audio.play("click", -8.0)
+		Audio.play("ui_click", -8.0)
 		_refresh())
 	return box

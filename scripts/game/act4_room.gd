@@ -677,6 +677,8 @@ class CityBillboard extends Node2D:
 		taken = true
 
 	func _draw() -> void:
+		if not is_instance_valid(room):
+			return
 		var dark := Color("0e0e12")
 		draw_colored_polygon(room._ellipse(Vector2(10, 4), Vector2(120, 16)), Color(0, 0, 0, 0.28))
 		for x in [-90.0, 90.0]:
@@ -848,6 +850,8 @@ class CityBuilding extends Node2D:
 		scale = Vector2(Bedroom.S, Bedroom.S)
 
 	func _process(delta: float) -> void:
+		if not is_instance_valid(room):
+			return
 		_t += delta
 		if run == null or not is_instance_valid(run.player):
 			return
@@ -870,6 +874,8 @@ class CityBuilding extends Node2D:
 		return c.lerp(Color.from_hsv(fposmod(c.h + (h - 0.5) * 0.12, 1.0), c.s, c.v), 0.8).lightened((h - 0.5) * k)
 
 	func _draw() -> void:
+		if not is_instance_valid(room):
+			return
 		var w := rect.size.x
 		var d := rect.size.y
 		var fh := TOWER_FACADE_H if kind == "tower" else FACADE_H

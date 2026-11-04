@@ -109,6 +109,7 @@ func _ready() -> void:
 		nm.shader = NOIR_SHADER
 		holder.material = nm
 		_noir_mat = nm
+		_noir_holder = holder
 	var vp := SubViewport.new()
 	vp.snap_2d_transforms_to_pixel = true
 	vp.snap_2d_vertices_to_pixel = true
@@ -698,6 +699,7 @@ func _spawn_ufo() -> void:
 var cam_focus := Vector2.INF
 var _cam_free := false   # la cámara se sale de los límites del mapa (cinemática) / the camera ignores the map limits (cutscene)
 var _noir_mat: ShaderMaterial = null
+var _noir_holder: Control = null
 
 
 ## La imagen se descuadra un momento (Evil Ad en delirio) / The picture glitches for a moment (Evil Ad delirious)
@@ -1678,15 +1680,20 @@ func _wake_scene(won: bool) -> void:
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
 func _build_real_room(won: bool) -> void:
 	for n: Node in world.get_children():
-		if n is Darkness or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
+		if n is Darkness or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is Act4Room.AdSwarm or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
 			n.queue_free()
 	for e: Node in enemies.get_children():
 		e.queue_free()
 	# Los edificios, árboles y escombros de la ciudad / The city's buildings, trees and rubble
 	for n: Node in _actors.get_children():
-		if n is Act4Room.CityBuilding or n is Act4Room.CityProp or n is CityFall or n is Helpers.Actor:
+		if n is Act4Room.CityBuilding or n is Act4Room.CityProp or n is Act4Room.CityBillboard or n is CityFall or n is Helpers.Actor:
 			n.queue_free()
 	fx.clear()
+	# Al despertar, el mundo vuelve a tener color / On waking up, the world gets its colour back
+	if is_instance_valid(_noir_holder):
+		_noir_holder.material = null
+	_noir_mat = null
+	player.fedora = false
 	hud.visible = false
 	player.visible = false
 	player.push = Vector2.ZERO
