@@ -167,7 +167,7 @@ func _stock(wares: Array[String]) -> void:
 func _card(i: int, width: float) -> Control:
 	var id := _wares[i]
 	var tier: int = GameState.WARES[id]["tier"]
-	var edge: Color = [Color("4fa89a"), Color("7fb8ff"), Color("ffd27a")][tier - 1]
+	var edge: Color = [Color("4fa89a"), Color("7fb8ff"), Color("ffd27a"), Color("ff7ad0")][tier - 1]
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(width, 340)
 	card.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.92), Color(edge, 0.6), Color(edge, 0.12), 16, 18, 22))
@@ -473,6 +473,41 @@ class WareIcon extends Control:
 					var a := k * TAU / 4.0 + PI / 4.0
 					draw_circle(Vector2(cos(a), sin(a)) * 3.0, 2.6, Color("2f9e5b"))
 				draw_set_transform(Vector2.ZERO)
+			"energy_drink":
+				draw_rect(Rect2(c + Vector2(-7, -13), Vector2(14, 25)), Color("2a2a3a"))
+				draw_rect(Rect2(c + Vector2(-7, -14), Vector2(14, 3)), Color("cfc8ec"))
+				draw_colored_polygon(PackedVector2Array([c + Vector2(2, -9), c + Vector2(-4, 1), c + Vector2(0, 1), c + Vector2(-2, 9), c + Vector2(4, -2), c + Vector2(0, -2)]), Color("9cff5a"))
+				draw_rect(Rect2(c + Vector2(-5, -11), Vector2(2, 20)), Color(1, 1, 1, 0.25))
+			"lucky_cat":
+				var wave := sin(_t * 5.0) * 0.4
+				draw_circle(c + Vector2(0, 4), 10.0, Color("fbf8ff"))
+				draw_circle(c + Vector2(0, -6), 8.0, Color("fbf8ff"))
+				draw_colored_polygon(PackedVector2Array([c + Vector2(-7, -10), c + Vector2(-5, -17), c + Vector2(-2, -12)]), Color("fbf8ff"))
+				draw_colored_polygon(PackedVector2Array([c + Vector2(7, -10), c + Vector2(5, -17), c + Vector2(2, -12)]), Color("fbf8ff"))
+				draw_line(c + Vector2(-4, -7), c + Vector2(-2, -7), ink, 1.5)
+				draw_line(c + Vector2(2, -7), c + Vector2(4, -7), ink, 1.5)
+				draw_line(c + Vector2(-8, 2), c + Vector2(8, 2), Color("e85d75"), 2.0)
+				draw_circle(c + Vector2(0, 5), 2.5, Color("ffd27a"))
+				var paw := c + Vector2(9, -4) + Vector2(0, -6).rotated(wave)
+				draw_line(c + Vector2(9, -2), paw, Color("fbf8ff"), 4.0)
+				draw_circle(paw, 3.0, Color("fbf8ff"))
+			"first_aid":
+				draw_rect(Rect2(c + Vector2(-13, -9), Vector2(26, 19)), Color("fbf8ff"))
+				draw_rect(Rect2(c + Vector2(-5, -13), Vector2(10, 4)), Color("cfc8ec"))
+				draw_rect(Rect2(c + Vector2(-2, -6), Vector2(4, 13)), Color("e85d75"))
+				draw_rect(Rect2(c + Vector2(-6, -2), Vector2(12, 4)), Color("e85d75"))
+			"comic":
+				draw_rect(Rect2(c + Vector2(-11, -13), Vector2(22, 26)), Color("7fb8ff"))
+				draw_rect(Rect2(c + Vector2(-9, -11), Vector2(18, 6)), Color("ffd27a"))
+				draw_colored_polygon(PackedVector2Array([c + Vector2(0, -3), c + Vector2(6, 9), c + Vector2(-6, 9)]), Color("e85d75"))
+				draw_string(ThemeDB.fallback_font, c + Vector2(-4, 8), "K", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("fbf8ff"))
+				var a2 := fmod(_t * 2.0, TAU)
+				draw_circle(c + Vector2(cos(a2) * 15.0, sin(a2) * 15.0), 1.5, Color(1, 1, 1, 0.8))
+			"encyclopedia":
+				for k in 3:
+					draw_rect(Rect2(c + Vector2(-13 + k * 9, -12), Vector2(8, 24)), [Color("7a2e4a"), Color("2f5e9e"), Color("2f9e5b")][k])
+					draw_rect(Rect2(c + Vector2(-12 + k * 9, -8), Vector2(6, 2)), Color("ffd27a"))
+					draw_rect(Rect2(c + Vector2(-12 + k * 9, 6), Vector2(6, 2)), Color("ffd27a"))
 			"sunday_paper":
 				draw_rect(Rect2(c + Vector2(-10, -12), Vector2(24, 20)), Color("d8ceb8"))
 				draw_rect(Rect2(c + Vector2(-14, -8), Vector2(24, 20)), Color("f4ecdc"))

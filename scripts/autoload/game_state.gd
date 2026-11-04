@@ -1372,11 +1372,19 @@ const WARES := {
 	"coin": {"tier": 3, "price": 15},         # +12 de suerte y +1 de parry / +12 luck and +1 parry
 	"batteries": {"tier": 3, "price": 18},    # dos subidas de nivel / two level-ups
 	"sunday_paper": {"tier": 3, "price": 24}, # dos mejoras suben de nivel / two upgrades level up
+	# Nivel 4 (Acto 4, la Metrópolis): lo mejor y lo más caro / Tier 4 (Act 4, the Metropolis): the best and priciest
+	"energy_drink": {"tier": 4, "price": 22}, # +20 % de velocidad de ataque y +8 % de velocidad / +20% attack speed and +8% speed
+	"lucky_cat": {"tier": 4, "price": 24},    # +20 de suerte y +2 de parry / +20 luck and +2 parry
+	"first_aid": {"tier": 4, "price": 22},    # toda la vida y +10 de vida máxima / all health and +10 max health
+	"comic": {"tier": 4, "price": 28},        # estadística legendaria al azar / random legendary stat
+	"encyclopedia": {"tier": 4, "price": 34}, # dos mejoras suben de nivel y una subida de nivel / two upgrades level up and one level-up
 }
 ## Vida máxima que da cada tarta / Max health each cake gives
 const CAKE_HP := 5.0
 ## Peso de cada nivel de artículo en cada acto / Weight of each ware tier in each act
-const WARE_TIER_WEIGHT := {1: {1: 1.0}, 2: {1: 1.0, 2: 3.0}, 3: {2: 1.0, 3: 3.0}}
+const WARE_TIER_WEIGHT := {1: {1: 1.0}, 2: {1: 1.0, 2: 3.0}, 3: {2: 1.0, 3: 3.0}, 4: {3: 1.0, 4: 3.0}}
+## Vida máxima que da cada botiquín / Max health each first-aid kit gives
+const FIRST_AID_HP := 10.0
 ## Lo comprado en esta partida: artículo → cuántos / Bought this run: ware → how many
 var bought := {}
 ## A quién se le ha dado propina en esta partida (solo una por personaje y partida)
@@ -1430,13 +1438,13 @@ func upgradable() -> Array:
 ## Artículos distintos para el kiosco según el acto, sin repetir "avoid" si se puede
 ## Different wares for the kiosk depending on the act, avoiding "avoid" if possible
 func roll_wares(n := 3, avoid: Array = []) -> Array[String]:
-	var weights: Dictionary = WARE_TIER_WEIGHT[clampi(act(), 1, 3)]
+	var weights: Dictionary = WARE_TIER_WEIGHT[clampi(act(), 1, 4)]
 	var pool := {}
 	for w: String in WARES:
 		var t: int = WARES[w]["tier"]
 		if not weights.has(t):
 			continue
-		if w in ["newspaper", "sunday_paper"] and upgradable().is_empty():
+		if w in ["newspaper", "sunday_paper", "encyclopedia"] and upgradable().is_empty():
 			continue
 		pool[w] = float(weights[t]) * (0.25 if avoid.has(w) else 1.0)
 	var out: Array[String] = []
@@ -1493,8 +1501,18 @@ func apply_ware(id: String) -> void:
 		"coin":
 			_add_stat_bonus("luck", 12.0)
 			_add_stat_bonus("parry", 1.0)
-		"gum", "gold_sticker":
-			var rarity := 2 if id == "gum" else 3
+		"energy_drink":
+			_add_stat_bonus("attack_speed", 20.0)
+			_add_stat_bonus("speed", 8.0)
+		"lucky_cat":
+			_add_stat_bonus("luck", 20.0)
+			_add_stat_bonus("parry", 2.0)
+		"encyclopedia":
+			_level_random_upgrade()
+			_level_random_upgrade()
+			pending_ups += 1
+		"gum", "gold_sticker", "comic":
+			var rarity := {"gum": 2, "gold_sticker": 3, "comic": 4}[id] as int
 			var stat_id: String = STATS[_rng.randi_range(0, STATS.size() - 1)]
 			apply_stat({"stat": stat_id, "rarity": rarity, "value": float(STAT_STEPS[stat_id][rarity])})
 		"newspaper":
@@ -1512,7 +1530,7 @@ func apply_ware(id: String) -> void:
 func ware_heal(id: String) -> float:
 	match id:
 		"milk": return 0.4
-		"sandwich", "cake": return 1.0
+		"sandwich", "cake", "first_aid": return 1.0
 	return 0.0
 
 
@@ -1591,7 +1609,7 @@ func stats_for(id: String) -> Dictionary:
 	# Doc: suma vida máxima; con la aspiradora cuesta velocidad / Doc: adds max health; with the vacuum it costs speed
 	s["max_hp"] = float(s["max_hp"]) + doc_hp()
 	# Tartas del kiosco / Kiosk cakes
-	s["max_hp"] = float(s["max_hp"]) + CAKE_HP * int(bought.get("cake", 0))
+	s["max_hp"] = float(s["max_hp"]) + CAKE_HP * int(bought.get("cake", 0)) + FIRST_AID_HP * int(bought.get("first_aid", 0))
 	if "vacuum" in weapons():
 		s["speed"] = float(s["speed"]) * (1.0 - up_value("doc", "pct", -1, "vacuum") / 100.0)
 	# Estadísticas ganadas al subir de nivel / Stats gained by levelling up
