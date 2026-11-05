@@ -157,6 +157,8 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	var up_row := HBoxContainer.new()
 	var up_name := UITheme.label("", 26, UITheme.GOLD)
 	up_name.size_flags_horizontal = SIZE_EXPAND_FILL
+	up_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	up_name.custom_minimum_size.x = 1
 	up_row.add_child(up_name)
 	var lvl_label := UITheme.label("", 14, UITheme.ASH, "caps")
 	lvl_label.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
@@ -191,9 +193,16 @@ func _offer_column(giver: String, weapon: String) -> Control:
 			t.button_group = group
 			t.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 			var lvl_w := GameState.level(giver, w)
-			t.text = "%s · %s" % [tr("WEAPON_SHORT_" + w.to_upper()), tr("UP_LEVEL") % lvl_w if lvl_w > 0 else tr("ASTRAL_NEW")]
+			# En dos líneas (arma y nivel) y sin ensanchar la tarjeta: con nombres largos como
+			# «Botas Propulsoras» las tres tarjetas se salían de la pantalla
+			# On two lines (weapon and level) without widening the card: with long names such as
+			# "Botas Propulsoras" the three cards spilled off the screen
+			t.text = "%s\n%s" % [tr("WEAPON_SHORT_" + w.to_upper()), tr("UP_LEVEL") % lvl_w if lvl_w > 0 else tr("ASTRAL_NEW")]
 			t.size_flags_horizontal = SIZE_EXPAND_FILL
-			t.custom_minimum_size.y = 48
+			t.size_flags_stretch_ratio = 1.0
+			t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			t.custom_minimum_size = Vector2(1, 64)
 			t.disabled = lvl_w >= GameState.max_level(giver, w)
 			t.button_pressed = w == _target[giver]
 			t.toggled.connect(func(on: bool) -> void:
