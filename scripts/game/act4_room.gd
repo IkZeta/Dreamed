@@ -37,6 +37,31 @@ const LOOK := {
 	"brutalist": {"plinth": "a6a198", "curb": "f2b632", "accent": "f2b632", "roof": "6a6660", "flat": "7e7a74", "sign": "2a2c34", "haze": "6a7080", "edge": "26262a"},
 }
 
+## La calzada de cada ciudad: asfalto, marcas y bordillo / Each city's roadway: asphalt, markings and kerb
+const ROAD := {
+	"synthwave": {"road": "1a1030", "line": "5ff2ff", "glow": true},
+	"steampunk": {"road": "4a3a30", "line": "c9961e", "rails": true},
+	"cheese": {"road": "c8783a", "line": "fff6e0"},
+	"aero": {"road": "5a9ac8", "line": "ffffff", "glow": true},
+	"solarpunk": {"road": "8a9a78", "line": "f6e2a0", "median": true},
+	"dieselpunk": {"road": "2a2624", "line": "e0b53a"},
+	"brutalist": {"road": "5e5c58", "line": "f2f2ea"},
+	"noir": {"road": "121216", "line": "d8d0c0", "wet": true},
+}
+## Avenidas con coches (columnas/filas de baldosa); en medio, la plaza
+## Avenues with cars (tile columns/rows); in the middle, the plaza
+const ROAD_H := Rect2i(2, 13, 40, 4)
+const ROAD_V := Rect2i(19, 2, 6, 26)
+const PLAZA_CORE := Rect2i(16, 10, 12, 10)
+## Pasos de cebra: en la avenida horizontal (columnas) y en la vertical (filas)
+## Zebra crossings: on the horizontal avenue (columns) and on the vertical one (rows)
+const CROSS_COLS := [9, 15, 28, 34]
+const CROSS_ROWS := [9, 20, 25]
+## Estéticas de noche: farolas y ventanas iluminan el suelo / Night looks: lamps and windows light the ground
+const NIGHT := ["synthwave", "steampunk", "dieselpunk", "noir"]
+## Coches aparcados: [x en baldosas, lado (0 arriba, 1 abajo), variante] / Parked cars: [x in tiles, side (0 top, 1 bottom), variant]
+var parked: Array = []
+
 var style := "synthwave"
 var final := false
 var rubble: Array[Rect2] = []
@@ -165,6 +190,28 @@ func _build_static() -> void:
 				"b": _static.append(Rect2(p + Vector2(10, 50), Vector2(100, 40)))
 	for b: Array in CityLayout.BUILDINGS:
 		_static.append(Rect2(Vector2(b[0], b[1]) * T, Vector2(b[2], b[3]) * T))
+	# Coches aparcados junto al bordillo, lejos de agujeros y pasos de cebra
+	# Cars parked by the kerb, away from holes and zebra crossings
+	var crng := RandomNumberGenerator.new()
+	crng.seed = hash(style) + 31
+	for side in 2:
+		var x := float(ROAD_H.position.x) + 0.8
+		while x < ROAD_H.end.x - 1.0:
+			var ok := not (x > PLAZA_CORE.position.x - 1.6 and x < PLAZA_CORE.end.x + 0.6)
+			for cc: int in CROSS_COLS:
+				if absf(x - (cc + 0.5)) < 1.6:
+					ok = false
+			var row := ROAD_H.position.y + (0 if side == 0 else ROAD_H.size.y - 1)
+			for h: Vector2i in CityLayout.HOLES:
+				if h.y == row and absf(x - (h.x + 0.5)) < 1.8:
+					ok = false
+			if ok and crng.randf() < 0.42:
+				parked.append([x, side, crng.randi() % 2])
+				var cy := (row + (0.62 if side == 0 else 0.78)) * T
+				_static.append(Rect2(Vector2(x * T - 80.0, cy - 34.0), Vector2(160, 40)))
+				x += 2.2
+			else:
+				x += 1.0
 	# Fuente y estanque: tiras horizontales que siguen la elipse del pilón y de la orilla
 	# Fountain and pond: horizontal strips that follow the ellipse of the basin and the bank
 	_add_ellipse(FOUNTAIN.get_center() + Vector2(0, 14), Vector2(FOUNTAIN.size.x * 0.5 - 16.0, FOUNTAIN.size.y * 0.5 - 30.0))
@@ -193,7 +240,7 @@ func tower_sites(count: int) -> Array:
 	var lean := lean_spot() if style == "noir" else Vector2.INF
 	for r in CityLayout.ROWS:
 		for c in CityLayout.COLS:
-			if not CityLayout.MAP[r][c] in [".", ":"]:
+			if not CityLayout.MAP[r][c] in [".", ":"] or is_road(c, r):
 				continue
 			var foot := (Vector2(c, r) + Vector2(0.5, 0.5)) * T
 			if foot.distance_to(start) < 520.0 or FOUNTAIN.grow(200.0).has_point(foot):
@@ -344,12 +391,17 @@ func _draw() -> void:
 				kind = "plaza"
 			elif ch == "W" and POND.has_point(Vector2(c, r) * T + Vector2(1, 1)):
 				kind = "grass"
-			var v := 0.97 + float(_hash(c, r) % 5) * 0.015
-			if ch == "T":
-				v *= 0.8   # suelo de bosque, más oscuro / forest floor, darker
+			if is_road(c, r):
+				_draw_road_tile(c, r)
+				continue
+			# Variación de tono suave y a gran escala (nada de baldosas sueltas más claras u oscuras)
+			# Soft, large-scale tone variation (no odd lighter or darker tiles)
+			var v := 1.0 + 0.025 * sin(c * 0.55 + r * 0.31) * cos(r * 0.47 - c * 0.18)
 			Sprites.draw(self, _tile(kind), Color(v, v, v), Vector2(c, r) * T)
-	# 2) Dibujo de la plaza alrededor de la fuente / Plaza pattern round the fountain
+	# 2) Dibujo de la plaza alrededor de la fuente y marcas de la calzada
+	# 2) Plaza pattern round the fountain and road markings
 	_draw_plaza_rings()
+	_draw_road_marks(view)
 	# 3) Bordes: césped con bordillo, agua con piedra / Edges: grass with a kerb, water with stone
 	for r in range(r0, r1 + 1):
 		var row: String = CityLayout.MAP[r]
@@ -357,6 +409,8 @@ func _draw() -> void:
 			var ch := row[c]
 			var p := Vector2(c, r) * T
 			if ch == "W" and (FOUNTAIN.has_point(p + Vector2(1, 1)) or POND.has_point(p + Vector2(1, 1))):
+				continue
+			if is_road(c, r):
 				continue
 			if ch == "W":
 				_draw_water_rim(c, r, p)
@@ -372,11 +426,197 @@ func _draw() -> void:
 			draw_rect(ring, look("plinth"))
 			draw_rect(Rect2(ring.position + Vector2(0, ring.size.y - 6), Vector2(ring.size.x, 6)), look("plinth").darkened(0.25))
 			draw_rect(ring, look("curb").darkened(0.2), false, 3.0)
+	if style in NIGHT:
+		_draw_lamp_light(r0, r1, c0, c1)
 	if POND.grow(T).intersects(view):
 		_draw_pond()
 	_draw_fountain()
 	_draw_holes()
 	draw_set_transform(Vector2.ZERO)
+
+
+## ¿Es calzada? Los brazos de las avenidas, fuera de la plaza central y de los edificios
+## Is it roadway? The avenue arms, outside the central plaza and the buildings
+func is_road(c: int, r: int) -> bool:
+	var q := Vector2i(c, r)
+	if not (ROAD_H.has_point(q) or ROAD_V.has_point(q)) or PLAZA_CORE.has_point(q):
+		return false
+	return CityLayout.MAP[r][c] in [":", "o"]
+
+
+func _road(key: String) -> Variant:
+	return ROAD[style].get(key, false)
+
+
+## Una baldosa de asfalto con su grano, parches y alguna grieta / An asphalt tile with its grain, patches and the odd crack
+func _draw_road_tile(c: int, r: int) -> void:
+	var p := Vector2(c, r) * T
+	var base := Color(_road("road"))
+	var v := 1.0 + 0.04 * sin(c * 0.9 + r * 0.4)
+	draw_rect(Rect2(p, Vector2(T, T)), Color(base.r * v, base.g * v, base.b * v))
+	var h := _hash(c, r)
+	if style == "steampunk":
+		# Adoquines grandes / Big setts
+		for yy in 5:
+			var off := 12.0 if yy % 2 else 0.0
+			for xx in 5:
+				var q := p + Vector2(off + xx * 25.0 - 6.0, yy * 25.0)
+				var k := 0.9 + float((h + xx * 7 + yy * 13) % 5) * 0.05
+				draw_rect(Rect2(q + Vector2(1, 1), Vector2(22, 22)), Color(base.r * k * 1.25, base.g * k * 1.25, base.b * k * 1.25))
+		return
+	if style == "cheese":
+		# Caramelo con burbujitas / Caramel with little bubbles
+		for k in 3:
+			var q := p + Vector2(15 + (h * (k + 3)) % 95, 15 + (h * (k + 5)) % 95)
+			draw_colored_polygon(_ellipse(q, Vector2(7, 5)), base.lightened(0.18))
+			draw_rect(Rect2(q + Vector2(-3, -3), Vector2(3, 2)), Color(1, 1, 1, 0.5))
+		return
+	# Grano del asfalto / Asphalt grain
+	for k in 9:
+		var q := p + Vector2((h * (k + 2) * 7) % 120, (h * (k + 5) * 11) % 120)
+		draw_rect(Rect2(q, Vector2(4, 4)), base.lightened(0.1) if k % 2 else base.darkened(0.15))
+	match h % 17:
+		0:   # parche / patch
+			draw_rect(Rect2(p + Vector2(20, 30), Vector2(70, 46)), base.darkened(0.05))
+			draw_rect(Rect2(p + Vector2(20, 30), Vector2(70, 46)), base.darkened(0.12), false, 2.0)
+		5:   # grieta / crack
+			var q := p + Vector2(30, 40)
+			draw_polyline(PackedVector2Array([q, q + Vector2(16, 10), q + Vector2(24, 30), q + Vector2(46, 36)]), base.darkened(0.35), 3.0)
+		9:   # mancha de aceite / oil stain
+			draw_colored_polygon(_ellipse(p + Vector2(60, 64), Vector2(30, 14)), Color(0, 0, 0, 0.18))
+			if style == "noir" or style == "synthwave":
+				draw_rect(Rect2(p + Vector2(46, 58), Vector2(16, 3)), Color(Color(_road("line")), 0.35))
+
+
+## Marcas de la calzada: bordillos, líneas, pasos de cebra; raíles en la ciudad steampunk y
+## mediana con césped en la solarpunk / Road markings: kerbs, lines, zebra crossings; rails in the
+## steampunk city and a grassy median in the solarpunk one
+func _draw_road_marks(view: Rect2) -> void:
+	var line := Color(_road("line"))
+	var curb := look("curb")
+	var glow: bool = _road("glow")
+	var h0 := Vector2(ROAD_H.position) * T
+	var h1 := Vector2(ROAD_H.end) * T
+	var v0 := Vector2(ROAD_V.position) * T
+	var v1 := Vector2(ROAD_V.end) * T
+	var core0 := Vector2(PLAZA_CORE.position) * T
+	var core1 := Vector2(PLAZA_CORE.end) * T
+	# Tramos: [desde, hasta] de la avenida horizontal (x) y de la vertical (y)
+	# Stretches: [from, to] of the horizontal avenue (x) and of the vertical one (y)
+	var hs := [[h0.x, core0.x], [core1.x, h1.x]]
+	var vs := [[v0.y, core0.y], [core1.y, v1.y]]
+	var hw := h1.y - h0.y
+	var vw := v1.x - v0.x
+	# Bordillos con su sombra / Kerbs with their shadow
+	for st: Array in hs:
+		for y in [h0.y, h1.y]:
+			draw_rect(Rect2(Vector2(st[0], y - 7), Vector2(st[1] - st[0], 14)), curb)
+			draw_rect(Rect2(Vector2(st[0], y + (7 if y == h0.y else -13)), Vector2(st[1] - st[0], 6)), Color(0, 0, 0, 0.25))
+	for st: Array in vs:
+		for x in [v0.x, v1.x]:
+			draw_rect(Rect2(Vector2(x - 7, st[0]), Vector2(14, st[1] - st[0])), curb)
+			draw_rect(Rect2(Vector2(x + (7 if x == v0.x else -13), st[0]), Vector2(6, st[1] - st[0])), Color(0, 0, 0, 0.25))
+	var cy := h0.y + hw / 2.0
+	var cx := v0.x + vw / 2.0
+	if _road("rails"):
+		# Raíles del tranvía con traviesas / Tram rails with sleepers
+		for st: Array in hs:
+			for ry in [cy - 70.0, cy + 70.0]:
+				var x := float(st[0])
+				while x < float(st[1]):
+					draw_rect(Rect2(Vector2(x, ry - 22), Vector2(14, 44)), Color("3a2a20"))
+					x += 34.0
+				for o in [-16.0, 16.0]:
+					draw_rect(Rect2(Vector2(st[0], ry + o - 3), Vector2(st[1] - st[0], 6)), Color("8a8078"))
+					draw_rect(Rect2(Vector2(st[0], ry + o - 3), Vector2(st[1] - st[0], 2)), Color("d8d0c0"))
+		for st: Array in vs:
+			for rx in [cx - 110.0, cx + 110.0]:
+				var y := float(st[0])
+				while y < float(st[1]):
+					draw_rect(Rect2(Vector2(rx - 22, y), Vector2(44, 14)), Color("3a2a20"))
+					y += 34.0
+				for o in [-16.0, 16.0]:
+					draw_rect(Rect2(Vector2(rx + o - 3, st[0]), Vector2(6, st[1] - st[0])), Color("8a8078"))
+	elif _road("median"):
+		# Mediana con césped y flores / Grassy median with flowers
+		for st: Array in hs:
+			draw_rect(Rect2(Vector2(st[0], cy - 22), Vector2(st[1] - st[0], 44)), curb)
+			draw_rect(Rect2(Vector2(st[0], cy - 16), Vector2(st[1] - st[0], 32)), Color("5fb86a"))
+			var x := float(st[0]) + 30.0
+			while x < float(st[1]) - 20.0:
+				draw_circle(Vector2(x, cy - 2), 9.0, Color("3f9a4a"))
+				draw_circle(Vector2(x + 2, cy - 6), 3.0, Color("ffd060") if int(x) % 3 else Color("ff8fb0"))
+				x += 46.0
+		for st: Array in vs:
+			draw_rect(Rect2(Vector2(cx - 30, st[0]), Vector2(60, st[1] - st[0])), curb)
+			draw_rect(Rect2(Vector2(cx - 24, st[0]), Vector2(48, st[1] - st[0])), Color("5fb86a"))
+			var y := float(st[0]) + 40.0
+			while y < float(st[1]) - 30.0:
+				draw_circle(Vector2(cx, y), 14.0, Color("3f9a4a"))
+				draw_circle(Vector2(cx - 4, y - 4), 5.0, Color("7fcf7a"))
+				y += 80.0
+		# Carril bici / Bike lane
+		for st: Array in hs:
+			draw_rect(Rect2(Vector2(st[0], h1.y - 70), Vector2(st[1] - st[0], 50)), Color(0.35, 0.65, 0.4, 0.35))
+	else:
+		# Doble línea en medio y discontinuas entre carriles / Double centre line and dashes between lanes
+		for st: Array in hs:
+			_line(Vector2(st[0], cy - 9), Vector2(st[1], cy - 9), line, 6.0, glow)
+			_line(Vector2(st[0], cy + 9), Vector2(st[1], cy + 9), line, 6.0, glow)
+			for ly in [h0.y + hw * 0.25, h0.y + hw * 0.75]:
+				var x := float(st[0]) + 20.0
+				while x < float(st[1]) - 40.0:
+					_line(Vector2(x, ly), Vector2(x + 50.0, ly), Color(line, 0.8), 5.0, glow)
+					x += 100.0
+		for st: Array in vs:
+			_line(Vector2(cx - 9, st[0]), Vector2(cx - 9, st[1]), line, 6.0, glow)
+			_line(Vector2(cx + 9, st[0]), Vector2(cx + 9, st[1]), line, 6.0, glow)
+			for lx in [v0.x + vw / 6.0, v0.x + vw * 2.0 / 6.0, v0.x + vw * 4.0 / 6.0, v0.x + vw * 5.0 / 6.0]:
+				var y := float(st[0]) + 20.0
+				while y < float(st[1]) - 40.0:
+					_line(Vector2(lx, y), Vector2(lx, y + 50.0), Color(line, 0.8), 5.0, glow)
+					y += 100.0
+	# Pasos de cebra / Zebra crossings
+	var zebra := Color(line, 0.9) if style != "cheese" else Color("fff6e0")
+	for c: int in CROSS_COLS:
+		var x := c * T
+		draw_rect(Rect2(Vector2(x, h0.y + 8), Vector2(T, hw - 16)), Color(0, 0, 0, 0.12))
+		var y := h0.y + 16.0
+		while y < h1.y - 20.0:
+			draw_rect(Rect2(Vector2(x + 14, y), Vector2(T - 28, 26)), zebra)
+			y += 48.0
+	for r: int in CROSS_ROWS:
+		var y := r * T
+		var x := v0.x + 16.0
+		while x < v1.x - 20.0:
+			draw_rect(Rect2(Vector2(x, y + 14), Vector2(26, T - 28)), zebra)
+			x += 48.0
+	# Mojado (noir): reflejos de las luces en el asfalto / Wet (noir): light reflections on the asphalt
+	if _road("wet"):
+		for i in 30:
+			var q := Vector2(h0.x + fposmod(i * 731.0, h1.x - h0.x), h0.y + 30.0 + fposmod(i * 197.0, hw - 60.0))
+			if q.x > core0.x and q.x < core1.x:
+				continue
+			var a := 0.2 + 0.15 * sin(_t * 1.5 + i)
+			draw_rect(Rect2(q, Vector2(4, 40)), Color("e0303a", a) if i % 4 == 0 else Color(1, 0.94, 0.8, a))
+
+
+func _line(a: Vector2, b: Vector2, col: Color, w: float, glow: bool) -> void:
+	if glow:
+		draw_line(a, b, Color(col, 0.18), w * 3.0)
+	draw_line(a, b, col, w)
+
+
+## Charcos de luz bajo las farolas (ciudades de noche) / Pools of light under the lamps (night cities)
+func _draw_lamp_light(r0: int, r1: int, c0: int, c1: int) -> void:
+	var lamp := Color({"synthwave": "5ff2ff", "steampunk": "ffb04a", "dieselpunk": "ffd27a", "noir": "ffe8b0"}[style])
+	var soft := DreamBackground.soft_texture()
+	for r in range(r0, r1 + 1):
+		for c in range(c0, c1 + 1):
+			if CityLayout.MAP[r][c] == "l":
+				var p := (Vector2(c, r) + Vector2(0.5, 0.75)) * T
+				draw_texture_rect(soft, Rect2(p - Vector2(200, 90), Vector2(400, 180)), false, Color(lamp, 0.28))
+				draw_texture_rect(soft, Rect2(p - Vector2(90, 40), Vector2(180, 80)), false, Color(lamp, 0.25))
 
 
 ## Anillos y radios de baldosa de otro color alrededor de la fuente / Rings and spokes of differently coloured paving round the fountain
@@ -599,9 +839,24 @@ func make_props(run_node: Node) -> Array[Node2D]:
 				continue
 			var p := CityProp.new()
 			p.sprite = _tile(sprite)
-			p.position = Bedroom.to_world((Vector2(c, r) + base) * T)
+			var at := (Vector2(c, r) + base) * T
+			if sprite == "tree":
+				# Árboles algo movidos, de tamaños distintos y unos girados: que no parezcan una fila
+				# Trees a bit offset, of different sizes and some flipped: so they don't look like a row
+				var h := _hash(c, r)
+				at += Vector2(float(h % 41) - 20.0, float((h / 41) % 21) - 10.0)
+				p.size = 0.85 + float(h % 7) * 0.06
+				p.flip = h % 2 == 0
+			p.position = Bedroom.to_world(at)
 			p.sway = sprite == "tree"
 			out.append(p)
+	for car: Array in parked:
+		var p := CityProp.new()
+		p.sprite = _tile("car%d" % car[2])
+		var row: int = ROAD_H.position.y + (0 if car[1] == 0 else ROAD_H.size.y - 1)
+		p.position = Bedroom.to_world(Vector2(float(car[0]) * T, (row + (0.62 if car[1] == 0 else 0.78)) * T))
+		p.flip = car[1] == 1
+		out.append(p)
 	for i in CityLayout.BUILDINGS.size():
 		var b: Array = CityLayout.BUILDINGS[i]
 		var bl := CityBuilding.new()
@@ -629,7 +884,7 @@ func make_props(run_node: Node) -> Array[Node2D]:
 		var spots: Array[Vector2] = []
 		for r in range(1, CityLayout.ROWS - 1):
 			for c in range(1, CityLayout.COLS - 1):
-				if not CityLayout.MAP[r][c] in [".", ":", ","]:
+				if not CityLayout.MAP[r][c] in [".", ":", ","] or is_road(c, r):
 					continue
 				var p := (Vector2(c, r) + Vector2(0.5, 0.6)) * T
 				if FOUNTAIN.grow(120.0).has_point(p) or p.distance_to(start_point()) < 260.0:
@@ -803,10 +1058,12 @@ class AdSwarm extends Node2D:
 class CityProp extends Node2D:
 	var sprite := ""
 	var sway := false
+	var size := 1.0
+	var flip := false
 	var _t := 0.0
 
 	func _ready() -> void:
-		scale = Vector2(Bedroom.S, Bedroom.S)
+		scale = Vector2(Bedroom.S * size * (-1.0 if flip else 1.0), Bedroom.S * size)
 		_t = randf() * 5.0
 		set_process(sway)
 
@@ -853,6 +1110,14 @@ class CityBuilding extends Node2D:
 
 	func _ready() -> void:
 		scale = Vector2(Bedroom.S, Bedroom.S)
+		# Cada ciudad construye a su manera: en la brutalista no hay tejados a dos aguas, en la
+		# synthwave las casas son tiendas con neón... / Each city builds its own way: no pitched roofs
+		# in the brutalist one, houses are neon shops in the synthwave one...
+		if kind == "house":
+			match style:
+				"brutalist": kind = "apart" if seed % 2 else "block"
+				"synthwave": kind = "shop" if seed % 3 == 0 else "house"
+				"aero": kind = "pod"
 
 	func _process(delta: float) -> void:
 		if not is_instance_valid(room):
@@ -883,19 +1148,29 @@ class CityBuilding extends Node2D:
 			return
 		var w := rect.size.x
 		var d := rect.size.y
-		var fh := TOWER_FACADE_H if kind == "tower" else FACADE_H
+		var fh := facade_h()
 		var top := -d - T * 0.5
 		var rh := d + T * 0.5 - fh
 		var edge := _c("edge")
+		# De noche, la luz de los escaparates y ventanas cae en la acera / At night, light from shop windows and windows falls on the pavement
+		if style in NIGHT:
+			var soft := DreamBackground.soft_texture()
+			var wl := Color({"synthwave": "ff5fa0", "steampunk": "ffd27a", "dieselpunk": "ffd27a", "noir": "f0d8a0"}[style])
+			var x3 := 40.0
+			while x3 < w - 60.0:
+				draw_texture_rect(soft, Rect2(x3 - 30, -10, 160, 90), false, Color(wl, 0.22 if kind == "shop" else 0.12))
+				x3 += 125.0
 		# Sombra en el suelo, hacia la derecha y abajo / Shadow on the ground, to the right and down
 		draw_colored_polygon(PackedVector2Array([Vector2(w, -d + 20), Vector2(w + 46, -d + 50), Vector2(w + 46, 30), Vector2(30, 30), Vector2(0, 0), Vector2(w, 0)]), Color(0.05, 0.02, 0.12, 0.28))
 		# Tejado / Roof
 		if kind == "house":
 			_pitched_roof(top, rh, w)
+		elif kind == "pod":
+			_pod_roof(top, rh, w)
 		else:
 			_flat_roof(top, rh, w)
 		# Fachada en tramos, con el tono del edificio / Facade in sections, in the building's tone
-		var fac := "city_%s_%s" % [style, "facade_tall" if kind == "tower" else ("shopfront" if kind == "shop" else "facade")]
+		var fac := "city_%s_%s" % [style, "facade_tall" if kind in ["tower", "apart"] else ("shopfront" if kind == "shop" else "facade")]
 		var tint := Color.WHITE.lerp(_tone(Color(0.95, 0.92, 1.0), 0.1), 0.5)
 		var x2 := 0.0
 		while x2 < w:
@@ -915,20 +1190,28 @@ class CityBuilding extends Node2D:
 		draw_rect(Rect2(dx - 10, 6, 145, 4), Color(0, 0, 0, 0.3))
 		Sprites.draw(self, "city_%s_door" % style, Color.WHITE, Vector2(dx, -202.0))
 		draw_rect(Rect2(dx + 24, 10, 77, 12), _c("accent").darkened(0.3))
+		_style_facade(w, fh, top)
 		if kind == "shop":
 			_shop_sign(w, fh)
 		if kind == "tower":
 			_tower_crown(w, fh, top)
 		# Contorno oscuro de toda la silueta (pixel art) / Dark outline round the whole silhouette (pixel art)
-		draw_rect(Rect2(0, top, w, d + T * 0.5), edge, false, 4.0)
+		if kind != "pod":
+			draw_rect(Rect2(0, top, w, d + T * 0.5), edge, false, 4.0)
+		else:
+			draw_rect(Rect2(0, -fh, w, fh), edge, false, 4.0)
 		if style == "noir" and not screen_taken and kind != "house":
 			_draw_screen(w, fh)
 		if burning:
 			_draw_fire(w, fh, top)
 
+	## Alto de la fachada: los bloques de pisos y la torre, más altos / Facade height: apartment blocks and the tower, taller
+	func facade_h() -> float:
+		return TOWER_FACADE_H if kind in ["tower", "apart"] else FACADE_H
+
 	## Pantalla gigante en la fachada (sueño 20) / A giant screen on the facade (dream 20)
 	func screen_world() -> Vector2:
-		var fh := TOWER_FACADE_H if kind == "tower" else FACADE_H
+		var fh := facade_h()
 		return global_position + Vector2(rect.size.x * 0.75, -fh * 0.62) * Bedroom.S
 
 	func _draw_screen(w: float, fh: float) -> void:
@@ -964,6 +1247,175 @@ class CityBuilding extends Node2D:
 			var sp := Vector2(w * (0.2 + 0.6 * fposmod(i * 0.37, 1.0)) + ph * 60.0, top - ph * 260.0)
 			draw_circle(sp, 30.0 + ph * 50.0, Color(0.12, 0.1, 0.12, 0.45 * (1.0 - ph) * k))
 
+	## Detalles propios de cada ciudad sobre la fachada / Each city's own details on the facade
+	func _style_facade(w: float, fh: float, top: float) -> void:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed * 17 + 3
+		match style:
+			"synthwave":
+				# Tubos de neón en la cornisa y en las esquinas, que laten / Neon tubes on the cornice and corners, pulsing
+				var g := 0.7 + 0.3 * sin(_t * 2.5 + seed)
+				var a := Color(_c("curb"), g)
+				var b2 := Color(_c("accent"), g)
+				draw_line(Vector2(0, -fh - 10), Vector2(w, -fh - 10), Color(a, 0.25), 14.0)
+				draw_line(Vector2(0, -fh - 10), Vector2(w, -fh - 10), a, 4.0)
+				for x in [10.0, w - 10.0]:
+					draw_line(Vector2(x, -fh), Vector2(x, -30), Color(b2, 0.2), 14.0)
+					draw_line(Vector2(x, -fh), Vector2(x, -30), b2, 4.0)
+			"steampunk":
+				# Tuberías de cobre bajando por la fachada, con juntas y una llave / Copper pipes down the facade, with joints and a valve
+				for k in 2:
+					var x := w * (0.18 + 0.64 * k) + rng.randf_range(-20, 20)
+					draw_rect(Rect2(x, -fh, 12, fh - 24), Color("b87333"))
+					draw_rect(Rect2(x, -fh, 4, fh - 24), Color("e8a868"))
+					var y := -fh + 40.0
+					while y < -40.0:
+						draw_rect(Rect2(x - 3, y, 18, 8), Color("8a5428"))
+						y += 70.0
+					draw_circle(Vector2(x + 6, -fh * 0.45), 11.0, Color("c9961e"))
+					draw_circle(Vector2(x + 6, -fh * 0.45), 5.0, Color("5a3a20"))
+			"cheese":
+				# Queso fundido chorreando desde el tejado / Melted cheese dripping from the roof
+				var y0 := -fh - 6.0
+				var x := 0.0
+				while x < w:
+					var dw := rng.randf_range(24, 44)
+					var dh := rng.randf_range(10, 46)
+					draw_rect(Rect2(x, y0, dw, 12), Color("ffc83a"))
+					draw_rect(Rect2(x + dw * 0.3, y0 + 8, dw * 0.4, dh), Color("ffc83a"))
+					draw_circle(Vector2(x + dw * 0.5, y0 + 8 + dh), dw * 0.22, Color("ffc83a"))
+					draw_rect(Rect2(x + dw * 0.35, y0 + 10, 3, dh * 0.7), Color("fff0a0"))
+					x += dw
+			"aero":
+				# Brillo de cristal que pasa y hojas verdes en las esquinas / A passing glass glint and green leaves at the corners
+				var gx := fposmod(_t * 60.0 + seed * 90.0, w + 400.0) - 200.0
+				draw_colored_polygon(PackedVector2Array([Vector2(gx, -fh), Vector2(gx + 40, -fh), Vector2(gx - 40, -24), Vector2(gx - 80, -24)]), Color(1, 1, 1, 0.18))
+				for x in [26.0, w - 26.0]:
+					draw_colored_polygon(room._ellipse(Vector2(x, -fh + 30), Vector2(18, 30)), Color("5fd07a"))
+					draw_line(Vector2(x, -fh + 6), Vector2(x, -fh + 56), Color("c8ffd0"), 3.0)
+			"solarpunk":
+				# Hiedra que cuelga de la cornisa / Ivy hanging from the cornice
+				var x := 6.0
+				while x < w - 6.0:
+					var hang := rng.randf_range(20, fh * 0.55)
+					var y := -fh
+					while y < -fh + hang:
+						draw_circle(Vector2(x + sin(y * 0.08) * 5.0, y), 9.0, Color("3f9a4a") if int(y) % 3 else Color("5fb86a"))
+						y += 12.0
+					if rng.randf() < 0.4:
+						draw_circle(Vector2(x, -fh + hang), 5.0, Color("ffb0c8"))
+					x += rng.randf_range(26, 60)
+			"dieselpunk":
+				# Focos que barren el cielo desde la cornisa (de noche) / Searchlights sweeping the sky from the cornice (at night)
+				if kind in ["apart", "tower"]:
+					for k in 2:
+						var o := Vector2(w * (0.25 + 0.5 * k), -fh - 6)
+						var a := -PI / 2.0 + sin(_t * 0.6 + seed + k * 2.0) * 0.6
+						var tip := o + Vector2.from_angle(a) * 420.0
+						var side := Vector2.from_angle(a + PI / 2.0) * 50.0
+						draw_colored_polygon(PackedVector2Array([o, tip + side, tip - side]), Color(1.0, 0.9, 0.6, 0.08))
+						draw_circle(o, 10.0, Color("ffd27a"))
+			"brutalist":
+				# Manchas de lluvia bajo las ventanas y voladizos de hormigón / Rain stains under the windows and concrete overhangs
+				for k in int(w / 60.0):
+					var x := rng.randf_range(10, w - 20)
+					var len := rng.randf_range(30, fh * 0.6)
+					draw_rect(Rect2(x, -fh + 20, rng.randf_range(6, 14), len), Color(0.15, 0.17, 0.2, 0.13))
+				if kind in ["apart", "block"]:
+					var y := -fh + 110.0
+					while y < -60.0:
+						var x := rng.randf_range(10, w * 0.4)
+						var bw := rng.randf_range(90, w * 0.5)
+						draw_rect(Rect2(x, y, bw, 14), _tone(_c("plinth")).lightened(0.05))
+						draw_rect(Rect2(x, y + 14, bw, 8), Color(0, 0, 0, 0.3))
+						y += 120.0
+
+	## Suelo de la azotea propio de cada ciudad; true si sustituye a la tela asfáltica
+	## Each city's own roof surface; true if it replaces the membrane
+	func _roof_surface(top: float, h: float, w: float, base: Color, rng: RandomNumberGenerator) -> bool:
+		var inner := Rect2(18, top + 18, w - 36, h - 36)
+		match style:
+			"solarpunk":
+				# Cubierta verde: césped, caminito de losas y matas / Green roof: lawn, a stepping-stone path and shrubs
+				draw_rect(inner, Color("6ab86a"))
+				for i in int(inner.size.x * inner.size.y / 1600.0):
+					var q := inner.position + Vector2(rng.randf() * inner.size.x, rng.randf() * inner.size.y)
+					draw_rect(Rect2(q, Vector2(5, 9)), Color("8fd88a") if i % 2 else Color("4f9a50"))
+				var px := inner.position.x + inner.size.x * 0.5
+				var yy := inner.position.y + 20.0
+				while yy < inner.end.y - 30.0:
+					draw_rect(Rect2(px - 22 + sin(yy * 0.02) * 30.0, yy, 44, 26), Color("e8e0c8"))
+					yy += 46.0
+				for k in 4:
+					var q := inner.position + Vector2(rng.randf_range(30, inner.size.x - 30), rng.randf_range(30, inner.size.y - 30))
+					draw_circle(q + Vector2(4, 8), 22.0, Color(0, 0, 0, 0.15))
+					draw_circle(q, 22.0, Color("3f9a4a"))
+					draw_circle(q + Vector2(-6, -6), 9.0, Color("7fcf7a"))
+				return true
+			"aero":
+				# Lucernario de cristal con reflejos / Glass skylight with reflections
+				draw_rect(inner, Color("9fd8f4"))
+				var x := inner.position.x
+				while x < inner.end.x:
+					draw_rect(Rect2(x, inner.position.y, 4, inner.size.y), Color("ffffff", 0.8))
+					x += 70.0
+				var y := inner.position.y
+				while y < inner.end.y:
+					draw_rect(Rect2(inner.position.x, y, inner.size.x, 4), Color("ffffff", 0.8))
+					y += 70.0
+				draw_colored_polygon(PackedVector2Array([inner.position + Vector2(40, 0), inner.position + Vector2(140, 0), inner.position + Vector2(40, 140), inner.position + Vector2(0, 140)]), Color(1, 1, 1, 0.3))
+				return true
+			"synthwave":
+				# Rejilla de neón tenue / Dim neon grid
+				draw_rect(inner, base.darkened(0.25))
+				var g := 0.35 + 0.15 * sin(_t * 1.5 + seed)
+				var x := inner.position.x + 30.0
+				while x < inner.end.x:
+					draw_line(Vector2(x, inner.position.y), Vector2(x, inner.end.y), Color(_c("accent"), g), 2.0)
+					x += 60.0
+				var y := inner.position.y + 30.0
+				while y < inner.end.y:
+					draw_line(Vector2(inner.position.x, y), Vector2(inner.end.x, y), Color(_c("curb"), g), 2.0)
+					y += 60.0
+				return true
+			"steampunk":
+				# Chapa de cobre con costuras remachadas y pátina / Copper sheet with riveted seams and patina
+				draw_rect(inner, Color("a8683a"))
+				var x := inner.position.x
+				var k := 0
+				while x < inner.end.x:
+					draw_rect(Rect2(x, inner.position.y, 60, inner.size.y), Color("b87843") if k % 2 else Color("9a5e34"))
+					draw_rect(Rect2(x, inner.position.y, 4, inner.size.y), Color("6a3a20"))
+					var y := inner.position.y + 10.0
+					while y < inner.end.y:
+						draw_rect(Rect2(x + 6, y, 3, 3), Color("e8b078"))
+						y += 24.0
+					x += 60.0
+					k += 1
+				for i in 4:
+					var q := inner.position + Vector2(rng.randf() * inner.size.x, rng.randf() * inner.size.y)
+					draw_colored_polygon(room._ellipse(q, Vector2(rng.randf_range(20, 50), rng.randf_range(10, 22))), Color("4f8a7a", 0.55))
+				return true
+		return false
+
+	## Casa cápsula de frutiger aero: tejado redondeado y brillante / Frutiger aero pod house: rounded glossy roof
+	func _pod_roof(top: float, h: float, w: float) -> void:
+		var base := _tone(_c("roof"), 0.1)
+		var pts := PackedVector2Array()
+		for i in 25:
+			var a := PI + PI * i / 24.0
+			pts.append(Vector2(w / 2.0 + cos(a) * w / 2.0, top + h + sin(a) * h))
+		draw_colored_polygon(pts, base)
+		var hi := PackedVector2Array()
+		for i in 13:
+			var a := PI * 1.1 + PI * 0.45 * i / 12.0
+			hi.append(Vector2(w / 2.0 + cos(a) * w * 0.4, top + h + sin(a) * h * 0.8))
+		draw_polyline(hi, Color(1, 1, 1, 0.7), 10.0)
+		draw_rect(Rect2(-8, top + h - 14, w + 16, 16), base.darkened(0.3))
+		draw_rect(Rect2(-8, top + h - 14, w + 16, 4), Color("c8ffd0"))
+		draw_circle(Vector2(w * 0.7, top + h * 0.45), 26.0, Color(0.85, 0.97, 1.0, 0.8))
+		draw_arc(Vector2(w * 0.7, top + h * 0.45), 26.0, 0, TAU, 20, Color(1, 1, 1, 0.9), 3.0)
+
 	## Tejado a dos aguas con tejas / Pitched roof with tiles
 	func _pitched_roof(top: float, h: float, w: float) -> void:
 		var base := _tone(_c("roof"), 0.16)
@@ -990,6 +1442,46 @@ class CityBuilding extends Node2D:
 		draw_rect(Rect2(cx, top - 26, 40, 58), _tone(_c("plinth")).darkened(0.3))
 		draw_rect(Rect2(cx - 5, top - 30, 50, 10), _tone(_c("plinth")).darkened(0.5))
 		draw_rect(Rect2(cx, top - 26, 8, 58), Color(1, 1, 1, 0.15))
+		# Cada ciudad le pone lo suyo / Each city adds its own touch
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed * 7 + 1
+		match style:
+			"synthwave":
+				var g := 0.7 + 0.3 * sin(_t * 2.0 + seed)
+				draw_line(Vector2(0, ridge), Vector2(w, ridge), Color(_c("accent"), 0.25 * g), 16.0)
+				draw_line(Vector2(0, ridge), Vector2(w, ridge), Color(_c("accent"), g), 4.0)
+			"steampunk", "dieselpunk":
+				# Buhardillas con ventana encendida / Dormers with a lit window
+				var n := maxi(1, int(w / 220.0))
+				for k in n:
+					var dx := w * (k + 0.5) / n - 30.0
+					var dy := ridge + 20.0
+					draw_rect(Rect2(dx, dy, 60, 56), base.darkened(0.25))
+					draw_colored_polygon(PackedVector2Array([Vector2(dx - 8, dy), Vector2(dx + 68, dy), Vector2(dx + 30, dy - 30)]), base.darkened(0.4))
+					draw_rect(Rect2(dx + 14, dy + 12, 32, 34), Color("2a1a14"))
+					draw_rect(Rect2(dx + 17, dy + 15, 26, 28), Color("ffd27a"))
+					draw_rect(Rect2(dx + 29, dy + 15, 2, 28), Color("2a1a14"))
+				draw_rect(Rect2(0, ridge - 6, w, 12), Color("4f8a7a") if style == "steampunk" else Color("c9961e"))
+			"cheese":
+				for k in int(w / 90.0):
+					var q := Vector2(rng.randf_range(30, w - 30), rng.randf_range(top + 20, top + h - 30))
+					var rr := rng.randf_range(10, 22)
+					draw_colored_polygon(room._ellipse(q, Vector2(rr, rr * 0.7)), base.darkened(0.25))
+					draw_colored_polygon(room._ellipse(q + Vector2(0, 3), Vector2(rr * 0.7, rr * 0.45)), base.darkened(0.4))
+			"solarpunk":
+				# Tejado verde con hierba y flores / Green roof with grass and flowers
+				for k in int(w * h / 1400.0):
+					var q := Vector2(rng.randf_range(8, w - 12), rng.randf_range(top + 6, top + h - 20))
+					draw_rect(Rect2(q, Vector2(6, 10)), Color("7fcf7a") if k % 2 else Color("3f9a4a"))
+					if k % 9 == 0:
+						draw_circle(q, 5.0, Color("ffd060") if k % 2 else Color("ff8fb0"))
+				# Placas solares en un faldón / Solar panels on one slope
+				for k in maxi(1, int(w / 180.0)):
+					var q := Vector2(30 + k * 170.0, ridge + 24.0)
+					if q.x + 130.0 < w:
+						draw_rect(Rect2(q, Vector2(130, 60)), Color("2a4a8a"))
+						draw_rect(Rect2(q, Vector2(130, 60)), Color("8fb8f0"), false, 3.0)
+						draw_line(q + Vector2(65, 0), q + Vector2(65, 60), Color("8fb8f0"), 2.0)
 
 	## Azotea con pretil: tela asfáltica en placas, gravilla, manchas, y encima máquinas, placas solares,
 	## helipuerto o el detalle propio de cada estética
@@ -1000,9 +1492,11 @@ class CityBuilding extends Node2D:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed * 31 + 7
 		draw_rect(Rect2(0, top, w, h), base)
-		# Placas de la tela, al tresbolillo / Membrane panels, staggered
 		var y := top + 16.0
 		var row := 0
+		if _roof_surface(top, h, w, base, rng):
+			y = INF   # sin placas de tela / no membrane panels
+		# Placas de la tela, al tresbolillo / Membrane panels, staggered
 		while y < top + h - 16.0:
 			draw_rect(Rect2(16, y, w - 32, 3), base.darkened(0.12))
 			var x := 16.0 + (60.0 if row % 2 else 0.0)

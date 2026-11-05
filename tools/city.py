@@ -233,6 +233,111 @@ def build(ms):
             b += R(x + 14, top + 12, 40, 10, st["trim"]) + R(x + 60, top + 12, 10, 10, "#c83a3a")
         return b
 
+    def tower(name, st, rng):
+        """El rascacielos que se cae: vestíbulo con marquesina abajo, cuerpo con su cara lateral en
+        sombra y un remate propio de cada ciudad arriba (cúpula, aguja, cuña, jardín...).
+        The skyscraper that falls: a lobby with a canopy at the bottom, a body with its side face in
+        shade and each city's own crown on top (dome, spire, wedge, garden...)."""
+        col = st["bld"][1]
+        trim, wins = st["trim"], st["win"]
+        x, w = -78, 140
+        top, bottom = -470, -64
+        b = "<ellipse cx='10' cy='0' rx='96' ry='16' fill='#000000' opacity='0.3'/>"
+        # Cara lateral (da volumen) / Side face (gives volume)
+        b += P([(x + w, top), (x + w + 18, top + 12), (x + w + 18, 0), (x + w, 0)], dark(col, 0.38))
+        for wy in range(top + 30, bottom - 10, 34):
+            b += P([(x + w + 4, wy), (x + w + 14, wy + 6), (x + w + 14, wy + 18), (x + w + 4, wy + 12)], dark(wins[0], 0.45))
+        b += facade(name, st, rng, x, top, w, bottom - top, col)
+        # Vestíbulo: base oscura, cristalera y marquesina / Lobby: dark base, glazing and a canopy
+        base = dark(col, 0.3) if name != "cheese" else "#c8902a"
+        b += R(x - 6, bottom, w + 12, 64, base) + R(x - 6, bottom, w + 12, 4, light(base, 0.25))
+        b += R(x + 20, bottom + 14, w - 40, 50, "#1a1e2a") + R(x + 24, bottom + 18, w - 48, 46, light(wins[0], 0.15))
+        b += R(x + w / 2 - 2, bottom + 18, 4, 46, "#1a1e2a") + R(x + 24, bottom + 18, w - 48, 6, "#ffffff")
+        b += P([(x + 6, bottom + 8), (x + w - 6, bottom + 8), (x + w + 4, bottom + 16), (x - 4, bottom + 16)], trim)
+        cx = x + w / 2
+        # Remate de cada ciudad / Each city's crown
+        if name == "synthwave":
+            for k, (ww, hh) in enumerate(((120, 30), (90, 30), (60, 30))):
+                yy = top - 30 * (k + 1)
+                b += R(cx - ww / 2, yy, ww, hh, dark(col, 0.1 * k)) + R(cx - ww / 2, yy, ww, 4, trim)
+                b += R(cx - ww / 2 + 8, yy + 12, ww - 16, 5, wins[0])
+            b += R(cx - 3, top - 150, 6, 60, "#2a1c4e") + C(cx, top - 152, 7, wins[1]) + C(cx, top - 152, 14, wins[1]).replace("/>", " opacity='0.3'/>")
+        elif name == "steampunk":
+            b += R(cx - 64, top - 22, 128, 22, dark(col, 0.2)) + R(cx - 64, top - 22, 128, 4, trim)
+            b += "<path d='M%g,%g A60,64 0 0 1 %g,%g Z' fill='%s'/>" % (cx - 58, top - 22, cx + 58, top - 22, "#4f8a7a")
+            b += "<path d='M%g,%g A44,48 0 0 1 %g,%g' fill='none' stroke='%s' stroke-width='5'/>" % (cx - 40, top - 26, cx + 40, top - 26, "#6fb0a0")
+            b += C(cx, top - 46, 20, "#f4ead0") + C(cx, top - 46, 20, "none").replace("fill='none'", "fill='none' stroke='%s' stroke-width='4'" % trim)
+            b += "<path d='M%g,%g L%g,%g M%g,%g L%g,%g' stroke='#2a1a14' stroke-width='3'/>" % (cx, top - 46, cx, top - 60, cx, top - 46, cx + 10, top - 42)
+            b += R(cx - 3, top - 124, 6, 40, trim) + C(cx, top - 126, 6, trim)
+        elif name == "cheese":
+            b += P([(cx - 74, top), (cx + 74, top), (cx + 74, top - 24), (cx - 50, top - 120)], "#ffc83a")
+            b += P([(cx - 74, top), (cx + 74, top), (cx + 74, top - 10), (cx - 74, top - 10)], "#e0a020")
+            for (hx, hy, r) in ((cx - 20, top - 50, 12), (cx + 30, top - 30, 9), (cx - 46, top - 22, 7)):
+                b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='#d8a020'/>" % (hx, hy, r, r * 0.8)
+            b += R(cx + 50, top - 70, 5, 46, "#7a4520") + P([(cx + 55, top - 70), (cx + 80, top - 62), (cx + 55, top - 54)], "#c8402a")
+        elif name == "aero":
+            b += "<path d='M%g,%g A74,74 0 0 1 %g,%g Z' fill='%s' opacity='0.9'/>" % (cx - 72, top, cx + 72, top, "#9fe0ff")
+            b += "<path d='M%g,%g A54,54 0 0 1 %g,%g' fill='none' stroke='#ffffff' stroke-width='6' opacity='0.8'/>" % (cx - 52, top - 6, cx + 2, top - 60)
+            b += "<path d='M%g,%g Q%g,%g %g,%g Q%g,%g %g,%g Z' fill='%s'/>" % (cx + 10, top - 70, cx + 60, top - 140, cx + 20, top - 160, cx - 10, top - 120, cx + 10, top - 70, trim)
+            b += "<path d='M%g,%g Q%g,%g %g,%g' fill='none' stroke='#c8ffd0' stroke-width='3'/>" % (cx + 12, top - 76, cx + 30, top - 120, cx + 22, top - 150)
+        elif name == "solarpunk":
+            b += R(cx - 72, top - 16, 144, 16, "#8a6a4a") + R(cx - 72, top - 16, 144, 4, "#4fa85a")
+            for (tx, r) in ((cx - 40, 26), (cx + 4, 32), (cx + 46, 22)):
+                b += C(tx, top - 34, r, "#3f9a4a") + C(tx - r * 0.3, top - 40, r * 0.45, "#7fcf7a")
+            b += R(cx + 52, top - 140, 4, 100, "#e8f0d8")
+            for a in (0, 120, 240):
+                ra = math.radians(a - 90)
+                b += "<path d='M%g,%g L%g,%g' stroke='#ffffff' stroke-width='5' stroke-linecap='round'/>" % (cx + 54, top - 142, cx + 54 + math.cos(ra) * 30, top - 142 + math.sin(ra) * 30)
+            b += C(cx + 54, top - 142, 5, "#cfd8c8")
+        elif name in ("dieselpunk", "noir"):
+            gold = trim if name == "dieselpunk" else "#c8c4cc"
+            for k, ww in enumerate((120, 92, 64, 38)):
+                yy = top - 24 * (k + 1)
+                b += R(cx - ww / 2, yy, ww, 24, light(col, 0.05 * k)) + R(cx - ww / 2, yy, ww, 3, gold)
+                for fx in range(int(cx - ww / 2 + 8), int(cx + ww / 2 - 6), 14):
+                    b += R(fx, yy + 7, 5, 12, dark(wins[0], 0.1) if (fx // 14) % 2 else "#1a1210")
+            b += P([(cx - 10, top - 96), (cx + 10, top - 96), (cx, top - 170)], gold)
+            b += C(cx, top - 172, 6, "#e0303a" if name == "noir" else "#ffd27a")
+        else:   # brutalist
+            for (bx, bw, bh) in ((cx - 70, 70, 40), (cx - 10, 80, 64), (cx - 52, 44, 92)):
+                b += R(bx, top - bh, bw, bh, light(col, 0.06)) + R(bx, top - bh, bw, 6, light(col, 0.2)) + R(bx + bw - 8, top - bh, 8, bh, dark(col, 0.2))
+            b += R(cx + 24, top - 120, 5, 56, "#4a4e58") + R(cx + 14, top - 104, 26, 4, "#4a4e58") + C(cx + 26, top - 122, 5, "#c83a3a")
+        return b
+
+    def car(name, st, k):
+        """Coche aparcado visto de lado, con forma de cada ciudad / Parked car seen from the side, in each city's shape"""
+        body = st["car"][k]
+        glass = "#bfe8ff" if name not in ("noir", "dieselpunk") else "#3a4050"
+        b = "<ellipse cx='4' cy='2' rx='92' ry='12' fill='#000000' opacity='0.35'/>"
+        if name in ("steampunk", "dieselpunk", "noir"):
+            # Clásico de morro largo con guardabarros redondos / Long-nosed classic with round fenders
+            b += shaded("M-86,-20 Q-88,-42 -64,-44 L-30,-46 Q-20,-74 10,-74 L40,-72 Q54,-70 62,-46 L80,-42 Q90,-38 88,-20 Z", body, rim=0.35)
+            b += P([(-14, -48), (-4, -68), (14, -68), (14, -48)], glass) + P([(20, -48), (20, -68), (36, -66), (50, -48)], glass)
+            b += "<path d='M-80,-24 Q-60,-52 -36,-24 M30,-24 Q54,-52 78,-24' fill='none' stroke='%s' stroke-width='6'/>" % dark(body, 0.35)
+            b += R(-86, -26, 174, 5, st["car"][1 - k] if name == "dieselpunk" else "#c8c4cc")
+        elif name == "cheese":
+            b += shaded("M-84,-18 Q-86,-56 -40,-58 L50,-58 Q86,-56 84,-18 Z", body, rim=0.35)
+            b += "<ellipse cx='-20' cy='-38' rx='10' ry='7' fill='%s'/><ellipse cx='30' cy='-30' rx='7' ry='5' fill='%s'/>" % (dark(body, 0.2), dark(body, 0.2))
+            b += P([(-50, -58), (-30, -82), (34, -82), (54, -58)], glass) + R(0, -82, 4, 24, body)
+        elif name == "aero":
+            b += shaded("M-86,-20 Q-90,-50 -50,-54 Q-20,-86 30,-84 Q78,-80 88,-40 L88,-20 Z", body, rim=0.5)
+            b += "<path d='M-34,-56 Q-10,-80 30,-78 Q60,-74 70,-54 Z' fill='%s'/>" % glass
+            b += "<path d='M-30,-60 Q-10,-76 20,-76' fill='none' stroke='#ffffff' stroke-width='4'/>"
+        elif name == "solarpunk":
+            b += shaded("M-80,-20 L-80,-60 Q-80,-78 -60,-78 L60,-78 Q80,-78 80,-60 L80,-20 Z", body, rim=0.35)
+            b += R(-66, -70, 50, 26, glass) + R(-10, -70, 30, 26, glass) + R(26, -70, 44, 26, glass)
+            b += P([(-60, -80), (60, -80), (52, -92), (-52, -92)], "#2a4a8a") + "<path d='M-48,-86 L48,-86' stroke='#8fb8f0' stroke-width='2'/>"
+        elif name == "brutalist":
+            b += shaded("M-84,-20 L-84,-50 L-50,-52 L-36,-76 L44,-76 L58,-52 L86,-50 L86,-20 Z", body, rim=0.3)
+            b += P([(-30, -54), (-20, -70), (4, -70), (4, -54)], glass) + P([(12, -54), (12, -70), (38, -70), (48, -54)], glass)
+        else:   # synthwave
+            b += shaded("M-88,-20 L-86,-40 L-40,-50 L-14,-70 L40,-70 L70,-46 L90,-40 L88,-20 Z", body, rim=0.35)
+            b += P([(-8, -52), (6, -66), (36, -66), (56, -50)], "#1a0b3a")
+            b += R(-88, -32, 178, 3, "#5ff2ff") + R(78, -40, 10, 6, "#ffe36a") + R(-88, -38, 8, 6, "#ff3aa0")
+        for wx in (-52, 52):
+            b += C(wx, -16, 17, "#1a1820") + C(wx, -16, 8, "#8a8898") + C(wx, -16, 3, "#1a1820")
+        return b
+
     # --- Baldosas del suelo (120 x 120, casan por los cuatro lados) / Ground tiles (120 x 120, tile on all four sides) ---
     T = 125
 
@@ -256,12 +361,12 @@ def build(ms):
                 b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (cx, cy, r, r * 0.7, dark(walk, 0.16))
                 b += "<ellipse cx='%g' cy='%g' rx='%g' ry='%g' fill='%s'/>" % (cx + 1, cy + 2, r * 0.7, r * 0.45, dark(walk, 0.26))
         elif name == "aero":
-            b += R(0, 0, T, 3, "#9cd0ec") + R(0, 0, 3, T, "#9cd0ec") + R(3, 3, T - 3, 3, "#ffffff") + R(3, 3, 3, T - 3, "#ffffff")
+            b += R(0, 0, T, 2, "#b4dcf0") + R(0, 0, 2, T, "#b4dcf0") + R(2, 2, T - 2, 2, "#f4fbff") + R(2, 2, 2, T - 2, "#f4fbff")
             b += "<ellipse cx='40' cy='34' rx='26' ry='8' fill='#ffffff' opacity='0.6'/>"
         elif name == "solarpunk":
             for (x, y) in ((0, 0), (60, 0), (0, 60), (60, 60)):
                 b += "<rect x='%d' y='%d' width='56' height='56' rx='8' fill='%s'/>" % (x + 2, y + 2, light(walk, 0.06))
-            b += R(56, 0, 8, T, "#7fcf7a") + R(0, 56, T, 8, "#7fcf7a")
+            b += R(58, 0, 4, T, light("#7fcf7a", 0.35)) + R(0, 58, T, 4, light("#7fcf7a", 0.35))
         elif name == "dieselpunk":
             # Plancha de acero remachada, con óxido / Riveted steel plate, with rust
             b += R(0, 0, T, 4, dark(walk, 0.45)) + R(0, 0, 4, T, dark(walk, 0.45)) + R(4, 4, T - 4, 2, light(walk, 0.12))
@@ -521,9 +626,11 @@ def build(ms):
         rng = random.Random(name + "tower")
         # El rascacielos que se cae (de pie; en el juego se tumba) / The skyscraper that falls (standing; tipped over in game)
         rng = random.Random(name + "tower")
-        col = st["bld"][1]
-        b = facade(name, st, rng, -80, -560, 160, 560, col)
-        room_add("city_%s_tower" % name, -100, -620, 200, 624, b, colors=14)
+        b = tower(name, st, rng)
+        room_add("city_%s_tower" % name, -100, -620, 200, 624, b, colors=16)
+        # Coches aparcados (de lado, dos colores por ciudad) / Parked cars (side view, two colours per city)
+        for k in range(2):
+            room_add("city_%s_car%d" % (name, k), -96, -86, 192, 94, car(name, st, k), colors=12)
         # Escombros: trozos de su fachada amontonados / Rubble: chunks of its facade piled up
         b = "<ellipse cx='0' cy='0' rx='160' ry='30' fill='#000000' opacity='0.3'/>"
         for i in range(16):
