@@ -21,6 +21,7 @@ var fx: FX
 var hud: HUD
 var helpers: Helpers
 var trinkets: Trinkets
+var _bosses := RunBosses.new(self)
 var _events := RunEvents.new(self)
 var _cinematics := RunCinematics.new(self)
 var room: Bedroom
@@ -273,7 +274,7 @@ func _begin(depth: int) -> void:
 		Audio.set_loop("fire", true, -16.0)
 	_resolve_level_ups(Callable())
 	if _wave.get("boss", false):
-		_spawn_boss()
+		_bosses.spawn_boss()
 
 
 # --- Kioskera Charo / Kiosk lady Charo -------------------------------------------------
@@ -437,116 +438,6 @@ func _open_sacrifice() -> void:
 		get_tree().paused = false)
 
 
-## El jefe del acto: los muebles despiertan de uno en uno / The act boss: the furniture wakes up one at a time
-func _spawn_boss() -> void:
-	Progress.tip("boss")
-	if _wave.get("boss_kind", "") == "":
-		Audio.play_music("music_boss", 1.0)
-	if _wave.get("boss_kind", "") == "chef":
-		_spawn_chef()
-		return
-	if _wave.get("boss_kind", "") == "ufo":
-		_spawn_ufo()
-		return
-	if _wave.get("boss_kind", "") == "evil_ad":
-		_spawn_evil_ad()
-		return
-	hud.show_boss("BOSS_NAME")
-	_boss_step = 0
-	if GameState.difficulty == "nightmare":
-		# Pesadilla: los tres muebles despiertan a la vez / Nightmare: all three pieces wake at once
-		hud.set_boss_part("BOSS_PART_ALL")
-		for i in BossPiece.ORDER.size():
-			get_tree().create_timer(0.6 * i, false).timeout.connect(_add_boss_piece.bind(BossPiece.ORDER[i], 1.6))
-		_boss_step = BossPiece.ORDER.size()
-	else:
-		_next_boss_piece()
-
-
-func _next_boss_piece() -> void:
-	if _boss_step >= BossPiece.ORDER.size():
-		_on_act_cleared()
-		return
-	var kind: String = BossPiece.ORDER[_boss_step]
-	_boss_step += 1
-	hud.set_boss_part(BossPiece.PARTS[kind]["name"])
-	_add_boss_piece(kind)
-
-
-func _add_boss_piece(kind: String, slow := 1.0) -> void:
-	if not running:
-		return
-	room.gone.append(kind)
-	var piece := BossPiece.new()
-	piece.attack_slow = slow
-	piece.setup_piece(self, kind)
-	enemies.add_child(piece)
-	_add_boss(piece)
-	piece.defeated.connect(_on_piece_defeated)
-
-
-func _add_boss(b: Enemy) -> void:
-	boss = b
-	bosses.append(b)
-	_boss_total += b.max_hp
-	update_boss_hp()
-
-
-## Jefe del Acto 2: El Chef sale de la tele / Act 2 boss: The Chef comes out of the TV
-func _spawn_chef() -> void:
-	Audio.play_music("music_chef", 1.0)
-	hud.show_boss("BOSS_CHEF_NAME")
-	var chef := Chef.new()
-	chef.setup(self)
-	enemies.add_child(chef)
-	_add_boss(chef)
-	chef.defeated.connect(_on_chef_defeated)
-
-
-## Se acabó el tiempo del jefe: se retira y Kroker pasa igualmente (ha aguantado)
-## The boss's time is up: it retreats and Kroker passes anyway (he survived)
-func _boss_time_up() -> void:
-	if not running:
-		return
-	for b in bosses:
-		if is_instance_valid(b) and float(b.get("_dying")) < 0.0:
-			fx.dissipate(b.aim_point(), UITheme.BONE)
-			fx.ring(b.global_position, 60.0, UITheme.BONE, 0.6, 3.0)
-			b.die(false)
-			# El mueble vuelve a su sitio, dormido otra vez / The furniture goes back to its place, asleep again
-			if b is BossPiece:
-				room.gone.erase((b as BossPiece).kind)
-	shake(8.0)
-	if _wave.get("boss_kind", "") == "chef":
-		_chef_end(false)
-	elif _wave.get("boss_kind", "") == "ufo":
-		_ufo_end(false)
-	elif _wave.get("boss_kind", "") == "evil_ad":
-		_evil_end(false)
-	else:
-		_on_act_cleared(false)
-
-
-## Recompensa por derrotar al jefe antes de tiempo: un nivel de regalo
-## Reward for beating the boss before the time runs out: a bonus level
-func _boss_bonus() -> void:
-	GameState.pending_ups += 1
-	fx.text(player.global_position + Vector2(0, -130), tr("BOSS_BONUS_LEVEL"), UITheme.GOLD, 30)
-	fx.ring(player.global_position + Vector2(0, -60), 50.0, UITheme.GOLD, 0.8, 3.0)
-	Audio.play("chime", -2.0)
-
-
-## Jefe del Acto 3: el Ovni baja dando tumbos por el pasillo / Act 3 boss: the UFO lurches down the hallway
-func _spawn_ufo() -> void:
-	Audio.play_music("music_ufo", 1.0)
-	hud.show_boss("BOSS_UFO_NAME")
-	var ufo := Ufo.new()
-	ufo.setup(self)
-	enemies.add_child(ufo)
-	_add_boss(ufo)
-	ufo.defeated.connect(_ufo_end.bind(true))
-
-
 ## Cinemática del último sueño: Kroker apoyado en una pared piensa en su viaje como un detective
 ## de cine negro; luego estallan los edificios y llega Evil Ad
 ## The last dream's cutscene: Kroker, leaning on a wall, muses on his journey like a film-noir
@@ -571,48 +462,6 @@ func noir_glitch(secs := 0.3, power := 1.0) -> void:
 var _evil: EvilAd = null
 
 
-func _spawn_evil_ad() -> void:
-	Audio.play_music("music_evil_ad", 0.5)
-	hud.show_boss("BOSS_EVIL_AD_NAME")
-	if _evil == null or not is_instance_valid(_evil):
-		_evil = EvilAd.new()
-		_evil.setup(self)
-		_evil.position = clamp_to_arena(player.position + Vector2(0, -260), 80.0)
-		enemies.add_child(_evil)
-	_add_boss(_evil)
-	_evil.defeated.connect(_evil_end.bind(true))
-
-
-## Fin del último sueño: Evil Ad cae (o Kroker aguanta) y toca despertar
-## End of the last dream: Evil Ad falls (or Kroker holds out) and it's time to wake up
-func _evil_end(killed: bool) -> void:
-	if not running:
-		return
-	update_boss_hp()
-	running = false
-	Audio.stop_loops()
-	for n: Node in get_children():
-		if n is AdSpam:
-			n.queue_free()
-	for e: Node in enemies.get_children():
-		if not e.is_boss():
-			e.die(false)
-	dream_finished.emit()
-	Progress.add_stat("dreams")
-	_settle_deal()
-	if killed:
-		Progress.flag("evil_ad")
-	GameState.saved_hp = player.hp
-	Progress.save_progress()
-	Audio.fade_music(-30.0, 1.5)
-	Audio.play("act_clear", -1.0)
-	hud.hide_boss()
-	hud.banner("ACT4_CLEAR_TITLE", "EVIL_AD_KILLED_SUB" if killed else "EVIL_AD_SURVIVED_SUB")
-	for s in get_tree().get_nodes_in_group("shards"):
-		s.set("_magnet", true)
-	get_tree().create_timer(3.6, false).timeout.connect(_resolve_level_ups.bind(_after_dream))
-
-
 ## Un fogonazo de color en toda la pantalla / A flash of colour over the whole screen
 func flash_screen(color: Color, secs := 0.3) -> void:
 	var layer := CanvasLayer.new()
@@ -627,68 +476,6 @@ func flash_screen(color: Color, secs := 0.3) -> void:
 	var tw := create_tween()
 	tw.tween_property(r, "modulate:a", 0.0, secs)
 	tw.tween_callback(layer.queue_free)
-
-
-## Fin del Acto 3: el sueño sigue y Kroker cae en la Metrópolis (Acto 4)
-## End of Act 3: the dream goes on and Kroker falls into the Metropolis (Act 4)
-func _ufo_end(killed: bool) -> void:
-	if not running:
-		return
-	update_boss_hp()
-	running = false
-	Audio.stop_loops()
-	for e: Node in enemies.get_children():
-		if not e.is_boss():
-			e.die(false)
-	dream_finished.emit()
-	Progress.clear_act(GameState.selected_character, GameState.difficulty, 3)
-	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
-		Progress.flag("no_hit")
-	Progress.add_stat("dreams")
-	Audio.fade_music(-30.0, 1.5)
-	Audio.play("act_clear", -1.0)
-	GameState.saved_hp = player.hp
-	Progress.save_progress()
-	hud.hide_boss()
-	hud.banner("ACT3_CLEAR_TITLE", "BOSS_KILLED_SUB" if killed else "BOSS_SURVIVED_SUB")
-	if killed:
-		_boss_bonus()
-	for s in get_tree().get_nodes_in_group("shards"):
-		s.set("_magnet", true)
-	get_tree().create_timer(3.4, false).timeout.connect(_resolve_level_ups.bind(_flash_to_astral))
-
-
-func _on_chef_defeated() -> void:
-	_chef_end(true)
-
-
-func _chef_end(killed: bool) -> void:
-	if not running:
-		return
-	update_boss_hp()
-	running = false
-	Audio.stop_loops()
-	for e: Node in enemies.get_children():
-		if not e.is_boss():
-			e.die(false)
-	dream_finished.emit()
-	Progress.clear_act(GameState.selected_character, GameState.difficulty, 2)
-	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
-		Progress.flag("no_hit")
-	Progress.add_stat("dreams")
-	Audio.fade_music(-30.0, 1.5)
-	Audio.play("act_clear", -1.0)
-	# El sueño sigue: Kroker elige una segunda arma y cae en el Acto 3
-	# The dream goes on: Kroker picks a second weapon and falls into Act 3
-	GameState.saved_hp = player.hp
-	Progress.save_progress()
-	hud.hide_boss()
-	hud.banner("ACT2_CLEAR_TITLE", "BOSS_KILLED_SUB" if killed else "BOSS_SURVIVED_SUB")
-	if killed:
-		_boss_bonus()
-	for sh in get_tree().get_nodes_in_group("shards"):
-		sh.set("_magnet", true)
-	get_tree().create_timer(3.4, false).timeout.connect(_choose_second_weapon.bind(_resolve_level_ups.bind(_flash_to_astral)))
 
 
 ## Pantalla para elegir la segunda arma (la del otro tipo) / Screen to pick the second weapon (the other kind)
@@ -716,24 +503,6 @@ func update_boss_hp() -> void:
 		if is_instance_valid(b) and float(b.get("_dying")) < 0.0:
 			hp += maxf(b.hp, 0.0)
 	hud.set_boss_hp(hp, maxf(_boss_total, 1.0))
-
-
-func _on_piece_defeated() -> void:
-	if not running:
-		return
-	update_boss_hp()
-	if _boss_step >= BossPiece.ORDER.size():
-		# Se acaba cuando no queda ningún mueble en pie / It ends when no piece is left standing
-		for b in bosses:
-			if is_instance_valid(b) and float(b.get("_dying")) < 0.0:
-				return
-		if bosses.size() >= BossPiece.ORDER.size():
-			_on_act_cleared()
-		return
-	# Respiro entre muebles (los enemigos siguen saliendo) / A breather between pieces (enemies keep coming)
-	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
-		if running:
-			_next_boss_piece())
 
 
 ## Salto en arco desde la cama al suelo / Arcing hop from the bed to the floor
@@ -769,7 +538,7 @@ func _physics_process(delta: float) -> void:
 		hud.set_time(_time_left)
 		if _time_left <= 0.0:
 			if _wave.get("boss", false):
-				_boss_time_up()
+				_bosses.boss_time_up()
 			else:
 				_on_wave_cleared()
 			return
@@ -1452,7 +1221,7 @@ func _on_act_cleared(killed := true) -> void:
 	hud.hide_boss()
 	hud.banner("ACT1_CLEAR_TITLE", "BOSS_KILLED_SUB" if killed else "BOSS_SURVIVED_SUB")
 	if killed:
-		_boss_bonus()
+		_bosses.boss_bonus()
 	for s in get_tree().get_nodes_in_group("shards"):
 		s.set("_magnet", true)
 	get_tree().create_timer(3.4, false).timeout.connect(_resolve_level_ups.bind(_flash_to_astral))
