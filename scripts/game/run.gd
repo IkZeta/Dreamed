@@ -275,6 +275,8 @@ func _begin(depth: int) -> void:
 	_resolve_level_ups(Callable())
 	if _wave.get("boss", false):
 		_bosses.spawn_boss()
+	elif HoleTutorial.wanted(self):
+		HoleTutorial.start(self)
 
 
 # --- Kioskera Charo / Kiosk lady Charo -------------------------------------------------

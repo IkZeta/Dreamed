@@ -986,6 +986,7 @@ const STRINGS := {
 	"TIP_HEAD": {"es": "Consejo", "en": "Tip"},
 	"TIP_MOVE": {"es": "Kroker ataca solo al que tenga más cerca. Tú solo tienes que moverte ({move}) y esquivar.", "en": "Kroker attacks the nearest enemy on his own. You just move ({move}) and dodge."},
 	"TIP_SHARD": {"es": "Los trozos de estrella te dan experiencia: cada nivel que subas lo cambias por una mejora de estadística al acabar el sueño.", "en": "Star shards give you experience: each level you gain becomes a stat upgrade you pick when the dream ends."},
+	"TUT_HOLE": {"es": "¡Empújalos al agujero!", "en": "Shove them into the hole!"},
 	"TIP_HOLE": {"es": "¡Al hoyo! Si empujas a un enemigo por un agujero, cae sin tener que quitarle toda la vida (a los jefes no). El golpe fuerte (los puntitos bajo tus pies) es perfecto para esto, y tirar a varios seguidos da trozos de estrella extra.", "en": "Down the hole! Shove an enemy into a hole and it falls without losing all its health (not bosses). Your heavy hit (the dots under your feet) is perfect for this, and throwing several in a row gives extra star shards."},
 	"TIP_ELITE": {"es": "Los élites (con cuernos y un aura de color) tienen más vida y una habilidad, pero sueltan muchos más trozos de estrella.", "en": "Elites (with horns and a coloured aura) have more health and an ability, but drop many more star shards."},
 	"TIP_BLEED": {"es": "Estás sangrando: pierdes vida poco a poco y tu defensa baja un rato.", "en": "You're bleeding: you lose health bit by bit and your defence drops for a while."},
