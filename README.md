@@ -103,6 +103,7 @@ Tras vencer al jefe, el sueño se hunde un poco más y Kroker cae en el salón d
 | Sueño | Novedad |
 |---|---|
 | 6 | **Nidos y mosquitos**: el nido no se mueve, pero suelta mosquitos mientras no lo rompas. Los mosquitos son diminutos y frágiles, pero muy rápidos y salen a montones |
+| 7 | **Chapuzas**: un obrero de peluche con casco que corre al agujero más cercano y lo tapa con tablones a martillazos. Mientras siga en pie, por ese agujero no cae nadie. No pega y huye de Kroker sin alejarse de su obra; si lo tiras por otro agujero (o lo derrotas), el tablón se rompe. Como mucho 2 a la vez; desde el sueño 8 sale de vez en cuando en todos los actos |
 | 8 | **Cyberpunk** (raro, como mucho 2 a la vez): se lanza a base de dashes que marca antes en el suelo y, si se te queda cerca, te **hackea**: te baja una estadística al azar hasta que lo derrotas |
 | 10 | **Jefe: El Chef**, un Kroker adulto cocinero que sale de la tele |
 
@@ -321,6 +322,7 @@ A veces un enemigo suelta un objeto, y la suerte hace que pase más a menudo:
 Tirar enemigos por los agujeros los elimina aunque tengan vida (a los jefes no). Todas las armas pueden hacerlo:
 
 - **Golpe fuerte:** cada pocos golpes, uno lanza al enemigo lejos y deja que caiga aunque llegue despacio; la masa cuenta menos, así que también vale con los matones. Unos puntitos bajo los pies de Kroker cuentan cuánto falta (dorados: el siguiente es fuerte). Bate, peluche, mando y botas: cada 3 golpes; libro: cada 4; pistola de dedos y portátil: cada 5. La almohada empuja ya de por sí y la aspiradora tira a los que tiene a media vida.
+- **Tutorial integrado:** la primera vez que hay un agujero (Sueño 2), y si nunca has tirado a nadie, salen unos Foox entre Kroker y el agujero, y el agujero brilla con un anillo, una flecha y el cartel *¡Empújalos al agujero!* hasta la primera caída (o 25 s). Sin pausas ni ventanas.
 - **Caídas en cadena:** si tiras a otro por un agujero antes de 3 s, la cadena sube y suelta tantos trozos de estrella extra como la cadena (hasta 5). Solo da experiencia, no daño.
 
 ### La vida y los estados
@@ -334,6 +336,10 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 - **Menú principal:** se ve la versión del juego y hay un botón **Borrar partida** (hay que pulsarlo tres veces) que borra todo el progreso y la partida a medias; los ajustes se quedan. El icono del juego es la cara de Mr. Ad.
 - **Ritmo:** las frases que ya has leído (plano astral, Charo, el hub) salen casi de golpe. El diario cuenta cuánto tiempo has pasado peleando y cuánto entre pelea y pelea.
 - **Música:** los cambios de canción son fundidos de potencia constante, sin bache, y la música de cada acto sigue por donde iba al volver del plano astral (las de jefe empiezan siempre por el principio).
+- **Fiebre (pactos opcionales):** se desbloquea al superar el Acto 1, en la ventana de la fuente. Son 8 pactos que ponen el sueño más difícil y suben la temperatura de Kroker (36,6 °C + 0,4 por grado): *Multitud* (+30 % de enemigos, +2°), *Prisas* (enemigos un 18 % más rápidos, +1°), *Mala leche* (pegan un 30 % más, +2°), *Cristal* (-25 % de vida máxima, +1°), *Sequía* (la regeneración y el robo de salud curan la mitad, +2°), *Titanes* (jefes con +35 % de vida, +2°), *Kiosco cerrado* (+1°) y *Una sola mano* (sin segunda arma, +2°). Cada grado da un 8 % más de trozos de estrella y un 5 % de probabilidad de Realidad extra. Se recuerdan entre partidas y se guarda la fiebre más alta con la que superas un acto con cada pijama. Logros: superar un acto con 5° o más, y el Acto 4 con 8° o más.
+- **Sueño del día:** también en la fuente. Cada día, la fecha decide el pijama, 2 o 3 pactos y la semilla de cada sueño (los mismos eventos y oleadas al repetirlo). Se guarda el mejor sueño alcanzado ese día; llegar al Sueño 10 da un logro.
+- **Pantalla de resultados:** al acabar, junto al diario, el daño de cada arma en barras y los récords (sueño más hondo, enemigos, nivel y mejor caída en cadena), marcados con *¡Nuevo!* si los has batido; en el sueño del día y con fiebre, también lo dice.
+- **Comentarios de la última partida:** la primera vez que hablas con cada personaje del plano astral después de una partida, te comenta qué tal fue: si la terminaste, si tiraste a muchos por los agujeros, si despertaste muy pronto o muy hondo, o quién te tumbó. Cada uno con su voz.
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
 - **Plano astral (lobby):** es adonde lleva **Jugar** y adonde vuelves al acabar cada partida, al estilo de Hades. Es un archipiélago de islas flotantes de piedra astral unidas por puentes de piedras que flotan. En el centro está el cruce de los sueños, con una fuente de estrellas. Al principio está casi vacío: la isla de cada personaje aparece cuando Kroker lo conoce en el plano astral (desbloquearlo no basta). A su alrededor aparece una isla por cada personaje que Kroker ya conoce, con un trozo de su mundo encima (césped, gimnasio, cocina, despacho...) y él haciendo lo suyo: Svinho, de espaldas, chuta a portería en su medio campo (la red se hincha cuando entra el balón), Stolk levanta la barra por encima de la cabeza en el gimnasio, Silly rueda en su silla de un monitor a otro con los cascos puestos, Doc pasa la lupa por un pie gigante en su clínica podológica, Mr. Ad salta hiperactivo de una tele a otra del escaparate con la cara en primer plano, el Pinche (con el soplete tirado en el suelo, todavía encendido) corre de un fuego a otro de su cocina echándoles espuma con el extintor, Charo teje en su sillón, Magnus trabaja en su despacho, SuperK despega de su helipuerto en una azotea y da una vuelta a la isla, Lil Key da un concierto en su escenario con altavoces y focos, y D. Lynx espera en su plató, entre telones rojos sobre un suelo en zigzag, con la cámara, los focos y la claqueta, levantando el megáfono de vez en cuando. Las islas vecinas también están unidas entre sí por pasillos, así que no hace falta volver siempre al centro. Al acercarte puedes hablar con ellos con la **F** (o A en el mando): lore y lo que te cuentan según la amistad. El recuadro de diálogo va al estilo de Celeste: marco con adornos en las esquinas del color del que habla, el texto sale letra a letra con un clic suave (la F lo completa y luego cierra) y a la derecha aparece su cara de cerca en un marco cuadrado, sobre rayos de su color, moviendo la cabeza mientras habla. También tiene:
   - **la fuente de estrellas**, en el centro: con la **F** se abre la ventana de empezar a soñar (con la dificultad y el Modo Dios);
@@ -342,7 +348,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
-- **Logros:** hay 32 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 35 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;
@@ -491,7 +497,11 @@ En el plano astral, la música cambia con un fundido al entrar en la isla de cad
 godot --headless --path . --audio-driver Dummy -- --bot-runs=2   # 2 partidas por pijama
 ```
 
-El informe queda en `user://balance_report.json`.
+El informe queda en `user://balance_report.json`. Otras opciones: `--bot-weapons=bat,book` (qué pijamas), `--bot-diff=nightmare`, `--bot-speed=12` (aceleración), `--bot-immortal` (no muere: cuenta las muertes y sigue hasta el Sueño 20, para medir los 20 sueños enteros) y `--bot-unlocked` (todo desbloqueado). Para lanzar dos a la vez sin pisarse el guardado, usa un `XDG_DATA_HOME` distinto en cada uno.
+
+### Exportar
+
+`export_presets.cfg` trae las demos (Windows, Linux y macOS) y el juego completo para Windows (`Dreamed (Windows)`, en `build/full/Dreamed.exe`), con el icono de Mr. Ad, la versión y el nombre en las propiedades del ejecutable. En Windows el guardado está en `%APPDATA%\Godot\app_userdata\Dreamed`.
 
 ---
 
@@ -507,5 +517,6 @@ El informe queda en `user://balance_report.json`.
 - **Second weapon:** after The Chef you pick a second weapon of the other kind (melee or ranged), with its own upgrades.
 - **Upgrades:** on the astral plane, Svinho, Stolk, Silly, Doc, Mr. Ad, the Kitchen Boy and **Magnus** (a magnate who lets you invest: pay for several stat boosts and keep them, with interest, if you meet his goal) each offer a different kind of upgrade. Star shards level Kroker up with stat boosts from common to legendary, including **parry**: a chance to dodge a hit and finger-snap the attacker and nearby enemies away.
 - **Karen's kiosk** sells better and pricier items each act; friendship with her gives free restocks, half-price offers and more slots.
+- **Fever and daily dream:** optional pacts (more enemies, faster or harder-hitting enemies, less health, no kiosk, one weapon...) raise Kroker's temperature and the star-shard reward; a daily dream with a date-based pajama, pacts and seed.
 - **Extras:** Nightmare difficulty, a bestiary, 24 achievements, hover cards that explain keywords and status effects, accessibility options, full gamepad support (the UI adapts to keyboard or gamepad), a God mode for testing and demo builds for Windows, Linux and macOS.
 - **Running it:** open `project.godot` and press **F5**. All sprites, sounds and the font are generated by the scripts in `tools/`.
