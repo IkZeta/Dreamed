@@ -9,6 +9,7 @@ signal closed
 var on_cancel: Callable
 var _first_button: Button
 var _row: HBoxContainer
+var _col: VBoxContainer
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -43,6 +44,7 @@ func build(title_key: String, subtitle_key: String, buttons: Array, extra_lines:
 	col.custom_minimum_size.x = 640
 	col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_row.add_child(col)
+	_col = col
 
 	var title := UITheme.label(title_key, 88, UITheme.BONE, "display")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -82,6 +84,15 @@ func build(title_key: String, subtitle_key: String, buttons: Array, extra_lines:
 ## Añade un panel al lado de los botones (el resumen de la pausa) / Adds a panel beside the buttons (the pause summary)
 func add_side(panel: Control) -> void:
 	_row.add_child(panel)
+
+
+## Añade un panel debajo de los botones (los resultados de la partida) / Adds a panel under the buttons (the run results)
+func add_under(panel: Control) -> void:
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 18
+	_col.add_child(gap)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_col.add_child(panel)
 
 
 func refocus() -> void:

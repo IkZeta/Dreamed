@@ -16,6 +16,18 @@ const OUT := "user://balance_report.json"
 const SPEED := 6.0
 
 var runs_per_weapon := 2
+var weapons: Array[String] = WEAPONS.duplicate()
+var difficulty := "normal"
+var immortal := false
+## Vigilante: si nada avanza, pulsa aceptar/escape y apunta dónde se atascó
+## Watchdog: if nothing moves on, presses accept/escape and notes where it got stuck
+var _stuck_t := 0.0
+var _stuck_key := ""
+var _stalls: Array = []
+var _prev_choose := 0.0
+var _prev_run := 0.0
+var _prev_real := 0.0
+var _spent := 0
 var _queue: Array[String] = []
 var _results: Array = []
 var _cur: Dictionary = {}
@@ -29,11 +41,23 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--bot-runs="):
 			runs_per_weapon = int(a.split("=")[1])
+		elif a.begins_with("--bot-weapons="):
+			weapons.assign(a.split("=")[1].split(","))
+		elif a.begins_with("--bot-diff="):
+			difficulty = a.split("=")[1]
+		elif a == "--bot-immortal":
+			immortal = true
+		elif a == "--bot-unlocked":
+			Progress.unlock_everything()
+		elif a.begins_with("--bot-speed="):
+			Engine.time_scale = float(a.split("=")[1])
 	_rng.seed = 7
-	Engine.time_scale = SPEED
+	if Engine.time_scale == 1.0:
+		Engine.time_scale = SPEED
+	Settings.tips = false
 	Engine.max_physics_steps_per_frame = 16
 	Progress.stats["charo_met"] = 1
-	for w in WEAPONS:
+	for w in weapons:
 		for i in runs_per_weapon:
 			_queue.append(w)
 	await get_tree().process_frame
@@ -46,17 +70,22 @@ func _next_run() -> void:
 		return
 	var w: String = _queue.pop_front()
 	GameState.god_mode = false
-	GameState.difficulty = "normal"
+	GameState.difficulty = difficulty
 	GameState.selected_character = w
 	GameState.start_run()
-	_cur = {"weapon": w, "dreams": [], "died_at": 0}
+	GameState.bot_immortal = immortal
+	GameState.bot_deaths = 0
+	_cur = {"weapon": w, "dreams": [], "died_at": 0, "difficulty": difficulty}
+	_prev_choose = 0.0
+	_prev_run = 0.0
+	_spent = 0
 	print("[bot] start ", w)
 	GameState.change_scene("res://scenes/run.tscn")
 
 
 func _finish() -> void:
 	var f := FileAccess.open(OUT, FileAccess.WRITE)
-	f.store_string(JSON.stringify(_results, "  "))
+	f.store_string(JSON.stringify({"runs": _results, "stalls": _stalls}, "  "))
 	f.close()
 	print("[bot] report: ", ProjectSettings.globalize_path(OUT))
 	GameState.clear_saved_run()
@@ -68,6 +97,7 @@ func _physics_process(delta: float) -> void:
 	var sc := get_tree().current_scene
 	if sc == null:
 		return
+	_watchdog(sc, delta)
 	if sc is Run:
 		_drive(sc as Run)
 	elif sc.name == "AstralPlane":
@@ -97,7 +127,7 @@ func _astral(ap: Node, delta: float) -> void:
 	var ws := GameState.weapons()
 	var options := []
 	for w in ws:
-		if GameState.level(g, w) < GameState.MAX_UPGRADE_LEVEL:
+		if GameState.level(g, w) < GameState.max_level(g, w):
 			options.append(w)
 	if not options.is_empty():
 		targets[g] = options[_rng.randi_range(0, options.size() - 1)]
@@ -222,9 +252,12 @@ func _handle_modals(run: Run) -> void:
 	if m and is_instance_valid(m):
 		if m is CharoShop:
 			m.set("_ready_t", 0.0)
-			for w in m.get("_wares"):
+			var n: int = (m.get("_wares") as Array).size()
+			for i in range(n - 1, -1, -1):
 				m.set("_ready_t", 0.0)
-				m.call("_buy", w)
+				var r0 := GameState.reality
+				m.call("_buy", i)
+				_spent += r0 - GameState.reality
 			m.set("_ready_t", 0.0)
 			m.call("_close")
 		elif m is SacrificeScreen:
@@ -253,7 +286,16 @@ func _record_end(run: Run) -> void:
 	_cur["upgrades2"] = GameState.upgrades2.duplicate()
 	_cur["second"] = GameState.second_weapon
 	_cur["reality"] = GameState.reality
-	print("[bot] end ", _cur["weapon"], " won=", won, " died_at=", _cur["died_at"], " lvl=", GameState.plevel)
+	_cur["spent"] = _spent
+	_cur["fight_time"] = int(GameState.run_time)
+	_cur["between_time"] = int(GameState.choose_time)
+	_cur["kills"] = GameState.run_kills
+	_cur["falls"] = GameState.run_falls
+	_cur["duos"] = GameState.duos.duplicate()
+	_cur["combos"] = GameState.active_combos()
+	_cur["killer"] = GameState.last_hit
+	_cur["deaths"] = GameState.bot_deaths
+	print("[bot] end ", _cur["weapon"], " won=", won, " died_at=", _cur["died_at"], " lvl=", GameState.plevel, " killer=", GameState.last_hit)
 	_results.append(_cur)
 	_cur = {}
 	_last_depth = -1
@@ -266,5 +308,43 @@ func dream_done(run: Run) -> void:
 		return
 	if _cur.is_empty():
 		return
+	var fight := GameState.run_time - _prev_run
+	var between := GameState.choose_time - _prev_choose
+	_prev_run = GameState.run_time
+	_prev_choose = GameState.choose_time
 	_cur["dreams"].append({"depth": GameState.dream_depth, "hp": snappedf(run.player.hp, 0.1), "max_hp": run.player.max_hp,
-		"level": GameState.plevel, "reality": GameState.reality, "time": int(GameState.run_time), "hits": GameState.run_hits})
+		"level": GameState.plevel, "reality": GameState.reality, "spent": _spent, "time": int(GameState.run_time), "hits": GameState.run_hits,
+		"kills": GameState.run_kills, "falls": GameState.run_falls, "fight": snappedf(fight, 0.1), "between": snappedf(between, 0.1),
+		"style": GameState.city_style() if GameState.act() == 4 else "", "deaths": GameState.bot_deaths})
+	print("[bot] ", _cur["weapon"], " dream ", GameState.dream_depth, " hp ", snappedf(run.player.hp, 0.1), "/", run.player.max_hp, " lvl ", GameState.plevel, " ◆", GameState.reality, " deaths ", GameState.bot_deaths)
+
+
+## Si en 40 s de juego no cambia nada (escena, sueño, pelea), intenta seguir y lo apunta
+## If nothing changes in 40 s of game time (scene, dream, fight), tries to carry on and notes it
+func _watchdog(sc: Node, delta: float) -> void:
+	var running: bool = sc is Run and (sc as Run).running
+	var key := "%s|%d|%s" % [sc.name, GameState.dream_depth, running]
+	if running or key != _stuck_key:
+		_stuck_key = key
+		_stuck_t = 0.0
+		return
+	_stuck_t += delta
+	if _stuck_t < 40.0:
+		return
+	_stuck_t = 0.0
+	var focus := get_viewport().gui_get_focus_owner()
+	var what := {"scene": sc.name, "depth": GameState.dream_depth, "focus": str(focus.get_path()) if focus else "",
+		"modal": str(sc.get("_modal")) if sc is Run else "", "overlay": str(sc.get("_overlay")) if sc is Run else ""}
+	_stalls.append(what)
+	print("[bot] STALL ", what)
+	if focus is BaseButton:
+		(focus as BaseButton).pressed.emit()
+	for k in [KEY_ENTER, KEY_ESCAPE, KEY_F]:
+		var ev := InputEventKey.new()
+		ev.keycode = k
+		ev.physical_keycode = k
+		ev.pressed = true
+		Input.parse_input_event(ev)
+		var up := ev.duplicate()
+		up.pressed = false
+		Input.parse_input_event(up)

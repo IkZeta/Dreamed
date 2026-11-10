@@ -58,8 +58,25 @@ func _process(delta: float) -> void:
 	modulate.a = move_toward(modulate.a, 0.45 if behind else 1.0, delta * 4.0)
 	if burning:
 		_burn_t += delta
-	if kind in ["tower", "shop"] or burning or style == "noir":
+	# Solo se vuelve a dibujar lo que se mueve y además está a la vista (ahorra mucho en la ciudad)
+	# Only what moves and is on screen gets redrawn (saves a lot in the city)
+	if (kind in ["tower", "shop"] or burning or style in ANIMATED) and _on_screen():
 		queue_redraw()
+
+
+## Estéticas con cosas que se mueven en las fachadas (neón, brillos, focos...)
+## Looks with moving things on the facades (neon, glints, searchlights...)
+const ANIMATED := ["noir", "synthwave", "aero", "dieselpunk"]
+
+
+func _on_screen() -> bool:
+	var cam := get_viewport().get_camera_2d()
+	if cam == null:
+		return true
+	var c := cam.get_screen_center_position()
+	var w := rect.size.x * Bedroom.S
+	var h := (rect.size.y + T * 3.0) * Bedroom.S
+	return absf(global_position.x + w * 0.5 - c.x) < 1100.0 + w * 0.5 and global_position.y - h < c.y + 700.0 and global_position.y > c.y - 700.0
 
 func _c(key: String) -> Color:
 	return room.look(key)

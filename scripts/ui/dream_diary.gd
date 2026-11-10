@@ -25,6 +25,7 @@ func _build(won: bool) -> void:
 	st.shadow_offset = Vector2(10, 10)
 	add_theme_stylebox_override("panel", st)
 	custom_minimum_size = Vector2(800, 0)
+	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	rotation = -0.012
 	var paper := Lines.new()
 	add_child(paper)

@@ -121,6 +121,7 @@ func _body(e: Node2D) -> Vector2:
 func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0) -> void:
 	impulse = _heavy(e, impulse)
 	e.hit(base_damage * player.damage_mult, impulse)
+	GameState.run_dmg[id] = float(GameState.run_dmg.get(id, 0.0)) + base_damage * player.damage_mult
 	_pinche(e)
 	# Robo de salud: probabilidad de curar 1 / Life steal: chance to heal 1
 	var ls := GameState.lifesteal_effective() * steal_k

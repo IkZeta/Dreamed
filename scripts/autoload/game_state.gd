@@ -105,6 +105,13 @@ var run_time := 0.0
 ## Tiempo eligiendo (mejoras, dones, tienda, diálogos) frente al de pelea (run_time); sale en el diario
 ## Time spent choosing (upgrades, gifts, shop, dialogue) versus fighting (run_time); shown in the diary
 var choose_time := 0.0
+## Para la pantalla de resultados: daño por arma, mejor caída en cadena y los récords de antes de
+## empezar (para marcar los nuevos) / For the results screen: damage per weapon, best fall chain and
+## the records from before starting (to mark the new ones)
+var run_dmg := {}
+var run_best_chain := 0
+var records_before := {}
+const RECORDS := ["best_depth", "best_kills", "fall_chain", "best_level"]
 var run_kills := 0
 var run_hits := 0
 var run_falls := 0      # enemigos tirados por agujeros / enemies pushed down holes
@@ -160,6 +167,9 @@ var training := false
 ## Where Kroker appears when coming back to the astral plane: "" (on entering), "fountain" or "training"
 var hub_spawn := ""
 var god_mode := false
+## Bot de pruebas: no muere, cuenta cuántas veces habría muerto / Test bot: doesn't die, counts how often it would have
+var bot_immortal := false
+var bot_deaths := 0
 var god_invuln := true          # con la F se cambia en partida / toggled in game with F
 var god_depth := 1              # sueño en el que empezar / dream to start in
 var god_upgrades := {}          # personaje → nivel / giver → level
@@ -208,7 +218,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "choose_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen", "new_stickers"]
+	"pending_ups", "difficulty", "run_time", "choose_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen", "new_stickers", "run_dmg", "run_best_chain", "records_before"]
 
 
 func _ready() -> void:
@@ -277,6 +287,11 @@ func reset_run() -> void:
 	saved_hp = -1.0
 	run_time = 0.0
 	choose_time = 0.0
+	run_dmg = {}
+	run_best_chain = 0
+	records_before = {}
+	for k in RECORDS:
+		records_before[k] = int(Progress.stats.get(k, 0))
 	run_shades = false
 	lynx_retake_used = false
 	duos = []

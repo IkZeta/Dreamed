@@ -969,6 +969,7 @@ func on_fall_chain(_e: Enemy, at: Vector2) -> void:
 	_fall_chain = _fall_chain + 1 if _fall_chain_t > 0.0 else 1
 	_fall_chain_t = GameState.FALL_CHAIN_GAP
 	Progress.best_stat("fall_chain", _fall_chain)
+	GameState.run_best_chain = maxi(GameState.run_best_chain, _fall_chain)
 	if _fall_chain < 2:
 		return
 	drop_shards(at, mini(_fall_chain, GameState.FALL_CHAIN_MAX))
@@ -1071,13 +1072,26 @@ func _show_victory() -> void:
 		tr("SUM_DIFFICULTY") % tr("DIFF_" + GameState.difficulty.to_upper()),
 	]
 	_show_end("ACT%d_CLEAR_TITLE" % act, "ACT%d_CLEAR_SUB" % act, [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]], lines)
+	_end_records()
 	_overlay.add_side(DreamDiary.make(true))
+	_overlay.add_under(RunResults.make())
+
+
+## Apunta los récords de la partida (el de nivel y el de caída en cadena ya se apuntan solos)
+## Records the run's bests (level and fall chain already record themselves)
+func _end_records() -> void:
+	if GameState.god_mode:
+		return
+	Progress.best_stat("best_depth", GameState.dream_depth)
+	Progress.best_stat("best_kills", GameState.run_kills)
 
 
 ## Al perder: la pantalla de fin con el diario del sueño / On losing: the end screen with the dream diary
 func _show_loss() -> void:
 	_show_end("LOSE_TITLE", "", [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]])
+	_end_records()
 	_overlay.add_side(DreamDiary.make(false))
+	_overlay.add_under(RunResults.make())
 
 
 func _on_wave_cleared() -> void:

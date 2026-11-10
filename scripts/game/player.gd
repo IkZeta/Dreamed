@@ -299,6 +299,13 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 ## true = se ha salvado / D. Lynx's "take 2": once per run, instead of falling, "Cut!" and he's back
 ## with health. true = he was saved
 func _retake() -> bool:
+	# Solo para el bot de pruebas: apunta la «muerte» y sigue, para poder ver la partida entera
+	# Only for the test bot: notes the "death" and carries on, so the whole run can be seen
+	if GameState.bot_immortal:
+		GameState.bot_deaths += 1
+		hp = max_hp
+		_invuln = 2.0
+		return true
 	var rt := GameState.lynx_retake()
 	if rt.is_empty():
 		return false

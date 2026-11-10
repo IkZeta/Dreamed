@@ -503,8 +503,20 @@ func _draw_road_marks(view: Rect2) -> void:
 	var core1 := Vector2(PLAZA_CORE.end) * T
 	# Tramos: [desde, hasta] de la avenida horizontal (x) y de la vertical (y)
 	# Stretches: [from, to] of the horizontal avenue (x) and of the vertical one (y)
-	var hs := [[h0.x, core0.x], [core1.x, h1.x]]
-	var vs := [[v0.y, core0.y], [core1.y, v1.y]]
+	# Recortados a lo que se ve, para no dibujar kilómetros de raya fuera de pantalla
+	# Clipped to what's visible, so as not to draw miles of lines off screen
+	var hs := []
+	var vs := []
+	for st: Array in [[h0.x, core0.x], [core1.x, h1.x]]:
+		var a := maxf(st[0], view.position.x - 120.0)
+		var b := minf(st[1], view.end.x + 120.0)
+		if b > a and view.position.y < h1.y + 60.0 and view.end.y > h0.y - 60.0:
+			hs.append([a, b])
+	for st: Array in [[v0.y, core0.y], [core1.y, v1.y]]:
+		var a := maxf(st[0], view.position.y - 120.0)
+		var b := minf(st[1], view.end.y + 120.0)
+		if b > a and view.position.x < v1.x + 60.0 and view.end.x > v0.x - 60.0:
+			vs.append([a, b])
 	var hw := h1.y - h0.y
 	var vw := v1.x - v0.x
 	# Bordillos con su sombra / Kerbs with their shadow
@@ -522,7 +534,7 @@ func _draw_road_marks(view: Rect2) -> void:
 		# Raíles del tranvía con traviesas / Tram rails with sleepers
 		for st: Array in hs:
 			for ry in [cy - 70.0, cy + 70.0]:
-				var x := float(st[0])
+				var x := _dash_at(st[0], 34.0, 0.0)
 				while x < float(st[1]):
 					draw_rect(Rect2(Vector2(x, ry - 22), Vector2(14, 44)), Color("3a2a20"))
 					x += 34.0
@@ -531,7 +543,7 @@ func _draw_road_marks(view: Rect2) -> void:
 					draw_rect(Rect2(Vector2(st[0], ry + o - 3), Vector2(st[1] - st[0], 2)), Color("d8d0c0"))
 		for st: Array in vs:
 			for rx in [cx - 110.0, cx + 110.0]:
-				var y := float(st[0])
+				var y := _dash_at(st[0], 34.0, 0.0)
 				while y < float(st[1]):
 					draw_rect(Rect2(Vector2(rx - 22, y), Vector2(44, 14)), Color("3a2a20"))
 					y += 34.0
@@ -542,7 +554,7 @@ func _draw_road_marks(view: Rect2) -> void:
 		for st: Array in hs:
 			draw_rect(Rect2(Vector2(st[0], cy - 22), Vector2(st[1] - st[0], 44)), curb)
 			draw_rect(Rect2(Vector2(st[0], cy - 16), Vector2(st[1] - st[0], 32)), Color("5fb86a"))
-			var x := float(st[0]) + 30.0
+			var x := _dash_at(st[0], 46.0, 30.0)
 			while x < float(st[1]) - 20.0:
 				draw_circle(Vector2(x, cy - 2), 9.0, Color("3f9a4a"))
 				draw_circle(Vector2(x + 2, cy - 6), 3.0, Color("ffd060") if int(x) % 3 else Color("ff8fb0"))
@@ -550,7 +562,7 @@ func _draw_road_marks(view: Rect2) -> void:
 		for st: Array in vs:
 			draw_rect(Rect2(Vector2(cx - 30, st[0]), Vector2(60, st[1] - st[0])), curb)
 			draw_rect(Rect2(Vector2(cx - 24, st[0]), Vector2(48, st[1] - st[0])), Color("5fb86a"))
-			var y := float(st[0]) + 40.0
+			var y := _dash_at(st[0], 80.0, 40.0)
 			while y < float(st[1]) - 30.0:
 				draw_circle(Vector2(cx, y), 14.0, Color("3f9a4a"))
 				draw_circle(Vector2(cx - 4, y - 4), 5.0, Color("7fcf7a"))
@@ -564,7 +576,7 @@ func _draw_road_marks(view: Rect2) -> void:
 			_line(Vector2(st[0], cy - 9), Vector2(st[1], cy - 9), line, 6.0, glow)
 			_line(Vector2(st[0], cy + 9), Vector2(st[1], cy + 9), line, 6.0, glow)
 			for ly in [h0.y + hw * 0.25, h0.y + hw * 0.75]:
-				var x := float(st[0]) + 20.0
+				var x := _dash_at(st[0], 100.0, 20.0)
 				while x < float(st[1]) - 40.0:
 					_line(Vector2(x, ly), Vector2(x + 50.0, ly), Color(line, 0.8), 5.0, glow)
 					x += 100.0
@@ -572,7 +584,7 @@ func _draw_road_marks(view: Rect2) -> void:
 			_line(Vector2(cx - 9, st[0]), Vector2(cx - 9, st[1]), line, 6.0, glow)
 			_line(Vector2(cx + 9, st[0]), Vector2(cx + 9, st[1]), line, 6.0, glow)
 			for lx in [v0.x + vw / 6.0, v0.x + vw * 2.0 / 6.0, v0.x + vw * 4.0 / 6.0, v0.x + vw * 5.0 / 6.0]:
-				var y := float(st[0]) + 20.0
+				var y := _dash_at(st[0], 100.0, 20.0)
 				while y < float(st[1]) - 40.0:
 					_line(Vector2(lx, y), Vector2(lx, y + 50.0), Color(line, 0.8), 5.0, glow)
 					y += 100.0
@@ -599,6 +611,13 @@ func _draw_road_marks(view: Rect2) -> void:
 				continue
 			var a := 0.2 + 0.15 * sin(_t * 1.5 + i)
 			draw_rect(Rect2(q, Vector2(4, 40)), Color("e0303a", a) if i % 4 == 0 else Color(1, 0.94, 0.8, a))
+
+
+## Primer punto de una serie fija (cada «step», empezando en «off») a partir de «from»: así las
+## rayas no bailan al recortarlas a la pantalla / First point of a fixed series (every "step",
+## starting at "off") from "from": so the dashes don't shift when clipped to the screen
+func _dash_at(from: float, step: float, off: float) -> float:
+	return from + fposmod(off - from, step)
 
 
 func _line(a: Vector2, b: Vector2, col: Color, w: float, glow: bool) -> void:
