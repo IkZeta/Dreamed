@@ -178,9 +178,9 @@ func _ready() -> void:
 	_camera = Camera2D.new()
 	_camera.position = Vector2(960, 540)
 	_camera.zoom = Vector2.ONE / PIXEL_SHRINK
-	if room.get_script() == Bedroom:
-		# Acto 1: la habitación cabe entera con un poco de zoom, así ocupa más pantalla
-		# Act 1: the bedroom still fits whole with a bit of zoom, so it fills more of the screen
+	if room.get_script() == Bedroom or room is LivingRoom:
+		# Actos 1 y 2: la habitación y el salón caben enteros con un poco de zoom, así ocupan más pantalla
+		# Acts 1 and 2: the bedroom and the living room still fit whole with a bit of zoom, so they fill more of the screen
 		_camera.zoom *= BEDROOM_ZOOM
 		_camera.position.y += BEDROOM_CAM_Y
 	_camera.ignore_rotation = false  # para que la cámara se ladee en el suelo inclinado / so the camera leans on the tilted floor

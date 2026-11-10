@@ -98,7 +98,7 @@ Arriba en el centro hay un **cronómetro con el tiempo total de la partida**; so
 
 ![El salón](docs/screenshots/salon.jpg)
 
-Tras vencer al jefe, el sueño se hunde un poco más y Kroker cae en el salón de casa: chimenea de piedra, sillón de la abuela, una tele antigua con nieve y un sofá que tapa a quien pasa por detrás.
+Tras vencer al jefe, el sueño se hunde un poco más y Kroker cae en el salón de casa: chimenea de piedra, sillón de la abuela, una tele antigua con nieve y un sofá que tapa a quien pasa por detrás. Como la habitación del Acto 1, el salón se ve con un poco de zoom para que ocupe casi toda la pantalla.
 
 | Sueño | Novedad |
 |---|---|
