@@ -15,6 +15,7 @@ var _unlock_armed := false
 var _reset: Button
 var _reset_step := 0
 var _achievements: Button
+var _credits: Button
 var _quitting := false
 
 
@@ -80,6 +81,7 @@ func _build() -> void:
 	else:
 		_play = _entry(col, "MENU_PLAY", _on_play)
 	_achievements = _entry(col, "MENU_ACHIEVEMENTS", _on_achievements)
+	_credits = _entry(col, "MENU_CREDITS", _on_credits)
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	# «Desbloquear todo» también está en la demo / "Unlock everything" is in the demo too
 	_unlock = _entry(col, "MENU_UNLOCK_ALL", _on_unlock_all)
@@ -177,6 +179,12 @@ func _on_achievements() -> void:
 	var a := ACHIEVEMENTS_SCENE.new()
 	add_child(a)
 	a.closed.connect(func() -> void: _achievements.grab_focus())
+
+
+func _on_credits() -> void:
+	var c := CreditsRoll.make()
+	add_child(c)
+	c.closed.connect(func() -> void: _credits.grab_focus())
 
 
 func _on_settings() -> void:

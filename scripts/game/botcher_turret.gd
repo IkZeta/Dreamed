@@ -105,7 +105,7 @@ func _fire() -> void:
 	_recoil = 1.0
 	run.fx.ring(_muzzle_base() + _aim_dir * 44.0, 12.0, Color(0.95, 0.95, 1.0, 0.7), 0.4, 2.0)
 	_aim_dir = Vector2.ZERO
-	Audio.play("shoot", -10.0, 0.1)
+	Audio.play("steam_shot", -8.0, 0.1)
 
 
 func _death_sound() -> void:

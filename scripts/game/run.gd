@@ -886,6 +886,20 @@ func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
 	return p
 
 
+## Micro-pausa: un instante casi parado para que un golpe gordo se note. Como mucho una cada
+## 0,4 s para que una ristra de caídas no frene la partida.
+## Hit stop: a near-frozen instant so a big hit lands. At most one every 0.4 s so a string of
+## falls doesn't slow the game down.
+var _stop_at := -1000
+func hit_stop(duration := 0.05, slow := 0.15) -> void:
+	var now := Time.get_ticks_msec()
+	if Engine.time_scale < 1.0 or now - _stop_at < 400 or not running:
+		return
+	_stop_at = now
+	Engine.time_scale = slow
+	get_tree().create_timer(duration, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
 func shake(amount: float) -> void:
 	if amount >= 10.0:
 		Settings.rumble(0.3, 0.6 * minf(1.0, amount / 18.0), 0.25)

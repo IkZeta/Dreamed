@@ -34,6 +34,7 @@ extends Weapon
 const COOLDOWN := 6.0
 const PLACE_RANGE := 420.0      # solo pone torretas si hay enemigos cerca / only places turrets with enemies near
 const MAX_TURRETS := 3
+const QUICK_START := 1.2        # espera entre las 2 primeras torretas / wait between the first 2 turrets
 const RELOCATE := 900.0         # más lejos que esto, la recoloca / further than this, he moves it back
 const SPECIAL_GAP := 380.0      # distancia mínima entre especiales / minimum distance between specials
 const GUN_GAP := 60.0           # separación entre torretas de disparo / gap between gun turrets
@@ -116,6 +117,10 @@ func attack() -> bool:
 		run.fx.ring(far.position, 26.0, Color("5ff2ff"), 0.35, 2.0)
 	swung(true)
 	Audio.play("typing", -6.0, 0.1)
+	# Al empezar el sueño monta las primeras torretas deprisa / At the start of the dream he sets up the first turrets quickly
+	if _turrets.size() < mini(2, max_turrets()):
+		_timer = QUICK_START
+		return false
 	return true
 
 

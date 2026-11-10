@@ -330,7 +330,11 @@ func _start_fall(to: Vector2) -> void:
 	_fade = 1.0
 	knock = Vector2.ZERO
 	run.fx.text(global_position + Vector2(0, -aim_height - 40), tr("ENEMY_FELL"), UITheme.GOLD, 20)
-	Audio.play("throw", -6.0, 0.15)
+	Audio.play("hole_fall", -7.0, 0.08)
+	# Que se note: un instante parado y una sacudida, más fuerte cuanto más pesa
+	# Make it land: a frozen instant and a shake, stronger the heavier it is
+	run.hit_stop(0.045 + 0.02 * minf(2.0, mass - 1.0))
+	run.shake(3.0 + 2.0 * minf(2.0, mass - 1.0))
 	if run.get("trinkets"):
 		run.trinkets.on_fall(self)
 	if run.has_method("on_fall_chain"):
@@ -352,6 +356,7 @@ func _update_fall(delta: float) -> void:
 	_fade = 1.0 - k
 	if k >= 1.0:
 		run.fx.ring(_fall_to, 16.0, Color("8d7ff0"), 0.4, 2.0)
+		run.fx.ring(_fall_to, 30.0, Color("8d7ff0", 0.5), 0.6, 1.4)
 		queue_free()
 	queue_redraw()
 
@@ -672,6 +677,10 @@ func die(counted: bool) -> void:
 	run.fx.dissipate(aim_point(), Color("dfe3f0"))
 	if counted:
 		_death_sound()
+		# Los grandes caen con peso / The big ones go down with weight
+		if elite or (max_hp >= 60.0 and not is_boss()):
+			run.hit_stop(0.05)
+			run.shake(3.0)
 		if burn_t > 0.0 and GameState.has_duo("pinche_magnus"):
 			_franchise()
 		run.on_enemy_killed(self)

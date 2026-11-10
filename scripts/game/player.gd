@@ -375,10 +375,7 @@ func _parry(source: Node2D) -> void:
 ## Un instante casi parado tras el parry (en tiempo real, para que no dependa de la cámara lenta)
 ## A near-frozen instant after the parry (in real time, so it doesn't depend on the slow motion)
 func _hit_stop() -> void:
-	if Engine.time_scale < 1.0:
-		return
-	Engine.time_scale = 0.12
-	get_tree().create_timer(0.11, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+	run.hit_stop(0.11, 0.12)
 
 
 ## Sangra: pierde 1 de vida cada 1,3 s (sin parpadeo de invulnerabilidad) y su defensa baja al 75 %

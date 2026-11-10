@@ -1215,7 +1215,72 @@ def sfx_music_box():
     return lp(x, 6000)
 
 
+def sfx_hole_fall():
+    """Caída por un agujero del sueño: un glissando de kalimba que baja, un soplo que se aleja y,
+    muy lejos, un "plof" blando / Falling down a dream hole: a falling kalimba glissando, a receding
+    breath and, far away, a soft "plop"."""
+    x = np.zeros((int(SR * 1.6), 2))
+    for i, n in enumerate([79, 76, 72, 69, 67, 64]):
+        place(x, bar(midi(n), 0.5, 0.2 - i * 0.022, "kalimba", 0.3), i * 0.05, 0.35 - i * 0.12, human=False)
+    air = A.sweep_noise(0.7, 1400, 220, 2.2, 0.18)
+    plop = lp(thump(70, 0.3, 0.22, 8), 900)
+    out = mix(x, np.pad(air, (int(SR * 0.05), 0)))
+    place(out, plop, 0.62, 0.0, human=False)
+    return out
+
+
+def sfx_steam_shot():
+    """Torreta de vapor: un "pfsss" corto y un perno que suena a latón / Steam turret: a short "pfsss" and a brassy bolt."""
+    t = t_axis(0.22)
+    hiss = bp(noise(0.22), 1800, 6500) * np.exp(-t * 16) * 0.3
+    return mix(hiss, thump(140, 0.14, 0.3, 16), np.pad(glock(midi(72), 0.5, 0.14), (int(SR * 0.015), 0)))
+
+
+def sfx_wrench():
+    """Llave inglesa contra la madera: un toc de madera y un tintineo metálico / Wrench on wood: a wooden knock and a metal clink."""
+    return mix(bar(RNG.uniform(330, 380), 0.25, 0.35, "wood", 0.6), np.pad(glock(midi(88), 0.35, 0.07), (int(SR * 0.01), 0)))
+
+
+def sfx_paper():
+    """Papel que se arruga y se deshace (Gólem) / Paper crumpling and falling apart (Golem)."""
+    x = np.zeros(int(SR * 0.7))
+    for k in range(9):
+        at = int(SR * (k * 0.06 + RNG.uniform(0, 0.03)))
+        d = RNG.uniform(0.03, 0.07)
+        burst = bp(noise(d), 1500, 7000) * np.exp(-t_axis(d) * 60) * RNG.uniform(0.2, 0.4) * (1.0 - k / 12)
+        x[at:at + len(burst)] += burst[:len(x) - at]
+    return mix(x, lp(thump(120, 0.25, 0.2, 10), 1200))
+
+
+def sfx_wood_clack():
+    """Marioneta que se desarma: maderitas que caen en cascada / Puppet falling apart: little bits of wood tumbling down."""
+    x = np.zeros((int(SR * 1.0), 2))
+    for i in range(6):
+        place(x, bar(RNG.uniform(380, 620) * (1.0 - i * 0.06), 0.25, 0.3 - i * 0.03, "wood", 0.7), i * 0.07 + RNG.uniform(0, 0.02), RNG.uniform(-0.5, 0.5), human=False)
+    return x
+
+
+def sfx_rubber():
+    """Tirachinas que se rompe: goma que se suelta y un "boing" grave / Slingshot snapping: rubber letting go and a low "boing"."""
+    t = t_axis(0.5)
+    f = 220 * np.exp(-t * 3.0)
+    boing = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 6) * 0.3
+    return mix(lp(boing, 1500), lp(bp(noise(0.05), 1200, 4000), 4500) * np.exp(-t_axis(0.05) * 70) * 0.1)
+
+
+def sfx_zap_down():
+    """Cyberpunk que se apaga: una nota eléctrica que baja y chisporrotea / Cyberpunk powering down: a falling electric note with crackles."""
+    t = t_axis(0.6)
+    f = 660 * np.exp(-t * 2.5)
+    tone = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * np.exp(-t * 5) * 0.08
+    crack = bp(noise(0.6), 2500, 8000) * (RNG.random(len(t)) < 0.004) * 0.8
+    return mix(lp(tone, 2500), lp(crack, 7000), A.sweep_noise(0.4, 2000, 400, 2.0, 0.1))
+
+
 SFX.update({"pin": (sfx_pin, 0.3, 0.15), "whistle": (sfx_whistle, 0.28, 0.1), "freeze": (sfx_freeze, 0.32, 0.3),
-            "splash": (sfx_splash, 0.34, 0.15), "music_box": (sfx_music_box, 0.3, 0.4)})
+            "splash": (sfx_splash, 0.34, 0.15), "music_box": (sfx_music_box, 0.3, 0.4),
+            "hole_fall": (sfx_hole_fall, 0.32, 0.35), "steam_shot": (sfx_steam_shot, 0.3, 0.12), "wrench": (sfx_wrench, 0.3, 0.1),
+            "paper": (sfx_paper, 0.32, 0.15), "wood_clack": (sfx_wood_clack, 0.32, 0.15), "rubber": (sfx_rubber, 0.3, 0.1),
+            "zap_down": (sfx_zap_down, 0.26, 0.15)})
 
 OVERRIDES = set(MUSIC) | set(SFX)

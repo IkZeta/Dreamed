@@ -116,7 +116,7 @@ func _act(delta: float) -> void:
 	_work += delta
 	if int(_work / 0.4) > before:
 		_swing = 1.0
-		Audio.play("pin", -12.0, 0.15)
+		Audio.play("wrench", -9.0, 0.12)
 		run.fx.text(global_position + Vector2(_facing * 30.0, -80.0), tr("BOTCHER_TAP"), BRASS, 16)
 	if _work >= WORK_TIME:
 		_build()

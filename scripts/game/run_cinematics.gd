@@ -340,11 +340,29 @@ func wake_scene(won: bool) -> void:
 	tw.tween_property(flash, "modulate:a", 0.0, 0.8)
 	if won:
 		tw.tween_interval(2.6)
-		tw.tween_callback(run._show_victory)
+		# Al despertar del sueño 20 por primera vez, pasan los créditos
+		# On waking from dream 20 for the first time, the credits roll
+		if GameState.act() == 4 and not Progress.stats.has("credits_seen") and not GameState.god_mode:
+			tw.tween_callback(_roll_credits)
+		else:
+			tw.tween_callback(run._show_victory)
 	else:
 		tw.tween_callback(run._startle)
 		tw.tween_interval(2.2)
 		tw.tween_callback(run._show_loss)
+
+
+func _roll_credits() -> void:
+	Progress.stats["credits_seen"] = 1
+	Progress.save_progress()
+	var layer := CanvasLayer.new()
+	layer.layer = 40
+	run.add_child(layer)
+	var c := CreditsRoll.make()
+	layer.add_child(c)
+	c.closed.connect(func() -> void:
+		layer.queue_free()
+		run._show_victory())
 
 
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange

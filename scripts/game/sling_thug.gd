@@ -127,3 +127,7 @@ func _ellipse(c: Vector2, r: Vector2, n := 18) -> PackedVector2Array:
 
 func head_top() -> Vector2:
 	return Vector2(-2 * _facing, -116)
+
+
+func _death_sound() -> void:
+	Audio.play("rubber", -7.0, 0.1)

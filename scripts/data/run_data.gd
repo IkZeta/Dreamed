@@ -110,12 +110,12 @@ const CHARACTERS := [
 const WEAPON_BONUS := {
 	"bat": {"damage_mult": 0.2},     # aumenta el ataque / raises attack
 	"shield": {"armor": 4.0, "max_hp": 5.0, "speed": -25.0},  # defensa y vida, pero más lento / defence and health, but slower
-	"book": {"max_hp": -5.0},        # frágil / fragile
-	"vacuum": {"speed": 75.0, "max_hp": 5.0},  # +25 % de velocidad y +5 de vida / +25% speed and +5 health
+	"book": {"max_hp": -2.0},        # algo frágil / a bit fragile
+	"vacuum": {"speed": 60.0, "max_hp": 3.0},  # +20 % de velocidad y +3 de vida / +20% speed and +3 health
 	"finger": {},                    # +10 de suerte (en BASE_LEVEL_STATS) / +10 luck (in BASE_LEVEL_STATS)
 	"teddy": {"max_hp": 6.0},        # +6 de vida máxima / +6 max health
-	"ball": {"armor": -2.0, "speed": 60.0, "damage_mult": 0.15},  # frágil, rápida y pega fuerte / fragile, fast and hits hard
-	"laptop": {"max_hp": 3.0},       # +3 de vida máxima / +3 max health
+	"ball": {"armor": -2.0, "speed": 60.0, "damage_mult": 0.15, "max_hp": 4.0},  # poca defensa, rápida y pega fuerte / low defence, fast and hits hard
+	"laptop": {"max_hp": 5.0},       # +5 de vida máxima / +5 max health
 	"boots": {"speed": 30.0, "armor": 1.0},  # algo más rápido y un poco de defensa / a bit faster and a little defence
 }
 
@@ -127,7 +127,7 @@ const WEAPON_BONUS := {
 const BASE_LEVEL_STATS := {
 	"bat": {"regen": 3.0},
 	"shield": {"regen": 2.0, "parry": 8.0},
-	"book": {"luck": -15.0, "lifesteal": 5.0},
+	"book": {"luck": -10.0, "lifesteal": 6.0},
 	"vacuum": {"lifesteal": 5.0},
 	"finger": {"luck": 10.0, "lifesteal": 5.0},
 	"teddy": {"regen": 3.0},
