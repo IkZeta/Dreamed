@@ -761,11 +761,11 @@ func _noir_intro(depth: int) -> void:
 	await get_tree().create_timer(0.6, false).timeout
 	var blds: Array = []
 	for n: Node in _actors.get_children():
-		if n is Act4Room.CityBuilding:
+		if n is CityBuilding:
 			blds.append(n)
 	blds.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.position.distance_to(player.position) < b.position.distance_to(player.position))
 	for i in mini(6, blds.size()):
-		(blds[i] as Act4Room.CityBuilding).explode()
+		(blds[i] as CityBuilding).explode()
 		flash_screen(Color(1, 0.97, 0.9), 0.25)
 		await get_tree().create_timer(0.32, false).timeout
 	var toppled := 0
@@ -784,15 +784,15 @@ func _noir_intro(depth: int) -> void:
 	await get_tree().create_timer(2.5, false).timeout
 	# Las vallas y las pantallas salen volando y se juntan en el cielo / Billboards and screens fly off and gather in the sky
 	var evil_at := clamp_to_arena(city_c + Vector2(0, 260), 80.0)
-	var swarm := Act4Room.AdSwarm.new()
+	var swarm := AdSwarm.new()
 	swarm.center = evil_at + Vector2(0, -EvilAd.ALT - 250.0)
 	for n: Node in _actors.get_children():
-		if n is Act4Room.CityBillboard:
-			var bb := n as Act4Room.CityBillboard
+		if n is CityBillboard:
+			var bb := n as CityBillboard
 			swarm.add_piece(bb.panel_world(), "board", bb.ad, randf_range(0.0, 1.6))
 			get_tree().create_timer(randf_range(0.0, 1.6), false).timeout.connect(bb.take)
-		elif n is Act4Room.CityBuilding and (n as Act4Room.CityBuilding).kind != "house":
-			var bl := n as Act4Room.CityBuilding
+		elif n is CityBuilding and (n as CityBuilding).kind != "house":
+			var bl := n as CityBuilding
 			swarm.add_piece(bl.screen_world(), "tv", 0, randf_range(0.2, 1.8))
 			get_tree().create_timer(randf_range(0.2, 1.8), false).timeout.connect(func() -> void: bl.screen_taken = true)
 	world.add_child(swarm)
@@ -1771,13 +1771,13 @@ func _wake_scene(won: bool) -> void:
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
 func _build_real_room(won: bool) -> void:
 	for n: Node in world.get_children():
-		if n is Darkness or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is Act4Room.AdSwarm or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
+		if n is Darkness or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is AdSwarm or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
 			n.queue_free()
 	for e: Node in enemies.get_children():
 		e.queue_free()
 	# Los edificios, árboles y escombros de la ciudad / The city's buildings, trees and rubble
 	for n: Node in _actors.get_children():
-		if n is Act4Room.CityBuilding or n is Act4Room.CityProp or n is Act4Room.CityBillboard or n is CityFall or n is Helpers.Actor:
+		if n is CityBuilding or n is CityProp or n is CityBillboard or n is CityFall or n is Helpers.Actor:
 			n.queue_free()
 	fx.clear()
 	# Al despertar, el mundo vuelve a tener color / On waking up, the world gets its colour back
