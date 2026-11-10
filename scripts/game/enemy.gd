@@ -130,6 +130,11 @@ func _ready() -> void:
 	max_hp *= GameState.enemy_hp_mult()
 	if not is_boss():
 		max_hp *= GameState.late_hp_mult()
+		# Fiebre: enemigos más rápidos / Fever: faster enemies
+		if GameState.pact("swift"):
+			speed *= 1.18
+	elif GameState.pact("titans"):
+		max_hp *= 1.35
 	contact_damage *= GameState.enemy_dmg_mult()
 	if elite:
 		max_hp *= 3.0

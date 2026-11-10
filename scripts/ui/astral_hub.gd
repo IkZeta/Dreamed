@@ -48,6 +48,7 @@ var _card_worn := false
 ## Ventana de empezar a soñar (en la fuente) / Start-dreaming window (at the fountain)
 var _start_panel: Control
 var _diff_btn: Button
+var _pact_btn: Button
 var _god_btn: Button
 ## Por personaje, qué frase toca la próxima vez / Per character, which line comes next time
 var _line_idx := {}
@@ -488,6 +489,32 @@ func _open_start() -> void:
 			_update_start_buttons())
 		v.add_child(_diff_btn)
 		buttons.append(_diff_btn)
+	# Fiebre (pactos) y sueño del día: tras superar el Acto 1 / Fever (pacts) and daily dream: after clearing Act 1
+	if GameState.pacts_unlocked():
+		_pact_btn = Button.new()
+		_pact_btn.custom_minimum_size = Vector2(0, 60)
+		_pact_btn.pressed.connect(func() -> void:
+			var panel := PactPanel.new()
+			panel.closed.connect(func() -> void:
+				_update_start_buttons()
+				_pact_btn.grab_focus())
+			add_child(panel))
+		v.add_child(_pact_btn)
+		buttons.append(_pact_btn)
+		var d := GameState.daily_setup()
+		var daily := Button.new()
+		daily.custom_minimum_size = Vector2(0, 60)
+		daily.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+		var names: Array[String] = []
+		for id: String in d["pacts"]:
+			names.append(tr("PACT_" + id.to_upper()))
+		var best := Progress.daily_best(d["date"])
+		daily.text = tr("DAILY_BUTTON") % [tr("WEAPON_SHORT_" + str(d["weapon"]).to_upper()), ", ".join(names)] \
+			+ ("" if best <= 0 else "  ·  " + tr("DAILY_BEST") % best)
+		daily.add_theme_color_override("font_color", UITheme.MIST)
+		daily.pressed.connect(_start_daily)
+		v.add_child(daily)
+		buttons.append(daily)
 	# Modo Dios para probar (no en la demo) / God mode for testing (not in the demo)
 	if not Demo.on():
 		_god_btn = Button.new()
@@ -522,6 +549,13 @@ func _open_start() -> void:
 
 
 func _update_start_buttons() -> void:
+	if is_instance_valid(_pact_btn):
+		var f := 0
+		for id: String in GameState.pact_pick():
+			f += int(GameState.PACTS.get(id, 0))
+		_pact_btn.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
+		_pact_btn.text = tr("PACT_BUTTON") % GameState.fever_temp(f) if f > 0 else tr("PACT_BUTTON_OFF")
+		_pact_btn.add_theme_color_override("font_color", UITheme.EMBER if f > 0 else UITheme.ASH)
 	if is_instance_valid(_diff_btn):
 		_diff_btn.text = "DIFF_BUTTON_" + GameState.difficulty.to_upper()
 		_diff_btn.add_theme_color_override("font_color", UITheme.EMBER if GameState.difficulty == "nightmare" else UITheme.ASH)
@@ -539,9 +573,19 @@ func _close_start() -> void:
 
 func _input(event: InputEvent) -> void:
 	# Con la ventana de la fuente abierta, Esc la cierra / With the fountain window open, Esc closes it
-	if _start_panel != null and event.is_action_pressed("ui_cancel") and get_children().filter(func(c: Node) -> bool: return c is GodPanel).is_empty():
+	if _start_panel != null and event.is_action_pressed("ui_cancel") and get_children().filter(func(c: Node) -> bool: return c is GodPanel or c is PactPanel).is_empty():
 		get_viewport().set_input_as_handled()
 		_close_start()
+
+
+## Sueño del día: pijama, pactos y semilla de hoy / Daily dream: today's pajama, pacts and seed
+func _start_daily() -> void:
+	_leaving = true
+	GameState.start_daily()
+	Audio.play("astral", -4.0)
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
 
 
 func _start_dream() -> void:

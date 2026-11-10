@@ -161,7 +161,7 @@ func heal(amount: float) -> void:
 func _physics_process(delta: float) -> void:
 	_t += delta
 	_heal_text = maxf(0.0, _heal_text - delta)
-	_sustain = minf(GameState.SUSTAIN_BUFFER, _sustain + GameState.SUSTAIN_PER_SEC * delta)
+	_sustain = minf(GameState.SUSTAIN_BUFFER, _sustain + GameState.SUSTAIN_PER_SEC * (0.5 if GameState.pact("dry") else 1.0) * delta)
 	# Recuperación de salud: "regen" de vida cada 5 s / Health regeneration: "regen" health every 5 s
 	var regen := GameState.regen_effective()
 	if regen > 0.0 and alive and run.running:

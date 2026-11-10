@@ -72,6 +72,10 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "lynx", "flag": true, "goal": 1},
 	{"id": "duo", "flag": true, "goal": 1},
 	{"id": "legend", "flag": true, "goal": 1},
+	# Fiebre y sueño del día / Fever and the daily dream
+	{"id": "fever", "flag": true, "goal": 1},
+	{"id": "delirium", "flag": true, "goal": 1},
+	{"id": "daily", "flag": true, "goal": 1},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4
@@ -142,11 +146,48 @@ func clear_act(weapon: String, difficulty: String, act := 1) -> void:
 	if not cleared.has(weapon):
 		cleared[weapon] = {}
 	cleared[weapon][_act_key(difficulty, act)] = true
+	_record_fever(weapon, act)
 	# Superarlo en pesadilla también cuenta como superado en normal / Clearing it on nightmare also counts as normal
 	if difficulty == "nightmare":
 		cleared[weapon][_act_key("normal", act)] = true
 	check_achievements()
 	save_progress()
+
+
+## Fiebre más alta con la que se ha superado un acto (por pijama y en total)
+## Highest fever an act has been cleared with (per pajama and overall)
+func _record_fever(weapon: String, act: int) -> void:
+	var f := GameState.fever()
+	if f <= 0 or GameState.god_mode:
+		return
+	stats["fever_" + weapon] = maxi(int(stats.get("fever_" + weapon, 0)), f)
+	stats["fever_best"] = maxi(int(stats.get("fever_best", 0)), f)
+	if f >= 5:
+		_unlock("fever")
+	if act >= 4 and f >= 8:
+		_unlock("delirium")
+
+
+func best_fever(weapon: String) -> int:
+	return int(stats.get("fever_" + weapon, 0))
+
+
+## Mejor sueño alcanzado en el sueño del día de hoy / Best dream reached in today's daily dream
+func record_daily(date: String, depth: int) -> void:
+	if date == "":
+		return
+	if str(stats.get("daily_date", "")) != date:
+		stats["daily_date"] = date
+		stats["daily_best"] = 0
+	stats["daily_best"] = maxi(int(stats["daily_best"]), depth)
+	add_stat("dailies")
+	if depth >= 10:
+		_unlock("daily")
+	save_progress()
+
+
+func daily_best(date: String) -> int:
+	return int(stats.get("daily_best", 0)) if str(stats.get("daily_date", "")) == date else 0
 
 
 func has_cleared(weapon: String, difficulty: String, act := 1) -> bool:

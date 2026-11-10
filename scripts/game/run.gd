@@ -74,6 +74,11 @@ var _modal: Node
 func _ready() -> void:
 	var depth := GameState.dream_depth
 	_wave = GameState.wave_for(depth)
+	# Fiebre: más enemigos a la vez y más seguidos / Fever: more enemies at once and more often
+	if GameState.pact("crowd") and _wave.has("max_alive"):
+		_wave = _wave.duplicate()
+		_wave["max_alive"] = ceili(float(_wave["max_alive"]) * 1.3)
+		_wave["spawn_every"] = float(_wave["spawn_every"]) / 1.3
 	var act := GameState.act_of(depth)
 	# Entrenamiento del plano astral: sin oleadas, solo el muñeco / Astral-plane training: no waves, just the dummy
 	if GameState.training:
@@ -232,6 +237,7 @@ func _ready() -> void:
 	if GameState.training:
 		_begin_training()
 		return
+	GameState.seed_dream(depth)
 	_events.roll_event(depth)
 	if depth == 1:
 		_cinematics.play_wake_up(depth)
@@ -363,6 +369,9 @@ func gain_reality(n: int, pos: Vector2) -> void:
 	# Mr. Ad: a veces cae 1 más / Mr. Ad: sometimes 1 more drops in
 	if randf() * 100.0 < GameState.ad_extra_chance():
 		n += 1
+	# Fiebre: a veces 1 más / Fever: sometimes 1 more
+	if randf() < 0.05 * GameState.fever():
+		n += 1
 	GameState.add_reality(n)
 	Progress.best_stat("best_reality", GameState.reality)
 	hud.set_reality()
@@ -482,7 +491,7 @@ func flash_screen(color: Color, secs := 0.3) -> void:
 
 ## Pantalla para elegir la segunda arma (la del otro tipo) / Screen to pick the second weapon (the other kind)
 func _choose_second_weapon(then: Callable) -> void:
-	if GameState.second_weapon != "":
+	if GameState.second_weapon != "" or GameState.pact("solo"):
 		then.call()
 		return
 	get_tree().paused = true
@@ -1086,6 +1095,7 @@ func _end_records() -> void:
 		return
 	Progress.best_stat("best_depth", GameState.dream_depth)
 	Progress.best_stat("best_kills", GameState.run_kills)
+	Progress.record_daily(GameState.daily, GameState.dream_depth)
 
 
 ## Al perder: la pantalla de fin con el diario del sueño / On losing: the end screen with the dream diary
@@ -1164,7 +1174,9 @@ func _after_dream() -> void:
 		return
 	var next := _end_run_victory if _wave.get("act_end", false) else _flash_to_astral
 	# En el Acto 1 solo si ya conoces a Charo / In Act 1 only if you've already met Charo
-	if _wave.get("shop", false) or (_wave.get("shop_met", false) and Progress.stats.has("charo_met")):
+	if GameState.pact("no_kiosk"):
+		next.call()
+	elif _wave.get("shop", false) or (_wave.get("shop_met", false) and Progress.stats.has("charo_met")):
 		_charo_shop(next)
 	else:
 		next.call()
@@ -1282,7 +1294,10 @@ func _open_settings() -> void:
 
 
 func _restart() -> void:
-	GameState.start_run()
+	if GameState.daily != "":
+		GameState.start_daily()
+	else:
+		GameState.start_run()
 	GameState.change_scene("res://scenes/run.tscn")
 
 

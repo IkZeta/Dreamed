@@ -198,7 +198,113 @@ func start_run() -> void:
 			upgrades2 = god_upgrades2.duplicate()
 		elif dream_depth >= ACT3_START and not other_weapons().is_empty():
 			second_weapon = other_weapons()[0]
+	if not god_mode and pacts_unlocked():
+		pacts = pact_pick().duplicate()
 	gift_ball()
+
+
+## --- Fiebre: pactos opcionales antes de soñar (como el Pacto de Castigo de Hades) -------
+## --- Fever: optional pacts before dreaming (like Hades' Pact of Punishment) --------------
+## Cada pacto pone el sueño más difícil y sube la fiebre (grados). A cambio, cada grado da más
+## trozos de estrella y Realidad, y se guarda la fiebre más alta con la que superas cada acto.
+## Each pact makes the dream harder and raises the fever (degrees). In exchange, every degree gives
+## more star shards and Reality, and the highest fever you clear each act with is recorded.
+const PACTS := {
+	"crowd": 2,     # +30 % enemigos / +30% enemies
+	"swift": 1,     # enemigos +18 % más rápidos / enemies 18% faster
+	"brutal": 2,    # los enemigos pegan un 30 % más / enemies hit 30% harder
+	"fragile": 1,   # -25 % vida máxima / -25% max health
+	"dry": 2,       # la curación continua rinde la mitad / continuous healing is worth half
+	"titans": 2,    # jefes con +35 % de vida / bosses with +35% health
+	"no_kiosk": 1,  # Charo no abre el kiosco / Charo doesn't open her kiosk
+	"solo": 2,      # sin segunda arma / no second weapon
+}
+const PACT_ORDER: Array[String] = ["crowd", "swift", "brutal", "fragile", "dry", "titans", "no_kiosk", "solo"]
+## Más trozos de estrella por grado / More star shards per degree
+const FEVER_SHARDS := 0.08
+## Pactos de esta partida / This run's pacts
+var pacts: Array = []
+## Fecha del sueño del día ("" si es una partida normal) / Date of the daily dream ("" for a normal run)
+var daily := ""
+
+
+func pact(id: String) -> bool:
+	return id in pacts
+
+
+func fever() -> int:
+	var f := 0
+	for id: String in pacts:
+		f += int(PACTS.get(id, 0))
+	return f
+
+
+## Temperatura de Kroker con la fiebre puesta / Kroker's temperature with the fever on
+func fever_temp(f := -1) -> String:
+	return "%.1f °C" % (36.6 + 0.4 * float(fever() if f < 0 else f))
+
+
+## Pactos elegidos en la fuente (se recuerdan entre partidas) / Pacts picked at the fountain (remembered between runs)
+func pact_pick() -> Array:
+	return Progress.stats.get("pact_pick", [])
+
+
+func toggle_pact(id: String) -> void:
+	var pick: Array = pact_pick().duplicate()
+	if id in pick:
+		pick.erase(id)
+	else:
+		pick.append(id)
+	Progress.stats["pact_pick"] = pick
+	Progress.save_progress()
+
+
+## Los pactos se desbloquean al superar el Acto 1 / Pacts unlock after clearing Act 1
+func pacts_unlocked() -> bool:
+	return Progress.any_cleared()
+
+
+## --- Sueño del día: misma semilla, pijama y pactos para todos ese día ---------------------
+## --- Daily dream: same seed, pajama and pacts for everyone that day -------------------------
+func today() -> String:
+	return Time.get_date_string_from_system()
+
+
+## Pijama y pactos del sueño de hoy (salen de la fecha) / Today's dream pajama and pacts (from the date)
+func daily_setup(date := "") -> Dictionary:
+	if date == "":
+		date = today()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("dreamed-" + date)
+	var pool: Array[String] = []
+	for w: String in MELEE + RANGED:
+		if weapon_unlocked(w):
+			pool.append(w)
+	var weapon: String = pool[rng.randi() % pool.size()] if not pool.is_empty() else "bat"
+	var options: Array = PACT_ORDER.duplicate()
+	options.erase("solo")
+	var picked: Array = []
+	for i in 2 + rng.randi() % 2:
+		var id: String = options[rng.randi() % options.size()]
+		options.erase(id)
+		picked.append(id)
+	return {"date": date, "weapon": weapon, "pacts": picked}
+
+
+## Semilla de cada sueño en el sueño del día / Each dream's seed in the daily dream
+func seed_dream(depth: int) -> void:
+	if daily != "":
+		seed(hash("dreamed-" + daily) + depth * 7919)
+
+
+func start_daily() -> void:
+	var d := daily_setup()
+	god_mode = false
+	difficulty = "normal"
+	selected_character = d["weapon"]
+	start_run()
+	daily = d["date"]
+	pacts = d["pacts"].duplicate()
 
 
 ## La pelota empieza con la mejora de Svinho a nivel 3 (sea primera o segunda arma)
@@ -218,7 +324,7 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "choose_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen", "new_stickers", "run_dmg", "run_best_chain", "records_before"]
+	"pending_ups", "difficulty", "run_time", "choose_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen", "new_stickers", "run_dmg", "run_best_chain", "records_before", "pacts", "daily"]
 
 
 func _ready() -> void:
@@ -289,6 +395,8 @@ func reset_run() -> void:
 	choose_time = 0.0
 	run_dmg = {}
 	run_best_chain = 0
+	pacts = []
+	daily = ""
 	records_before = {}
 	for k in RECORDS:
 		records_before[k] = int(Progress.stats.get(k, 0))
@@ -383,11 +491,11 @@ const BOSS_POWER := 1.25
 
 
 func enemy_dmg_mult() -> float:
-	return (1.5 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.2, 1.4, 1.55][act()]
+	return (1.5 if difficulty == "nightmare" else 1.0) * [1.0, 1.0, 1.2, 1.4, 1.55][act()] * (1.3 if pact("brutal") else 1.0)
 
 
 func shard_mult() -> float:
-	return 1.5 if difficulty == "nightmare" else 1.0
+	return (1.5 if difficulty == "nightmare" else 1.0) * (1.0 + FEVER_SHARDS * fever())
 
 
 ## Regeneración que de verdad cura: a partir de 1,5 rinde el 40 %, para no ser inmortal
@@ -1339,6 +1447,8 @@ func stats_for(id: String) -> Dictionary:
 	s["damage_mult"] = float(s["damage_mult"]) + stat("attack") / 100.0
 	s["armor"] = armor_effective(float(s["armor"]) + stat("defense"))
 	s["speed"] = float(s["speed"]) * (1.0 + stat("speed") / 100.0)
+	if pact("fragile"):
+		s["max_hp"] = maxf(5.0, roundf(float(s["max_hp"]) * 0.75))
 	return s
 
 

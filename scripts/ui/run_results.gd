@@ -22,6 +22,17 @@ func _build() -> void:
 	v.add_theme_constant_override("separation", 10)
 	add_child(v)
 	v.add_child(UITheme.label("RESULTS_TITLE", 28, UITheme.GOLD, "display"))
+	# Sueño del día y fiebre / Daily dream and fever
+	if GameState.daily != "":
+		var dl := UITheme.label("", 18, UITheme.MIST, "caps")
+		dl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		dl.text = tr("RESULTS_DAILY") % [GameState.daily, Progress.daily_best(GameState.daily)]
+		v.add_child(dl)
+	if GameState.fever() > 0:
+		var fl := UITheme.label("", 18, UITheme.EMBER, "caps")
+		fl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		fl.text = tr("RESULTS_FEVER") % [GameState.fever_temp(), roundi(GameState.FEVER_SHARDS * 100.0 * GameState.fever())]
+		v.add_child(fl)
 
 	# Daño por arma / Damage per weapon
 	var dmg: Dictionary = GameState.run_dmg
