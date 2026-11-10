@@ -19,7 +19,7 @@ Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada 
 1. Abre `project.godot` con Godot 4.7.2 y pulsa **F5**.
 2. En el menú principal, pulsa **Jugar**: llegas al **plano astral**. Ve al armario, acércate a un pijama para ver su carta y pulsa **F** para ponértelo (cada uno trae un arma distinta). Luego ve a la fuente del centro y pulsa **F** para empezar a soñar.
 3. Sobrevive a cada sueño hasta que se acabe el tiempo. Tu arma ataca sola.
-4. Recoge los **trozos de estrella** que sueltan los enemigos para subir de nivel.
+4. Recoge los **trozos de estrella** que sueltan los enemigos para subir de nivel. Las mejoras de nivel se eligen al acabar el sueño, para no cortar la pelea.
 5. Al acabar cada sueño, en el **plano astral**, elige uno de los dos dones que te ofrecen.
 6. La partida se guarda al empezar cada sueño. Si sales, **Continuar** en el menú principal te devuelve al principio de ese sueño.
 
@@ -27,7 +27,7 @@ Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada 
 
 | Acción | Teclado | Mando |
 |---|---|---|
-| Moverse | WASD o flechas | Stick izquierdo o cruceta |
+| Moverse (también por los menús) | WASD o flechas | Stick izquierdo o cruceta |
 | Modo especial (almohada de Svinho) | E | Y |
 | Aceptar / avanzar diálogos | Intro, Espacio o clic | A |
 | Volver | Esc | B |
@@ -281,6 +281,8 @@ Si un personaje **no tiene mejora dúo con tu arma** (o es la segunda arma, que 
 
 Hay mejoras que se ayudan entre sí, y el juego te lo enseña: en la tarjeta del plano astral aparece «Completa un combo» si al cogerla se forma uno, al completarlo sale un aviso, y en la pausa y en el diario se listan los que tienes. No dan nada extra; es que juntas funcionan mejor. Son: Equilibrio clínico (Doc + Stolk), Capital riesgo (Mr. Ad + Magnus), Público en fila (canto de Lil Key + rebotes de Svinho a distancia), Todos en fila (canto de Lil Key + láser de SuperK), Bola de pelusa (Silly + Svinho en el oso), Succión crítica (Silly + Stolk en la aspiradora), Matón con doble (Stolk + Toma 2 de D. Lynx), Dedos de la suerte (dedo + 20 de suerte), Muro de almohada (escudo + 12 de parry), Directo al hoyo (lanzamiento de SuperK + Svinho) y Barbacoa del barrio (fogón del Pinche + canto de Lil Key).
 
+**Estallido de píxeles** (Silly + Svinho, con cualquier arma) sí tiene efecto propio y se puede sacar en la primera partida: los enemigos glitcheados por Silly (o pegados por la pelusa del oso, o con el eco del libro) estallan al morir y los píxeles rebotan contra los de alrededor, haciéndoles 6 de daño y glitcheándolos también, en cadena (como mucho unos pocos estallidos por segundo). Además, **mientras la partida no tenga ningún combo**, si un personaje del plano astral completaría uno, sale seguro entre los que te ofrecen, para que se descubran pronto.
+
 ### Amistad
 
 La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
@@ -295,7 +297,7 @@ La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
 
 ### Niveles
 
-Los enemigos sueltan **trozos de estrella**; cuanto más duro es el enemigo, más sueltan. Al subir de nivel eliges 1 de 3 mejoras de estadística, cada una con su rareza: común, poco común, rara, épica o legendaria.
+Los enemigos sueltan **trozos de estrella**; cuanto más duro es el enemigo, más sueltan. Al subir de nivel sale un aviso («¡Nivel 3!») y el nivel del HUD marca cuántas mejoras tienes pendientes (+1, +2...). Al acabar el sueño eliges, por cada nivel, 1 de 3 mejoras de estadística, cada una con su rareza: común, poco común, rara, épica o legendaria. Con mando, izquierda y derecha pasan de carta en carta y desde *Cambiar* se vuelve a la del centro.
 
 Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud, suerte y parry.
 
@@ -314,6 +316,13 @@ A veces un enemigo suelta un objeto, y la suerte hace que pase más a menudo:
 - **Almohada:** para el siguiente golpe.
 - **Despertador:** congela a todos los enemigos.
 
+### Agujeros y golpe fuerte
+
+Tirar enemigos por los agujeros los elimina aunque tengan vida (a los jefes no). Todas las armas pueden hacerlo:
+
+- **Golpe fuerte:** cada pocos golpes, uno lanza al enemigo lejos y deja que caiga aunque llegue despacio; la masa cuenta menos, así que también vale con los matones. Unos puntitos bajo los pies de Kroker cuentan cuánto falta (dorados: el siguiente es fuerte). Bate, peluche, mando y botas: cada 3 golpes; libro: cada 4; pistola de dedos y portátil: cada 5. La almohada empuja ya de por sí y la aspiradora tira a los que tiene a media vida.
+- **Caídas en cadena:** si tiras a otro por un agujero antes de 3 s, la cadena sube y suelta tantos trozos de estrella extra como la cadena (hasta 5). Solo da experiencia, no daño.
+
 ### La vida y los estados
 
 La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. Debajo de la vida, un indicador muestra los estados alterados que tienes en cada momento (sangrado, paralizado, mal olor, hackeado...). La hitbox de Kroker es solo el cuerpo: la cabeza no cuenta.
@@ -322,8 +331,11 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 
 ## Más
 
+- **Menú principal:** se ve la versión del juego y hay un botón **Borrar partida** (hay que pulsarlo tres veces) que borra todo el progreso y la partida a medias; los ajustes se quedan. El icono del juego es la cara de Mr. Ad.
+- **Ritmo:** las frases que ya has leído (plano astral, Charo, el hub) salen casi de golpe. El diario cuenta cuánto tiempo has pasado peleando y cuánto entre pelea y pelea.
+- **Música:** los cambios de canción son fundidos de potencia constante, sin bache, y la música de cada acto sigue por donde iba al volver del plano astral (las de jefe empiezan siempre por el principio).
 - **Dificultad Pesadilla:** se desbloquea al superar el Acto 1. Los enemigos tienen más vida y más daño, y salen más élites. En el jefe, los tres muebles atacan a la vez, aunque más despacio.
-- **Plano astral (lobby):** es adonde lleva **Jugar** y adonde vuelves al acabar cada partida, al estilo de Hades. Es un archipiélago de islas flotantes de piedra astral unidas por puentes de piedras que flotan. En el centro está el cruce de los sueños, con una fuente de estrellas. A su alrededor aparece una isla por cada personaje que Kroker ya conoce, con un trozo de su mundo encima (césped, gimnasio, cocina, despacho...) y él haciendo lo suyo: Svinho, de espaldas, chuta a portería en su medio campo (la red se hincha cuando entra el balón), Stolk levanta la barra por encima de la cabeza en el gimnasio, Silly rueda en su silla de un monitor a otro con los cascos puestos, Doc pasa la lupa por un pie gigante en su clínica podológica, Mr. Ad salta hiperactivo de una tele a otra del escaparate con la cara en primer plano, el Pinche (con el soplete tirado en el suelo, todavía encendido) corre de un fuego a otro de su cocina echándoles espuma con el extintor, Charo teje en su sillón, Magnus trabaja en su despacho, SuperK despega de su helipuerto en una azotea y da una vuelta a la isla, Lil Key da un concierto en su escenario con altavoces y focos, y D. Lynx espera en su plató, entre telones rojos sobre un suelo en zigzag, con la cámara, los focos y la claqueta, levantando el megáfono de vez en cuando. Las islas vecinas también están unidas entre sí por pasillos, así que no hace falta volver siempre al centro. Al acercarte puedes hablar con ellos con la **F** (o A en el mando): lore y lo que te cuentan según la amistad. El recuadro de diálogo va al estilo de Celeste: marco con adornos en las esquinas del color del que habla, el texto sale letra a letra con un clic suave (la F lo completa y luego cierra) y a la derecha aparece su cara de cerca en un marco cuadrado, sobre rayos de su color, moviendo la cabeza mientras habla. También tiene:
+- **Plano astral (lobby):** es adonde lleva **Jugar** y adonde vuelves al acabar cada partida, al estilo de Hades. Es un archipiélago de islas flotantes de piedra astral unidas por puentes de piedras que flotan. En el centro está el cruce de los sueños, con una fuente de estrellas. Al principio está casi vacío: la isla de cada personaje aparece cuando Kroker lo conoce en el plano astral (desbloquearlo no basta). A su alrededor aparece una isla por cada personaje que Kroker ya conoce, con un trozo de su mundo encima (césped, gimnasio, cocina, despacho...) y él haciendo lo suyo: Svinho, de espaldas, chuta a portería en su medio campo (la red se hincha cuando entra el balón), Stolk levanta la barra por encima de la cabeza en el gimnasio, Silly rueda en su silla de un monitor a otro con los cascos puestos, Doc pasa la lupa por un pie gigante en su clínica podológica, Mr. Ad salta hiperactivo de una tele a otra del escaparate con la cara en primer plano, el Pinche (con el soplete tirado en el suelo, todavía encendido) corre de un fuego a otro de su cocina echándoles espuma con el extintor, Charo teje en su sillón, Magnus trabaja en su despacho, SuperK despega de su helipuerto en una azotea y da una vuelta a la isla, Lil Key da un concierto en su escenario con altavoces y focos, y D. Lynx espera en su plató, entre telones rojos sobre un suelo en zigzag, con la cámara, los focos y la claqueta, levantando el megáfono de vez en cuando. Las islas vecinas también están unidas entre sí por pasillos, así que no hace falta volver siempre al centro. Al acercarte puedes hablar con ellos con la **F** (o A en el mando): lore y lo que te cuentan según la amistad. El recuadro de diálogo va al estilo de Celeste: marco con adornos en las esquinas del color del que habla, el texto sale letra a letra con un clic suave (la F lo completa y luego cierra) y a la derecha aparece su cara de cerca en un marco cuadrado, sobre rayos de su color, moviendo la cabeza mientras habla. También tiene:
   - **la fuente de estrellas**, en el centro: con la **F** se abre la ventana de empezar a soñar (con la dificultad y el Modo Dios);
   - **el armario**, con un maniquí por pijama (los que aún no tienes, con el soporte vacío): al acercarte sale la carta del pijama y con la **F** te lo pones;
   - **el tatami**, detrás del armario, con un **muñeco de pruebas** para probar el arma, como el esqueleto de Hades: con la **F** entras a entrenar. No se rompe nunca, no hace daño, se tambalea con los golpes y enseña el daño por segundo. Los empujones lo arrastran por el tatami y, si lo sacas por el borde, cae al vacío; al segundo vuelve a su sitio. Con **Esc** → *Volver al plano astral* sales;
@@ -385,9 +397,12 @@ Para hacer una demo nueva basta con volver a exportar con esos presets.
 
 ```
 scenes/                 escenas principales (menú, partida, plano astral, ajustes)
-scripts/autoload/       I18n (textos ES/EN), Settings, GameState (datos y reglas), Progress (guardado y logros), Audio
-scripts/game/           la partida: run.gd, bedroom.gd, living_room.gd, act3_room.gd, Kroker, enemigos, armas, jefes, HUD, efectos
-scripts/ui/             menús, bestiario, logros, subida de nivel, plano astral, Charo y su kiosco, chimenea, tarjetas de palabras clave
+scripts/autoload/       I18n (textos ES/EN), Settings, GameState (reglas), Progress (guardado y logros), Audio
+scripts/data/           datos para equilibrar: run_data (oleadas, pijamas, subidas de nivel), upgrade_data (mejoras, dúos, combos), shop_data (kiosco, tratos de Magnus)
+scripts/game/           la partida: run.gd (bucle de la partida) con run_bosses.gd (jefes), run_events.gd (sucesos, timbre, taquilla, edificios que caen) y run_cinematics.gd (llegadas y despertares); salas, Kroker, enemigos, armas, HUD, efectos
+scripts/game/city/      piezas de la Metrópolis: edificios, carteles, decorados, ambiente y enjambre de anuncios
+scripts/ui/             menús, logros, subida de nivel, plano astral, Charo y su kiosco, chimenea, tarjetas de palabras clave
+scripts/ui/hub/         el hub: el mundo de islas, el retrato y el marco del diálogo
 scripts/visual/         dibujo de los sprites (Sprites, SpriteRects), Kroker, personajes y PixelView
 assets/sprites/         sprites en pixel art (generados)
 assets/audio/           música (.ogg) y efectos (.wav) (generados)
@@ -399,13 +414,14 @@ docs/screenshots/       capturas de este README
 
 **Para cambiar el equilibrio del juego**, casi todo está a la vista en un solo sitio:
 
-- **Oleadas:** `GameState.WAVES` (duración, enemigos, chimenea, kiosco).
+- **Oleadas:** `RunData.WAVES` en `scripts/data/run_data.gd` (duración, enemigos, chimenea, kiosco). GameState las reexpone con el mismo nombre.
 - **Estadísticas base:** `GameState.BASE_STATS` y `GameState.BASE_LEVEL_STATS`.
-- **Mejoras por nivel:** `GameState.UPGRADE_VALUES`.
+- **Mejoras por nivel:** `UpgradeData.UPGRADE_VALUES` en `scripts/data/upgrade_data.gd`.
+- **Golpe fuerte y caídas en cadena:** `GameState.HEAVY_EVERY`, `HEAVY_KNOCK` y `FALL_CHAIN_*`.
 - **Subidas de nivel y rarezas:** `GameState.STAT_STEPS` y `GameState.RARITY_WEIGHT`.
-- **Kiosco y moneda:** `GameState.WARES` (nivel y precio de cada artículo), `GameState.WARE_TIER_WEIGHT` y `GameState.REALITY_*`.
+- **Kiosco y moneda:** `ShopData.WARES` (en `scripts/data/shop_data.gd`) (nivel y precio de cada artículo), `GameState.WARE_TIER_WEIGHT` y `GameState.REALITY_*`.
 - **Dureza de los jefes:** `GameState.BOSS_POWER` (un solo multiplicador para todos).
-- **Tratos de Magnus:** `GameState.INVEST_SIZES` y `GameState.INVEST_GOALS`.
+- **Tratos de Magnus:** `ShopData.INVEST_SIZES` y `ShopData.INVEST_GOALS`.
 - **Tope del parry:** `GameState.PARRY_MAX`.
 - **Daño, alcance y recarga de cada arma:** las constantes al principio de `scripts/game/weapon_*.gd`.
 - **Textos:** `scripts/autoload/i18n.gd`, con cada clave en `es` y `en`.
