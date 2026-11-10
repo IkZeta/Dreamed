@@ -21,6 +21,7 @@ var fx: FX
 var hud: HUD
 var helpers: Helpers
 var trinkets: Trinkets
+var _cinematics := RunCinematics.new(self)
 var room: Bedroom
 ## Mundo de la partida, dibujado a 960 x 540 y ampliado x2 sin suavizar (pixel art).
 ## The run's world, drawn at 960 x 540 and scaled up x2 without smoothing (pixel art).
@@ -231,13 +232,13 @@ func _ready() -> void:
 		return
 	_roll_event(depth)
 	if depth == 1:
-		_play_wake_up(depth)
+		_cinematics.play_wake_up(depth)
 	elif depth == GameState.FINAL_DREAM:
 		event = ""
 		player.fedora = true
-		_noir_intro(depth)
+		_cinematics.noir_intro(depth)
 	else:
-		_drop_in(depth)
+		_cinematics.drop_in(depth)
 
 
 ## Entrenamiento: Kroker aparece en un resplandor junto al muñeco de pruebas
@@ -246,7 +247,7 @@ func _begin_training() -> void:
 	var start := Bedroom.to_world(TrainingRoom.START_AT)
 	player.position = start
 	player.visible = true
-	var tw := _arrive_glow(start)
+	var tw := _cinematics.arrive_glow(start)
 	tw.tween_callback(func() -> void:
 		hud.visible = true
 		hud.start_training()
@@ -255,126 +256,6 @@ func _begin_training() -> void:
 		d.setup(self)
 		d.position = Bedroom.to_world(TrainingRoom.DUMMY_AT)
 		enemies.add_child(d))
-
-
-## En los sueños siguientes Kroker llega de una de tres formas (solo estético): cae del cielo y
-## se estampa de boca contra el suelo, sale de uno de los agujeros del suelo o aparece en un
-## resplandor, como cuando se fue pero al revés.
-## In later dreams Kroker arrives in one of three ways (purely cosmetic): he falls from the sky
-## and faceplants on the floor, climbs out of one of the holes in the floor, or appears in a
-## glow, like when he left but in reverse.
-func _drop_in(depth: int) -> void:
-	var start := Bedroom.to_world(room.start_point())
-	player.position = start
-	player.visible = true
-	if room.open_map():
-		_camera.position = _camera_clamped(start)
-	var ways := ["fall", "glow"]
-	if room.hole_count() > 0:
-		ways.append("hole")
-	var tw: Tween
-	match ways[randi() % ways.size()]:
-		"hole": tw = _arrive_hole()
-		"glow": tw = _arrive_glow(start)
-		_: tw = _arrive_faceplant(start)
-	tw.tween_interval(0.4)
-	# La primera vez que llega al salón, Charo le da la bienvenida
-	# The first time he reaches the living room, Charo welcomes him
-	if depth == GameState.ACT2_START and not Progress.stats.has("charo_met"):
-		tw.tween_callback(_charo_welcome.bind(_begin.bind(depth)))
-	else:
-		tw.tween_callback(_begin.bind(depth))
-
-
-## Cae dando vueltas y se estampa de boca; se queda un momento mareado y se levanta
-## Falls tumbling and faceplants; stays dizzy for a moment and gets up
-func _arrive_faceplant(at: Vector2) -> Tween:
-	var f := player._facing
-	player.hop = 600.0
-	player.rotation = -0.4 * f
-	var tw := create_tween()
-	tw.tween_interval(0.5)
-	tw.tween_property(player, "hop", 0.0, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(player, "rotation", 1.45 * f, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func() -> void:
-		Audio.play("land")
-		Audio.play("crack", -4.0)
-		shake(7.0)
-		fx.dissipate(at + Vector2(60 * f, -10), UITheme.BONE)
-		fx.ring(at + Vector2(60 * f, 0), 26.0, UITheme.BONE, 0.45, 2.2)
-		# Estrellitas de mareo / Dizzy little stars
-		for i in 3:
-			fx.ring(at + Vector2(70 * f + (i - 1) * 22, -50 - (i % 2) * 10), 5.0, UITheme.GOLD, 0.9, 1.2))
-	# Rebote al estamparse / Bounce on impact
-	tw.tween_property(player, "rotation", 1.32 * f, 0.08)
-	tw.tween_property(player, "rotation", 1.45 * f, 0.1)
-	tw.tween_interval(0.7)
-	# Se levanta de un salto / Springs back up
-	tw.tween_callback(Audio.play.bind("dash", -10.0, 0.1))
-	tw.tween_property(player, "rotation", 0.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_method(func(k: float) -> void: player.hop = sin(k * PI) * 26.0, 0.0, 1.0, 0.28)
-	tw.tween_callback(func() -> void:
-		player.rotation = 0.0
-		player.hop = 0.0
-		player.land())
-	return tw
-
-
-## Asoma por un agujero del suelo, trepa y salta fuera / Pops up through a floor hole, climbs and hops out
-func _arrive_hole() -> Tween:
-	var holes := room.holes_list()
-	var hole: Rect2 = Bedroom.rect_world(holes[randi() % room.hole_count()])
-	var from := hole.get_center() + Vector2(0, hole.size.y * 0.2)
-	# Sale hacia delante (abajo en pantalla) o hacia el lado con más sitio / Hops out forward or toward the roomier side
-	var area := arena_rect().grow(-60)
-	var to := from + Vector2(0, hole.size.y * 0.5 + 60)
-	if not area.has_point(to):
-		to = from + Vector2((hole.size.x * 0.5 + 70) * (1.0 if from.x < area.get_center().x else -1.0), 0)
-	to = Vector2(clampf(to.x, area.position.x, area.end.x), clampf(to.y, area.position.y, area.end.y))
-	player.position = from
-	player.scale = Vector2(1.0, 0.0)
-	player.set_facing(signf(to.x - from.x) if absf(to.x - from.x) > 4.0 else 1.0)
-	var tw := create_tween()
-	tw.tween_interval(0.5)
-	tw.tween_callback(func() -> void:
-		Audio.play("crack", -8.0)
-		fx.dissipate(from, Color("2a2148")))
-	# Asoma la cabeza, mira y trepa / Head pops up, looks around and climbs out
-	tw.tween_property(player, "scale", Vector2(1.0, 0.45), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(0.35)
-	tw.tween_property(player, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(Audio.play.bind("dash", -10.0, 0.1))
-	tw.tween_method(_hop_down.bind(from, to), 0.0, 1.0, 0.45)
-	tw.tween_callback(func() -> void:
-		player.position = to
-		player.hop = 0.0
-		player.land()
-		Audio.play("land", -4.0)
-		fx.ring(to, 22.0, UITheme.BONE, 0.4, 2.0))
-	return tw
-
-
-## Aparece en un resplandor pequeño, como cuando se fue pero al revés
-## Appears in a small glow, like when he left but in reverse
-func _arrive_glow(at: Vector2) -> Tween:
-	var glow := DreamGlow.new()
-	glow.position = at + Vector2(0, -70)
-	world.add_child(glow)
-	player.modulate = Color(3, 3, 3, 0)
-	player.scale = Vector2(0.4, 0.4)
-	var tw := create_tween()
-	tw.tween_interval(0.3)
-	tw.tween_callback(Audio.play.bind("astral", -8.0))
-	tw.tween_property(glow, "power", 1.0, 0.45).set_trans(Tween.TRANS_SINE)
-	tw.tween_property(player, "modulate", Color(3, 3, 3, 1), 0.25)
-	tw.parallel().tween_property(player, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(player, "modulate", Color.WHITE, 0.45)
-	tw.parallel().tween_property(glow, "power", 0.0, 0.6).set_trans(Tween.TRANS_SINE)
-	tw.tween_callback(func() -> void:
-		glow.queue_free()
-		player.land()
-		fx.dissipate(at + Vector2(0, -40), UITheme.GOLD))
-	return tw
 
 
 ## Empieza el sueño de verdad / The dream really starts
@@ -734,114 +615,6 @@ func noir_glitch(secs := 0.3, power := 1.0) -> void:
 	tw.tween_callback(_noir_mat.set_shader_parameter.bind("glitch", 0.0))
 
 
-func _noir_intro(depth: int) -> void:
-	var city := room as Act4Room
-	var at := Bedroom.to_world(city.lean_spot())
-	player.position = at
-	player.visible = true
-	player.set_facing(1.0)
-	player.pose_lean = -0.09
-	_camera.position = _camera_clamped(at)
-	var intro := NoirIntro.new()
-	add_child(intro)
-	Audio.play_music("music_noir", 1.5)
-	intro.bars(true)
-	var base_zoom := _camera.zoom
-	create_tween().tween_property(_camera, "zoom", base_zoom * 1.35, 2.5).set_trans(Tween.TRANS_SINE)
-	await get_tree().create_timer(1.4, false).timeout
-	var keys: Array[String] = []
-	for i in 8:
-		keys.append("NOIR_%d" % (i + 1))
-	intro.monologue(keys)
-	await intro.finished
-	# Estallan los edificios / The buildings blow up
-	Audio.fade_music(-30.0, 0.6)
-	player.pose_lean = 0.0
-	create_tween().tween_property(_camera, "zoom", base_zoom, 0.7).set_trans(Tween.TRANS_SINE)
-	await get_tree().create_timer(0.6, false).timeout
-	var blds: Array = []
-	for n: Node in _actors.get_children():
-		if n is CityBuilding:
-			blds.append(n)
-	blds.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.position.distance_to(player.position) < b.position.distance_to(player.position))
-	for i in mini(6, blds.size()):
-		(blds[i] as CityBuilding).explode()
-		flash_screen(Color(1, 0.97, 0.9), 0.25)
-		await get_tree().create_timer(0.32, false).timeout
-	var toppled := 0
-	for t: CityFall in _towers:
-		if toppled < 2 and is_instance_valid(t) and t.standing() and t.position.distance_to(player.position) < 900.0:
-			t.wear = 1.0
-			t.topple()
-			toppled += 1
-	await get_tree().create_timer(1.2, false).timeout
-	# La cámara se aleja hasta ver toda la ciudad / The camera pulls back to show the whole city
-	var city_c: Vector2 = city.map_world_rect().get_center()
-	_cam_free = true
-	cam_focus = city_c + Vector2(0, 40)
-	create_tween().tween_property(_camera, "zoom", base_zoom * 0.42, 2.4).set_trans(Tween.TRANS_SINE)
-	Audio.play("rumble", -2.0)
-	await get_tree().create_timer(2.5, false).timeout
-	# Las vallas y las pantallas salen volando y se juntan en el cielo / Billboards and screens fly off and gather in the sky
-	var evil_at := clamp_to_arena(city_c + Vector2(0, 260), 80.0)
-	var swarm := AdSwarm.new()
-	swarm.center = evil_at + Vector2(0, -EvilAd.ALT - 250.0)
-	for n: Node in _actors.get_children():
-		if n is CityBillboard:
-			var bb := n as CityBillboard
-			swarm.add_piece(bb.panel_world(), "board", bb.ad, randf_range(0.0, 1.6))
-			get_tree().create_timer(randf_range(0.0, 1.6), false).timeout.connect(bb.take)
-		elif n is CityBuilding and (n as CityBuilding).kind != "house":
-			var bl := n as CityBuilding
-			swarm.add_piece(bl.screen_world(), "tv", 0, randf_range(0.2, 1.8))
-			get_tree().create_timer(randf_range(0.2, 1.8), false).timeout.connect(func() -> void: bl.screen_taken = true)
-	world.add_child(swarm)
-	Audio.play("glitch", -2.0)
-	Audio.play("boss_wake", -4.0)
-	for i in 5:
-		get_tree().create_timer(0.7 + i * 0.8, false).timeout.connect(func() -> void:
-			shake(4.0 + i * 2.0)
-			Audio.play("glitch", -10.0, 0.2))
-	await swarm.formed
-	# Se forma Evil Ad / Evil Ad takes shape
-	_evil = EvilAd.new()
-	_evil.setup(self)
-	_evil.entering = 0.0
-	_evil.position = evil_at
-	enemies.add_child(_evil)
-	shake(18.0)
-	flash_screen(Color("e0303a"), 0.5)
-	noir_glitch(0.5, 1.0)
-	Audio.play("stomp", 0.0)
-	Audio.play("crack", -2.0)
-	_evil.laugh(3.0)
-	await get_tree().create_timer(1.0, false).timeout
-	# Vuelve la cámara y Evil Ad se planta delante de Kroker / The camera comes back and Evil Ad plants himself in front of Kroker
-	var meet := clamp_to_arena(player.position + Vector2(360, 40), 80.0)
-	cam_focus = (player.position + meet) / 2.0
-	var back := create_tween().set_parallel()
-	back.tween_property(_camera, "zoom", base_zoom, 2.2).set_trans(Tween.TRANS_SINE)
-	back.tween_property(_evil, "position", meet, 2.2).set_trans(Tween.TRANS_SINE)
-	await back.finished
-	_cam_free = false
-	player.set_facing(1.0)
-	# Diálogo antes de la pelea / Dialogue before the fight
-	var talk: Array[String] = ["evil:EVIL_TALK_1", "kroker:EVIL_TALK_2", "evil:EVIL_TALK_3", "kroker:EVIL_TALK_4", "evil:EVIL_TALK_5", "kroker:EVIL_TALK_6"]
-	intro.monologue(talk)
-	await intro.finished
-	shake(16.0)
-	flash_screen(Color("e0303a"), 0.4)
-	Audio.play("stomp", 0.0)
-	_evil.laugh(2.5)
-	fx.text(_evil.global_position + Vector2(0, -420), tr("EVIL_AD_SHOUT"), Color("e0303a"), 34)
-	intro.title_card("BOSS_EVIL_AD_NAME", "BOSS_EVIL_AD_SUB")
-	await get_tree().create_timer(2.8, false).timeout
-	intro.bars(false)
-	cam_focus = Vector2.INF
-	get_tree().create_timer(1.0, false).timeout.connect(intro.queue_free)
-	_begin(depth)
-
-
 ## Jefe final: Evil Ad (ya ha llegado en la cinemática) / Final boss: Evil Ad (he already arrived in the cutscene)
 var _evil: EvilAd = null
 
@@ -1009,91 +782,6 @@ func _on_piece_defeated() -> void:
 	get_tree().create_timer(2.0, false).timeout.connect(func() -> void:
 		if running:
 			_next_boss_piece())
-
-
-## Intro: Kroker duerme, se revuelve, se incorpora, se estira, se pone las gafas,
-## sale de la cama, va a por su arma y empieza el sueño.
-## Intro: Kroker sleeps, tosses, sits up, stretches, puts on his glasses, gets out
-## of bed, goes to fetch his weapon and the dream begins.
-func _play_wake_up(depth: int) -> void:
-	var outfit := GameState.selected_character
-	var wake := Bedroom.to_world(Bedroom.WAKE_POINT)
-	var start := Bedroom.to_world(Bedroom.START_POINT)
-	var pickup := Bedroom.to_world(Bedroom.PICKUP.get(outfit, Bedroom.START_POINT))
-	var tw := create_tween()
-	tw.tween_interval(1.5)
-	tw.tween_property(room, "stir", 1.0, 0.9)
-	tw.tween_callback(func() -> void:
-		room.bed_state = "sitting"
-		Audio.play("blanket"))
-	tw.tween_property(room, "sit", 1.0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(Audio.play.bind("yawn"))
-	tw.tween_property(room, "stretch", 1.0, 0.5).set_trans(Tween.TRANS_SINE)
-	tw.tween_interval(0.45)
-	tw.tween_property(room, "stretch", 0.0, 0.45).set_trans(Tween.TRANS_SINE)
-	tw.tween_interval(0.2)
-	tw.tween_callback(func() -> void:
-		room.glasses_on_stand = false
-		Audio.play("chime")
-		fx.dissipate(Bedroom.to_world(Bedroom.NIGHTSTAND.position + Vector2(30, 64)), UITheme.GOLD))
-	tw.tween_interval(0.4)
-	# Se desliza hasta el borde de la cama, mirando hacia fuera
-	# Shuffles to the edge of the bed, facing out
-	tw.tween_callback(Audio.play.bind("blanket"))
-	tw.tween_property(room, "slide", 1.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	# Baja de un saltito a la alfombrita / Hops down onto the little rug
-	tw.tween_callback(func() -> void:
-		room.bed_state = "empty"
-		player.armed = false
-		player.set_facing(1.0)
-		player.position = Bedroom.to_world(room.sitting_feet())
-		player.visible = true)
-	tw.tween_method(_hop_down.bind(Bedroom.to_world(room.sitting_feet_end()), wake), 0.0, 1.0, 0.55)
-	tw.tween_callback(func() -> void:
-		player.hop = 0.0
-		player.land()
-		Audio.play("land")
-		fx.ring(wake + Vector2(0, -4), 22.0, UITheme.BONE, 0.4, 2.2))
-	tw.tween_interval(0.35)
-	# La pistola de dedos no hay que ir a buscarla: la "recarga" con la mano y sopla el humo
-	# The finger gun needn't be fetched: he "reloads" it with his hand and blows the smoke away
-	if outfit == "finger":
-		tw.tween_callback(func() -> void:
-			room.weapon_taken = true
-			player.armed = true
-			player.reload_anim = 1.0)
-		tw.tween_interval(Player.RELOAD_TIME * 0.27)
-		tw.tween_callback(Audio.play.bind("ui_click", -4.0))
-		tw.tween_interval(Player.RELOAD_TIME * 0.31)
-		tw.tween_callback(func() -> void:
-			Audio.play("ui_click", -2.0)
-			fx.ring(wake + Vector2(30, -110), 14.0, KrokerArt.ACCENT["finger"], 0.35, 2.0))
-		tw.tween_interval(Player.RELOAD_TIME * 0.15)
-		tw.tween_callback(Audio.play.bind("puff", -8.0))
-		tw.tween_interval(Player.RELOAD_TIME * 0.35)
-		tw.tween_property(player, "position", start, _walk_time(wake, start))
-		tw.tween_callback(func() -> void:
-			hud.visible = true
-			hud.start(depth)
-			hud.show_event(event)
-			running = true)
-		return
-	tw.tween_property(player, "position", pickup, _walk_time(wake, pickup))
-	tw.tween_callback(func() -> void:
-		room.weapon_taken = true
-		player.armed = true
-		player.attack_anim = 1.0
-		player.cast_anim = 1.0
-		Audio.play("pickup")
-		fx.dissipate(pickup + Vector2(0, -80), UITheme.GOLD)
-		fx.ring(pickup + Vector2(0, -80), 30.0, UITheme.GOLD, 0.5, 2.0))
-	tw.tween_interval(0.6)
-	tw.tween_property(player, "position", start, _walk_time(pickup, start))
-	tw.tween_callback(func() -> void:
-		hud.visible = true
-		hud.start(depth)
-		hud.show_event(event)
-		running = true)
 
 
 ## Salto en arco desde la cama al suelo / Arcing hop from the bed to the floor
@@ -1740,68 +1428,7 @@ func on_player_died() -> void:
 	Audio.play("lose", -2.0)
 	shake(18.0)
 	fx.dissipate(player.position + Vector2(0, -40), UITheme.BONE)
-	get_tree().create_timer(0.9, false).timeout.connect(_wake_scene.bind(false))
-
-
-## Kroker se despierta en su cama de verdad: sobresaltado al morir o tranquilo al ganar.
-## Kroker wakes up in his real bed: startled when he dies, peaceful when he wins.
-func _wake_scene(won: bool) -> void:
-	var layer := CanvasLayer.new()
-	layer.layer = 30
-	add_child(layer)
-	var flash := ColorRect.new()
-	flash.color = Color("f7f2ff") if not Settings.reduce_flashes else Color("3a3570")
-	flash.modulate.a = 0.0
-	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(flash)
-	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var tw := create_tween()
-	tw.tween_property(flash, "modulate:a", 1.0, 0.35)
-	tw.tween_callback(_build_real_room.bind(won))
-	tw.tween_property(flash, "modulate:a", 0.0, 0.8)
-	if won:
-		tw.tween_interval(2.6)
-		tw.tween_callback(_show_victory)
-	else:
-		tw.tween_callback(_startle)
-		tw.tween_interval(2.2)
-		tw.tween_callback(_show_loss)
-
-
-## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
-func _build_real_room(won: bool) -> void:
-	for n: Node in world.get_children():
-		if n is Darkness or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is AdSwarm or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
-			n.queue_free()
-	for e: Node in enemies.get_children():
-		e.queue_free()
-	# Los edificios, árboles y escombros de la ciudad / The city's buildings, trees and rubble
-	for n: Node in _actors.get_children():
-		if n is CityBuilding or n is CityProp or n is CityBillboard or n is CityFall or n is Helpers.Actor:
-			n.queue_free()
-	fx.clear()
-	# Al despertar, el mundo vuelve a tener color / On waking up, the world gets its colour back
-	if is_instance_valid(_noir_holder):
-		_noir_holder.material = null
-	_noir_mat = null
-	player.fedora = false
-	hud.visible = false
-	player.visible = false
-	player.push = Vector2.ZERO
-	var idx := room.get_index()
-	room.queue_free()
-	room = Bedroom.new()
-	room.outfit = GameState.selected_character
-	room.weird = 0
-	room.bed_state = "sleeping" if won else "sitting"
-	room.sit = 0.0
-	room.glasses_on_stand = true
-	world.add_child(room)
-	world.move_child(room, idx)
-	_camera.rotation = 0.0
-	_camera.position = Bedroom.to_world(Vector2(800, 460))
-	_camera.zoom = Vector2.ONE * 0.64
-	Audio.play_music("music_menu", 1.5)
+	get_tree().create_timer(0.9, false).timeout.connect(_cinematics.wake_scene.bind(false))
 
 
 ## Se incorpora de golpe / He sits bolt upright
@@ -1917,7 +1544,7 @@ func _end_run_victory() -> void:
 	Audio.play("act_clear", -1.0)
 	if GameState.run_hits == 0 and not (GameState.god_mode and GameState.god_invuln):
 		Progress.flag("no_hit")
-	get_tree().create_timer(1.6, false).timeout.connect(_wake_scene.bind(true))
+	get_tree().create_timer(1.6, false).timeout.connect(_cinematics.wake_scene.bind(true))
 
 
 ## Un resplandor pequeño sale de Kroker, se lo lleva y pasa al plano astral
