@@ -21,6 +21,7 @@ var fx: FX
 var hud: HUD
 var helpers: Helpers
 var trinkets: Trinkets
+var _events := RunEvents.new(self)
 var _cinematics := RunCinematics.new(self)
 var room: Bedroom
 ## Mundo de la partida, dibujado a 960 x 540 y ampliado x2 sin suavizar (pixel art).
@@ -230,7 +231,7 @@ func _ready() -> void:
 	if GameState.training:
 		_begin_training()
 		return
-	_roll_event(depth)
+	_events.roll_event(depth)
 	if depth == 1:
 		_cinematics.play_wake_up(depth)
 	elif depth == GameState.FINAL_DREAM:
@@ -390,55 +391,6 @@ func _build_towers() -> void:
 		city.tower_bases.append(f.base_rect)
 		_towers.append(f)
 		_actors.add_child(f)
-
-
-## Cada cierto tiempo se cae uno de los que están cerca de Kroker (el más deshecho)
-## Every so often one of those near Kroker falls (the most worn out)
-func _update_city(delta: float) -> void:
-	if not room is Act4Room:
-		return
-	var city := room as Act4Room
-	_fall_t -= delta
-	if _fall_t > 0.0:
-		return
-	var best: CityFall = null
-	var best_score := -INF
-	for t: CityFall in _towers:
-		if not is_instance_valid(t) or not t.standing():
-			continue
-		var dist := t.position.distance_to(player.position)
-		if dist > 900.0 or dist < 120.0:
-			continue
-		var score := t.wear * 2.0 - dist / 900.0 + randf() * 0.4
-		if score > best_score:
-			best_score = score
-			best = t
-	if best == null:
-		_fall_t = 2.5   # ninguno cerca: se mira otra vez enseguida / none near: check again soon
-		return
-	best.topple()
-	_fall_t = randf_range(6.0, 10.0) if city.final else randf_range(14.0, 22.0)
-
-
-## La taquilla abierta del pasillo: con la F, Kroker se pone las gafas de sol de Lil Key
-## The hallway's open locker: with F, Kroker puts on Lil Key's sunglasses
-func _update_locker() -> void:
-	if not room is Act3Room:
-		return
-	var ar := room as Act3Room
-	if ar.locker_x == INF:
-		return
-	var spot := ar.locker_spot()
-	ar.shades_near = absf(player.position.x - spot.x) < 70.0 and player.position.y - spot.y < 80.0 and _modal == null
-	if ar.shades_near and Input.is_action_just_pressed("interact"):
-		ar.take_shades()
-		GameState.run_shades = true
-		player.cast_anim = 1.0
-		Audio.play("pickup", -2.0)
-		fx.dissipate(player.global_position + Vector2(0, -110), Color("ff6a8a"))
-		fx.ring(player.global_position + Vector2(0, -110), 30.0, Color("ff6a8a"), 0.5, 2.0)
-		fx.text(player.global_position + Vector2(0, -170), tr("SHADES_GOT"), Color("ffb0c0"), 26)
-		Progress.flag("lilkey")
 
 
 func _update_hearth(_delta: float) -> void:
@@ -805,13 +757,13 @@ func _physics_process(delta: float) -> void:
 	_fall_chain_t = maxf(0.0, _fall_chain_t - delta)
 	_burst_budget = minf(4.0, _burst_budget + delta * 3.0)
 	hud.set_run_clock(GameState.run_time)
-	_update_event(delta)
+	_events.update_event(delta)
 	# El objetivo de Magnus, cuatro veces por segundo / Magnus's goal, four times a second
 	if not GameState.invest.is_empty() and int(GameState.run_time * 4.0) != int((GameState.run_time - delta) * 4.0):
 		hud.set_invest()
 	_update_hearth(delta)
-	_update_locker()
-	_update_city(delta)
+	_events.update_locker()
+	_events.update_city(delta)
 	if float(_wave.get("duration", 0.0)) > 0.0:
 		_time_left -= delta
 		hud.set_time(_time_left)
@@ -1232,109 +1184,6 @@ const FRENZY_SPEED := 1.2
 const FRENZY_SPAWN := 0.7
 const SLEEPY_SPEED := 0.55
 const SLEEPY_SPAWN := 0.6
-
-
-func _roll_event(depth: int) -> void:
-	event = ""
-	# En el colegio el timbre suena en todos los sueños, varias veces, aparte del evento
-	# At school the bell rings in every dream, several times, on top of the event
-	if room is Act3Room and not _wave.get("boss", false):
-		_bell_wait = randf_range(BELL_FIRST.x, BELL_FIRST.y)
-	if _wave.get("boss", false) or depth < 2 or randf() > EVENT_CHANCE:
-		return
-	# Nunca el mismo que en el sueño anterior / Never the same as in the previous dream
-	var pool := EVENTS.duplicate()
-	pool.erase(GameState.last_event)
-	event = pool[randi() % pool.size()]
-	GameState.last_event = event
-	match event:
-		"meteors":
-			var m := MeteorShower.new()
-			m.run = self
-			world.add_child(m)
-		"ice":
-			var ice := IceFloor.new()
-			ice.run = self
-			world.add_child(ice)
-			world.move_child(ice, room.get_index() + 1)
-		"dark":
-			var d := Darkness.new()
-			d.run = self
-			world.add_child(d)
-		"tilt":
-			var tf := TiltFloor.new()
-			tf.run = self
-			world.add_child(tf)
-			world.move_child(tf, room.get_index() + 1)
-
-
-func _update_event(delta: float) -> void:
-	match event:
-		"tilt":
-			# El suelo se inclina despacio hacia un lado y luego hacia otro
-			# The floor slowly tips one way, then another
-			_tilt_t += delta
-			var dir := Vector2.from_angle(_tilt_t * 0.35 + sin(_tilt_t * 0.21) * 2.0)
-			_tilt = _tilt.lerp(dir * 75.0, minf(1.0, delta * 0.8))
-			player.push = _tilt
-			for e: Node in enemies.get_children():
-				if e is Enemy and not e.is_boss():
-					e.external_pull += _tilt * 0.8
-			# La cámara se ladea con la pendiente y se desplaza un poco cuesta abajo
-			# The camera leans with the slope and drifts a little downhill
-			_camera.rotation = lerpf(_camera.rotation, -_tilt.x / 75.0 * 0.06, minf(1.0, delta * 2.0))
-			_camera.offset += _tilt * 0.35
-			hud.set_tilt(_tilt)
-	if _bell_wait > 0.0 or _bell_t > 0.0 or (room is Act3Room and (room as Act3Room).bell_open > 0.0):
-		_update_bell(delta)
-
-
-## Suena el timbre: las puertas se abren y salen enemigos sin parar durante un rato
-## The bell rings: the doors open and enemies keep pouring out for a while
-func _update_bell(delta: float) -> void:
-	var hall := room as Act3Room
-	if _bell_wait > 0.0:
-		_bell_wait -= delta
-		if _bell_wait <= 0.0:
-			_bell_t = BELL_TIME
-			Audio.play("bell", -2.0)
-			shake(5.0)
-			hud.show_event("bell_on")
-			fx.text(player.global_position + Vector2(0, -170), tr("BELL_RING"), UITheme.GOLD, 30)
-		return
-	if _bell_t > 0.0:
-		_bell_t -= delta
-		hall.bell_open = minf(1.0, hall.bell_open + delta * 3.0)
-		_bell_cd -= delta
-		if _bell_cd <= 0.0 and enemies.get_child_count() < BELL_MAX_ALIVE:
-			_bell_cd = BELL_EVERY
-			var v := view_rect()
-			var pts := hall.door_points((v.position.x - Bedroom.OFFSET.x) / Bedroom.S, (v.end.x - Bedroom.OFFSET.x) / Bedroom.S)
-			if not pts.is_empty():
-				var p := Bedroom.to_world(pts[randi() % pts.size()]) + Vector2(randf_range(-30, 30), randf_range(0, 20))
-				var kind: String = ["foox", "foox", "thug", "sling", "puppet"][randi() % 5]
-				fx.dissipate(p + Vector2(0, -30), Color("f6d993"))
-				_spawn_enemy(kind, p)
-				# Salen corriendo de la puerta y se desperdigan por el pasillo (antes se quedaban
-				# amontonados en la puerta y se barrían de un golpe)
-				# They rush out of the door and scatter down the hall (they used to pile up at the
-				# door and get swept away in one go)
-				var last := enemies.get_child(enemies.get_child_count() - 1) as Enemy
-				if last != null and not last is GoldenFoox:
-					last.spawn_time = 0.15
-					last.rush_t = randf_range(0.7, 1.0)
-					# De lado, alejándose de Kroker, para no echársele encima sin avisar
-					# Sideways, away from Kroker, so they don't pounce on him without warning
-					var side := signf(p.x - player.global_position.x)
-					if absf(p.x - player.global_position.x) < 40.0:
-						side = 1.0 if randf() < 0.5 else -1.0
-					last.rush_dir = Vector2(side, randf_range(0.2, 0.6)).normalized()
-		if _bell_t <= 0.0:
-			hud.show_event(event)
-			# Y al rato vuelve a sonar / And after a while it rings again
-			_bell_wait = randf_range(BELL_AGAIN.x, BELL_AGAIN.y)
-	else:
-		hall.bell_open = maxf(0.0, hall.bell_open - delta * 1.5)
 
 
 # --- Trozos de estrella y niveles / Star shards and levels ---------------------
