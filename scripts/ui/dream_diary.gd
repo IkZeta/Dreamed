@@ -49,6 +49,9 @@ func _build(won: bool) -> void:
 	var dreams := s.dream_depth if won else s.dream_depth - 1
 	var key := "DIARY_WON" if won else "DIARY_LOST"
 	v.add_child(_text(tr(key).format({"n": maxi(0, dreams), "depth": s.dream_depth, "time": "%d:%02d" % [m_, sec]})))
+	var tot := maxf(1.0, s.run_time + s.choose_time)
+	v.add_child(_text(tr("DIARY_PACE").format({"fight": "%d:%02d" % [int(s.run_time) / 60, int(s.run_time) % 60],
+		"choose": "%d:%02d" % [int(s.choose_time) / 60, int(s.choose_time) % 60], "pct": roundi(100.0 * s.run_time / tot)})))
 	v.add_child(_text(tr("DIARY_COUNT").format({"kills": s.run_kills, "elites": s.run_elites, "falls": s.run_falls, "hits": s.run_hits})))
 	if not won:
 		v.add_child(_text(tr("DIARY_KILLER").format({"who": _killer_name()})))

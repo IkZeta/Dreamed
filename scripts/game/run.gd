@@ -1642,7 +1642,12 @@ func collect_shards(n: int) -> void:
 		trinkets.on_level_up()
 		fx.ring(player.global_position + Vector2(0, -60), 40.0, UITheme.GOLD, 0.7, 2.6)
 		fx.dissipate(player.global_position + Vector2(0, -60), UITheme.GOLD)
-		if running and _level_screen == null:
+		# Las mejoras se eligen al acabar el sueño, para no cortar la pelea: aquí solo se avisa
+		# Upgrades are chosen when the dream ends, so the fight isn't cut: here it's only announced
+		fx.text(player.global_position + Vector2(0, -150), tr("LEVELUP_LATER") % GameState.plevel, UITheme.GOLD, 26)
+		Audio.play("chime", -10.0)
+		hud.set_xp()
+		if not running and _level_screen == null:
 			_resolve_level_ups(Callable())
 
 
@@ -1662,6 +1667,7 @@ func _resolve_level_ups(then: Callable) -> void:
 		GameState.pending_ups -= 1
 		player.refresh_stats()
 		hud.set_hp(player.hp, player.max_hp)
+		hud.set_xp()
 		_level_screen = null
 		if GameState.pending_ups > 0:
 			_resolve_level_ups.call_deferred(then)

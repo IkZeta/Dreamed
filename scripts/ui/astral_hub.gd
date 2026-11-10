@@ -194,8 +194,12 @@ func _type(text: String) -> void:
 	Keywords.set_text(_box_text, text)
 	_box_text.visible_characters = 0
 	_type_t = 0.0
+	_type_speed = Progress.REPEAT_SPEED if Progress.line_seen(text) else 1.0
 	_typing = true
 	_box_next.modulate.a = 0.0
+
+
+var _type_speed := 1.0
 
 
 func _update_typing(delta: float) -> void:
@@ -203,7 +207,7 @@ func _update_typing(delta: float) -> void:
 		return
 	_type_t += delta
 	var total := _box_text.get_total_character_count()
-	var n := mini(total, int(_type_t * TYPE_SPEED))
+	var n := mini(total, int(_type_t * TYPE_SPEED * _type_speed))
 	if n != _box_text.visible_characters:
 		if n % 3 == 0 and not _talking.is_empty() and _talking["kind"] in ["npc", "chat"]:
 			Audio.play("ui_click", -30.0, 0.2)

@@ -361,6 +361,22 @@ func note(head: String, body: String, color := UITheme.GOLD, secs := 3.0, sound 
 	tw.tween_callback(box.queue_free)
 
 
+## Frases ya leídas: las que se repiten salen casi de golpe. Devuelve si ya se había leído y la
+## apunta. / Lines already read: repeated ones show almost at once. Returns whether it had already
+## been read, and records it.
+const REPEAT_SPEED := 6.0
+
+
+func line_seen(text: String) -> bool:
+	var lines: Dictionary = stats.get("seen_lines", {})
+	var k := text.hash()
+	var seen := lines.has(k)
+	if not seen:
+		lines[k] = 1
+		stats["seen_lines"] = lines
+	return seen
+
+
 ## Borra todo el progreso guardado (menú principal) / Deletes all saved progress (main menu)
 func reset_all() -> void:
 	kills = {}

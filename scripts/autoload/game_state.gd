@@ -234,6 +234,9 @@ var pending_ups := 0
 var difficulty := "normal"
 ## Estadísticas de la partida para la pantalla final / Run stats for the end screen
 var run_time := 0.0
+## Tiempo eligiendo (mejoras, dones, tienda, diálogos) frente al de pelea (run_time); sale en el diario
+## Time spent choosing (upgrades, gifts, shop, dialogue) versus fighting (run_time); shown in the diary
+var choose_time := 0.0
 var run_kills := 0
 var run_hits := 0
 var run_falls := 0      # enemigos tirados por agujeros / enemies pushed down holes
@@ -337,7 +340,23 @@ var RUN_SAVE: String:
 	get:
 		return Demo.save_path(RUN_SAVE_BASE)
 const RUN_FIELDS: Array[String] = ["selected_character", "dream_depth", "upgrades", "second_weapon", "upgrades2", "xp", "plevel",
-	"pending_ups", "difficulty", "run_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen", "new_stickers"]
+	"pending_ups", "difficulty", "run_time", "choose_time", "run_kills", "run_hits", "saved_hp", "stat_bonus", "reality", "bought", "tipped", "run_falls", "run_elites", "invest", "run_shades", "city_styles", "lynx_retake_used", "duos", "run_deals_won", "combos_seen", "new_stickers"]
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
+func _process(delta: float) -> void:
+	var sc := get_tree().current_scene
+	if sc == null:
+		return
+	if sc is Run:
+		var r := sc as Run
+		if not r.running and r.player != null and r.player.alive and r.get("_overlay") == null:
+			choose_time += delta
+	elif sc.scene_file_path.ends_with("astral_plane.tscn"):
+		choose_time += delta
 
 
 func save_run() -> void:
@@ -389,6 +408,7 @@ func reset_run() -> void:
 	pending_ups = 0
 	saved_hp = -1.0
 	run_time = 0.0
+	choose_time = 0.0
 	run_shades = false
 	lynx_retake_used = false
 	duos = []

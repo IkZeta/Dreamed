@@ -88,7 +88,7 @@ func _ready() -> void:
 	hp_box.add_child(xp_row)
 	_lvl = UITheme.label("", 13, UITheme.GOLD, "caps")
 	_lvl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	_lvl.custom_minimum_size.x = 52
+	_lvl.custom_minimum_size.x = 84
 	xp_row.add_child(_lvl)
 	_xp_bar = ProgressBar.new()
 	_xp_bar.show_percentage = false
@@ -394,7 +394,8 @@ func set_god() -> void:
 func set_xp() -> void:
 	_xp_bar.max_value = GameState.xp_needed()
 	_xp_bar.value = GameState.xp
-	_lvl.text = tr("HUD_LEVEL") % GameState.plevel
+	_lvl.text = tr("HUD_LEVEL") % GameState.plevel + (" +%d" % GameState.pending_ups if GameState.pending_ups > 0 else "")
+	_lvl.add_theme_color_override("font_color", UITheme.BONE if GameState.pending_ups > 0 else UITheme.GOLD)
 
 
 ## El cronómetro de toda la partida (lo llama la run cada frame) / The whole-run stopwatch (the run calls it every frame)

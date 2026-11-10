@@ -451,13 +451,16 @@ func _talk_scene(giver: String) -> void:
 	_talk_t = 0.0
 
 
+var _talk_speed := 1.0
+
+
 func _process(delta: float) -> void:
 	if _talk_t < 0.0 or _leaving:
 		return
 	_talk_t += delta
 	var total := maxi(1, _talk_text.get_total_character_count())
 	var before := _talk_text.visible_ratio
-	_talk_text.visible_ratio = minf(1.0, _talk_t * CharoDialogue.CPS / total)
+	_talk_text.visible_ratio = minf(1.0, _talk_t * CharoDialogue.CPS * _talk_speed / total)
 	if _talk_text.visible_ratio < 1.0 and int(_talk_t * 12.0) != int((_talk_t - delta) * 12.0) and before < 1.0:
 		Audio.play("ui_hover", -22.0, 0.15)
 	_talk_prompt.modulate.a = 0.0
@@ -488,6 +491,7 @@ func _input(event: InputEvent) -> void:
 ## Sets what the character says; long texts (like Silly's binary) use a smaller font so they fit
 func _set_talk(text: String) -> void:
 	_talk_text.text = text
+	_talk_speed = Progress.REPEAT_SPEED if Progress.line_seen(text) else 1.0
 	var n := text.length()
 	var px := 36 if n <= 150 else (28 if n <= 230 else 20)
 	_talk_text.add_theme_font_size_override("normal_font_size", UITheme.pixel_size(px))

@@ -81,6 +81,9 @@ static func highlight(text: String) -> String:
 	return text
 
 
+var _speed := 1.0
+
+
 func _next() -> void:
 	_index += 1
 	if _index >= _lines.size():
@@ -89,6 +92,7 @@ func _next() -> void:
 	_text.text = highlight(tr(_lines[_index]))
 	_text.visible_ratio = 0.0
 	_t = 0.0
+	_speed = Progress.REPEAT_SPEED if Progress.line_seen(tr(_lines[_index])) else 1.0
 	Audio.play("ui_hover", -10.0, 0.05)
 
 
@@ -97,7 +101,7 @@ func _process(delta: float) -> void:
 		return
 	var total := maxi(1, _text.get_total_character_count())
 	_t += delta
-	_text.visible_ratio = minf(1.0, _t * CPS / total)
+	_text.visible_ratio = minf(1.0, _t * CPS * _speed / total)
 	# Un "bip" suave de vez en cuando mientras habla / A soft blip now and then while she talks
 	if _text.visible_ratio < 1.0 and int(_t * 12.0) != int((_t - delta) * 12.0):
 		Audio.play("ui_hover", -22.0, 0.15)
