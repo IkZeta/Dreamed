@@ -103,7 +103,7 @@ Tras vencer al jefe, el sueño se hunde un poco más y Kroker cae en el salón d
 | Sueño | Novedad |
 |---|---|
 | 6 | **Nidos y mosquitos**: el nido no se mueve, pero suelta mosquitos mientras no lo rompas. Los mosquitos son diminutos y frágiles, pero muy rápidos y salen a montones |
-| 7 | **Chapuzas**: un obrero de peluche con casco que corre al agujero más cercano y lo tapa con tablones a martillazos. Mientras siga en pie, por ese agujero no cae nadie. No pega y huye de Kroker sin alejarse de su obra; si lo tiras por otro agujero (o lo derrotas), el tablón se rompe. Como mucho 2 a la vez; desde el sueño 8 sale de vez en cuando en todos los actos |
+| 7 | **Chapuzas**: un topo ingeniero steampunk (gafas de latón, delantal de cuero, llave inglesa y mochila de vapor) que corre al agujero más cercano, lo tapa con tablones y monta encima una **torreta de vapor** que te dispara pernos con aviso. Mientras la torreta aguante, por ese agujero no cae nadie; al romperla, los tablones se hunden. Él no pega, huye y a los 7 s va a montar otra (máx. 2 suyas y 3 en total). No se le puede tirar por los agujeros: hay que matarlo a golpes. Como mucho 2 a la vez; desde el sueño 8 sale de vez en cuando en todos los actos |
 | 8 | **Cyberpunk** (raro, como mucho 2 a la vez): se lanza a base de dashes que marca antes en el suelo y, si se te queda cerca, te **hackea**: te baja una estadística al azar hasta que lo derrotas |
 | 10 | **Jefe: El Chef**, un Kroker adulto cocinero que sale de la tele |
 

@@ -1,16 +1,16 @@
 class_name BotcherPlank
 extends Node2D
-## Tablones del Chapuzas sobre un agujero. Se rompen en astillas cuando el Chapuzas cae.
-## The Botcher's planks over a hole. They break into splinters when the Botcher goes down.
+## Tablones del Chapuzas sobre un agujero. Se rompen en astillas cuando cae su torreta.
+## The Botcher's planks over a hole. They break into splinters when their turret goes down.
 
-var owner_botcher: Botcher
+var owner_turret: Enemy
 var rect := Rect2()
 var _t := 0.0
 
 
 func _process(delta: float) -> void:
 	_t += delta
-	if not is_instance_valid(owner_botcher) or owner_botcher.state != Enemy.State.ALIVE:
+	if not is_instance_valid(owner_turret) or owner_turret.state == Enemy.State.DYING:
 		_break()
 		return
 	if _t < 0.5:
@@ -18,7 +18,7 @@ func _process(delta: float) -> void:
 
 
 func _break() -> void:
-	var run := owner_botcher.run if is_instance_valid(owner_botcher) else null
+	var run := owner_turret.run if is_instance_valid(owner_turret) else null
 	if run != null:
 		for i in 6:
 			var p := rect.position + Vector2(randf() * rect.size.x, randf() * rect.size.y)

@@ -653,7 +653,7 @@ func _spawn_group() -> void:
 	var alive := 0
 	for e in enemies.get_children():
 		# Los mosquitos de los nidos no cuentan / Nest mosquitoes don't count
-		if not e.is_boss() and not e is Mosquito:
+		if not e.is_boss() and not e is Mosquito and not e is BotcherTurret:
 			alive += 1
 	var group: Array = _wave["group"]
 	var count := mini(randi_range(group[0], group[1]), int(_wave["max_alive"]) - alive)
@@ -823,9 +823,18 @@ func hole_at(p: Vector2, margin: float, push: Vector2) -> Vector2:
 ## ¿Tiene este agujero un tablón del Chapuzas encima? / Does this hole have a Botcher's plank on it?
 func hole_covered(world_rect: Rect2) -> bool:
 	for e: Node in enemies.get_children():
-		if e is Botcher and (e as Botcher).covers(world_rect):
+		if e is BotcherTurret and (e as BotcherTurret).covers(world_rect):
 			return true
 	return false
+
+
+## Torretas del Chapuzas en pie / Botcher turrets standing
+func count_turrets() -> int:
+	var n := 0
+	for e: Node in enemies.get_children():
+		if e is BotcherTurret and (e as Enemy).state != Enemy.State.DYING:
+			n += 1
+	return n
 
 
 ## ¿Va otro Chapuzas ya a por este agujero? / Is another Botcher already heading for this hole?

@@ -1,75 +1,89 @@
 class_name Botcher
 extends Enemy
-## Chapuzas (desde el Sueño 7): un obrero de sueño con casco que va corriendo al agujero más
-## cercano y lo tapa con un tablón mal clavado. Mientras siga en pie, por ese agujero no cae
-## nadie. No ataca y huye de Kroker sin alejarse de su obra. Tiene poca vida, y se le puede
-## tirar por OTRO agujero: entonces el tablón se suelta.
-## Botcher (from Dream 7): a hard-hatted dream worker who runs to the nearest hole and covers it
-## with a badly nailed plank. While he stands, nobody falls down that hole. He doesn't attack and
-## flees from Kroker without straying from his work. Low health, and he can be shoved down
-## ANOTHER hole: then the plank comes loose.
+## Chapuzas (desde el Sueño 7): un topo ingeniero steampunk que va corriendo al agujero más
+## cercano, lo tapa con tablones y monta encima una torreta de latón. Mientras la torreta siga
+## en pie, por ese agujero no cae nadie; al romperla, los tablones se vienen abajo. Él no ataca:
+## huye de Kroker y, al rato, va a montar otra. No se le puede tirar por los agujeros (se agarra
+## con las garras): hay que acabar con él a golpes.
+## Botcher (from Dream 7): a steampunk mole engineer who runs to the nearest hole, boards it up
+## and mounts a brass turret on top. While the turret stands, nobody falls down that hole; break
+## it and the planks give way. He doesn't attack: he flees from Kroker and, after a while, goes
+## off to build another. He can't be thrown down holes (he hangs on with his claws): you have to
+## beat him down.
 
-const WORK_TIME := 1.4       # martillazos hasta tapar el agujero / hammering until the hole is covered
+const WORK_TIME := 1.6       # trabajo hasta montar la torreta / work until the turret is up
+const REBUILD := 7.0         # descanso entre torreta y torreta / rest between turrets
+const MAX_OWN := 2           # torretas suyas a la vez / his turrets at once
+const MAX_ALL := 3           # torretas en total / turrets in total
 const KEEP_AWAY := 260.0
-const LEASH := 170.0         # cuánto se aleja de su tablón / how far he strays from his plank
-const HAT := Color("ffc93a")
-const VEST := Color("ff7a3a")
-const FUR := Color("8b7bb8")
+const FUR := Color("5a4636")
+const SKIN := Color("f2a0b4")
+const LEATHER := Color("8a5a34")
+const BRASS := Color("d9a441")
+const COPPER := Color("b8673a")
+const STEEL := Color("9aa3b8")
 const WOOD := Color("b98552")
 
-## Agujero que tapa (en el mundo) / Hole he covers (in the world)
+## Agujero en el que trabaja (en el mundo) / Hole he's working on (in the world)
 var hole := Rect2()
-var covered := false
+var turrets: Array[BotcherTurret] = []
 var _work := 0.0
-var _hammer := 0.0
-var _plank: BotcherPlank
+var _swing := 0.0
+var _rest := 0.0
 
 
 func _init() -> void:
 	bestiary_id = "botcher"
-	max_hp = 26.0
+	max_hp = 40.0
 	hp = max_hp
 	contact_damage = 0.0
 	radius = 22.0
 	speed = 120.0
-	mass = 1.2
+	mass = 1.6
 	aim_height = 30.0
-	shards = 3
+	shards = 4
 
 
 func is_dangerous() -> bool:
 	return false
 
 
-## ¿Está tapando este agujero? / Is he covering this hole?
-func covers(world_rect: Rect2) -> bool:
-	return covered and state == State.ALIVE and hole.is_equal_approx(world_rect)
+## Se agarra al borde con las garras: no cae / Grips the edge with his claws: doesn't fall
+func can_fall() -> bool:
+	return false
+
+
+func _alive_turrets() -> int:
+	var n := 0
+	for t in turrets:
+		if is_instance_valid(t) and t.state != State.DYING:
+			n += 1
+	return n
+
+
+func _wants_to_build() -> bool:
+	return _rest <= 0.0 and _alive_turrets() < MAX_OWN and run.count_turrets() < MAX_ALL
 
 
 func _desired_velocity() -> Vector2:
 	var me := global_position
 	var to_player: Vector2 = me - run.player.global_position
-	if covered:
-		# Huye de Kroker sin alejarse mucho de su tablón / Flees Kroker without straying far from the plank
-		var c := hole.get_center()
-		var v := Vector2.ZERO
-		if to_player.length() < KEEP_AWAY:
-			v += to_player.normalized()
-		if me.distance_to(c) > LEASH:
-			v += (c - me).normalized() * 1.2
-		return v.normalized() * speed * 0.8 if v != Vector2.ZERO else Vector2.ZERO
+	var flee := to_player.normalized() * speed * 0.85 if to_player.length() < KEEP_AWAY else Vector2.ZERO
+	if not _wants_to_build():
+		hole = Rect2()
+		return flee
 	if hole.size == Vector2.ZERO or run.hole_covered(hole):
 		hole = _pick_hole()
 		_work = 0.0
 	if hole.size == Vector2.ZERO:
-		return to_player.normalized() * speed * 0.6 if to_player.length() < KEEP_AWAY else Vector2.ZERO
+		return flee
 	var spot := _work_spot()
 	if me.distance_to(spot) < 16.0:
 		return Vector2.ZERO
 	return (spot - me).normalized() * speed
 
 
-## Se pone al lado del agujero que da hacia él / Stands at the side of the hole facing him
+## Se pone al lado del agujero / Stands at the side of the hole
 func _work_spot() -> Vector2:
 	var c := hole.get_center()
 	var side := 1.0 if global_position.x >= c.x else -1.0
@@ -90,32 +104,38 @@ func _pick_hole() -> Rect2:
 
 
 func _act(delta: float) -> void:
-	_hammer = maxf(0.0, _hammer - delta * 4.0)
-	if covered or hole.size == Vector2.ZERO:
+	_swing = maxf(0.0, _swing - delta * 4.0)
+	_rest = maxf(0.0, _rest - delta)
+	if hole.size == Vector2.ZERO or not _wants_to_build():
 		return
 	if global_position.distance_to(_work_spot()) > 20.0:
 		_work = maxf(0.0, _work - delta)
 		return
 	_facing = signf(hole.get_center().x - global_position.x)
-	var before := int(_work / 0.35)
+	var before := int(_work / 0.4)
 	_work += delta
-	if int(_work / 0.35) > before:
-		_hammer = 1.0
+	if int(_work / 0.4) > before:
+		_swing = 1.0
 		Audio.play("pin", -12.0, 0.15)
-		run.fx.text(global_position + Vector2(_facing * 30.0, -70.0), tr("BOTCHER_TAP"), WOOD, 16)
+		run.fx.text(global_position + Vector2(_facing * 30.0, -80.0), tr("BOTCHER_TAP"), BRASS, 16)
 	if _work >= WORK_TIME:
-		_cover()
+		_build()
 
 
-func _cover() -> void:
-	covered = true
-	_plank = BotcherPlank.new()
-	_plank.owner_botcher = self
-	_plank.rect = hole
-	run.fx.get_parent().add_child(_plank)
-	run.fx.get_parent().move_child(_plank, run.room.get_index() + 1)
-	run.fx.ring(hole.get_center(), 50.0, WOOD, 0.4, 2.4)
+func _build() -> void:
+	var t := BotcherTurret.new()
+	t.setup(run)
+	t.elite = false
+	t.hole = hole
+	t.engineer = self
+	t.position = hole.get_center() + Vector2(0, 8)
+	run.enemies.add_child(t)
+	turrets.append(t)
+	run.fx.ring(hole.get_center(), 50.0, BRASS, 0.4, 2.4)
 	Audio.play("pan_clang", -10.0, 0.1)
+	hole = Rect2()
+	_work = 0.0
+	_rest = REBUILD
 
 
 func _death_sound() -> void:
@@ -126,36 +146,52 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	var mod := Sprites.flash_color(_flash, a) * tint
 	draw_colored_polygon(_oval(Vector2.ZERO, Vector2(24, 7)), Color(0.05, 0.02, 0.15, 0.35 * a))
 	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
-	var bob := absf(sin(_t * 10.0)) * 3.0 if not covered else 0.0
+	var moving := _work <= 0.0
+	var bob := absf(sin(_t * 10.0)) * 3.0 if moving else 0.0
 	var o := Vector2(0, -bob)
-	# Tablón a la espalda mientras no lo ha puesto / Plank on his back until he's put it down
-	if not covered:
-		_px(Rect2(-34, -66, 14, 58) , WOOD.darkened(0.15), mod, o)
-		_px(Rect2(-32, -62, 10, 4), WOOD.lightened(0.2), mod, o)
-		_px(Rect2(-32, -30, 10, 4), WOOD.lightened(0.2), mod, o)
-	# Patas y cuerpo de peluche / Legs and plush body
-	_px(Rect2(-14, -12, 10, 12), FUR.darkened(0.3), mod, o)
-	_px(Rect2(4, -12, 10, 12), FUR.darkened(0.3), mod, o)
-	_px(Rect2(-20, -44, 40, 34), FUR, mod, o)
-	# Chaleco con banda reflectante / Vest with a reflective stripe
-	_px(Rect2(-20, -40, 40, 22), VEST, mod, o)
-	_px(Rect2(-20, -30, 40, 4), Color("fff3c0"), mod, o)
-	# Cabeza, hocico y ojo / Head, snout and eye
-	_px(Rect2(-16, -66, 34, 24), FUR.lightened(0.1), mod, o)
-	_px(Rect2(14, -56, 10, 10), Color("e9b6c8"), mod, o)
-	_px(Rect2(6, -60, 4, 4), Color("1a1430"), mod, o)
-	# Casco / Hard hat
-	_px(Rect2(-18, -76, 36, 12), HAT, mod, o)
-	_px(Rect2(-22, -66, 44, 4), HAT.darkened(0.2), mod, o)
-	_px(Rect2(-4, -80, 8, 4), HAT.lightened(0.25), mod, o)
-	# Martillo que golpea / Hammer that strikes
-	var ang := -0.9 + _hammer * 1.4
-	draw_set_transform(offset + o + Vector2(18 * _facing, -34).rotated(0.0), 0.0, Vector2(_facing, 1.0))
+	var step := sin(_t * 10.0) * 3.0 if moving else 0.0
+	# Mochila de latón con chimenea / Brass backpack with a little chimney
+	_px(Rect2(-30, -64, 14, 30), COPPER, mod, o)
+	_px(Rect2(-28, -60, 10, 4), BRASS, mod, o)
+	_px(Rect2(-27, -76, 6, 12), STEEL.darkened(0.2), mod, o)
+	# Piernas con botas / Legs with boots
+	_px(Rect2(-12, -16 + step * 0.3, 9, 12), LEATHER.darkened(0.35), mod, o)
+	_px(Rect2(4, -16 - step * 0.3, 9, 12), LEATHER.darkened(0.35), mod, o)
+	_px(Rect2(-14, -6, 13, 6), Color("2a1c14"), mod, o)
+	_px(Rect2(2, -6, 13, 6), Color("2a1c14"), mod, o)
+	# Cuerpo peludo y delantal de cuero / Furry body and leather apron
+	_px(Rect2(-18, -50, 36, 36), FUR, mod, o)
+	_px(Rect2(-12, -46, 26, 32), LEATHER, mod, o)
+	_px(Rect2(-12, -40, 26, 3), LEATHER.darkened(0.3), mod, o)
+	_px(Rect2(-2, -32, 6, 6), BRASS, mod, o)      # hebilla / buckle
+	# Cabeza de topo: hocico largo y nariz rosa / Mole head: long snout and pink nose
+	_px(Rect2(-14, -72, 30, 24), FUR.lightened(0.08), mod, o)
+	_px(Rect2(14, -62, 12, 9), FUR.lightened(0.18), mod, o)
+	_px(Rect2(24, -63, 7, 7), SKIN, mod, o)
+	_px(Rect2(6, -64, 3, 2), Color("1a1430"), mod, o)   # ojillo entornado / squinting little eye
+	# Gorra de cuero con gafas de latón / Leather cap with brass goggles
+	_px(Rect2(-14, -80, 28, 10), LEATHER.darkened(0.15), mod, o)
+	_px(Rect2(-16, -72, 32, 3), LEATHER.darkened(0.35), mod, o)
+	_px(Rect2(-4, -80, 20, 3), Color("3a2a20"), mod, o)
+	draw_circle(o + Vector2(2, -79), 5.0, BRASS * mod)
+	draw_circle(o + Vector2(2, -79), 3.0, Color("8fe3ff") * mod)
+	draw_circle(o + Vector2(12, -79), 5.0, BRASS * mod)
+	draw_circle(o + Vector2(12, -79), 3.0, Color("8fe3ff") * mod)
+	# Garras / Claws
+	_px(Rect2(-22, -36 + step * 0.4, 6, 10), FUR, mod, o)
+	for i in 3:
+		_px(Rect2(-23 + i * 2, -26 + step * 0.4, 2, 5), Color("efe6d6"), mod, o)
+	# Llave inglesa que golpea / Wrench that strikes
+	var ang := -1.0 + _swing * 1.5
+	draw_set_transform(offset + Vector2(18 * _facing, -36) + o * Vector2(_facing, 1.0), 0.0, Vector2(_facing, 1.0))
 	var rot := Transform2D(ang, Vector2.ZERO)
-	var handle := PackedVector2Array([rot * Vector2(-2, 0), rot * Vector2(2, 0), rot * Vector2(2, -26), rot * Vector2(-2, -26)])
-	draw_colored_polygon(handle, WOOD.darkened(0.3) * mod)
-	var head := PackedVector2Array([rot * Vector2(-8, -24), rot * Vector2(10, -24), rot * Vector2(10, -32), rot * Vector2(-8, -32)])
-	draw_colored_polygon(head, Color("9aa3b8") * mod)
+	var handle := PackedVector2Array([rot * Vector2(-2, 0), rot * Vector2(2, 0), rot * Vector2(2, -24), rot * Vector2(-2, -24)])
+	draw_colored_polygon(handle, STEEL * mod)
+	var jaw := PackedVector2Array([rot * Vector2(-7, -22), rot * Vector2(7, -22), rot * Vector2(7, -32), rot * Vector2(3, -32),
+		rot * Vector2(3, -27), rot * Vector2(-3, -27), rot * Vector2(-3, -32), rot * Vector2(-7, -32)])
+	draw_colored_polygon(jaw, STEEL.lightened(0.15) * mod)
+	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
+	_px(Rect2(14, -40 + step * 0.4, 7, 8), FUR, mod, o)   # mano que agarra / gripping hand
 	draw_set_transform(Vector2.ZERO)
 
 
@@ -164,7 +200,7 @@ func _px(r: Rect2, col: Color, mod: Color, o: Vector2) -> void:
 
 
 func head_top() -> Vector2:
-	return Vector2(0, -84)
+	return Vector2(0, -88)
 
 
 func _oval(c: Vector2, r: Vector2, n := 16) -> PackedVector2Array:

@@ -562,7 +562,7 @@ func is_targetable() -> bool:
 ## antidisturbios, el zorro dorado, el muñeco) no / Can D. Lynx make it act? Bosses and the ones that
 ## don't chase (nests, vans, riot officers, the golden fox, the dummy) can't
 func can_act() -> bool:
-	return state == State.ALIVE and actor_t <= 0.0 and not is_boss() and not (self is Nest or self is Van or self is Riot or self is GoldenFoox or self is TrainingDummy)
+	return state == State.ALIVE and actor_t <= 0.0 and not is_boss() and not (self is Nest or self is Van or self is Riot or self is GoldenFoox or self is TrainingDummy or self is BotcherTurret)
 
 
 ## Se pone a actuar para D. Lynx durante "secs" / Starts acting for D. Lynx for "secs"
