@@ -4,6 +4,8 @@ config_version=5
 [application]
 
 config/name="Dreamed"
+config/version="1.5"
+config/icon="res://assets/icon.png"
 config/description="Cada oleada, un sueño dentro de otro. / Every wave, a dream within a dream."
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7")

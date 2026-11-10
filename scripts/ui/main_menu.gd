@@ -15,6 +15,8 @@ var _settings: Button
 var _bestiary: Button
 var _unlock: Button
 var _unlock_armed := false
+var _reset: Button
+var _reset_step := 0
 var _achievements: Button
 var _characters: Button
 var _quitting := false
@@ -85,9 +87,11 @@ func _build() -> void:
 	_settings = _entry(col, "MENU_SETTINGS", _on_settings)
 	# «Desbloquear todo» también está en la demo / "Unlock everything" is in the demo too
 	_unlock = _entry(col, "MENU_UNLOCK_ALL", _on_unlock_all)
+	# Borrar el guardado (con doble confirmación) / Delete the save (with double confirmation)
+	_reset = _entry(col, "MENU_RESET", _on_reset)
 	_entry(col, "MENU_QUIT", _on_quit)
 
-	var version := UITheme.label("V 1.4" + (" DEMO" if Demo.on() else ""), 16, Color(UITheme.ASH, 0.6), "caps")
+	var version := UITheme.label("%s %s%s" % [tr("MENU_VERSION"), ProjectSettings.get_setting("application/config/version", "1.0"), " DEMO" if Demo.on() else ""], 22, Color(UITheme.BONE, 0.75), "caps")
 	version.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 	add_child(version)
 	version.set_anchors_and_offsets_preset(PRESET_BOTTOM_LEFT, PRESET_MODE_MINSIZE, 40)
@@ -122,6 +126,25 @@ func _entry(parent: Container, key: String, callback: Callable) -> Button:
 	b.focus_exited.connect(show_line.bind(false))
 	b.mouse_entered.connect(b.grab_focus)
 	return b
+
+
+## Borrar partida: hay que pulsarlo tres veces (aviso, confirmación y borrado). Borra el progreso
+## (amistades, logros, bestiario, actos superados) y la partida a medias; los ajustes se quedan.
+## Delete save: it has to be pressed three times (warning, confirmation and delete). Deletes progress
+## (friendships, achievements, bestiary, acts cleared) and any run in progress; settings stay.
+func _on_reset() -> void:
+	_reset_step += 1
+	Audio.play("ui_click", -6.0)
+	if _reset_step == 1:
+		_reset.text = "MENU_RESET_SURE"
+		return
+	if _reset_step == 2:
+		_reset.text = "MENU_RESET_LAST"
+		return
+	Progress.reset_all()
+	GameState.clear_saved_run()
+	Audio.play("chime", -2.0)
+	get_tree().reload_current_scene()
 
 
 ## Desbloquear todo: hay que pulsarlo dos veces para que no se haga sin querer

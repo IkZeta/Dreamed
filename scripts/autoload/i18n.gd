@@ -13,6 +13,10 @@ const STRINGS := {
 	"MENU_PLAY": {"es": "Jugar", "en": "Play"},
 	"MENU_SETTINGS": {"es": "Ajustes", "en": "Settings"},
 	"MENU_QUIT": {"es": "Salir", "en": "Quit"},
+	"MENU_RESET": {"es": "Borrar partida", "en": "Delete save"},
+	"MENU_RESET_SURE": {"es": "¿Borrar todo el progreso?", "en": "Delete all progress?"},
+	"MENU_RESET_LAST": {"es": "Pulsa otra vez: no se puede deshacer", "en": "Press again: this can't be undone"},
+	"MENU_VERSION": {"es": "Versión", "en": "Version"},
 
 	# --- Ajustes / Settings ---
 	"SETTINGS_TITLE": {"es": "Ajustes", "en": "Settings"},

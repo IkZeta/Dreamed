@@ -361,6 +361,19 @@ func note(head: String, body: String, color := UITheme.GOLD, secs := 3.0, sound 
 	tw.tween_callback(box.queue_free)
 
 
+## Borra todo el progreso guardado (menú principal) / Deletes all saved progress (main menu)
+func reset_all() -> void:
+	kills = {}
+	cleared = {}
+	stats = {}
+	achieved = {}
+	friendship = {}
+	var path := Demo.save_path(PATH)
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	_skip_known_tips()
+
+
 func save_progress() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("bestiary", "kills", kills)

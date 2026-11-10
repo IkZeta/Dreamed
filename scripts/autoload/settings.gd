@@ -265,6 +265,16 @@ func _ensure_input() -> void:
 		d.device = -1
 		d.button_index = def[4]
 		InputMap.action_add_event(action, d)
+	# WASD también mueve el foco en los menús / WASD also moves focus in menus
+	for pair: Array in [["ui_up", KEY_W], ["ui_down", KEY_S], ["ui_left", KEY_A], ["ui_right", KEY_D]]:
+		var has := false
+		for e in InputMap.action_get_events(pair[0]):
+			if e is InputEventKey and (e as InputEventKey).physical_keycode == pair[1]:
+				has = true
+		if not has:
+			var k := InputEventKey.new()
+			k.physical_keycode = pair[1]
+			InputMap.action_add_event(pair[0], k)
 	# Dash de las botas: espacio o R1 / Boots dash: space or R1
 	if not InputMap.has_action("dash"):
 		InputMap.add_action("dash")

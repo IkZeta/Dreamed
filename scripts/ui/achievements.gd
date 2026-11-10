@@ -6,7 +6,8 @@ extends Control
 
 signal closed
 
-var _first: Button
+var _first: Control
+var _scroll: ScrollContainer
 
 
 func _ready() -> void:
@@ -43,6 +44,10 @@ func _ready() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# Con mando: las tarjetas se pueden enfocar y la lista sigue al foco; el stick derecho también baja
+	# With a gamepad: cards can be focused and the list follows focus; the right stick scrolls too
+	scroll.follow_focus = true
+	_scroll = scroll
 	root.add_child(scroll)
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -50,8 +55,11 @@ func _ready() -> void:
 	grid.add_theme_constant_override("v_separation", 14)
 	grid.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(grid)
+	var rows: Array[Control] = []
 	for a in Progress.ACHIEVEMENTS:
-		grid.add_child(_row(a))
+		var r := _row(a)
+		grid.add_child(r)
+		rows.append(r)
 
 	var back := Button.new()
 	back.text = "BTN_BACK"
@@ -59,7 +67,10 @@ func _ready() -> void:
 	back.size_flags_horizontal = SIZE_SHRINK_END
 	back.pressed.connect(_close)
 	root.add_child(back)
-	_first = back
+	_first = rows[0] if not rows.is_empty() else back
+	if not rows.is_empty():
+		rows[rows.size() - 1].focus_neighbor_bottom = rows[rows.size() - 1].get_path_to(back)
+		back.focus_neighbor_top = back.get_path_to(rows[rows.size() - 1])
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.2)
 	_first.grab_focus.call_deferred()
@@ -69,8 +80,14 @@ func _row(a: Dictionary) -> Control:
 	var done := Progress.has_achieved(a["id"])
 	var box := PanelContainer.new()
 	box.custom_minimum_size = Vector2(700, 128)
-	box.add_theme_stylebox_override("panel", UITheme.box(Color(UITheme.SLATE, 0.6 if done else 0.25),
-		Color(UITheme.GOLD, 0.7) if done else Color(UITheme.LINE, 0.3), 2, 10, 14))
+	var normal := UITheme.box(Color(UITheme.SLATE, 0.6 if done else 0.25),
+		Color(UITheme.GOLD, 0.7) if done else Color(UITheme.LINE, 0.3), 2, 10, 14)
+	var lit := UITheme.box(Color(UITheme.SLATE, 0.75), UITheme.BONE, 3, 10, 14)
+	box.add_theme_stylebox_override("panel", normal)
+	box.focus_mode = Control.FOCUS_ALL
+	box.focus_entered.connect(func() -> void: box.add_theme_stylebox_override("panel", lit))
+	box.focus_exited.connect(func() -> void: box.add_theme_stylebox_override("panel", normal))
+	box.mouse_entered.connect(box.grab_focus)
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 18)
 	box.add_child(h)
@@ -106,6 +123,14 @@ func _row(a: Dictionary) -> Control:
 		num.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 		v.add_child(num)
 	return box
+
+
+func _process(delta: float) -> void:
+	if _scroll == null:
+		return
+	var ax := Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
+	if absf(ax) > 0.2:
+		_scroll.scroll_vertical += int(ax * 1400.0 * delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:

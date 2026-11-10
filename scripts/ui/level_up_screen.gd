@@ -12,6 +12,7 @@ const RARITY_COLOR: Array[Color] = [Color("bcc0ea"), Color("9be38a"), Color("7fb
 var _choices: Array[Dictionary] = []
 var _ready_t := 0.4
 var _done := false
+var _buttons: Array[Button] = []
 var _first: Button
 var _row: HBoxContainer
 var _reroll: Button
@@ -83,8 +84,29 @@ func _fill_cards() -> void:
 	for c in _row.get_children():
 		c.queue_free()
 	_first = null
+	_buttons.clear()
 	for i in _choices.size():
 		_row.add_child(_card(_choices[i], i))
+	_wire_focus.call_deferred()
+
+
+## Con mando o teclado: izquierda y derecha pasan de carta en carta (sin saltarse la del medio),
+## abajo va a «Cambiar» y desde ahí arriba vuelve a la carta del centro
+## With a gamepad or keyboard: left and right go card by card (without skipping the middle one),
+## down goes to "Reroll" and up from there returns to the middle card
+func _wire_focus() -> void:
+	if _buttons.is_empty() or not is_instance_valid(_reroll):
+		return
+	for i in _buttons.size():
+		var b: Button = _buttons[i]
+		b.focus_neighbor_left = b.get_path_to(_buttons[(i - 1 + _buttons.size()) % _buttons.size()])
+		b.focus_neighbor_right = b.get_path_to(_buttons[(i + 1) % _buttons.size()])
+		b.focus_neighbor_bottom = b.get_path_to(_reroll)
+		b.focus_neighbor_top = b.get_path()
+	var mid: Button = _buttons[_buttons.size() / 2]
+	_reroll.focus_neighbor_top = _reroll.get_path_to(mid)
+	_reroll.focus_neighbor_left = _reroll.get_path()
+	_reroll.focus_neighbor_right = _reroll.get_path()
 
 
 func _update_reroll() -> void:
@@ -146,6 +168,7 @@ func _card(choice: Dictionary, index: int) -> Control:
 	v.add_child(b)
 	if _first == null:
 		_first = b
+	_buttons.append(b)
 	return card
 
 
