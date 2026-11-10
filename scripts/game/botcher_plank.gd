@@ -28,21 +28,34 @@ func _break() -> void:
 	queue_free()
 
 
+## Tablones en pixel art: tres tonos de madera, contorno oscuro y clavos (un píxel del arte son
+## 2 unidades) / Pixel-art planks: three wood tones, dark outline and nails (one art pixel is 2 units)
+const W0 := Color("6e4428")
+const W1 := Color("a8703e")
+const W2 := Color("d09a5c")
+const INK := Color("1a1024")
+const NAIL := Color("c0c8e8")
+
+
 func _draw() -> void:
 	var k := clampf(_t / 0.25, 0.0, 1.0)
 	var n := 3
-	var h := rect.size.y / n
+	var h := floorf(rect.size.y / n / 2.0) * 2.0
+	var top := rect.get_center().y - h * n * 0.5
 	for i in n:
-		var y := rect.position.y + i * h
-		var tilt := (i - 1) * 3.0
-		var w := rect.size.x + 30.0
-		var x := rect.get_center().x - w * 0.5 * k
-		var pts := PackedVector2Array([Vector2(x, y + 2 + tilt), Vector2(x + w * k, y + 2 - tilt),
-			Vector2(x + w * k, y + h - 2 - tilt), Vector2(x, y + h - 2 + tilt)])
-		draw_colored_polygon(pts, Botcher.WOOD.darkened(0.08 * i))
-		draw_polyline(pts + PackedVector2Array([pts[0]]), Botcher.WOOD.darkened(0.45), 2.0)
-		# Vetas y clavos / Grain and nails
-		draw_line(Vector2(x + 10, y + h * 0.5), Vector2(x + w * k - 14, y + h * 0.5 - tilt), Botcher.WOOD.darkened(0.25), 1.0)
+		var w := snappedf((rect.size.x + 30.0 - 8.0 * absf(i - 1)) * k, 2.0)
+		var x := snappedf(rect.get_center().x - w * 0.5 + (i - 1) * 6.0, 2.0)
+		var y := top + i * h
+		if w <= 4.0:
+			continue
+		draw_rect(Rect2(x - 2, y - 2, w + 4, h + 2), INK)
+		draw_rect(Rect2(x, y, w, h - 2), W1)
+		draw_rect(Rect2(x, y, w, 2), W2)
+		draw_rect(Rect2(x, y + h - 6, w, 4), W0)
+		# Vetas / Grain
+		draw_rect(Rect2(x + 12, y + 6, w * 0.35, 2), W0)
+		draw_rect(Rect2(x + w * 0.55, y + h * 0.5, w * 0.3, 2), W0)
 		if k >= 1.0:
-			draw_rect(Rect2(x + 8, y + h * 0.5 - 2, 4, 4), Color("cfd6e6"))
-			draw_rect(Rect2(x + w - 12, y + h * 0.5 - 2, 4, 4), Color("cfd6e6"))
+			for nx in [x + 6.0, x + w - 10.0]:
+				draw_rect(Rect2(nx, y + h * 0.5 - 3, 4, 4), INK)
+				draw_rect(Rect2(nx, y + h * 0.5 - 3, 2, 2), NAIL)

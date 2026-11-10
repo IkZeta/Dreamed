@@ -40,7 +40,7 @@ func _init() -> void:
 	radius = 22.0
 	speed = 120.0
 	mass = 1.6
-	aim_height = 30.0
+	aim_height = 50.0
 	shards = 4
 
 
@@ -144,63 +144,24 @@ func _death_sound() -> void:
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	var mod := Sprites.flash_color(_flash, a) * tint
-	draw_colored_polygon(_oval(Vector2.ZERO, Vector2(24, 7)), Color(0.05, 0.02, 0.15, 0.35 * a))
-	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
+	draw_colored_polygon(_oval(Vector2.ZERO, Vector2(26, 7)), Color(0.05, 0.02, 0.15, 0.35 * a))
 	var moving := _work <= 0.0
-	var bob := absf(sin(_t * 10.0)) * 3.0 if moving else 0.0
-	var o := Vector2(0, -bob)
-	var step := sin(_t * 10.0) * 3.0 if moving else 0.0
-	# Mochila de latón con chimenea / Brass backpack with a little chimney
-	_px(Rect2(-30, -64, 14, 30), COPPER, mod, o)
-	_px(Rect2(-28, -60, 10, 4), BRASS, mod, o)
-	_px(Rect2(-27, -76, 6, 12), STEEL.darkened(0.2), mod, o)
-	# Piernas con botas / Legs with boots
-	_px(Rect2(-12, -16 + step * 0.3, 9, 12), LEATHER.darkened(0.35), mod, o)
-	_px(Rect2(4, -16 - step * 0.3, 9, 12), LEATHER.darkened(0.35), mod, o)
-	_px(Rect2(-14, -6, 13, 6), Color("2a1c14"), mod, o)
-	_px(Rect2(2, -6, 13, 6), Color("2a1c14"), mod, o)
-	# Cuerpo peludo y delantal de cuero / Furry body and leather apron
-	_px(Rect2(-18, -50, 36, 36), FUR, mod, o)
-	_px(Rect2(-12, -46, 26, 32), LEATHER, mod, o)
-	_px(Rect2(-12, -40, 26, 3), LEATHER.darkened(0.3), mod, o)
-	_px(Rect2(-2, -32, 6, 6), BRASS, mod, o)      # hebilla / buckle
-	# Cabeza de topo: hocico largo y nariz rosa / Mole head: long snout and pink nose
-	_px(Rect2(-14, -72, 30, 24), FUR.lightened(0.08), mod, o)
-	_px(Rect2(14, -62, 12, 9), FUR.lightened(0.18), mod, o)
-	_px(Rect2(24, -63, 7, 7), SKIN, mod, o)
-	_px(Rect2(6, -64, 3, 2), Color("1a1430"), mod, o)   # ojillo entornado / squinting little eye
-	# Gorra de cuero con gafas de latón / Leather cap with brass goggles
-	_px(Rect2(-14, -80, 28, 10), LEATHER.darkened(0.15), mod, o)
-	_px(Rect2(-16, -72, 32, 3), LEATHER.darkened(0.35), mod, o)
-	_px(Rect2(-4, -80, 20, 3), Color("3a2a20"), mod, o)
-	draw_circle(o + Vector2(2, -79), 5.0, BRASS * mod)
-	draw_circle(o + Vector2(2, -79), 3.0, Color("8fe3ff") * mod)
-	draw_circle(o + Vector2(12, -79), 5.0, BRASS * mod)
-	draw_circle(o + Vector2(12, -79), 3.0, Color("8fe3ff") * mod)
-	# Garras / Claws
-	_px(Rect2(-22, -36 + step * 0.4, 6, 10), FUR, mod, o)
-	for i in 3:
-		_px(Rect2(-23 + i * 2, -26 + step * 0.4, 2, 5), Color("efe6d6"), mod, o)
-	# Llave inglesa que golpea / Wrench that strikes
-	var ang := -1.0 + _swing * 1.5
-	draw_set_transform(offset + Vector2(18 * _facing, -36) + o * Vector2(_facing, 1.0), 0.0, Vector2(_facing, 1.0))
-	var rot := Transform2D(ang, Vector2.ZERO)
-	var handle := PackedVector2Array([rot * Vector2(-2, 0), rot * Vector2(2, 0), rot * Vector2(2, -24), rot * Vector2(-2, -24)])
-	draw_colored_polygon(handle, STEEL * mod)
-	var jaw := PackedVector2Array([rot * Vector2(-7, -22), rot * Vector2(7, -22), rot * Vector2(7, -32), rot * Vector2(3, -32),
-		rot * Vector2(3, -27), rot * Vector2(-3, -27), rot * Vector2(-3, -32), rot * Vector2(-7, -32)])
-	draw_colored_polygon(jaw, STEEL.lightened(0.15) * mod)
-	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
-	_px(Rect2(14, -40 + step * 0.4, 7, 8), FUR, mod, o)   # mano que agarra / gripping hand
+	var bob := absf(sin(_t * 10.0)) * 2.0 if moving else 0.0
+	draw_set_transform(offset + Vector2(0, -bob), 0.0, Vector2(_facing, 1.0))
+	# Patitas que corren / Little running legs
+	for x in [-8.0, 8.0]:
+		var lift := maxf(0.0, sin(_t * 10.0 + (PI if x > 0.0 else 0.0))) * 4.0 if moving else 0.0
+		Sprites.draw(self, "botcher_leg", mod, Vector2(x, -lift + bob))
+	Sprites.draw(self, "botcher_body", mod)
+	# Brazo con la llave inglesa: martillea al trabajar / Arm with the wrench: bangs away while working
+	var ang := 0.9 + 0.2 * sin(_t * 3.0) if moving else 0.7 + _swing * 1.1
+	draw_set_transform(offset + Vector2(8.0 * _facing, -50.0 - bob), ang * _facing, Vector2(_facing, 1.0))
+	Sprites.draw(self, "botcher_arm", mod)
 	draw_set_transform(Vector2.ZERO)
 
 
-func _px(r: Rect2, col: Color, mod: Color, o: Vector2) -> void:
-	draw_rect(Rect2(r.position + o, r.size), col * mod)
-
-
 func head_top() -> Vector2:
-	return Vector2(0, -88)
+	return Vector2(0, -116)
 
 
 func _oval(c: Vector2, r: Vector2, n := 16) -> PackedVector2Array:

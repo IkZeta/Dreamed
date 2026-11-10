@@ -2485,6 +2485,131 @@ def ufo():
     add("ufo_body", -124, -66, 248, 104, b, flat=True)
 
 
+
+def botcher():
+    """Chapuzas en pixel art plano: un topo ingeniero steampunk (mochila-caldera de cobre, gorra de
+    cuero con gafas de latón, delantal con bolsillo de herramientas, garras) y su torreta de vapor.
+    Origen en los pies, mirando a +x.
+    Botcher in flat pixel art: a steampunk mole engineer (copper boiler backpack, leather cap with
+    brass goggles, apron with a tool pocket, claws) and his steam turret. Origin at the feet,
+    facing +x."""
+    F0, F1, F2, F3 = "#2e2134", "#4a3550", "#6a4f70", "#8c7090"      # pelo / fur
+    NO, NO1 = "#f49ab4", "#c86a88"                                    # nariz / nose
+    LE0, LE1, LE2 = "#5c3622", "#86522e", "#ad7244"                   # cuero / leather
+    BR0, BR1, BR2 = "#a87a24", "#e0ae40", "#f8dc84"                   # latón / brass
+    CU0, CU1, CU2 = "#7e3c26", "#b85e36", "#de8a56"                   # cobre / copper
+    ST0, ST1, ST2 = "#3e4468", "#6a7398", "#a8b0d4"                   # acero / steel
+    GL, GL1 = "#9fe8ff", "#e8fbff"                                    # cristal / lens
+    CL = "#efe6d6"                                                    # garras / claws
+
+    b = ""
+    # Mochila-caldera con chimenea / Boiler backpack with a chimney
+    b += flat("M-25,-104 L-19,-104 L-19,-84 L-25,-84 Z", ST1) + flat("M-21,-104 L-19,-104 L-19,-84 L-21,-84 Z", ST0)
+    b += flat("M-27,-108 L-17,-108 L-17,-103 L-27,-103 Z", ST0)
+    b += flat("M-34,-86 C-34,-90 -12,-90 -12,-86 L-12,-46 C-12,-42 -34,-42 -34,-46 Z", CU1)
+    b += flat("M-20,-89 L-12,-86 L-12,-46 L-20,-43 Z", CU0)
+    b += flat("M-32,-84 L-28,-84 L-28,-50 L-32,-50 Z", CU2)
+    for y in (-78, -56):
+        b += flat("M-35,%g L-11,%g L-11,%g L-35,%g Z" % (y, y, y + 4, y + 4), BR1)
+        b += flat("M-17,%g L-11,%g L-11,%g L-17,%g Z" % (y, y, y + 4, y + 4), BR0)
+    # Torso peludo / Furry torso
+    torso = "M-18,-78 C-26,-66 -26,-36 -18,-24 L18,-24 C26,-36 26,-66 18,-78 C8,-84 -8,-84 -18,-78 Z"
+    b += flat(torso, F2)
+    b += flat("M10,-82 C18,-78 26,-66 26,-50 C26,-38 22,-30 18,-24 L10,-24 C18,-40 18,-64 10,-82 Z", F1)
+    b += flat("M-16,-74 C-21,-64 -22,-50 -20,-38 L-16,-38 C-18,-50 -17,-62 -12,-72 Z", F3)
+    # Delantal de cuero con tirantes, hebilla y bolsillo / Leather apron with straps, buckle and pocket
+    b += flat("M-12,-72 L14,-72 L17,-24 L-15,-24 Z", LE1)
+    b += flat("M6,-72 L14,-72 L17,-24 L9,-24 Z", LE0)
+    b += flat("M-10,-70 L-6,-70 L-8,-28 L-12,-28 Z", LE2)
+    b += flat("M-14,-82 L-9,-82 L-9,-70 L-14,-70 Z", LE1) + flat("M9,-82 L14,-82 L14,-70 L9,-70 Z", LE0)
+    b += flat("M-15,-58 L17,-58 L17,-53 L-15,-53 Z", LE0)
+    b += flat("M-3,-60 L5,-60 L5,-51 L-3,-51 Z", BR1) + flat("M-1,-58 L3,-58 L3,-53 L-1,-53 Z", LE0)
+    b += flat("M-8,-46 L10,-46 L11,-32 L-9,-32 Z", LE0) + flat("M-8,-46 L10,-46 L10,-43 L-8,-43 Z", LE2)
+    b += flat("M-5,-52 L-2,-52 L-2,-44 L-5,-44 Z", ST2) + flat("M3,-54 L6,-54 L6,-44 L3,-44 Z", BR1)
+    # Garra de atrás / Back claw
+    b += flat(ellipse_d(-23, -44, 6, 7), F1)
+    for x in (-27, -24, -21):
+        b += flat("M%g,-39 L%g,-39 L%g,-33 Z" % (x - 1.5, x + 1.5, x), CL)
+    # Cabeza: bola peluda con hocico largo / Head: furry ball with a long snout
+    b += flat(ellipse_d(0, -90, 17, 15), F2)
+    b += flat("M8,-103 C15,-99 18,-92 17,-86 C15,-80 10,-77 4,-76 C11,-84 12,-94 8,-103 Z", F1)
+    b += flat("M-14,-94 C-13,-100 -8,-104 -3,-105 L-3,-102 C-8,-101 -11,-98 -12,-93 Z", F3)
+    b += flat("M10,-92 C18,-93 26,-90 30,-86 C31,-82 28,-79 24,-79 C18,-79 12,-80 8,-82 Z", F3)
+    b += flat("M10,-84 C16,-82 22,-81 27,-81 C26,-79 24,-79 22,-79 C16,-79 12,-80 8,-82 Z", F2)
+    b += flat(ellipse_d(30, -86, 4.2, 3.8), NO) + flat("M29,-84 L34,-85 C33,-83 31,-82 29,-82 Z", NO1)
+    # Bigotes / Whiskers
+    b += "<path d='M24,-84 L34,-80 M24,-82 L32,-76' fill='none' stroke='%s' stroke-width='1.4'/>" % F0
+    # Ojillo entornado / Squinting little eye
+    b += flat("M8,-91 L13,-92 L13,-89.5 L8,-89 Z", F0)
+    # Mejilla / Cheek
+    b += flat(ellipse_d(4, -83, 3, 2), NO1)
+    # Gorra de cuero con visera hacia atrás / Leather cap with the peak backwards
+    b += flat("M-16,-96 C-15,-108 -4,-113 6,-112 C14,-111 18,-104 17,-97 C6,-100 -6,-100 -16,-96 Z", LE1)
+    b += flat("M6,-112 C14,-111 18,-104 17,-97 L10,-98 C12,-104 10,-109 6,-112 Z", LE0)
+    b += flat("M-24,-97 L-14,-98 L-14,-94 L-24,-94 Z", LE0)
+    b += flat("M-10,-109 C-6,-111 -2,-112 2,-112 L2,-109 C-2,-109 -6,-108 -9,-106 Z", LE2)
+    # Gafas de latón sobre la gorra / Brass goggles on the cap
+    b += flat("M-14,-104 L18,-104 L18,-101 L-14,-101 Z", F0)
+    for gx in (0, 11):
+        b += flat(ellipse_d(gx, -104, 5.6, 5.6), BR1) + flat(ellipse_d(gx + 1.2, -102.8, 4.4, 4.4), BR0)
+        b += flat(ellipse_d(gx, -104, 3.4, 3.4), GL) + flat(ellipse_d(gx - 1, -105, 1.3, 1.3), GL1)
+    add("botcher_body", -38, -116, 76, 96, b, flat=True)
+
+    # Pierna corta con bota (cadera en -26) / Short leg with a boot (hip at -26)
+    l = flat("M-6,-28 L6,-28 L6,-10 L-6,-10 Z", LE0) + flat("M1,-28 L6,-28 L6,-10 L1,-10 Z", "#3e2418")
+    l += flat("M-8,-12 C-8,-16 4,-16 6,-14 L12,-12 C15,-11 16,-7 16,-4 L16,0 L-8,0 Z", "#2a1c22")
+    l += flat("M-8,-4 L16,-4 L16,0 L-8,0 Z", "#140c14") + flat("M-6,-14 L2,-14 L2,-11 L-6,-11 Z", "#4a3442")
+    l += flat(ellipse_d(6, -12, 1.6, 1.6), BR1)
+    add("botcher_leg", -11, -30, 30, 32, l, flat=True)
+
+    # Brazo con llave inglesa (hombro en el origen, el brazo hacia +x y la llave hacia arriba)
+    # Arm with a wrench (shoulder at the origin, the arm towards +x and the wrench upwards)
+    a = flat("M-4,-5 L12,-5 L12,5 L-4,5 Z", F2) + flat("M-4,1 L12,1 L12,5 L-4,5 Z", F1)
+    a += flat("M7,-34 L12,-34 L12,4 L7,4 Z", ST1) + flat("M10,-34 L12,-34 L12,4 L10,4 Z", ST0)
+    a += flat("M7,-14 L12,-14 L12,-10 L7,-10 Z", ST2)
+    a += flat("M1,-46 L18,-46 L18,-30 L1,-30 Z", ST1)
+    a += flat("M6,-46 L13,-46 L13,-38 L6,-38 Z", "#00000000")
+    a += flat("M1,-46 L5,-46 L5,-30 L1,-30 Z", ST2) + flat("M14,-46 L18,-46 L18,-30 L14,-30 Z", ST0)
+    a += flat("M5,-46 L14,-46 L14,-39 L5,-39 Z", "#0a0620")
+    a += flat(ellipse_d(12, 2, 7, 6), F3) + flat(ellipse_d(13, 4, 6, 4), F2)
+    for x in (16, 19):
+        a += flat("M%g,0 L%g,-1 L%g,5 Z" % (x, x + 4, x + 1), CL)
+    add("botcher_arm", -8, -50, 32, 62, a, flat=True)
+
+    # Torreta de vapor: trípode, caldera remachada con manómetro, cúpula de latón y chimenea
+    # (origen en los pies; el cañón y la aguja se dibujan aparte)
+    # Steam turret: tripod, riveted boiler with a pressure gauge, brass dome and chimney
+    # (origin at the feet; the barrel and needle are drawn separately)
+    t = "<path d='M0,-30 L-26,0 M0,-30 L26,0 M0,-30 L2,3' fill='none' stroke='%s' stroke-width='4.6'/>" % ST0
+    t += "<path d='M0,-30 L-24,-2 M0,-30 L24,-2' fill='none' stroke='%s' stroke-width='1.8'/>" % ST1
+    for x in (-27, 25):
+        t += flat("M%g,-2 L%g,-2 L%g,2 L%g,2 Z" % (x, x + 6, x + 6, x), ST0)
+    t += flat(ellipse_d(0, -30, 8, 4), ST1)
+    t += flat("M-25,-56 L25,-56 L25,-28 L-25,-28 Z", CU1)
+    t += flat("M12,-56 L25,-56 L25,-28 L12,-28 Z", CU0)
+    t += flat("M-23,-54 L-18,-54 L-18,-30 L-23,-30 Z", CU2)
+    t += flat("M-26,-58 L26,-58 L26,-54 L-26,-54 Z", BR1) + flat("M-26,-31 L26,-31 L26,-27 L-26,-27 Z", BR0)
+    for x in (-2, 6, 14, 21):
+        t += flat("M%g,-50 L%g,-50 L%g,-47 L%g,-47 Z" % (x, x + 3, x + 3, x), BR2)
+        t += flat("M%g,-38 L%g,-38 L%g,-35 L%g,-35 Z" % (x, x + 3, x + 3, x), BR2)
+    t += flat(ellipse_d(-11, -42, 7.5, 7.5), BR0) + flat(ellipse_d(-11, -42, 5.8, 5.8), "#f4ead2")
+    t += "<path d='M-15,-45 L-14,-44 M-11,-47 L-11,-46 M-7,-45 L-8,-44' stroke='%s' stroke-width='1.2'/>" % ST0
+    t += flat("M10,-82 L18,-82 L18,-58 L10,-58 Z", ST1) + flat("M15,-82 L18,-82 L18,-58 L15,-58 Z", ST0)
+    t += flat("M8,-86 L20,-86 L20,-81 L8,-81 Z", ST0)
+    t += flat("M-21,-58 C-21,-70 -11,-76 0,-76 C11,-76 21,-70 21,-58 Z", BR1)
+    t += flat("M8,-74 C16,-71 21,-65 21,-58 L12,-58 C13,-64 12,-70 8,-74 Z", BR0)
+    t += flat("M-14,-66 C-12,-70 -8,-72 -4,-73 L-4,-70 C-8,-69 -11,-67 -12,-64 Z", BR2)
+    add("botcher_turret", -32, -90, 64, 96, t, flat=True)
+
+    # Cañón (pivote en el origen, apuntando a +x) / Barrel (pivot at the origin, pointing towards +x)
+    c = flat(ellipse_d(0, 0, 7, 7), ST0)
+    c += flat("M0,-5.5 L36,-4.5 L36,4.5 L0,5.5 Z", ST1) + flat("M0,1.5 L36,1.5 L36,4.5 L0,5.5 Z", ST0)
+    c += flat("M2,-5 L36,-4 L36,-2 L2,-2.5 Z", ST2)
+    c += flat("M14,-6.5 L18,-6.5 L18,6.5 L14,6.5 Z", BR1)
+    c += flat("M34,-7.5 L42,-7.5 L42,7.5 L34,7.5 Z", BR1) + flat("M34,2.5 L42,2.5 L42,7.5 L34,7.5 Z", BR0)
+    c += flat("M40,-3 L42,-3 L42,3 L40,3 Z", "#0a0620")
+    add("botcher_barrel", -9, -11, 54, 22, c, flat=True)
+
 def elite_horn():
     """Cuerno de demonio de los élites (el izquierdo; el derecho se dibuja reflejado): corto y
     curvado hacia fuera, granate con anillos. La base está en el origen y la punta se ilumina con
@@ -3181,6 +3306,7 @@ def build():
     act2_npcs()
     act2_enemies()
     act3_enemies()
+    botcher()
     ufo()
     elite_horn()
     cyberpunk()

@@ -46,7 +46,7 @@ func _ready() -> void:
 	_enemy = e
 
 ## Alto de cada dibujo (con cuernos y aura) / Height of each drawing (with horns and aura)
-const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "puppet": 210.0, "golem": 210.0, "police": 160.0, "van": 260.0, "riot": 175.0, "botcher": 100.0, "boss_chef": 290.0, "boss_ufo": 160.0, "boss_evil_ad": 420.0,
+const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "puppet": 210.0, "golem": 210.0, "police": 160.0, "van": 260.0, "riot": 175.0, "botcher": 125.0, "boss_chef": 290.0, "boss_ufo": 160.0, "boss_evil_ad": 420.0,
 	"boss_bed": 200.0, "boss_shelf": 190.0, "boss_chest": 130.0}
 
 ## Escala para que quepa entero en el hueco / Scale so it fits whole in the space
