@@ -2,60 +2,7 @@ extends Node
 ## Datos compartidos entre escenas: atuendos de Kroker, armas y la elección.
 ## Data shared between scenes: Kroker's outfits, weapons and the player's pick.
 
-## Siempre es Kroker; cambia el atuendo y el arma. Estadísticas de 1 a 5 (solo para la carta).
-## Always Kroker; the outfit and weapon change. Stats 1-5 (card display only).
-const CHARACTERS := [
-	{
-		"id": "bat", "name": "CHAR_BAT_NAME", "tag": "CHAR_BAT_TAG", "weapon": "CHAR_BAT_WEAPON",
-		"bonus": "CHAR_BAT_BONUS", "outfit": "CHAR_BAT_OUTFIT", "desc": "CHAR_BAT_DESC",
-		"stats": {"STAT_ATTACK": 4, "STAT_DEFENSE": 2, "STAT_SPEED": 3, "STAT_RANGE": 1},
-	},
-	{
-		"id": "shield", "name": "CHAR_SHIELD_NAME", "tag": "CHAR_SHIELD_TAG", "weapon": "CHAR_SHIELD_WEAPON",
-		"bonus": "CHAR_SHIELD_BONUS", "outfit": "CHAR_SHIELD_OUTFIT", "desc": "CHAR_SHIELD_DESC",
-		"stats": {"STAT_ATTACK": 1, "STAT_DEFENSE": 5, "STAT_SPEED": 1, "STAT_RANGE": 1},
-	},
-	{
-		"id": "book", "name": "CHAR_BOOK_NAME", "tag": "CHAR_BOOK_TAG", "weapon": "CHAR_BOOK_WEAPON",
-		"bonus": "CHAR_BOOK_BONUS", "outfit": "CHAR_BOOK_OUTFIT", "desc": "CHAR_BOOK_DESC",
-		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 1, "STAT_SPEED": 3, "STAT_RANGE": 3},
-	},
-	{
-		"id": "vacuum", "name": "CHAR_VACUUM_NAME", "tag": "CHAR_VACUUM_TAG", "weapon": "CHAR_VACUUM_WEAPON",
-		"bonus": "CHAR_VACUUM_BONUS", "outfit": "CHAR_VACUUM_OUTFIT", "desc": "CHAR_VACUUM_DESC",
-		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 2, "STAT_SPEED": 5, "STAT_RANGE": 4},
-	},
-	# Se desbloquea al llegar al Acto 2 por primera vez / Unlocked on first reaching Act 2
-	{
-		"id": "finger", "name": "CHAR_FINGER_NAME", "tag": "CHAR_FINGER_TAG", "weapon": "CHAR_FINGER_WEAPON",
-		"bonus": "CHAR_FINGER_BONUS", "outfit": "CHAR_FINGER_OUTFIT", "desc": "CHAR_FINGER_DESC",
-		"stats": {"STAT_ATTACK": 2, "STAT_DEFENSE": 1, "STAT_SPEED": 3, "STAT_RANGE": 5},
-	},
-	# Se desbloquea al llegar al Acto 3 por primera vez / Unlocked on first reaching Act 3
-	{
-		"id": "teddy", "name": "CHAR_TEDDY_NAME", "tag": "CHAR_TEDDY_TAG", "weapon": "CHAR_TEDDY_WEAPON",
-		"bonus": "CHAR_TEDDY_BONUS", "outfit": "CHAR_TEDDY_OUTFIT", "desc": "CHAR_TEDDY_DESC",
-		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 3, "STAT_SPEED": 2, "STAT_RANGE": 1},
-	},
-	# Se desbloquea al llegar a amistad 4 con Svinho / Unlocked at friendship 4 with Svinho
-	{
-		"id": "ball", "name": "CHAR_BALL_NAME", "tag": "CHAR_BALL_TAG", "weapon": "CHAR_BALL_WEAPON",
-		"bonus": "CHAR_BALL_BONUS", "outfit": "CHAR_BALL_OUTFIT", "desc": "CHAR_BALL_DESC",
-		"stats": {"STAT_ATTACK": 4, "STAT_DEFENSE": 1, "STAT_SPEED": 4, "STAT_RANGE": 2},
-	},
-	# Se desbloquea al llegar a amistad 4 con Silly / Unlocked at friendship 4 with Silly
-	{
-		"id": "laptop", "name": "CHAR_LAPTOP_NAME", "tag": "CHAR_LAPTOP_TAG", "weapon": "CHAR_LAPTOP_WEAPON",
-		"bonus": "CHAR_LAPTOP_BONUS", "outfit": "CHAR_LAPTOP_OUTFIT", "desc": "CHAR_LAPTOP_DESC",
-		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 2, "STAT_SPEED": 2, "STAT_RANGE": 4},
-	},
-	# Se desbloquea al llegar a amistad 4 con Doc / Unlocked at friendship 4 with Doc
-	{
-		"id": "boots", "name": "CHAR_BOOTS_NAME", "tag": "CHAR_BOOTS_TAG", "weapon": "CHAR_BOOTS_WEAPON",
-		"bonus": "CHAR_BOOTS_BONUS", "outfit": "CHAR_BOOTS_OUTFIT", "desc": "CHAR_BOOTS_DESC",
-		"stats": {"STAT_ATTACK": 4, "STAT_DEFENSE": 2, "STAT_SPEED": 4, "STAT_RANGE": 1},
-	},
-]
+const CHARACTERS := RunData.CHARACTERS
 ## Logro que desbloquea cada pijama nuevo / Achievement that unlocks each new pajama
 const WEAPON_UNLOCK := {"finger": "finger", "teddy": "teddy", "ball": "ball", "laptop": "laptop", "boots": "boots"}
 ## Svinho le regala su mejora a nivel 3 a la pelota / Svinho gives the ball his upgrade at level 3
@@ -68,17 +15,7 @@ func weapon_unlocked(id: String) -> bool:
 ## Estadísticas base de Kroker y lo que suma cada arma.
 ## Kroker's base stats and what each weapon adds.
 const BASE_STATS := {"max_hp": 20.0, "speed": 300.0, "damage_mult": 1.0, "armor": 0.0}
-const WEAPON_BONUS := {
-	"bat": {"damage_mult": 0.2},     # aumenta el ataque / raises attack
-	"shield": {"armor": 4.0, "max_hp": 5.0, "speed": -25.0},  # defensa y vida, pero más lento / defence and health, but slower
-	"book": {"max_hp": -5.0},        # frágil / fragile
-	"vacuum": {"speed": 75.0, "max_hp": 5.0},  # +25 % de velocidad y +5 de vida / +25% speed and +5 health
-	"finger": {},                    # +10 de suerte (en BASE_LEVEL_STATS) / +10 luck (in BASE_LEVEL_STATS)
-	"teddy": {"max_hp": 6.0},        # +6 de vida máxima / +6 max health
-	"ball": {"armor": -2.0, "speed": 60.0, "damage_mult": 0.15},  # frágil, rápida y pega fuerte / fragile, fast and hits hard
-	"laptop": {"max_hp": 3.0},       # +3 de vida máxima / +3 max health
-	"boots": {"speed": 30.0, "armor": 1.0},  # algo más rápido y un poco de defensa / a bit faster and a little defence
-}
+const WEAPON_BONUS := RunData.WEAPON_BONUS
 
 ## Definición de cada sueño del Acto 1 (la habitación). "mix" es el peso de cada enemigo al
 ## aparecer. Cada piso trae un enemigo nuevo más peligroso; el 5 es el jefe.
@@ -89,50 +26,7 @@ const WEAPON_BONUS := {
 ## Qué hace El Pinche con cada arma / What the Kitchen Boy does with each weapon
 const PINCHE_KIND := {"bat": "bleed", "shield": "burn", "book": "burn", "vacuum": "bleed", "finger": "burn", "teddy": "bleed", "ball": "bleed", "laptop": "bleed", "boots": "burn"}
 
-const WAVES := [
-	{"duration": 30.0, "spawn_every": 3.0, "group": [1, 2], "max_alive": 5, "mix": {"foox": 1}},
-	{"duration": 35.0, "spawn_every": 2.8, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1}, "new": "thug"},
-	{"duration": 40.0, "spawn_every": 2.6, "group": [1, 3], "max_alive": 8, "mix": {"foox": 2, "thug": 1, "sling": 1}, "new": "sling", "shop_met": true},
-	{"duration": 45.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 9, "mix": {"foox": 2, "thug": 1, "sling": 1, "skeleton": 2}, "new": "skeleton"},
-	# Los jefes tienen tiempo límite: si aguantas, pasas; si lo derrotas antes, un nivel de regalo
-	# Bosses have a time limit: survive it and you pass; beat it first and you get a bonus level
-	{"boss": true, "duration": 150.0, "spawn_every": 3.5, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1}},
-	# --- Acto 2: el salón. "fire" = la chimenea está encendida; "shop" = Charo abre el kiosco al
-	# acabar. El 8 trae al Cyberpunk y el 10 es el jefe, El Chef.
-	# --- Act 2: the living room. "fire" = the fireplace is lit; "shop" = Charo opens her kiosk
-	# at the end. Dream 8 brings the Cyberpunk and dream 10 is the boss, The Chef.
-	{"duration": 40.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 10, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "nest": 1}, "new": "nest", "fire": true},
-	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2, "nest": 1}, "shop": true},
-	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5}, "new": "cyber", "fire": true},
-	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.5}, "shop": true},
-	# Sueño 10: El Chef sale de la tele / Dream 10: The Chef comes out of the TV
-	{"boss": true, "boss_kind": "chef", "duration": 120.0, "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 0.3}},
-	# --- Acto 3: el pasillo infinito del colegio. El 11 trae las Marionetas (poco comunes) y el
-	# 13, el Gólem de papel higiénico.
-	# --- Act 3: the endless school hallway. Dream 11 brings the Puppets (uncommon) and dream 13
-	# the Toilet-Paper Golem.
-	{"duration": 45.0, "spawn_every": 2.0, "group": [2, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5, "puppet": 0.7}, "new": "puppet"},
-	{"duration": 50.0, "spawn_every": 1.9, "group": [3, 4], "max_alive": 14, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8}, "shop": true},
-	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8, "golem": 0.6}, "new": "golem"},
-	{"duration": 60.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.7, "puppet": 1.0, "golem": 0.8}, "shop": true},
-	# Sueño 15: el Ovni destroza el pasillo / Dream 15: the UFO wrecks the hallway
-	{"boss": true, "boss_kind": "ufo", "duration": 150.0, "spawn_every": 3.6, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1, "puppet": 1, "skeleton": 1}},
-	# --- Acto 4 (el final): la Metrópolis, con una estética distinta en cada sueño. El 16 trae la
-	# Unidad Especial (furgo voladora que suelta policías), el 17 los Antidisturbios (salen de los
-	# agujeros y ponen escudos a los demás) y el 20 es el último sueño: la ciudad se viene abajo.
-	# --- Act 4 (the final one): the Metropolis, with a different look in every dream. Dream 16
-	# brings the Special Unit (a flying van that drops police), 17 the Riot Police (they climb out
-	# of the holes and shield the others) and 20 is the last dream: the city comes crashing down.
-	{"duration": 50.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.5, "police": 1.2, "van": 0.25}, "new": "van"},
-	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.6, "police": 1.4, "van": 0.25, "riot": 0.35}, "new": "riot", "shop": true},
-	{"duration": 60.0, "spawn_every": 1.7, "group": [3, 5], "max_alive": 16, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.7, "puppet": 1.0, "golem": 0.7, "police": 1.6, "van": 0.3, "riot": 0.4}},
-	{"duration": 60.0, "spawn_every": 1.6, "group": [3, 6], "max_alive": 17, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.8, "puppet": 1.0, "golem": 0.8, "police": 1.8, "van": 0.35, "riot": 0.45}, "shop": true},
-	# Sueño 20, el último: noir retrofuturista. Kroker piensa en voz baja apoyado en una pared,
-	# los edificios estallan y llega el jefe final, Evil Ad. La ciudad se derrumba durante la pelea.
-	# Dream 20, the last one: retro-futurist noir. Kroker muses leaning on a wall, the buildings
-	# blow up and the final boss, Evil Ad, arrives. The city collapses during the fight.
-	{"boss": true, "boss_kind": "evil_ad", "duration": 210.0, "spawn_every": 3.2, "group": [1, 2], "max_alive": 8, "mix": {"thug": 2, "sling": 1, "skeleton": 1, "cyber": 0.5, "police": 2.0}, "final": true, "act_end": true},
-]
+const WAVES := RunData.WAVES
 ## Primer sueño de cada acto / First dream of each act
 const ACT2_START := 6
 const ACT3_START := 11
@@ -149,20 +43,7 @@ const RANGED: Array[String] = ["book", "vacuum", "finger", "ball", "laptop"]
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
 const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey", "lynx"]
-## SuperK y Lil Key no cambian el arma: aparecen en el mapa y ayudan. Cada arma tiene uno de sus
-## poderes (las armas del mismo poder comparten nombre y descripción).
-## SuperK and Lil Key don't change the weapon: they show up on the map and help. Each weapon gets
-## one of their powers (weapons with the same power share a name and description).
-const HELPER_POWER := {
-	"superk": {"bat": "punch", "boots": "punch", "shield": "guard", "teddy": "guard",
-		"book": "laser", "finger": "laser", "laptop": "laser", "vacuum": "throw", "ball": "throw"},
-	"lilkey": {"bat": "dance", "shield": "dance", "teddy": "dance", "boots": "dance",
-		"book": "sing", "vacuum": "sing", "finger": "sing", "ball": "sing", "laptop": "sing"},
-	# D. Lynx: "actor" (enemigos que luchan para ti), "retake" (una vida extra) y "cut" (sueños más cortos)
-	# D. Lynx: "actor" (enemies that fight for you), "retake" (an extra life) and "cut" (shorter dreams)
-	"lynx": {"bat": "actor", "boots": "actor", "vacuum": "actor", "shield": "retake", "teddy": "retake", "ball": "retake",
-		"book": "cut", "finger": "cut", "laptop": "cut"},
-}
+const HELPER_POWER := UpgradeData.HELPER_POWER
 
 
 ## Poder de SuperK o Lil Key con esta arma ("" si no es uno de ellos) / SuperK's or Lil Key's power with this weapon ("" if it isn't one of them)
@@ -198,19 +79,7 @@ var _rng := RandomNumberGenerator.new()
 const STATS: Array[String] = ["attack", "defense", "speed", "attack_speed", "range", "regen", "lifesteal", "luck", "parry"]
 const RARITIES: Array[String] = ["common", "uncommon", "rare", "epic", "legendary"]
 const RARITY_WEIGHT: Array[float] = [60.0, 25.0, 10.0, 4.0, 1.0]
-## Subida de cada estadística en cada rareza (común → legendaria)
-## Boost of each stat at each rarity (common → legendary)
-const STAT_STEPS := {
-	"attack": [5, 8, 12, 18, 26],               # +% daño / +% damage
-	"defense": [0.5, 1, 1.5, 2.5, 4],           # +defensa (resta daño) / +defense (subtracts damage)
-	"speed": [4, 6, 9, 13, 18],                 # +% velocidad / +% speed
-	"attack_speed": [5, 8, 12, 17, 25],         # +% velocidad de ataque / +% attack speed
-	"range": [6, 10, 15, 21, 30],               # +% alcance / +% range
-	"regen": [0.3, 0.5, 0.7, 1.0, 1.4],         # vida cada 5 s / health every 5 s
-	"lifesteal": [1, 2, 3, 4.5, 6.5],           # % de curar 1 al golpear / % to heal 1 on hit
-	"luck": [5, 8, 12, 18, 25],                 # suerte / luck
-	"parry": [1, 1.5, 2, 3, 4],                 # % de esquivar y contraatacar con un chasquido / % to dodge and snap back
-}
+const STAT_STEPS := RunData.STAT_STEPS
 ## El parry nunca pasa de aquí, para no romper el juego / Parry never goes above this, so it can't break the game
 const PARRY_MAX := 20.0
 ## El Guardián (la almohada) para más golpes: empieza con más parry y su tope es más alto
@@ -429,21 +298,7 @@ func reset_run() -> void:
 	_rng.randomize()
 
 
-## Estadísticas de nivel que trae cada arma de serie: el bate y la almohada regeneran vida;
-## el libro y la aspiradora roban vida (y el libro empieza con −15 de suerte)
-## Level stats each weapon starts with: bat and pillow regenerate health; book and vacuum
-## steal health (and the book starts with −10 luck)
-const BASE_LEVEL_STATS := {
-	"bat": {"regen": 3.0},
-	"shield": {"regen": 2.0, "parry": 8.0},
-	"book": {"luck": -15.0, "lifesteal": 5.0},
-	"vacuum": {"lifesteal": 5.0},
-	"finger": {"luck": 10.0, "lifesteal": 5.0},
-	"teddy": {"regen": 3.0},
-	"ball": {"luck": -10.0, "parry": 6.0},
-	"laptop": {"attack_speed": -15.0, "luck": 5.0},   # torretas muy de tarde en tarde / turrets very rarely
-	"boots": {"regen": 2.0},
-}
+const BASE_LEVEL_STATS := RunData.BASE_LEVEL_STATS
 ## Entre un sueño y otro solo se recupera un 5 % de la vida máxima
 ## Between one dream and the next only 5% of max health comes back
 const HEAL_BETWEEN_DREAMS := 0.05
@@ -819,29 +674,8 @@ func _giver_weight(g: String) -> float:
 ## gives no weapon upgrades: he's "maxed" after winning DUO_MAGNUS_DEALS deals in the run).
 const DUO_FRIEND := 3
 const DUO_MAGNUS_DEALS := 2
-const DUOS := {
-	"svinho_silly": {"a": "svinho", "b": "silly", "weapon": "boots"},
-	"stolk_doc": {"a": "stolk", "b": "doc", "weapon": "bat"},
-	"superk_lilkey": {"a": "superk", "b": "lilkey", "weapon": "shield"},
-	"ad_lynx": {"a": "ad", "b": "lynx", "weapon": "laptop"},
-	"pinche_magnus": {"a": "pinche", "b": "magnus", "weapon": "book"},
-	"svinho_superk": {"a": "svinho", "b": "superk", "weapon": "ball"},
-	"silly_lynx": {"a": "silly", "b": "lynx", "weapon": "vacuum"},
-	"stolk_magnus": {"a": "stolk", "b": "magnus", "weapon": "finger"},
-	"doc_lilkey": {"a": "doc", "b": "lilkey", "weapon": "teddy"},
-}
-## Valores de cada dúo (las descripciones usan las mismas claves) / Each duo's values (descriptions use the same keys)
-const DUO_VALUES := {
-	"svinho_silly": {"extra": 1, "secs": 1.0, "pct": 50},
-	"stolk_doc": {"heal": 1},
-	"superk_lilkey": {"secs": 4, "chance": 10},
-	"ad_lynx": {"cd": 20, "secs": 3, "pct": 50, "per": 4, "max": 5},
-	"pinche_magnus": {"chance": 30, "spread": 2},
-	"svinho_superk": {"hits": 6, "dmg": 40},
-	"silly_lynx": {"secs": 1.5, "dur": 6, "max": 3},
-	"stolk_magnus": {"crit": 2, "pct": 50, "chance": 15},
-	"doc_lilkey": {"heal": 0.3, "max": 1.5},
-}
+const DUOS := UpgradeData.DUOS
+const DUO_VALUES := UpgradeData.DUO_VALUES
 
 
 static func duo_value(id: String, key: String) -> float:
@@ -894,30 +728,8 @@ func duo_desc(id: String) -> String:
 	return tr("DUO_%s_DESC" % id.to_upper()).format(vals)
 
 
-## --- Combos (sinergias) / Combos (synergies) ----------------------------------------------
-## Mejoras que se ayudan entre sí. No dan nada extra: es que juntas funcionan mejor, y el juego te
-## lo enseña. Cada requisito: personaje ("g") con nivel en alguna de las armas ("w", vacío = cualquiera)
-## o con ese poder ("power"); "stat" pide un mínimo de estadística; "weapon" pide llevar esa arma.
-## Upgrades that help each other. They give nothing extra: they just work better together, and the
-## game shows you. Each requirement: a giver ("g") with a level on any of the weapons ("w", empty =
-## any) or with that power ("power"); "stat" asks for a stat minimum; "weapon" asks for that weapon.
-const RANGED_W := ["book", "finger", "laptop", "ball", "vacuum"]
-const COMBOS := {
-	"clinic": {"needs": [{"g": "doc"}, {"g": "stolk"}]},
-	"capital": {"needs": [{"g": "ad"}, {"g": "magnus"}]},
-	"row": {"needs": [{"g": "lilkey", "power": "sing"}, {"g": "svinho", "w": RANGED_W}]},
-	"laser_row": {"needs": [{"g": "lilkey", "power": "sing"}, {"g": "superk", "power": "laser"}]},
-	"fluffball": {"needs": [{"g": "silly", "w": ["teddy"]}, {"g": "svinho", "w": ["teddy"]}]},
-	"suction": {"needs": [{"g": "silly", "w": ["vacuum"]}, {"g": "stolk", "w": ["vacuum"]}]},
-	"second_take": {"needs": [{"g": "stolk"}, {"g": "lynx", "power": "retake"}]},
-	"lucky_finger": {"needs": [{"weapon": "finger"}, {"stat": "luck", "min": 20.0}]},
-	"pillow_wall": {"needs": [{"weapon": "shield"}, {"stat": "parry", "min": 12.0}]},
-	"hole": {"needs": [{"g": "superk", "power": "throw"}, {"g": "svinho"}]},
-	"bbq": {"needs": [{"g": "pinche", "w": ["laptop"]}, {"g": "lilkey", "power": "sing"}]},
-	# Con los personajes del principio y cualquier arma: se puede descubrir en la primera partida
-	# With the starting characters and any weapon: it can be discovered in the first run
-	"pixel_burst": {"needs": [{"g": "silly"}, {"g": "svinho"}]},
-}
+const RANGED_W := UpgradeData.RANGED_W
+const COMBOS := UpgradeData.COMBOS
 ## Estallido de píxeles: daño y radio / Pixel burst: damage and radius
 const PIXEL_BURST_DMG := 6.0
 const PIXEL_BURST_RADIUS := 130.0
@@ -998,30 +810,8 @@ func giver_unlocked(g: String) -> bool:
 	return true
 
 
-## --- Magnus: inversiones / Magnus: investments -----------------------------------------
-## Magnus no da mejoras de arma: le pagas Realidad Fragmentada, te sube una estadística y te
-## pone un objetivo para el próximo sueño. Si lo cumples, te quedas la estadística y te devuelve
-## más de lo que pusiste; si no, te la quita y se queda el dinero.
-## Magnus doesn't give weapon upgrades: you pay him Fragmented Reality, he raises a stat and
-## sets you a goal for the next dream. Meet it and you keep the stat and get back more than you
-## put in; miss it and he takes the stat away and keeps the money.
-##
-## Tamaños de inversión: coste, rareza de la estadística, cuánto devuelve y lo difícil del objetivo
-## Investment sizes: cost, stat rarity, how much it pays back and how hard the goal is
-const INVEST_SIZES := [
-	# "count" = cuántas estadísticas distintas sube / how many different stats it raises
-	{"cost": 6, "count": 2, "rarity": 1, "mult": 1.5, "hard": 0.75},
-	{"cost": 12, "count": 3, "rarity": 1, "mult": 1.75, "hard": 1.0},
-	{"cost": 20, "count": 4, "rarity": 2, "mult": 2.0, "hard": 1.3},
-]
-## Objetivos y su cantidad base (por acto se suma "per_act"). "hits" es al revés: como mucho N golpes.
-## Goals and their base amount ("per_act" is added per act). "hits" is the other way round: at most N hits.
-const INVEST_GOALS := {
-	"kills": {"base": 20, "per_act": 10},
-	"falls": {"base": 3, "per_act": 1},
-	"elites": {"base": 1, "per_act": 0.5},
-	"hits": {"base": 7, "per_act": -1},
-}
+const INVEST_SIZES := ShopData.INVEST_SIZES
+const INVEST_GOALS := ShopData.INVEST_GOALS
 ## Inversión en curso (vacía si no hay) / Investment in progress (empty if none)
 var invest := {}
 
@@ -1179,149 +969,7 @@ func upgrade_key(giver: String, weapon: String, part: String) -> String:
 	return "UP_%s_%s_%s" % [giver.to_upper(), weapon.to_upper(), part]
 
 
-## Valores de cada mejora en los niveles 1, 2 y 3. Empiezan flojas y mejoran con cada nivel.
-## Los porcentajes van en números enteros (30 = 30 %). Las descripciones usan las mismas claves.
-## Each upgrade's values at levels 1, 2 and 3. They start weak and grow with each level.
-## Percentages are whole numbers (30 = 30%). Descriptions use the same keys.
-const UPGRADE_VALUES := {
-	"svinho": {
-		# El golpeado sale volando y golpea a "chain" enemigos más con "pct" % del daño
-		"bat": {"chain": [1, 2, 3], "pct": [30, 45, 60]},
-		# Lanzar la almohada: golpea a "hits" enemigos, "dmg" de daño, recarga "cd" s
-		"shield": {"hits": [1, 2, 3], "dmg": [9, 13, 18], "cd": [1.3, 1.0, 0.8]},
-		# El rayo salta a "extra" enemigos más
-		"book": {"extra": [1, 2, 3]},
-		# La aspiradora escupe un enemigo cada "cd" s; rebota contra "chain" más
-		"vacuum": {"cd": [9.0, 6.0, 3.5], "chain": [0, 1, 2], "dmg": [6, 9, 12]},
-		# Más disparos que rebotan, y rebotan en "extra" enemigos más
-		"finger": {"chance": [10, 18, 26], "extra": [1, 2, 3]},
-		# La pelusa salta a "extra" enemigos cercanos
-		"teddy": {"extra": [1, 2, 3]},
-		# La pelota rebota en "extra" enemigos más (empieza a nivel 3)
-		"ball": {"extra": [1, 2, 3]},
-		# Cada disparo de torreta salta a "extra" enemigos más
-		"laptop": {"extra": [1, 2, 3]},
-		# Las patadas y el dash lanzan al enemigo contra "chain" más con "pct" % del daño
-		"boots": {"chain": [1, 2, 3], "pct": [30, 45, 60]},
-	},
-	"stolk": {
-		"bat": {"pct": [30, 60, 100]},                    # +daño / +damage
-		"shield": {"pct": [60, 120, 200], "push": [25, 50, 80]},
-		"book": {"pct": [15, 28, 40]},                    # −recarga / −cooldown
-		"vacuum": {"pct": [25, 50, 80]},                  # +alcance, fuerza y daño / +reach, pull and damage
-		"finger": {"pct": [30, 60, 100]},                 # +daño / +damage
-		"teddy": {"pct": [30, 60, 100], "fluff": [1, 1, 2]},  # +daño y pelusa extra / +damage and extra fluff
-		"ball": {"pct": [30, 60, 100]},                   # +daño / +damage
-		# Muñeco de boxeo: puñetazos de "dmg" y atrae con fuerza "pull" / Boxing dummy: "dmg" punches, "pull" strength
-		"laptop": {"dmg": [6, 9, 13], "pull": [60, 90, 130]},
-		"boots": {"pct": [30, 60, 100]},                  # +daño de patadas y dash / +kick and dash damage
-	},
-	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
-	## Doc: more max health in exchange for weakening another weapon stat
-	"doc": {
-		"bat": {"hp": [10, 18, 28], "pct": [8, 12, 16]},       # −daño / −damage
-		"shield": {"hp": [10, 18, 28], "pct": [10, 15, 20]},   # −empuje / −shove
-		"book": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
-		"vacuum": {"hp": [10, 18, 28], "pct": [6, 9, 12]},     # −velocidad / −speed
-		"finger": {"hp": [10, 18, 28], "pct": [8, 12, 16]},    # +recarga / +cooldown
-		"teddy": {"hp": [10, 18, 28], "pct": [15, 25, 35]},    # −duración de la pelusa / −fluff duration
-		"ball": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
-		# +recarga y −daño, pero una torreta curativa que cura "heal" cada 4 s
-		# +cooldown and −damage, but a healing turret that heals "heal" every 4 s
-		"laptop": {"hp": [10, 18, 28], "pct": [8, 12, 16], "dmg": [10, 15, 20], "heal": [0.6, 0.9, 1.2]},
-		"boots": {"hp": [10, 18, 28], "pct": [8, 12, 16]},     # +recarga de las patadas / +kick cooldown
-	},
-	## Mr. Ad: "extra" = % de ganar 1 más de Realidad Fragmentada; "per10" = estadística por cada 10 ahorradas
-	## Mr. Ad: "extra" = % chance of 1 extra Fragmented Reality; "per10" = stat per 10 saved
-	"ad": {
-		"bat": {"extra": [20, 35, 50], "per10": [3, 5, 8]},           # +% ataque / +% attack
-		"shield": {"extra": [20, 35, 50], "per10": [0.4, 0.7, 1.0]},  # +defensa / +defense
-		"book": {"extra": [20, 35, 50], "per10": [3, 5, 8]},          # +% velocidad de ataque / +% attack speed
-		"vacuum": {"extra": [20, 35, 50], "per10": [2, 4, 6]},        # +% velocidad / +% speed
-		"finger": {"extra": [20, 35, 50], "per10": [2, 3, 5]},        # +suerte / +luck
-		"teddy": {"extra": [20, 35, 50], "per10": [0.1, 0.2, 0.3]},  # +regeneración / +regen
-		"ball": {"extra": [20, 35, 50], "per10": [0.3, 0.5, 0.8]},    # +parry
-		# Torreta de cobro: remata y da "cash" de Realidad Fragmentada / Debt-collector turret: finishes off and gives "cash"
-		"laptop": {"extra": [20, 35, 50], "per10": [0, 0, 0], "cash": [1, 2, 3]},
-		"boots": {"extra": [20, 35, 50], "per10": [2, 4, 6]},          # +% velocidad / +% speed
-	},
-	"silly": {
-		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
-		"shield": {"chance": [30, 50, 75], "secs": [0.8, 1.4, 2.0]},  # cámara lenta / slow motion
-		"book": {"pct": [15, 25, 35]},                    # eco del daño / damage echo
-		"vacuum": {"pct": [20, 35, 50], "secs": [0.6, 1.0, 1.6]},  # vulnerable
-		"finger": {"chance": [10, 18, 28], "secs": [1.0, 1.5, 2.0]},  # ralentizar / slow
-		"teddy": {"pct": [20, 35, 50]},                   # pegados reciben más daño / stuck ones take more damage
-		"ball": {"chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},  # congelar / freeze
-		# +"turrets" de máximo y congelar / +"turrets" maximum and freeze
-		"laptop": {"turrets": [1, 1, 2], "chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},
-		# −"pct" % de recarga del dash y el dash congela "secs" s / −"pct" % dash cooldown and the dash freezes for "secs" s
-		"boots": {"pct": [15, 25, 35], "secs": [0.6, 1.0, 1.5]},
-	},
-	## El Pinche: sangrado (daño residual fuerte) o quemadura (flojo, pero baja su daño y su defensa)
-	## The Kitchen Boy: bleed (strong damage over time) or burn (weak, but lowers its damage and defence)
-	"pinche": {
-		"bat": {"dps": [1.3, 2, 3], "secs": [3, 3.5, 4]},                 # sangrado / bleed
-		"shield": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
-		"book": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},    # quemadura / burn
-		"vacuum": {"dps": [1, 1.6, 2.3], "secs": [2, 2.5, 3]},          # sangrado / bleed
-		"finger": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
-		"teddy": {"dps": [1.3, 2, 3], "secs": [3, 3.5, 4]},               # sangrado / bleed
-		"ball": {"dps": [1, 1.6, 2.3], "secs": [2, 2.5, 3]},            # sangrado / bleed
-		# Fogón: atrae con fuerza "pull"; con "count" enemigos al lado explota con "boom" de daño
-		# Stove: pulls with "pull" strength; with "count" enemies beside it, it explodes for "boom" damage
-		"laptop": {"count": [5, 5, 4], "boom": [20, 30, 45], "pull": [50, 70, 90]},
-		"boots": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
-	},	## SuperK: puñetazo (cada "cd" s baja volando y pega "dmg" con mucho empuje), escudo ("chance" % de
-	## parar un golpe, recarga "cd"), láser de los ojos ("dmg" en línea cada "cd" s) y lanzar (agarra a uno
-	## y lo tira a un agujero o contra los demás, "dmg")
-	## SuperK: punch (every "cd" s he swoops down and hits for "dmg" with a big shove), guard ("chance" %
-	## to stop a hit, "cd" cooldown), eye laser ("dmg" in a line every "cd" s) and throw (grabs one and
-	## hurls it down a hole or into the others, "dmg")
-	"superk": {
-		"bat": {"cd": [14.0, 11.0, 8.0], "dmg": [30, 45, 65]},
-		"shield": {"chance": [20, 30, 40], "cd": [8.0, 6.0, 4.5]},
-		"book": {"cd": [12.0, 9.0, 7.0], "dmg": [14, 20, 28]},
-		"vacuum": {"cd": [14.0, 11.0, 8.0], "dmg": [20, 30, 45]},
-		"finger": {"cd": [12.0, 9.0, 7.0], "dmg": [14, 20, 28]},
-		"teddy": {"chance": [20, 30, 40], "cd": [8.0, 6.0, 4.5]},
-		"ball": {"cd": [14.0, 11.0, 8.0], "dmg": [20, 30, 45]},
-		"laptop": {"cd": [12.0, 9.0, 7.0], "dmg": [14, 20, 28]},
-		"boots": {"cd": [14.0, 11.0, 8.0], "dmg": [30, 45, 65]},
-	},
-	## Lil Key: baile (cada "cd" s, los de alrededor bailan "secs" s sin hacer daño) o canto (se pone a
-	## cantar lejos de ti "secs" s: atrae a los enemigos y les hace "dmg" por segundo)
-	## Lil Key: dance (every "cd" s, those around you dance for "secs" s and do no damage) or song (he
-	## sings away from you for "secs" s: pulls enemies in and deals "dmg" per second)
-	"lilkey": {
-		"bat": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
-		"shield": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
-		"book": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
-		"vacuum": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
-		"finger": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
-		"teddy": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
-		"ball": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
-		"laptop": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
-		"boots": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
-	},
-	## D. Lynx: "¡Acción!" (cada "cd" s, "count" enemigos de alrededor se vuelven actores "secs" s y
-	## pegan a los demás con "dmg"), "¡Corten! Toma 2" (una vez por partida, si te matan vuelves con
-	## "hp" % de vida y "inv" s sin que te hagan daño) y "Montaje" (los sueños duran "pct" % menos)
-	## D. Lynx: "Action!" (every "cd" s, "count" nearby enemies turn into actors for "secs" s and hit
-	## the others for "dmg"), "Cut! Take 2" (once per run, if you're killed you come back with "hp" %
-	## health and "inv" s of invulnerability) and "Montage" (dreams last "pct" % less)
-	"lynx": {
-		"bat": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
-		"boots": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
-		"vacuum": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
-		"shield": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
-		"teddy": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
-		"ball": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
-		"book": {"pct": [10, 18, 25]},
-		"finger": {"pct": [10, 18, 25]},
-		"laptop": {"pct": [10, 18, 25]},
-	},
-}
+const UPGRADE_VALUES := UpgradeData.UPGRADE_VALUES
 
 
 ## Lo que recorta D. Lynx de cada sueño (0..0.5) / How much D. Lynx trims off each dream (0..0.5)
@@ -1419,57 +1067,7 @@ func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
 	return tr(upgrade_key(giver, weapon, "DESC")).format(vals)
 
 
-## --- Kiosco de Charo / Charo's kiosk ------------------------------------------------
-## Cada artículo tiene un nivel (1, 2 o 3) y un precio. En el Acto 1 solo hay cosas de nivel 1
-## (flojas y baratas); en el 2, sobre todo de nivel 2; en el 3, sobre todo de nivel 3 (las
-## mejores y más caras). La amistad con Charo no baja los precios: da cambios gratis,
-## ofertas y más huecos en el mostrador.
-## Desde el Acto 2 todo cuesta bastante más que en el 1 (el nivel 1 se queda barato).
-## Los cachivaches (Trinkets) no suben estadísticas: hacen algo propio en la partida.
-## From Act 2 on everything costs a fair bit more than in Act 1 (tier 1 stays cheap).
-## Knick-knacks (Trinkets) don't raise stats: they do something of their own in the run.
-## Each ware has a tier (1, 2 or 3) and a price. Act 1 only has tier 1 (weak and cheap); Act 2
-## mostly tier 2; Act 3 mostly tier 3 (the best and priciest). Friendship with Charo doesn't
-## lower prices: it gives free rerolls, offers and more slots on the counter.
-const WARES := {
-	# Nivel 1 / Tier 1
-	"milk": {"tier": 1, "price": 4},          # recupera un 40 % de la vida / restores 40% health
-	"candy": {"tier": 1, "price": 4},         # +5 de suerte / +5 luck
-	"glasses": {"tier": 1, "price": 5},       # +10 % de alcance / +10% range
-	"sneakers": {"tier": 1, "price": 5},      # +6 % de velocidad / +6% speed
-	"plasters": {"tier": 1, "price": 4},      # +0,5 de regeneración / +0.5 regen
-	"rubber_duck": {"tier": 1, "price": 8},   # para el primer golpe de cada sueño / blocks the first hit each dream
-	"firecrackers": {"tier": 1, "price": 5},  # estallan cuando te dan / burst when you're hit
-	"piggy_bank": {"tier": 1, "price": 9},    # intereses al acabar cada sueño / interest after each dream
-	# Nivel 2 / Tier 2
-	"gum": {"tier": 2, "price": 11},           # estadística rara al azar / random rare stat
-	"soda": {"tier": 2, "price": 11},          # +12 % de velocidad de ataque / +12% attack speed
-	"stickers": {"tier": 2, "price": 13},      # +2 de parry
-	"sandwich": {"tier": 2, "price": 10},      # recupera toda la vida / restores all health
-	"battery": {"tier": 2, "price": 14},      # una subida de nivel / one level-up
-	"newspaper": {"tier": 2, "price": 17},    # sube de nivel una mejora / levels up an upgrade
-	"water_balloon": {"tier": 2, "price": 14}, # cae un globo que ralentiza / a slowing balloon drops
-	"whistle": {"tier": 2, "price": 13},      # curas al tirar enemigos por agujeros / heals on hole falls
-	"voodoo": {"tier": 2, "price": 16},       # quien te pega recibe el triple / attackers take triple
-	"magnet": {"tier": 2, "price": 11},       # trozos de estrella desde más lejos / shards from further away
-	# Nivel 3 / Tier 3
-	"gold_sticker": {"tier": 3, "price": 24}, # estadística épica al azar / random epic stat
-	"cake": {"tier": 3, "price": 23},         # toda la vida y +5 de vida máxima / all health and +5 max health
-	"coin": {"tier": 3, "price": 23},         # +12 de suerte y +1 de parry / +12 luck and +1 parry
-	"batteries": {"tier": 3, "price": 27},    # dos subidas de nivel / two level-ups
-	"sunday_paper": {"tier": 3, "price": 36}, # dos mejoras suben de nivel / two upgrades level up
-	"matches": {"tier": 3, "price": 26},      # las muertes a veces queman a los de al lado / kills sometimes burn neighbours
-	"alarm_clock": {"tier": 3, "price": 26},  # con poca vida congela a los de alrededor / at low health freezes those around
-	"pinata": {"tier": 3, "price": 28},       # los élites sueltan objeto y Realidad / elites drop an item and Reality
-	# Nivel 4 (Acto 4, la Metrópolis): lo mejor y lo más caro / Tier 4 (Act 4, the Metropolis): the best and priciest
-	"energy_drink": {"tier": 4, "price": 35}, # +20 % de velocidad de ataque y +8 % de velocidad / +20% attack speed and +8% speed
-	"lucky_cat": {"tier": 4, "price": 38},    # +20 de suerte y +2 de parry / +20 luck and +2 parry
-	"first_aid": {"tier": 4, "price": 35},    # toda la vida y +10 de vida máxima / all health and +10 max health
-	"comic": {"tier": 4, "price": 45},        # estadística legendaria al azar / random legendary stat
-	"encyclopedia": {"tier": 4, "price": 54}, # dos mejoras suben de nivel y una subida de nivel / two upgrades level up and one level-up
-	"snow_globe": {"tier": 4, "price": 42},   # al subir de nivel congela la pantalla / levelling up freezes the screen
-	"music_box": {"tier": 4, "price": 48},    # duerme a los de alrededor cada poco / puts nearby enemies to sleep now and then
-}
+const WARES := ShopData.WARES
 ## Vida máxima que da cada tarta / Max health each cake gives
 const CAKE_HP := 5.0
 ## Peso de cada nivel de artículo en cada acto / Weight of each ware tier in each act
