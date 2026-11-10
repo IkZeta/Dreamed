@@ -97,6 +97,7 @@ func _muzzle_base() -> Vector2:
 func _fire() -> void:
 	var shot := EnemyShot.new()
 	shot.cause = bestiary_id
+	shot.kind = "bolt"
 	shot.run = run
 	shot.position = _muzzle_base() + _aim_dir * 40.0
 	shot.velocity = _aim_dir * SHOT_SPEED

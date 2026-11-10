@@ -817,6 +817,9 @@ func hole_at(p: Vector2, margin: float, push: Vector2) -> Vector2:
 			var wr := Bedroom.rect_world(wall_holes[i])
 			if p.x > wr.position.x + 6.0 and p.x < wr.end.x - 6.0:
 				return Vector2(wr.get_center().x, wr.end.y - wr.size.y * 0.3)
+	# Agujeros pasajeros del evento «Bostezos» / Short-lived holes from the "Yawns" event
+	if is_instance_valid(yawns):
+		return yawns.hole_at(p, margin)
 	return Vector2.INF
 
 
@@ -999,7 +1002,7 @@ func freeze_flash() -> void:
 
 ## Algunos sueños traen un evento al azar / Some dreams bring a random event
 ## Eventos posibles de un sueño / Possible events in a dream
-const EVENTS: Array[String] = ["dark", "tilt", "meteors", "ice", "frenzy", "sleepy"]
+const EVENTS: Array[String] = ["dark", "tilt", "meteors", "ice", "frenzy", "sleepy", "yawn"]
 const EVENT_CHANCE := 0.55
 ## Fiebre de estrellas y sonámbulos: velocidad de los enemigos y cada cuánto salen
 ## Star fever and sleepwalkers: enemy speed and how often they spawn
@@ -1017,6 +1020,7 @@ const SLEEPY_SPAWN := 0.6
 ## as many extra star shards as the chain (up to FALL_CHAIN_MAX). It only gives experience.
 var _fall_chain := 0
 var _fall_chain_t := 0.0
+var yawns: YawnHoles
 
 
 func on_fall_chain(_e: Enemy, at: Vector2) -> void:

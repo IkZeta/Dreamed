@@ -573,6 +573,7 @@ const STRINGS := {
 	"EVENT_ICE": {"es": "Suelo helado", "en": "Icy floor"},
 	"EVENT_FRENZY": {"es": "Fiebre de estrellas", "en": "Star fever"},
 	"EVENT_SLEEPY": {"es": "Sonámbulos", "en": "Sleepwalkers"},
+	"EVENT_YAWN": {"es": "Bostezos", "en": "Yawns"},
 	"BELL_RING": {"es": "¡RIIING!", "en": "RIIING!"},
 	"PICKUP_MILK": {"es": "¡Leche!", "en": "Milk!"},
 	"PICKUP_PILLOW": {"es": "¡Almohada!", "en": "Pillow!"},

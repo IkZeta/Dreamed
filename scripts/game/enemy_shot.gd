@@ -7,7 +7,7 @@ var run: Node
 var velocity := Vector2.ZERO
 var damage := 3.0
 var radius := 10.0
-var kind := "stone"   # "stone" o "book"
+var kind := "stone"   # "stone", "book", "bullet", "coin", "laser" o "bolt"
 var life := 3.0
 var _spin := 0.0
 ## Devuelto por el giro de las botas: ahora daña a los enemigos / Sent back by the boots' spin: now it hurts enemies
@@ -104,6 +104,21 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, radius * 0.7, Color("ff6a6a"))
 		draw_line(Vector2(0, -6), Vector2(0, 6), Color("3a0810"), 3.0)
 		draw_arc(Vector2(0, -2), 4.0, PI * 0.3, PI * 1.6, 6, Color("3a0810"), 2.0)
+		draw_set_transform(Vector2.ZERO)
+		return
+	if kind == "bolt":
+		# Perno de latón de la torreta del Chapuzas, con estela de vapor (en píxeles de 2)
+		# Brass bolt from the Botcher's turret, with a steam trail (in 2-unit pixels)
+		var d := velocity.normalized()
+		for i in 4:
+			draw_circle(-d * (12.0 + i * 9.0), 5.0 - i, Color(0.95, 0.95, 1.0, 0.28 - i * 0.06))
+		draw_set_transform(Vector2.ZERO, d.angle(), Vector2.ONE)
+		var col := Color("ffd27a") if reflected else Color("e0ae40")
+		draw_rect(Rect2(-12, -5, 22, 10), Color("1a1024"))
+		draw_rect(Rect2(-10, -3, 14, 6), Color("a87a24"))
+		draw_rect(Rect2(-10, -3, 14, 2), col)
+		draw_rect(Rect2(4, -3, 4, 6), Color("6a7398"))
+		draw_rect(Rect2(8, -1, 2, 2), Color("a8b0d4"))
 		draw_set_transform(Vector2.ZERO)
 		return
 	if kind == "laser":

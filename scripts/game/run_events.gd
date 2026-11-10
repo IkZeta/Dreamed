@@ -81,6 +81,11 @@ func roll_event(depth: int) -> void:
 			ice.run = run
 			run.world.add_child(ice)
 			run.world.move_child(ice, run.room.get_index() + 1)
+		"yawn":
+			run.yawns = YawnHoles.new()
+			run.yawns.run = run
+			run.world.add_child(run.yawns)
+			run.world.move_child(run.yawns, run.room.get_index() + 1)
 		"dark":
 			var d := Darkness.new()
 			d.run = run

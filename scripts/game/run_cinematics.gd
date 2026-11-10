@@ -368,7 +368,7 @@ func _roll_credits() -> void:
 ## La habitación de verdad, sin nada raro / The real bedroom, with nothing strange
 func build_real_room(won: bool) -> void:
 	for n: Node in run.world.get_children():
-		if n is Darkness or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is AdSwarm or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
+		if n is Darkness or n is YawnHoles or n is TiltFloor or n is MeteorShower or n is IceFloor or n is CityFall or n is AdSwarm or n is Pickup or n is Puddle or n is StarShard or n is EnemyShot or n is PillowProjectile or n is ChefShot or n is PlateShards:
 			n.queue_free()
 	for e: Node in run.enemies.get_children():
 		e.queue_free()
