@@ -269,6 +269,8 @@ func _handle_modals(run: Run) -> void:
 			m.call("_pick", opts[_rng.randi_range(0, opts.size() - 1)])
 		elif m is CharoDialogue:
 			m.call("_next")
+		elif m is MagnusVerdict:
+			m.call("_close")
 	var ov = run.get("_overlay")
 	if ov and is_instance_valid(ov) and not _cur.is_empty() and not _cur.has("done"):
 		_cur["done"] = true
