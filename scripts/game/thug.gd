@@ -5,8 +5,6 @@ extends Enemy
 ## Thug (from Dream 2): the nightmare of a school bully. Big, slow, lots of health
 ## and heavy hits. Hard to push around.
 
-const HOODIE := Color("7a3a58")
-const HOODIE_DARK := Color("5a2742")
 const SKIN := Color("b9a3c9")
 const EYES := Color("ffcf7a")
 

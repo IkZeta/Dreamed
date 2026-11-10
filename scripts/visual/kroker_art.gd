@@ -11,12 +11,7 @@ extends RefCounted
 ## (tools/make_sprites.py) that move at their joints.
 
 const SKIN := Color("f1cfbb")
-const SKIN_SHADE := Color("c3a0b0")
 const HAIR := Color("16141f")
-const HAIR_LIGHT := Color("4a5895")
-const FRAME := Color("2b2945")
-const SHADE := Color(0.12, 0.08, 0.32, 0.22)   # sombra fría / cool shadow
-const RIM := Color("cbd6ff")
 
 ## Pijamas: base, dibujo, ribete, zapatillas y estampado.
 ## Pajamas: base, pattern, piping, slippers and print type.

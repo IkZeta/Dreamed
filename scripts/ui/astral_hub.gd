@@ -622,7 +622,7 @@ class HubWorld extends Control:
 	const KROKER_SCALE := 0.25
 	const BRIDGE_HALF := 17.0
 	const STEP := 15.0
-	const Statue := preload("res://scripts/ui/bestiary.gd").BestiaryPreview
+	const Statue := preload("res://scripts/ui/enemy_statue.gd")
 	const STATUE_SIZE := Vector2(44, 58)
 	const SPAWN := Vector2(0, 70)
 	## Islas que siempre están / Islands that are always there
@@ -697,7 +697,7 @@ class HubWorld extends Control:
 		_build()
 
 	static func _met(id: String) -> bool:
-		return preload("res://scripts/ui/characters_menu.gd").met(id)
+		return Progress.met(id)
 
 	func _isle_pos(id: String) -> Vector2:
 		return HubLayout.ISLES[id]["pos"]

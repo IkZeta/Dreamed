@@ -8,7 +8,6 @@ extends Enemy
 const REVIVE_TIME := 4.0
 const PILE_HP := 6.0
 const BONE := Color("e8e2d4")
-const BONE_SHADE := Color("b9b0a0")
 const EYES := Color("7ff2e0")
 
 var _pile := false

@@ -154,13 +154,6 @@ func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
 	en.heavy_t = Enemy.HEAVY_TIME
 	return dir * maxf(impulse.length(), GameState.HEAVY_KNOCK) * sqrt(maxf(1.0, en.mass))
 
-
-## Cuántos golpes faltan para el fuerte (0..1) / How close the heavy hit is (0..1)
-func heavy_fraction() -> float:
-	var every: int = GameState.HEAVY_EVERY.get(id, 0)
-	return -1.0 if every <= 0 else float(heavy_count) / float(every - 1)
-
-
 ## El Pinche: cada golpe sangra o quema según el arma / The Kitchen Boy: every hit bleeds or burns depending on the weapon
 func _pinche(e: Node2D) -> void:
 	if lv("pinche") <= 0 or not e is Enemy or not e.is_targetable():

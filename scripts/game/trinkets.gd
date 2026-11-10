@@ -27,8 +27,6 @@ extends Node2D
 
 ## Solo se compran una vez / Only bought once
 const UNIQUE := ["rubber_duck", "alarm_clock"]
-const TRINKETS := ["rubber_duck", "firecrackers", "piggy_bank", "water_balloon", "whistle", "voodoo", "magnet",
-	"matches", "alarm_clock", "pinata", "snow_globe", "music_box"]
 
 const FIRECRACKER_DMG := 3.0
 const FIRECRACKER_RADIUS := 170.0

@@ -18,10 +18,6 @@ const EMBER := Color("ff9fb1")    # vida / health
 const ROSE := Color("e8a6d8")     # nebulosa rosada / pink nebula
 
 # Alias de versiones anteriores / Older aliases
-const TEXT := BONE
-const MUTED := ASH
-const MOON := GOLD
-const LAVENDER := MIST
 const NIGHT := INK
 const DEEP := VOID
 const PANEL := SLATE

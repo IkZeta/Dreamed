@@ -20,11 +20,8 @@ const WALKABLE := Rect2(60, 330, 1800, 690)
 const WINDOW := Rect2(800, 46, 320, 214)
 const BED := Rect2(150, 236, 200, 262)
 const NIGHTSTAND := Rect2(372, 246, 90, 80)
-const CHEST := Rect2(500, 262, 150, 82)
 const DESK := Rect2(1470, 226, 300, 104)
 const SHELF := Rect2(1236, 70, 170, 226)
-const RUG_CENTER := Vector2(1010, 700)
-const BEDSIDE_RUG := Vector2(450, 560)
 
 ## Zonas por las que no se puede pasar / Areas nobody can walk through
 const OBSTACLES: Array[Rect2] = [
@@ -504,22 +501,6 @@ func _draw_dream_stars() -> void:
 		var a := 0.35 + 0.35 * sin(_t * 1.3 + ph)
 		DreamBackground.draw_star(self, p, float(f["r"]) * 0.5, Color(UITheme.GOLD, a))
 
-
-static func _vignette() -> GradientTexture2D:
-	if _vig:
-		return _vig
-	var g := Gradient.new()
-	g.set_color(0, Color(0.06, 0.04, 0.2, 0.0))
-	g.set_color(1, Color(0.06, 0.04, 0.2, 0.55))
-	g.add_point(0.6, Color(0.06, 0.04, 0.2, 0.0))
-	_vig = GradientTexture2D.new()
-	_vig.gradient = g
-	_vig.fill = GradientTexture2D.FILL_RADIAL
-	_vig.fill_from = Vector2(0.5, 0.55)
-	_vig.fill_to = Vector2(1.05, 1.05)
-	return _vig
-
-
 # --- Detalles nuevos / New details ------------------------------------------
 
 func _draw_wall_decor() -> void:
@@ -563,16 +544,6 @@ func draw_drawings(slots: Dictionary, offset := Vector2.ZERO, mod := Color.WHITE
 		var d: String = ach.get("drawing", "")
 		if d != "" and slots.has(d) and Progress.has_achieved(ach["id"]):
 			Sprites.draw(self, "draw_" + d, mod, slots[d] + offset)
-
-
-func _stick_figure(p: Vector2) -> void:
-	var c := Color("5b67c4")
-	draw_circle(p + Vector2(0, -24), 5, c)
-	draw_line(p + Vector2(0, -19), p + Vector2(0, -8), c, 2.0)
-	draw_line(p + Vector2(0, -8), p + Vector2(-5, 0), c, 2.0)
-	draw_line(p + Vector2(0, -8), p + Vector2(5, 0), c, 2.0)
-	draw_line(p + Vector2(-6, -16), p + Vector2(6, -16), c, 2.0)
-
 
 func _draw_chair() -> void:
 	# Silla metida en el escritorio, de espaldas a nosotros / Chair tucked under the desk, facing away from us
@@ -642,26 +613,6 @@ func _draw_teddy(p: Vector2, s: float) -> void:
 	draw_set_transform(p, sin(_t * 0.8) * 0.03, Vector2.ONE * s / 0.7)
 	Sprites.draw(self, "room_teddy")
 	draw_set_transform(Vector2.ZERO)
-
-
-
-func _draw_bunny(p: Vector2) -> void:
-	# Conejo de peluche tumbado en el suelo / Plush bunny lying on the floor
-	var fur := Color("eeeaf6")
-	var inner := Color("f2b8c8")
-	draw_set_transform(p, -0.4, Vector2.ONE)
-	draw_colored_polygon(_ellipse(Vector2(4, 30), Vector2(30, 8)), Color(0, 0, 0, 0.12))
-	draw_colored_polygon(_ellipse(Vector2(-4, -40), Vector2(7, 20)), fur)
-	draw_colored_polygon(_ellipse(Vector2(12, -38), Vector2(7, 20)), fur)
-	draw_colored_polygon(_ellipse(Vector2(-4, -40), Vector2(3, 13)), inner)
-	draw_colored_polygon(_ellipse(Vector2(12, -38), Vector2(3, 13)), inner)
-	draw_colored_polygon(_ellipse(Vector2(4, 10), Vector2(20, 22)), fur)
-	draw_circle(Vector2(4, -14), 16, fur)
-	draw_circle(Vector2(-2, -16), 2, Color("3a2a30"))
-	draw_circle(Vector2(10, -16), 2, Color("3a2a30"))
-	draw_circle(Vector2(4, -10), 2, inner)
-	draw_set_transform(Vector2.ZERO)
-
 
 ## Las armas en su sitio antes de que Kroker las coja / The weapons in place before Kroker takes them
 func _draw_props() -> void:
@@ -784,18 +735,6 @@ func _ellipse(c: Vector2, rr: Vector2, n := 24) -> PackedVector2Array:
 		var a := TAU * i / n
 		pts.append(c + Vector2(cos(a) * rr.x, sin(a) * rr.y))
 	return pts
-
-
-func _soft_rect(r: Rect2, color: Color, radius: int) -> void:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = color
-	sb.set_corner_radius_all(radius)
-	sb.anti_aliasing = true
-	sb.shadow_color = Color(0.2, 0.15, 0.5, 0.25)
-	sb.shadow_size = 6
-	sb.shadow_offset = Vector2(3, 4)
-	draw_style_box(sb, r)
-
 
 func _star_shape(c: Vector2, r: float, color: Color) -> void:
 	var pts := PackedVector2Array()

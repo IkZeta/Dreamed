@@ -133,7 +133,6 @@ const WAVES := [
 	# blow up and the final boss, Evil Ad, arrives. The city collapses during the fight.
 	{"boss": true, "boss_kind": "evil_ad", "duration": 210.0, "spawn_every": 3.2, "group": [1, 2], "max_alive": 8, "mix": {"thug": 2, "sling": 1, "skeleton": 1, "cyber": 0.5, "police": 2.0}, "final": true, "act_end": true},
 ]
-const BOSS_DEPTH := 5
 ## Primer sueño de cada acto / First dream of each act
 const ACT2_START := 6
 const ACT3_START := 11

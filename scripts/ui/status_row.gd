@@ -96,29 +96,3 @@ func _draw() -> void:
 		if c["label"] != "":
 			var f := UITheme.font("caps")
 			draw_string(f, Vector2(r.position.x, r.end.y + 14), String(c["label"]).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, CHIP, 12, col)
-
-
-## Iconos sencillos en pixel art / Simple pixel-art icons
-func _icon(id: String, c: Vector2, col: Color) -> void:
-	match id:
-		"bleed":
-			draw_colored_polygon(PackedVector2Array([c + Vector2(0, -11), c + Vector2(7, 2), c + Vector2(0, 9), c + Vector2(-7, 2)]), col)
-			draw_rect(Rect2(c + Vector2(-3, -1), Vector2(3, 3)), Color(1, 1, 1, 0.7))
-		"rooted":
-			for i in 3:
-				var a := _t * 4.0 + i * TAU / 3.0
-				DreamBackground.draw_star(self, c + Vector2(cos(a) * 9.0, sin(a) * 5.0), 4.0, col)
-		"slow":
-			draw_arc(c + Vector2(2, 0), 7.0, 0, TAU, 16, col, 3.0)
-			draw_rect(Rect2(c + Vector2(-11, 5), Vector2(16, 4)), col)
-		"stench":
-			for i in 3:
-				var pts := PackedVector2Array()
-				for kk in 5:
-					pts.append(c + Vector2(-8 + i * 8 + sin(_t * 6.0 + kk + i) * 2.5, 10 - kk * 5))
-				draw_polyline(pts, col, 2.5)
-		"hack":
-			draw_rect(Rect2(c + Vector2(-10, -7), Vector2(20, 14)), col, false, 2.0)
-			if fmod(_t, 0.6) < 0.3:
-				draw_rect(Rect2(c + Vector2(-6, -2), Vector2(8, 3)), col)
-			draw_rect(Rect2(c + Vector2(4, -2), Vector2(3, 3)), Color(1, 1, 1, 0.8))

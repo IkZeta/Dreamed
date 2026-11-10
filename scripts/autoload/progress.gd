@@ -8,7 +8,6 @@ const PATH := "user://progress.cfg"
 
 ## Entradas del bestiario en orden / Bestiary entries in order
 const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "cyber", "puppet", "golem", "police", "van", "riot", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef", "boss_ufo", "boss_evil_ad"]
-const DIFFICULTIES: Array[String] = ["normal", "nightmare"]
 
 ## id → veces derrotado (si aparece aquí, ya se ha visto) / id → times defeated (present = seen)
 var kills := {}
@@ -359,6 +358,18 @@ func note(head: String, body: String, color := UITheme.GOLD, secs := 3.0, sound 
 	tw.tween_interval(secs)
 	tw.tween_property(box, "modulate:a", 0.0, 0.6)
 	tw.tween_callback(box.queue_free)
+
+
+## ¿Ya lo has conocido? Se conoce a alguien cuando sale en el plano astral (no basta con
+## desbloquearlo): hasta entonces su isla no aparece en el hub. Kroker, siempre.
+## Have you met them yet? You meet someone when they show up on the astral plane (unlocking them
+## isn't enough): until then their island doesn't appear in the hub. Kroker, always.
+func met(id: String) -> bool:
+	if id == "kroker":
+		return true
+	if id == "charo":
+		return stats.has("charo_met")
+	return stats.has("met_" + id) or friend_level(id) > 0
 
 
 ## Frases ya leídas: las que se repiten salen casi de golpe. Devuelve si ya se había leído y la

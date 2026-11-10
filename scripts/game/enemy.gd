@@ -88,7 +88,6 @@ const FLUFF_SLOW := 0.12        # por pelusa / per fluff
 const FLUFF_MAX_SLOW := 0.6
 const STUCK_SLOW := 0.5         # pegados: la mitad de lo que les quede / stuck: half of what's left
 var fluffs: Array[float] = []   # segundos que le quedan a cada pelusa / seconds left on each fluff
-var fluff_time := FLUFF_TIME
 ## Bola de pelusa a la que pertenece (el mismo Array lo comparten todos sus miembros)
 ## Fluff clump it belongs to (all members share the same Array)
 var clump: Array = []

@@ -11,9 +11,6 @@ const SHOT_EVERY := 2.4
 const AIM_TIME := 0.6
 const SHOT_DAMAGE := 3.0
 
-const JACKET := Color("4f5f8f")
-const JACKET_DARK := Color("38456d")
-const CAP := Color("a34d5f")
 const SKIN := Color("f0c8a8")
 const EYES := Color("ffcf7a")
 

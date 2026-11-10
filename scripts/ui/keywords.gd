@@ -126,18 +126,6 @@ static func show_tip(from: Control, id: String) -> void:
 		from.get_tree().root.add_child(_tip)
 	_tip.show_for(id)
 
-
-## Palabras clave que aparecen en un texto, sin repetir / Keywords that appear in a text, without repeats
-static func ids_in(text: String) -> Array[String]:
-	var out: Array[String] = []
-	var re := RegEx.new()
-	re.compile("\\[url=(\\w+)\\]")
-	for m: RegExMatch in re.search_all(markup(TranslationServer.translate(text))):
-		if not out.has(m.get_string(1)):
-			out.append(m.get_string(1))
-	return out
-
-
 ## Con mando o teclado no hay ratón: al seleccionar "owner" se enseñan a su lado las tarjetas de
 ## todas las palabras clave de "label". With a gamepad or keyboard there's no mouse: when "owner"
 ## is selected, the cards for every keyword in "label" are shown beside it.

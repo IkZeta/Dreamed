@@ -6,7 +6,6 @@ extends RefCounted
 ## comes with. Shown in the astral plane's wardrobe when you walk up to a stand.
 
 const W := 396.0
-const H := 676.0
 ## Alto de la ficha de estadísticas (igual en todas; lo que no cabe se desplaza)
 ## Height of the stats sheet (the same on all; whatever doesn't fit scrolls)
 const PROFILE_H := 244.0

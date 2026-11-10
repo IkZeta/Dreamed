@@ -6,19 +6,15 @@ const SETTINGS_SCENE := preload("res://scenes/settings_menu.tscn")
 ## Play takes you to the astral plane: there you pick a pajama and start dreaming at the fountain
 const HUB := "res://scenes/astral_hub.tscn"
 
-const BESTIARY_SCENE := preload("res://scripts/ui/bestiary.gd")
 const ACHIEVEMENTS_SCENE := preload("res://scripts/ui/achievements.gd")
-const CHARACTERS_SCENE := preload("res://scripts/ui/characters_menu.gd")
 
 var _play: Button
 var _settings: Button
-var _bestiary: Button
 var _unlock: Button
 var _unlock_armed := false
 var _reset: Button
 var _reset_step := 0
 var _achievements: Button
-var _characters: Button
 var _quitting := false
 
 
@@ -175,18 +171,6 @@ func _on_continue() -> void:
 	tw.tween_callback(GameState.change_scene.bind("res://scenes/run.tscn"))
 
 
-
-
-func _on_characters() -> void:
-	var c := CHARACTERS_SCENE.new()
-	add_child(c)
-	c.closed.connect(func() -> void: _characters.grab_focus())
-
-
-func _on_bestiary() -> void:
-	var b := BESTIARY_SCENE.new()
-	add_child(b)
-	b.closed.connect(func() -> void: _bestiary.grab_focus())
 
 
 func _on_achievements() -> void:
