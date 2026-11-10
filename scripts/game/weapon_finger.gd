@@ -16,21 +16,26 @@ extends Weapon
 ##  Doc    — vida máxima a cambio de +"pct" % de recarga.
 
 const RANGE := 450.0
-const DAMAGE := 5.0
+## Algo más fuerte y rápida que antes (5 de daño cada 0,6 s se quedaba corta)
+## A bit stronger and faster than before (5 damage every 0.6 s fell short)
+const DAMAGE := 6.0
 const CRIT := 1.75
 ## Probabilidad base de cada tipo de disparo / Base weight of each kind of shot
-const KINDS := {"normal": 40.0, "pierce": 12.0, "push": 12.0, "crit": 12.0, "back": 12.0, "bounce": 12.0}
+const KINDS := {"normal": 40.0, "pierce": 13.0, "push": 12.0, "crit": 13.0, "back": 8.0, "bounce": 12.0}
 ## Color del rayo según su efecto / Beam colour by effect
 const COLORS := {"normal": Color("ff5f7a"), "pierce": Color("5ff2ff"), "push": Color("ffb04a"),
 	"crit": Color("ffe36a"), "back": Color("c48bff"), "bounce": Color("8dff9a")}
 
 
+const COOLDOWN := 0.5
+
+
 func _init() -> void:
-	cooldown = 0.6
+	cooldown = COOLDOWN
 
 
 func _ready() -> void:
-	cooldown = 0.6 * (1.0 + uv("doc", "pct") / 100.0)
+	cooldown = COOLDOWN * (1.0 + uv("doc", "pct") / 100.0)
 
 
 ## Elige el efecto del disparo. La suerte sube los especiales y baja el "hacia atrás".

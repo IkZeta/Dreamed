@@ -59,6 +59,9 @@ var _detour := Vector2.ZERO
 var shield_by: Node = null
 var _detour_t := 0.0
 var slow_t := 0.0
+## Golpe fuerte: sale despedido y frena despacio / Heavy hit: sent flying, slowing down gently
+const HEAVY_TIME := 0.6
+var heavy_t := 0.0
 ## Sale corriendo de una puerta (timbre del colegio): aparece rápido y se aleja de la puerta
 ## Rushes out of a door (school bell): appears quickly and runs away from the door
 var rush_t := 0.0
@@ -272,13 +275,14 @@ func _move(delta: float) -> void:
 	position += vel * delta
 	# Empujado hacia un agujero: se cae y desaparece / Shoved into a hole: it falls in and is gone
 	var sucked_in := vacuumed and hp <= max_hp * 0.5
-	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0 or sucked_in):
+	heavy_t = maxf(0.0, heavy_t - delta)
+	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0 or heavy_t > 0.0 or sucked_in):
 		var to: Vector2 = run.hole_at(position, radius, knock + vel if not sucked_in else external_pull * 2.0)
 		if to != Vector2.INF:
 			_start_fall(to)
 			return
 	vacuumed = false
-	knock = knock.move_toward(Vector2.ZERO, (500.0 if bounce_t > 0.0 else 1400.0) * delta)
+	knock = knock.move_toward(Vector2.ZERO, (500.0 if bounce_t > 0.0 or heavy_t > 0.0 else 1400.0) * delta)
 	external_pull = Vector2.ZERO
 	if absf(vel.x) > 5.0:
 		_facing = signf(vel.x)
@@ -325,6 +329,8 @@ func _start_fall(to: Vector2) -> void:
 	Audio.play("throw", -6.0, 0.15)
 	if run.get("trinkets"):
 		run.trinkets.on_fall(self)
+	if run.has_method("on_fall_chain"):
+		run.on_fall_chain(self, _fall_from)
 	_death_sound()
 	run.on_enemy_killed(self)
 	# Tirar enemigos por los agujeros da Realidad Fragmentada / Throwing enemies down holes gives Fragmented Reality

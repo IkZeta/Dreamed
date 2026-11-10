@@ -119,12 +119,46 @@ func _body(e: Node2D) -> Vector2:
 
 
 func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0) -> void:
+	impulse = _heavy(e, impulse)
 	e.hit(base_damage * player.damage_mult, impulse)
 	_pinche(e)
 	# Robo de salud: probabilidad de curar 1 / Life steal: chance to heal 1
 	var ls := GameState.lifesteal_effective() * steal_k
 	if ls > 0.0 and randf() * 100.0 < ls and player.steal_ready():
 		player.heal_sustain(1.0)
+
+
+## Golpes desde el último golpe fuerte / Hits since the last heavy hit
+var heavy_count := 0
+
+
+## Cada N golpes, uno fuerte que empuja de verdad (GameState.HEAVY_EVERY)
+## Every N hits, a heavy one that really shoves (GameState.HEAVY_EVERY)
+func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
+	var every: int = GameState.HEAVY_EVERY.get(id, 0)
+	if every <= 0 or not e is Enemy or not (e as Enemy).is_targetable():
+		return impulse
+	heavy_count += 1
+	if heavy_count < every:
+		return impulse
+	heavy_count = 0
+	var dir := impulse.normalized() if impulse.length() > 1.0 else (e.global_position - player.global_position).normalized()
+	var en := e as Enemy
+	player.run.fx.ring(en.aim_point(), 30.0, UITheme.BONE, 0.3, 3.0)
+	player.run.fx.text(en.global_position + Vector2(0, -en.aim_height * 2.0 - 30), tr("HEAVY_HIT"), UITheme.BONE, 22)
+	Audio.play("hit", -4.0, 0.05)
+	player.run.shake(2.5)
+	# Sale disparado: frena despacio y puede caer aunque vaya lento al final; la masa cuenta menos
+	# (raíz) para que también se pueda con los matones / Sent flying: slows down gently and can fall
+	# even if slow by the end; mass counts less (square root) so it works on thugs too
+	en.heavy_t = Enemy.HEAVY_TIME
+	return dir * maxf(impulse.length(), GameState.HEAVY_KNOCK) * sqrt(maxf(1.0, en.mass))
+
+
+## Cuántos golpes faltan para el fuerte (0..1) / How close the heavy hit is (0..1)
+func heavy_fraction() -> float:
+	var every: int = GameState.HEAVY_EVERY.get(id, 0)
+	return -1.0 if every <= 0 else float(heavy_count) / float(every - 1)
 
 
 ## El Pinche: cada golpe sangra o quema según el arma / The Kitchen Boy: every hit bleeds or burns depending on the weapon

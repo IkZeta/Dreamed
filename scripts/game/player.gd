@@ -471,6 +471,12 @@ func _draw() -> void:
 		_ring_a = _draw_charge_rings(weapon.charge_bars(), weapon.charge_anchor(), _ring_a)
 	if alive and run.running and weapon2 and not weapon_stunk(weapon2):
 		_ring_b = _draw_charge_rings(weapon2.charge_bars(), weapon2.charge_anchor(), _ring_b)
+	# Puntitos del golpe fuerte bajo los pies / Heavy-hit dots under the feet
+	if alive and run.running:
+		if weapon and not weapon_stunk(weapon):
+			_draw_heavy_pips(weapon, Vector2(0, 14))
+		if weapon2 and not weapon_stunk(weapon2):
+			_draw_heavy_pips(weapon2, Vector2(0, 26))
 	_draw_hearth_ring()
 	_draw_shield_bubble()
 	_draw_states()
@@ -558,6 +564,22 @@ func _draw_shield_bubble() -> void:
 	var pulse := 1.0 + 0.05 * sin(_t * 5.0)
 	draw_circle(c, 46.0 * pulse, Color("8fe0ff", 0.12))
 	draw_arc(c, 46.0 * pulse, 0, TAU, 32, Color("8fe0ff", 0.7), 3.0)
+
+
+## Una fila de puntitos: se van llenando y el último avisa de que el siguiente golpe es fuerte
+## A row of dots: they fill up and the last one warns that the next hit is heavy
+func _draw_heavy_pips(w: Weapon, at: Vector2) -> void:
+	var every: int = GameState.HEAVY_EVERY.get(w.id, 0)
+	if every <= 0:
+		return
+	var n := every - 1
+	var ready := w.heavy_count >= n
+	for i in n:
+		var p := at + Vector2((i - (n - 1) / 2.0) * 11.0, 0)
+		var on := i < w.heavy_count
+		draw_circle(p, 4.0, Color(0.05, 0.03, 0.18, 0.5))
+		var col := UITheme.GOLD if ready else UITheme.BONE
+		draw_circle(p, 2.6, Color(col, (0.9 + 0.1 * sin(_t * 10.0)) if on else 0.18))
 
 
 func _draw_charge_rings(bars: Array, anchor: Vector2, ring_a: Array[float]) -> Array[float]:

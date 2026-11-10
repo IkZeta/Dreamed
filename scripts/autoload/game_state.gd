@@ -1626,6 +1626,18 @@ func sacrifice(giver: String, weapon := "") -> void:
 
 ## Todo lo que el pijama cambia de serie, para enseñarlo en su carta: [{"text", "good"}, ...]
 ## Everything the pajama changes out of the box, to show on its card: [{"text", "good"}, ...]
+## Golpe fuerte: cada N golpes, uno empuja lo bastante para tirar enemigos por los agujeros. Así
+## todas las armas tienen una forma de usar los agujeros (la almohada y la aspiradora ya la tienen).
+## Heavy hit: every N hits, one shoves hard enough to throw enemies down holes. This way every weapon
+## has a way to use the holes (the pillow and the vacuum already have one).
+const HEAVY_EVERY := {"bat": 3, "book": 4, "finger": 5, "teddy": 3, "laptop": 5, "ball": 3, "boots": 3}
+const HEAVY_KNOCK := 520.0
+## Caídas en cadena: tirar a varios seguidos (con menos de este hueco) da trozos de estrella extra
+## Fall chains: throwing several in a row (with less than this gap) gives extra star shards
+const FALL_CHAIN_GAP := 3.0
+const FALL_CHAIN_MAX := 5
+
+
 func pajama_perks(id: String) -> Array:
 	var out := []
 	var bonus: Dictionary = WEAPON_BONUS.get(id, {})
@@ -1645,8 +1657,13 @@ func pajama_perks(id: String) -> Array:
 	# La almohada tiene el tope de parry más alto / The pillow has the highest parry cap
 	if id == "shield":
 		vals.append(["CHIPV_PARRY_MAX", PARRY_MAX_SHIELD])
+	if HEAVY_EVERY.has(id):
+		vals.append(["CHIPV_HEAVY", float(HEAVY_EVERY[id])])
 	for pair: Array in vals:
 		var v: float = pair[1]
+		if pair[0] == "CHIPV_HEAVY":
+			out.append({"text": tr(pair[0]).format({"n": int(v)}), "good": true})
+			continue
 		if pair[0] == "CHIPV_PARRY_MAX":
 			out.append({"text": tr(pair[0]).format({"v": int(v)}), "good": true})
 			continue

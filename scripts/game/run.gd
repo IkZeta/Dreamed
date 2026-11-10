@@ -1114,6 +1114,7 @@ func _physics_process(delta: float) -> void:
 		player.push = Vector2.ZERO
 		return
 	GameState.run_time += delta
+	_fall_chain_t = maxf(0.0, _fall_chain_t - delta)
 	hud.set_run_clock(GameState.run_time)
 	_update_event(delta)
 	# El objetivo de Magnus, cuatro veces por segundo / Magnus's goal, four times a second
@@ -1623,6 +1624,25 @@ func _update_bell(delta: float) -> void:
 
 
 # --- Trozos de estrella y niveles / Star shards and levels ---------------------
+
+## Caídas en cadena: cada enemigo que cae poco después del anterior suma uno a la cadena y suelta
+## tantos trozos de estrella extra como la cadena (hasta FALL_CHAIN_MAX). Solo da experiencia.
+## Fall chains: every enemy that falls shortly after the previous one adds one to the chain and drops
+## as many extra star shards as the chain (up to FALL_CHAIN_MAX). It only gives experience.
+var _fall_chain := 0
+var _fall_chain_t := 0.0
+
+
+func on_fall_chain(_e: Enemy, at: Vector2) -> void:
+	_fall_chain = _fall_chain + 1 if _fall_chain_t > 0.0 else 1
+	_fall_chain_t = GameState.FALL_CHAIN_GAP
+	Progress.best_stat("fall_chain", _fall_chain)
+	if _fall_chain < 2:
+		return
+	drop_shards(at, mini(_fall_chain, GameState.FALL_CHAIN_MAX))
+	fx.text(at + Vector2(0, -120), tr("FALL_CHAIN") % _fall_chain, UITheme.GOLD, 24 + mini(_fall_chain, 6) * 2)
+	Audio.play("chime", -8.0 + mini(_fall_chain, 5), 0.0)
+
 
 func drop_shards(pos: Vector2, n: int) -> void:
 	for i in n:

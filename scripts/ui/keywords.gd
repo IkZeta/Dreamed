@@ -19,6 +19,7 @@ const PATTERNS := {
 	"glitch": {"es": "glitch\\w*", "en": "glitch\\w*"},
 	"fluff": {"es": "pelusas?", "en": "fluff"},
 	"stuck": {"es": "pegad[oa]s", "en": "stuck"},
+	"heavy": {"es": "golpes? fuertes?", "en": "heavy hits?"},
 	"knockback": {"es": "empuj\\w*", "en": "push\\w*|shov\\w*"},
 	# Paralizado e inmovilizado son lo mismo / Paralysed and rooted are the same thing
 	"rooted": {"es": "inmoviliz\\w*|clavad[oa]|paraliz\\w*", "en": "rooted|immobili\\w*|paraly\\w*"},
