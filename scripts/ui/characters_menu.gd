@@ -123,17 +123,12 @@ func _ready() -> void:
 static func met(id: String) -> bool:
 	if id == "kroker":
 		return true
-	if id == "charo" and Progress.stats.has("charo_met"):
-		return true
-	if id == "ad" and Progress.has_achieved("mr_ad"):
-		return true
-	if id == "pinche" and Progress.has_achieved("pinche"):
-		return true
-	if id == "magnus" and Progress.has_achieved("magnus"):
-		return true
-	if id in ["superk", "lilkey", "lynx"] and Progress.has_achieved(id):
-		return true
-	return Progress.stats.has("met_" + id)
+	if id == "charo":
+		return Progress.stats.has("charo_met")
+	# Se conoce a alguien cuando sale en el plano astral (no basta con desbloquearlo): hasta
+	# entonces su isla no aparece en el hub / You meet someone when they show up on the astral
+	# plane (unlocking them isn't enough): until then their island doesn't appear in the hub
+	return Progress.stats.has("met_" + id) or Progress.friend_level(id) > 0
 
 
 func _title(id: String) -> String:

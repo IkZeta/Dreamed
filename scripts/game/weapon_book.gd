@@ -89,6 +89,9 @@ func _strike(target: Node2D) -> void:
 		deal(target, dmg)
 		if lv("silly") > 0:
 			_echo(target, dmg * player.damage_mult * uv("silly", "pct") / 100.0)
+			# El eco lo deja glitcheado un momento (sin daño extra) / The echo leaves it glitched for a moment (no extra damage)
+			if target is Enemy:
+				(target as Enemy).glitch(0.0, 0.0, 1.0, 1.0)
 		hit.append(target)
 		if hit.size() > bounces:
 			break

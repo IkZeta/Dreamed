@@ -1082,6 +1082,8 @@ const STRINGS := {
 	"COMBO_HOLE_DESC": {"es": "Los rebotes de Svinho y los lanzamientos de SuperK mandan enemigos a los agujeros sin quitarles toda la vida.", "en": "Svinho's bounces and SuperK's throws send enemies down holes without taking all their health."},
 	"COMBO_BBQ_NAME": {"es": "Barbacoa del barrio", "en": "Block barbecue"},
 	"COMBO_BBQ_DESC": {"es": "Lil Key junta a los enemigos al lado del fogón del Pinche, que explota antes.", "en": "Lil Key bunches enemies up next to the Kitchen Boy's stove, which blows up sooner."},
+	"COMBO_PIXEL_BURST_NAME": {"es": "Estallido de píxeles", "en": "Pixel burst"},
+	"COMBO_PIXEL_BURST_DESC": {"es": "Los enemigos glitcheados por Silly estallan al morir y los píxeles rebotan (cosa de Svinho) contra los de alrededor: les hacen daño y los glitchean también, en cadena.", "en": "Enemies glitched by Silly burst when they die and the pixels bounce (Svinho's doing) into those around: they get hurt and glitched too, in a chain."},
 	"DUO_VOLLEY": {"es": "¡CHILENA!", "en": "BICYCLE KICK!"},
 	"DUO_SVINHO_SUPERK_NAME": {"es": "Chilena de héroe", "en": "Hero's bicycle kick"},
 	"DUO_SVINHO_SUPERK_DESC": {"es": "Pelota. Cada {hits} toques de la pelota, SuperK baja volando y remata de chilena al enemigo más fuerte: {dmg} de daño y lo manda lejos.", "en": "Ball. Every {hits} ball touches, SuperK swoops down and finishes the toughest enemy with a bicycle kick: {dmg} damage and sends it flying."},

@@ -771,7 +771,19 @@ func pick_offer() -> Array[String]:
 	# Con suerte es más fácil que vuelva alguien que ya te ha dado un don, para subirlo de nivel
 	# With luck, someone who already gave you a gift is likelier to return, to level it up
 	var out: Array[String] = []
-	for n in offer_size():
+	if GUIDE_COMBOS and active_combos().is_empty():
+		for g in pool:
+			if g in ["magnus", "duo"]:
+				continue
+			var hit := false
+			for w in weapons():
+				if level(g, w) < max_level(g, w) and not combos_completed_by(g, w).is_empty():
+					hit = true
+			if hit:
+				out.append(g)
+				pool.erase(g)
+				break
+	while out.size() < offer_size():
 		if pool.is_empty():
 			break
 		var total := 0.0
@@ -903,7 +915,18 @@ const COMBOS := {
 	"pillow_wall": {"needs": [{"weapon": "shield"}, {"stat": "parry", "min": 12.0}]},
 	"hole": {"needs": [{"g": "superk", "power": "throw"}, {"g": "svinho"}]},
 	"bbq": {"needs": [{"g": "pinche", "w": ["laptop"]}, {"g": "lilkey", "power": "sing"}]},
+	# Con los personajes del principio y cualquier arma: se puede descubrir en la primera partida
+	# With the starting characters and any weapon: it can be discovered in the first run
+	"pixel_burst": {"needs": [{"g": "silly"}, {"g": "svinho"}]},
 }
+## Estallido de píxeles: daño y radio / Pixel burst: damage and radius
+const PIXEL_BURST_DMG := 6.0
+const PIXEL_BURST_RADIUS := 130.0
+## Combos guiados: mientras la partida no tenga ningún combo, si una mejora del plano astral
+## completaría uno, ese personaje sale seguro (así se descubren pronto)
+## Guided combos: while the run has no combo, if an astral upgrade would complete one, that
+## character is sure to show up (so they're discovered early)
+const GUIDE_COMBOS := true
 
 
 ## ¿Se cumple el requisito? "plus" = mejora que estás a punto de coger ([personaje, arma])

@@ -91,29 +91,52 @@ func stop_loops() -> void:
 		set_loop(sound, false)
 
 
-## Cambia de canción con un fundido cruzado / Switches songs with a crossfade.
+## Cambia de canción con un fundido cruzado de potencia constante (las dos curvas en amplitud, no en
+## dB, para que no haya bache ni golpe de volumen). Cada canción recuerda por dónde iba: al volver a
+## la música del acto después del plano astral, sigue donde estaba en vez de empezar de cero.
+## Switches songs with an equal-power crossfade (both curves in amplitude, not dB, so there's no dip
+## or volume jump). Each song remembers where it was: going back to the act music after the astral
+## plane, it carries on where it was instead of starting over.
+var _positions := {}
+## Canciones que siguen por donde iban (las de jefe empiezan siempre por el principio)
+## Songs that carry on where they were (boss songs always start from the top)
+const RESUME := ["music_dream1", "music_living", "music_school", "music_city", "music_astral", "music_menu"]
+var _fade_tw: Tween
+
+
 func play_music(song: String, fade := 1.5, volume_db := -6.0) -> void:
 	if song == _music_name:
+		# La misma canción: solo vuelve a su volumen si se había bajado / Same song: just back to its volume if it was lowered
+		if _music[_music_idx].volume_db < volume_db - 0.5:
+			fade_music(volume_db, fade)
 		return
+	var old_name := _music_name
 	_music_name = song
 	# Si había otro fundido a medias, se corta: si no, ese fundido apagaba (y paraba) la canción nueva
-	# when se cambiaba dos veces seguidas (p. ej., el sueño del jefe y enseguida la música del jefe)
+	# cuando se cambiaba dos veces seguidas (p. ej., el sueño del jefe y enseguida la música del jefe)
 	# If another crossfade was half-way, cut it: otherwise that fade turned down (and stopped) the new
 	# song when switching twice in a row (e.g. the boss dream and right away the boss music)
-	if _music_tw and _music_tw.is_valid():
-		_music_tw.kill()
-	if _duck_tw and _duck_tw.is_valid():
-		_duck_tw.kill()
+	for tw: Tween in [_music_tw, _duck_tw, _fade_tw]:
+		if tw and tw.is_valid():
+			tw.kill()
 	var old := _music[_music_idx]
+	if old.playing and old_name != "":
+		_positions[old_name] = old.get_playback_position()
 	_music_idx = 1 - _music_idx
 	var new := _music[_music_idx]
 	new.stream = _looped(song)
-	new.volume_db = -40.0
-	new.play()
-	_music_tw = create_tween().set_parallel()
-	_music_tw.tween_property(new, "volume_db", volume_db, fade)
-	_music_tw.tween_property(old, "volume_db", -60.0, fade)
-	_music_tw.chain().tween_callback(old.stop)
+	new.volume_db = -80.0
+	var at: float = _positions.get(song, 0.0) if song in RESUME else 0.0
+	if new.stream and at >= new.stream.get_length() - 2.0:
+		at = 0.0
+	new.play(at)
+	var old_lin := db_to_linear(old.volume_db)
+	var new_lin := db_to_linear(volume_db)
+	_music_tw = create_tween()
+	_music_tw.tween_method(func(k: float) -> void:
+		new.volume_db = linear_to_db(maxf(0.0001, new_lin * sin(k * PI / 2.0)))
+		old.volume_db = linear_to_db(maxf(0.0001, old_lin * cos(k * PI / 2.0))), 0.0, 1.0, maxf(0.05, fade))
+	_music_tw.tween_callback(old.stop)
 
 
 ## El leitmotiv de un personaje, bien claro: la música baja un momento y luego vuelve a donde estaba
@@ -137,7 +160,14 @@ var _duck_back := -6.0
 
 
 func fade_music(volume_db: float, time := 1.0) -> void:
-	create_tween().tween_property(_music[_music_idx], "volume_db", volume_db, time)
+	if _fade_tw and _fade_tw.is_valid():
+		_fade_tw.kill()
+	var p := _music[_music_idx]
+	var from := db_to_linear(p.volume_db)
+	var to := db_to_linear(volume_db)
+	_fade_tw = create_tween()
+	_fade_tw.tween_method(func(k: float) -> void:
+		p.volume_db = linear_to_db(maxf(0.0001, lerpf(from, to, k))), 0.0, 1.0, maxf(0.05, time)).set_trans(Tween.TRANS_SINE)
 
 
 ## La música y la aspiradora ya vienen marcadas como bucle en su .import.

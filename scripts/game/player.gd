@@ -575,11 +575,13 @@ func _draw_heavy_pips(w: Weapon, at: Vector2) -> void:
 	var n := every - 1
 	var ready := w.heavy_count >= n
 	for i in n:
-		var p := at + Vector2((i - (n - 1) / 2.0) * 11.0, 0)
+		var p := at + Vector2((i - (n - 1) / 2.0) * 13.0, 0)
 		var on := i < w.heavy_count
-		draw_circle(p, 4.0, Color(0.05, 0.03, 0.18, 0.5))
+		draw_circle(p, 5.0, Color(0.05, 0.03, 0.18, 0.7))
 		var col := UITheme.GOLD if ready else UITheme.BONE
-		draw_circle(p, 2.6, Color(col, (0.9 + 0.1 * sin(_t * 10.0)) if on else 0.18))
+		draw_circle(p, 3.4, Color(col, (0.85 + 0.15 * sin(_t * 10.0)) if on else 0.25))
+		if ready:
+			draw_arc(p, 5.5, 0, TAU, 12, Color(UITheme.GOLD, 0.5 + 0.4 * sin(_t * 10.0)), 1.5)
 
 
 func _draw_charge_rings(bars: Array, anchor: Vector2, ring_a: Array[float]) -> Array[float]:

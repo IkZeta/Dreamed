@@ -1115,6 +1115,7 @@ func _physics_process(delta: float) -> void:
 		return
 	GameState.run_time += delta
 	_fall_chain_t = maxf(0.0, _fall_chain_t - delta)
+	_burst_budget = minf(4.0, _burst_budget + delta * 3.0)
 	hud.set_run_clock(GameState.run_time)
 	_update_event(delta)
 	# El objetivo de Magnus, cuatro veces por segundo / Magnus's goal, four times a second
@@ -1444,7 +1445,32 @@ func shake(amount: float) -> void:
 
 # --- Eventos / Events -------------------------------------------------------
 
+## Combo «Estallido de píxeles» (Silly + Svinho): los glitcheados estallan al morir y glitchean a
+## los de alrededor. Como mucho unos cuantos por segundo, para que la cadena no barra la pantalla.
+## "Pixel burst" combo (Silly + Svinho): glitched enemies burst when they die and glitch those around.
+## At most a few per second, so the chain doesn't sweep the screen.
+var _burst_budget := 0.0
+
+
+func _pixel_burst(e: Enemy) -> void:
+	var marked := e.glitch_t > 0.0 or (e.is_stuck() and e.stuck_bonus > 0.0)
+	if _burst_budget < 1.0 or not marked or not "pixel_burst" in GameState.combos_seen:
+		return
+	_burst_budget -= 1.0
+	var p := e.aim_point()
+	Audio.play("glitch", -6.0, 0.15)
+	fx.ring(p, GameState.PIXEL_BURST_RADIUS * 0.5, Color("5ff2ff"), 0.35, 2.4)
+	for k in 8:
+		fx.dissipate(p + Vector2.from_angle(k * TAU / 8.0) * 40.0, Color("ff5fd2") if k % 2 else Color("5ff2ff"))
+	for o: Node in enemies.get_children():
+		if o is Enemy and o != e and (o as Enemy).is_targetable() and (o as Enemy).global_position.distance_to(e.global_position) < GameState.PIXEL_BURST_RADIUS:
+			(o as Enemy).glitch(0.0, 1.2, 1.5, 1.25)
+			(o as Enemy).hit(GameState.PIXEL_BURST_DMG * player.damage_mult, ((o as Enemy).global_position - e.global_position).normalized() * 180.0)
+
+
 func on_enemy_killed(e: Node) -> void:
+	if e is Enemy:
+		_pixel_burst(e as Enemy)
 	_kills += 1
 	GameState.run_kills += 1
 	Progress.kill(e.get("bestiary_id"))
