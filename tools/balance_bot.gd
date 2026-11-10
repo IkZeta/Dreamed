@@ -34,6 +34,7 @@ var _cur: Dictionary = {}
 var _t := 0.0
 var _astral_t := 0.0
 var _rng := RandomNumberGenerator.new()
+var _speed := SPEED
 
 
 func _ready() -> void:
@@ -54,8 +55,14 @@ func _ready() -> void:
 	_rng.seed = 7
 	if Engine.time_scale == 1.0:
 		Engine.time_scale = SPEED
+	# Más pasos de física por segundo para que cada paso siga siendo de 1/60 s de juego: si no,
+	# a velocidad x12 cada paso es de 0,2 s, el bot reacciona 5 veces por segundo y juega fatal.
+	# More physics steps per second so each one is still 1/60 s of game time: otherwise, at x12
+	# each step is 0.2 s, the bot reacts 5 times a second and plays terribly.
+	_speed = Engine.time_scale
+	Engine.physics_ticks_per_second = int(60.0 * _speed)
 	Settings.tips = false
-	Engine.max_physics_steps_per_frame = 16
+	Engine.max_physics_steps_per_frame = int(8.0 * _speed)
 	Progress.stats["charo_met"] = 1
 	for w in weapons:
 		for i in runs_per_weapon:
@@ -93,6 +100,9 @@ func _finish() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Si el juego ha tocado la velocidad (una micro-pausa), la devuelve / If the game changed the speed (a hit stop), restore it
+	if not is_equal_approx(Engine.time_scale, _speed) and Engine.time_scale >= 0.9:
+		Engine.time_scale = _speed
 	_t += delta
 	var sc := get_tree().current_scene
 	if sc == null:
