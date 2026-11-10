@@ -693,6 +693,9 @@ func _pick_kind() -> String:
 				return "thug"
 			if k == "puppet" and _count_alive(Puppet) >= 3:
 				return "foox"
+			# Como mucho 2 Chapuzas, y solo si hay agujeros / At most 2 Botchers, and only if there are holes
+			if k == "botcher" and (_count_alive(Botcher) >= 2 or room.hole_count() == 0):
+				return "foox"
 			# Acto 4: pocas furgos y antidisturbios a la vez / Act 4: few vans and riot officers at once
 			var fin := bool(_wave.get("final", false))
 			if k == "van" and _count_alive(Van) >= (2 if fin else 1):
@@ -754,6 +757,7 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"police": e = Police.new()
 		"van": e = Van.new()
 		"riot": e = Riot.new()
+		"botcher": e = Botcher.new()
 		_: e = Foox.new()
 	# Muy de vez en cuando, en lugar del enemigo sale un Foox dorado (la suerte ayuda un poco)
 	# Every so often a golden Foox turns up instead (luck helps a little)
@@ -802,7 +806,7 @@ func hole_at(p: Vector2, margin: float, push: Vector2) -> Vector2:
 	var holes := room.holes_list()
 	for i in room.hole_count():
 		var hr := Bedroom.rect_world(holes[i].grow(-10)).grow(margin * 0.6)
-		if hr.has_point(p):
+		if hr.has_point(p) and not hole_covered(Bedroom.rect_world(holes[i])):
 			return Bedroom.rect_world(holes[i]).get_center()
 	# Boquetes de la pared: hay que ir hacia arriba contra el fondo
 	# Wall holes: it has to be moving up against the back
@@ -814,6 +818,22 @@ func hole_at(p: Vector2, margin: float, push: Vector2) -> Vector2:
 			if p.x > wr.position.x + 6.0 and p.x < wr.end.x - 6.0:
 				return Vector2(wr.get_center().x, wr.end.y - wr.size.y * 0.3)
 	return Vector2.INF
+
+
+## ¿Tiene este agujero un tablón del Chapuzas encima? / Does this hole have a Botcher's plank on it?
+func hole_covered(world_rect: Rect2) -> bool:
+	for e: Node in enemies.get_children():
+		if e is Botcher and (e as Botcher).covers(world_rect):
+			return true
+	return false
+
+
+## ¿Va otro Chapuzas ya a por este agujero? / Is another Botcher already heading for this hole?
+func hole_claimed(world_rect: Rect2, by: Node) -> bool:
+	for e: Node in enemies.get_children():
+		if e != by and e is Botcher and (e as Enemy).state == Enemy.State.ALIVE and (e as Botcher).hole.is_equal_approx(world_rect):
+			return true
+	return false
 
 
 func _near_boss(p: Vector2) -> bool:
@@ -1083,16 +1103,17 @@ func _show_victory() -> void:
 		tr("SUM_DIFFICULTY") % tr("DIFF_" + GameState.difficulty.to_upper()),
 	]
 	_show_end("ACT%d_CLEAR_TITLE" % act, "ACT%d_CLEAR_SUB" % act, [["BTN_DREAM_AGAIN", _restart], ["BTN_TO_HUB", _to_menu]], lines)
-	_end_records()
+	_end_records(true)
 	_overlay.add_side(DreamDiary.make(true))
 	_overlay.add_under(RunResults.make())
 
 
 ## Apunta los récords de la partida (el de nivel y el de caída en cadena ya se apuntan solos)
 ## Records the run's bests (level and fall chain already record themselves)
-func _end_records() -> void:
+func _end_records(won := false) -> void:
 	if GameState.god_mode:
 		return
+	Progress.record_last_run(won)
 	Progress.best_stat("best_depth", GameState.dream_depth)
 	Progress.best_stat("best_kills", GameState.run_kills)
 	Progress.record_daily(GameState.daily, GameState.dream_depth)

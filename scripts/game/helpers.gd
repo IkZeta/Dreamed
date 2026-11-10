@@ -212,7 +212,7 @@ func nearest_hole(from: Vector2) -> Vector2:
 	var holes: Array = run.room.holes_list()
 	for i in run.room.hole_count():
 		var c := Bedroom.rect_world(holes[i]).get_center()
-		if in_view(c, 20.0) and (best == Vector2.INF or from.distance_to(c) < from.distance_to(best)):
+		if in_view(c, 20.0) and not run.hole_covered(Bedroom.rect_world(holes[i])) and (best == Vector2.INF or from.distance_to(c) < from.distance_to(best)):
 			best = c
 	return best
 

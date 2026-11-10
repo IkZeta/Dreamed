@@ -18,19 +18,19 @@ const WAVES := [
 	# --- Act 2: the living room. "fire" = the fireplace is lit; "shop" = Charo opens her kiosk
 	# at the end. Dream 8 brings the Cyberpunk and dream 10 is the boss, The Chef.
 	{"duration": 40.0, "spawn_every": 2.4, "group": [2, 3], "max_alive": 10, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "nest": 1}, "new": "nest", "fire": true},
-	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2, "nest": 1}, "shop": true},
-	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5}, "new": "cyber", "fire": true},
-	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.5}, "shop": true},
+	{"duration": 45.0, "spawn_every": 2.2, "group": [2, 3], "max_alive": 11, "mix": {"foox": 2, "thug": 2, "sling": 1, "skeleton": 2, "nest": 1, "botcher": 0.5}, "new": "botcher", "shop": true},
+	{"duration": 50.0, "spawn_every": 2.1, "group": [2, 4], "max_alive": 12, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5, "botcher": 0.3}, "new": "cyber", "fire": true},
+	{"duration": 55.0, "spawn_every": 2.0, "group": [3, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.5, "botcher": 0.3}, "shop": true},
 	# Sueño 10: El Chef sale de la tele / Dream 10: The Chef comes out of the TV
 	{"boss": true, "boss_kind": "chef", "duration": 120.0, "spawn_every": 3.4, "group": [1, 2], "max_alive": 6, "mix": {"foox": 3, "thug": 1, "sling": 1, "skeleton": 1, "cyber": 0.3}},
 	# --- Acto 3: el pasillo infinito del colegio. El 11 trae las Marionetas (poco comunes) y el
 	# 13, el Gólem de papel higiénico.
 	# --- Act 3: the endless school hallway. Dream 11 brings the Puppets (uncommon) and dream 13
 	# the Toilet-Paper Golem.
-	{"duration": 45.0, "spawn_every": 2.0, "group": [2, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5, "puppet": 0.7}, "new": "puppet"},
-	{"duration": 50.0, "spawn_every": 1.9, "group": [3, 4], "max_alive": 14, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8}, "shop": true},
-	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8, "golem": 0.6}, "new": "golem"},
-	{"duration": 60.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.7, "puppet": 1.0, "golem": 0.8}, "shop": true},
+	{"duration": 45.0, "spawn_every": 2.0, "group": [2, 4], "max_alive": 13, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.5, "puppet": 0.7, "botcher": 0.3}, "new": "puppet"},
+	{"duration": 50.0, "spawn_every": 1.9, "group": [3, 4], "max_alive": 14, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8, "botcher": 0.3}, "shop": true},
+	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 3, "nest": 1, "cyber": 0.6, "puppet": 0.8, "golem": 0.6, "botcher": 0.3}, "new": "golem"},
+	{"duration": 60.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"foox": 2, "thug": 2, "sling": 2, "skeleton": 2, "nest": 1, "cyber": 0.7, "puppet": 1.0, "golem": 0.8, "botcher": 0.3}, "shop": true},
 	# Sueño 15: el Ovni destroza el pasillo / Dream 15: the UFO wrecks the hallway
 	{"boss": true, "boss_kind": "ufo", "duration": 150.0, "spawn_every": 3.6, "group": [1, 2], "max_alive": 7, "mix": {"foox": 3, "thug": 1, "puppet": 1, "skeleton": 1}},
 	# --- Acto 4 (el final): la Metrópolis, con una estética distinta en cada sueño. El 16 trae la
@@ -39,10 +39,10 @@ const WAVES := [
 	# --- Act 4 (the final one): the Metropolis, with a different look in every dream. Dream 16
 	# brings the Special Unit (a flying van that drops police), 17 the Riot Police (they climb out
 	# of the holes and shield the others) and 20 is the last dream: the city comes crashing down.
-	{"duration": 50.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.5, "police": 1.2, "van": 0.25}, "new": "van"},
-	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.6, "police": 1.4, "van": 0.25, "riot": 0.35}, "new": "riot", "shop": true},
-	{"duration": 60.0, "spawn_every": 1.7, "group": [3, 5], "max_alive": 16, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.7, "puppet": 1.0, "golem": 0.7, "police": 1.6, "van": 0.3, "riot": 0.4}},
-	{"duration": 60.0, "spawn_every": 1.6, "group": [3, 6], "max_alive": 17, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.8, "puppet": 1.0, "golem": 0.8, "police": 1.8, "van": 0.35, "riot": 0.45}, "shop": true},
+	{"duration": 50.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.5, "police": 1.2, "van": 0.25, "botcher": 0.3}, "new": "van"},
+	{"duration": 55.0, "spawn_every": 1.8, "group": [3, 5], "max_alive": 15, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.6, "puppet": 0.8, "golem": 0.6, "police": 1.4, "van": 0.25, "riot": 0.35, "botcher": 0.3}, "new": "riot", "shop": true},
+	{"duration": 60.0, "spawn_every": 1.7, "group": [3, 5], "max_alive": 16, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.7, "puppet": 1.0, "golem": 0.7, "police": 1.6, "van": 0.3, "riot": 0.4, "botcher": 0.3}},
+	{"duration": 60.0, "spawn_every": 1.6, "group": [3, 6], "max_alive": 17, "mix": {"thug": 2, "sling": 2, "skeleton": 2, "cyber": 0.8, "puppet": 1.0, "golem": 0.8, "police": 1.8, "van": 0.35, "riot": 0.45, "botcher": 0.3}, "shop": true},
 	# Sueño 20, el último: noir retrofuturista. Kroker piensa en voz baja apoyado en una pared,
 	# los edificios estallan y llega el jefe final, Evil Ad. La ciudad se derrumba durante la pelea.
 	# Dream 20, the last one: retro-futurist noir. Kroker muses leaning on a wall, the buildings

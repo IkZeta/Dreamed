@@ -406,6 +406,11 @@ func _chat_line() -> void:
 ## Cada vez que hablas con alguien dice otra cosa, de las que ya te ha contado por amistad
 ## Each time you talk to someone they say something else, from what friendship has unlocked
 func _next_line(id: String) -> String:
+	# Primero, qué tal fue el último sueño / First, how the last dream went
+	var react := Progress.run_reaction(id)
+	if react != "":
+		Progress.save_progress()
+		return react
 	var lines: Array[String] = []
 	var lvl := Progress.friend_level(id)
 	if id == "charo":

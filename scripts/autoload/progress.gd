@@ -7,7 +7,7 @@ extends Node
 const PATH := "user://progress.cfg"
 
 ## Entradas del bestiario en orden / Bestiary entries in order
-const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "cyber", "puppet", "golem", "police", "van", "riot", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef", "boss_ufo", "boss_evil_ad"]
+const BESTIARY: Array[String] = ["foox", "thug", "sling", "skeleton", "nest", "mosquito", "botcher", "cyber", "puppet", "golem", "police", "van", "riot", "golden_foox", "elite", "boss_bed", "boss_shelf", "boss_chest", "boss_chef", "boss_ufo", "boss_evil_ad"]
 
 ## id → veces derrotado (si aparece aquí, ya se ha visto) / id → times defeated (present = seen)
 var kills := {}
@@ -170,6 +170,53 @@ func _record_fever(weapon: String, act: int) -> void:
 
 func best_fever(weapon: String) -> int:
 	return int(stats.get("fever_" + weapon, 0))
+
+
+## Resumen de la última partida, para que los del plano astral comenten qué tal fue
+## Summary of the last run, so the astral plane folks can comment on how it went
+func record_last_run(won: bool) -> void:
+	var prev: Dictionary = stats.get("last_run", {})
+	stats["last_run"] = {
+		"n": int(prev.get("n", 0)) + 1, "won": won, "depth": GameState.dream_depth,
+		"falls": GameState.run_falls, "killer": GameState.last_hit, "fever": GameState.fever(),
+		"weapon": GameState.selected_character,
+	}
+	save_progress()
+
+
+## Qué comentario toca sobre la última partida ("" si ya lo ha dicho) / Which comment about the
+## last run is due ("" if they've already said it)
+func run_reaction(id: String) -> String:
+	var last: Dictionary = stats.get("last_run", {})
+	if last.is_empty() or int(stats.get("reacted_" + id, 0)) >= int(last["n"]):
+		return ""
+	stats["reacted_" + id] = int(last["n"])
+	var cat := "loss"
+	if bool(last["won"]):
+		cat = "won"
+	elif int(last["falls"]) >= 25:
+		cat = "falls"
+	elif int(last["depth"]) <= 3:
+		cat = "early"
+	elif int(last["depth"]) >= 11:
+		cat = "deep"
+	var key := "REACT_%s_%s" % [id.to_upper(), cat.to_upper()]
+	if tr(key) == key:
+		key = "REACT_" + cat.to_upper()
+	var text := tr(key)
+	if "%s" in text:
+		var killer := str(last.get("killer", ""))
+		var who := tr("BEST_%s_NAME" % killer.to_upper()) if killer != "" else ""
+		if killer == "bleed":
+			who = tr("REACT_BLEEDING")
+		elif who == "" or who.begins_with("BEST_"):
+			who = tr("REACT_SOMETHING")
+		text = text % who
+		# Si la frase empieza por el nombre, en mayúscula / If the line starts with the name, capitalise it
+		if text.length() > 1 and text[0] in ["«", "“"]:
+			text = text[0] + text[1].to_upper() + text.substr(2)
+	text = text.replace("{depth}", str(int(last["depth"])))
+	return text
 
 
 ## Mejor sueño alcanzado en el sueño del día de hoy / Best dream reached in today's daily dream
