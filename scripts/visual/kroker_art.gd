@@ -132,6 +132,12 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	# Ángulos de piernas y brazos / Leg and arm angles
 	var swing := sin(walk) * 0.42 * moving
 	var arm_l := _arm_pose(w_l, -swing * 0.8 + 2.7 * stretch, a_l, swing)
+	# Lo que se lleva por delante con la derecha (libro, dedo, portátil, mando), en la izquierda va en
+	# espejo: el brazo se abre hacia fuera en vez de cruzar por detrás del cuerpo y quedar tapado
+	# Things held forward in the right hand (book, finger, laptop, remote) go mirrored in the left: the
+	# arm opens outwards instead of crossing behind the body and being hidden
+	if w_l in MIRROR_LEFT:
+		arm_l = -_arm_pose(w_l, swing * 0.8 - 2.7 * stretch, a_l, -swing)
 	var arm_r := _arm_pose(w_r, swing * 0.8 - 2.7 * stretch, a_r, swing)
 	# Kroker es bajito: hombros y caderas más abajo, brazos y piernas cortos
 	# Kroker is short: shoulders and hips sit lower, arms and legs are short
@@ -200,6 +206,9 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 
 ## Mano con la que se lleva cada arma: almohada y oso en la izquierda, el resto en la derecha
 ## Hand each weapon is held in: pillow and teddy in the left, the rest in the right
+const MIRROR_LEFT := ["book", "finger", "laptop", "boots"]
+
+
 static func hand_of(weapon: String) -> String:
 	return "l" if weapon in ["shield", "teddy"] else "r"
 
@@ -257,7 +266,7 @@ static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: flo
 	match w:
 		"bat": _bat(t, a, hand, arm, mod, left)
 		"shield": _pillow(t, a, hand, mod)
-		"book": _book(t, a, hand, mod)
+		"book": _book(t, a, hand, mod, left)
 		"vacuum": _vacuum_nozzle(t, aim, sucking, hand, mod)
 		"finger":
 			_use(Transform2D.IDENTITY)
@@ -354,9 +363,10 @@ static func _pillow(t: float, attack: float, hand: Vector2, mod: Color) -> void:
 	_use(Transform2D.IDENTITY)
 
 
-static func _book(t: float, cast: float, hand: Vector2, mod: Color) -> void:
+static func _book(t: float, cast: float, hand: Vector2, mod: Color, left := false) -> void:
 	var y := sin(t * 1.8) * 4.0
-	_use(Transform2D(-0.12 - cast * 0.3, hand + Vector2(20, -26 + y)))
+	# En la mano izquierda flota hacia fuera, no encima del cuerpo / In the left hand it floats outwards, not over the body
+	_use(Transform2D((0.12 + cast * 0.3) if left else (-0.12 - cast * 0.3), hand + Vector2(-20 if left else 20, -26 + y)))
 	var glow := 50.0 + cast * 40.0
 	_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(-glow, -glow - 6, glow * 2, glow * 2), false, Color(UITheme.GOLD, 0.35 + cast * 0.4))
 	Sprites.draw(_ci, _sp("weapon_book"), mod)

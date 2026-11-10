@@ -26,6 +26,8 @@ var room: Bedroom
 ## The run's world, drawn at 960 x 540 and scaled up x2 without smoothing (pixel art).
 var world: Node2D
 const PIXEL_SHRINK := 2
+const BEDROOM_ZOOM := 1.22
+const BEDROOM_CAM_Y := 44.0
 
 var _wave: Dictionary
 var _time_left := 0.0
@@ -168,6 +170,11 @@ func _ready() -> void:
 	_camera = Camera2D.new()
 	_camera.position = Vector2(960, 540)
 	_camera.zoom = Vector2.ONE / PIXEL_SHRINK
+	if room.get_script() == Bedroom:
+		# Acto 1: la habitación cabe entera con un poco de zoom, así ocupa más pantalla
+		# Act 1: the bedroom still fits whole with a bit of zoom, so it fills more of the screen
+		_camera.zoom *= BEDROOM_ZOOM
+		_camera.position.y += BEDROOM_CAM_Y
 	_camera.ignore_rotation = false  # para que la cámara se ladee en el suelo inclinado / so the camera leans on the tilted floor
 	world.add_child(_camera)
 	_camera.make_current()
