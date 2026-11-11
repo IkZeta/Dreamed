@@ -433,13 +433,13 @@ func _build_nexus() -> void:
 	# El Gato Siniestro, sentado en el borde de la fuente: da consejos / The Sinister Cat, sitting on the
 	# fountain's rim: gives advice
 	var cat := c + Vector2(-34, 6)
-	_spots.append({"kind": "npc", "id": "cat", "pos": cat + Vector2(-26, 18), "height": 92.0})
+	_spots.append({"kind": "npc", "id": "cat", "pos": cat + Vector2(-22, 16), "height": 62.0})
 	_prop(cat, func(ci: CanvasItem) -> void:
 		_draw_npc(ci, "cat", Vector2(0, -12), false, {"fade": true})
 		# «!» cuando tiene un consejo nuevo / "!" when he has new advice
 		if _cat_news:
 			var up := absf(sin(_t * 3.0)) * 3.0
-			var r := Rect2(Vector2(-6, -112 - up), Vector2(12, 16))
+			var r := Rect2(Vector2(-6, -72 - up), Vector2(12, 16))
 			ci.draw_rect(r.grow(1), Color(0.1, 0.08, 0.2, 0.7))
 			ci.draw_rect(r, Color("fbf8ff"))
 			ci.draw_rect(Rect2(r.position + Vector2(5, 3), Vector2(2, 7)), NpcArt.CAT_AURA.darkened(0.3))

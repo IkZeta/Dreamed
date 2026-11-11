@@ -3345,69 +3345,53 @@ def lynx():
 
 
 def sinister_cat():
-    """El Gato Siniestro, consejero del plano astral: un gato larguirucho sentado, de pelo azul
-    noche con rayas oscuras y motas de estrella, orejas enormes y mejillas de punta. Los ojos y la
-    sonrisa se pintan aparte (NpcArt._cat) porque son lo único que queda cuando se desvanece. La
-    cola va aparte para menearla.
-    The Sinister Cat, the astral plane's adviser: a lanky sitting cat with night-blue fur, dark
-    stripes and star specks, huge ears and pointed cheeks. The eyes and grin are painted apart
-    (NpcArt._cat) because they're all that's left when he fades away. The tail is apart so it can
-    swish."""
-    F0, F1, F2, F3, F4 = "#1b1538", "#2e2660", "#41378a", "#5a4cb0", "#7a6ad0"
-    EAR, NOSE = "#c86a9a", "#e88ab8"
-    STAR, GOLD = "#9be3ff", "#f6d993"
+    """El Gato Siniestro, consejero de los sueños: un gato pequeñito y cabezón (proporciones de
+    Kroker, la mitad de alto), de pelo ciruela casi negro con rayas turquesa, orejas grandes y
+    mejillas de punta. Se sienta con la cola enroscada en forma de interrogación. Los ojos y la
+    sonrisa se pintan aparte (NpcArt._cat) porque son lo último que se desvanece.
+    The Sinister Cat, the dreams' adviser: a tiny big-headed cat (Kroker's proportions, half as
+    tall), with near-black plum fur, turquoise stripes, big ears and pointed cheeks. He sits with
+    his tail curled into a question mark. The eyes and grin are painted apart (NpcArt._cat)
+    because they're the last thing to fade."""
+    F0, F1, F2, F3 = "#1e1226", "#2e1d38", "#432a50", "#5c3d6a"
+    ST, ST2 = "#4fd6c0", "#2f9c8c"
+    EAR, NOSE = "#d46a9f", "#ff8ac0"
     b = ""
-    # Ancas / Haunches
-    b += flat(ellipse_d(100, 246, 52, 40), F2)
-    b += flat("M118,210 Q152,222 152,248 Q152,282 112,286 Q140,268 138,244 Q136,222 118,210 Z", F1)
-    b += flat("M56,232 Q60,214 78,208 L80,214 Q66,220 62,236 Z", F3)
-    # Rayas de las ancas / Haunch stripes
-    for (x, y, w) in ((58, 238, 16), (62, 254, 14), (140, 236, -16), (138, 254, -14)):
-        b += flat("M%g,%g Q%g,%g %g,%g L%g,%g Q%g,%g %g,%g Z" % (x, y, x + w * 0.6, y - 6, x + w, y + 2, x + w, y + 6, x + w * 0.6, y - 1, x, y + 4), F0)
-    # Pecho / Chest
-    b += flat(ellipse_d(100, 186, 34, 56), F2)
-    b += flat("M112,134 Q136,150 134,190 Q132,226 112,240 Q124,212 124,186 Q124,156 112,134 Z", F1)
-    b += flat(ellipse_d(98, 196, 15, 34), F3)
-    b += flat(ellipse_d(95, 182, 7, 18), F4)
-    # Patas delanteras con rayas / Striped front legs
-    for x in (78, 106):
-        b += flat("M%g,204 L%g,204 L%g,280 L%g,280 Z" % (x, x + 16, x + 16, x), F2 if x == 78 else F1)
-        b += flat("M%g,206 L%g,206 L%g,278 L%g,278 Z" % (x + 2, x + 6, x + 6, x + 2), F3 if x == 78 else F2)
-        for y in (226, 244, 262):
-            b += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y, x + 16, y - 2, x + 16, y + 3, x, y + 5), F0)
-        b += flat(ellipse_d(x + 8, 282, 12, 7), F3 if x == 78 else F2)
-        for k in (-4, 0, 4):
-            b += flat("M%g,280 L%g,286 L%g,286 Z" % (x + 8 + k, x + 7 + k, x + 9 + k), F0)
-    # Orejas enormes / Huge ears
-    b += flat("M56,96 L60,24 L96,70 Z", F2) + flat("M144,96 L140,24 L104,70 Z", F1)
-    b += flat("M64,86 L65,40 L88,70 Z", EAR) + flat("M136,86 L135,40 L112,70 Z", "#a85a86")
-    b += flat("M60,24 L62,16 L66,30 Z", F2) + flat("M140,24 L138,16 L134,30 Z", F1)
-    # Cabeza ancha con mejillas de punta / Wide head with pointed cheeks
-    b += flat(ellipse_d(100, 104, 48, 38), F2)
-    b += flat("M58,104 L40,126 L64,124 Z", F2) + flat("M142,104 L160,126 L136,124 Z", F1)
-    b += flat("M54,116 L42,124 L60,122 Z", F3)
-    b += flat("M118,72 Q148,84 148,106 Q148,134 116,142 Q134,128 136,106 Q136,86 118,72 Z", F1)
-    b += flat("M64,86 Q74,72 92,68 L92,73 Q76,78 68,90 Z", F3)
-    # Rayas de la frente y las mejillas / Forehead and cheek stripes
-    b += flat("M100,68 L96,86 L104,86 Z", F0)
-    b += flat("M86,70 L84,82 L90,80 Z", F0) + flat("M114,70 L116,82 L110,80 Z", F0)
-    b += flat("M52,110 L66,108 L64,112 Z", F0) + flat("M148,110 L134,108 L136,112 Z", F0)
+    # Cuerpo sentado, en forma de pera / Sitting, pear-shaped body
+    b += flat(ellipse_d(100, 256, 36, 32), F2)
+    b += flat("M114,228 Q140,238 138,262 Q136,286 108,288 Q126,272 126,256 Q126,238 114,228 Z", F1)
+    b += flat("M68,248 Q70,234 84,228 L86,232 Q74,240 72,252 Z", F3)
+    b += flat(ellipse_d(98, 262, 15, 20), F3)
+    # Rayas turquesa en los costados / Turquoise stripes on the flanks
+    for (x, y, w) in ((66, 252, 12), (68, 266, 11), (134, 252, -12), (132, 266, -11)):
+        b += flat("M%g,%g Q%g,%g %g,%g L%g,%g Q%g,%g %g,%g Z" % (x, y, x + w * 0.5, y - 4, x + w, y + 1, x + w, y + 5, x + w * 0.5, y + 1, x, y + 4), ST if w > 0 else ST2)
+    # Patitas delanteras / Little front paws
+    for x, c in ((88, F3), (112, F2)):
+        b += flat(ellipse_d(x, 283, 10, 6), c)
+        b += flat("M%g,284 L%g,284 L%g,288 Z" % (x - 1, x + 1, x), F0)
+    # Orejas grandes, algo abiertas / Big ears, slightly splayed
+    b += flat("M60,186 L52,128 L92,164 Z", F2) + flat("M140,186 L148,128 L108,164 Z", F1)
+    b += flat("M64,176 L59,140 L86,164 Z", EAR) + flat("M136,176 L141,140 L114,164 Z", "#a8507c")
+    b += flat("M52,128 L50,120 L57,134 Z", F2) + flat("M148,128 L150,120 L143,134 Z", F1)
+    # Cabeza grande con mejillas de punta / Big head with pointed cheeks
+    b += flat(ellipse_d(100, 198, 44, 34), F2)
+    b += flat("M60,198 L44,216 L66,214 Z", F2) + flat("M140,198 L156,216 L134,214 Z", F1)
+    b += flat("M118,168 Q144,178 144,198 Q144,224 114,232 Q132,218 134,198 Q134,180 118,168 Z", F1)
+    b += flat("M64,184 Q72,170 90,166 L90,171 Q76,174 68,188 Z", F3)
+    # Rayas turquesa de la frente y las mejillas / Turquoise forehead and cheek stripes
+    b += flat("M100,166 L96,180 L104,180 Z", ST)
+    b += flat("M86,168 L83,178 L89,177 Z", ST) + flat("M114,168 L117,178 L111,177 Z", ST2)
+    b += flat("M50,206 L62,203 L61,208 Z", ST) + flat("M150,206 L138,203 L139,208 Z", ST2)
     # Hocico y nariz / Muzzle and nose
-    b += flat(ellipse_d(100, 118, 16, 9), F3)
-    b += flat("M95,110 L105,110 L100,116 Z", NOSE)
-    # Motas de estrella en el pelo / Star specks in the fur
-    for (x, y, c) in ((70, 160, STAR), (126, 176, GOLD), (82, 230, STAR), (120, 252, GOLD), (110, 92, STAR), (72, 120, GOLD)):
-        b += flat(ellipse_d(x, y, 1.8, 1.8), c)
-    add("npc_cat", 36, 12, 128, 280, b, px=PX_NPC, flat=True)
-    # Cola: sale de la anca derecha, sube y se enrosca en la punta; se gira desde (138, 270)
-    # Tail: comes out of the right haunch, rises and curls at the tip; it swings from (138, 270)
-    t = flat("M132,274 Q170,276 176,236 Q180,206 168,186 Q160,174 166,164 Q178,156 184,168 L178,172 Q174,166 172,172 Q170,180 178,194 Q192,222 184,250 Q174,286 134,284 Z", F2)
-    t += flat("M172,240 Q178,212 172,194 L178,196 Q186,220 180,244 Z", F1)
-    for y in (196, 222, 250):
-        t += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (166, y, 186, y - 4, 188, y + 2, 168, y + 6), F0)
-    t += flat(ellipse_d(176, 164, 5, 5), F4)
-    add("npc_cat_tail", 124, 150, 72, 140, t, px=PX_NPC, flat=True)
-
+    b += flat("M95,204 L105,204 L100,209 Z", NOSE)
+    add("npc_cat", 40, 112, 120, 180, b, px=PX_NPC, flat=True)
+    # Cola enroscada en interrogación, por detrás a la derecha; gira desde (128, 276)
+    # Tail curled into a question mark, behind on the right; swings from (128, 276)
+    t = flat("M124,284 Q156,286 160,256 Q164,228 152,214 Q140,200 150,186 Q162,174 172,188 Q176,196 170,200 L164,196 Q166,190 160,188 Q154,190 158,204 Q174,226 168,260 Q160,294 124,292 Z", F2)
+    t += flat("M160,256 Q164,232 156,216 L162,214 Q172,232 166,258 Z", F1)
+    for (x, y) in ((150, 214), (158, 236), (156, 262), (162, 190)):
+        t += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x - 6, y, x + 7, y - 3, x + 8, y + 2, x - 5, y + 5), ST)
+    add("npc_cat_tail", 118, 168, 62, 128, t, px=PX_NPC, flat=True)
 
 def act2_npcs():
     charo_body(False)

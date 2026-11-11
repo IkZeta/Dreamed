@@ -417,8 +417,16 @@ func tip(id: String) -> void:
 		return
 	stats["tip_" + id] = 1
 	save_progress()
-	# Los consejos los da el Gato Siniestro, con su cara / Tips come from the Sinister Cat, with his face
-	note(tr("CAT_WHISPERS"), Settings.controls_text(tr("TIP_" + id.to_upper())), NpcArt.CAT_AURA, 7.0, "ui_click", "cat")
+	# Los consejos los da el Gato Siniestro: en un sueño aparece en persona al lado de Kroker y se
+	# lo dice en un bocadillo; fuera de los sueños, un cartel con su cara
+	# Tips come from the Sinister Cat: in a dream he shows up in person beside Kroker and says it in
+	# a speech bubble; outside dreams, a note with his face
+	var text := Settings.controls_text(tr("TIP_" + id.to_upper()))
+	var sc := get_tree().current_scene
+	if sc is Run and is_instance_valid((sc as Run).player):
+		CatGuide.appear(sc as Run, text)
+		return
+	note(tr("CAT_WHISPERS"), text, NpcArt.CAT_AURA, 7.0, "ui_click", "cat")
 
 
 ## Cartelito genérico arriba a la derecha (logros, combos, consejos); el texto puede llevar
