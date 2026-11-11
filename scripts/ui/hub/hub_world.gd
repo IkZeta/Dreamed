@@ -639,11 +639,31 @@ func _statue(id: String, at: Vector2, boss: bool) -> void:
 		Sprites.draw(ci, "hub_pedestal")
 		ci.draw_set_transform(Vector2.ZERO))
 	if not Progress.has_seen(id):
-		# Sin ver: un signo de interrogación de piedra / Not seen yet: a stone question mark
+		# Sin ver: una estatua tapada con una sábana y una etiqueta con «?» / Not seen yet: a statue covered with a sheet and a "?" tag
 		_prop(at + Vector2(0, 0.5), func(ci: CanvasItem) -> void:
-			var f := UITheme.font("display")
-			ci.draw_string_outline(f, Vector2(-7, -24 * k), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, 4, Color("1a1024", 0.7))
-			ci.draw_string(f, Vector2(-7, -24 * k), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("8a82b2")))
+			var top := -19.0 * k
+			var h := 34.0 * k
+			var w := 13.0 * k
+			var sway := sin(_t * 0.8 + at.x) * 0.6
+			var sheet := PackedVector2Array([Vector2(-w - 2, top), Vector2(-w + 1, top - h * 0.55), Vector2(-w * 0.45 + sway, top - h * 0.92),
+				Vector2(0, top - h), Vector2(w * 0.5 + sway, top - h * 0.9), Vector2(w - 1, top - h * 0.5), Vector2(w + 2, top),
+				Vector2(w * 0.5, top - 2), Vector2(0, top + 1), Vector2(-w * 0.5, top - 2)])
+			var ink := PackedVector2Array()
+			for p in sheet:
+				ink.append(p * Vector2(1.08, 1.0) + Vector2(0, 0.5))
+			ci.draw_colored_polygon(ink, Color("1a1024"))
+			ci.draw_colored_polygon(sheet, Color("cfc8e6"))
+			# Pliegues / Folds
+			ci.draw_line(Vector2(-w * 0.35, top - h * 0.8), Vector2(-w * 0.55, top - 2), Color("a49cc8"), 1.5)
+			ci.draw_line(Vector2(w * 0.2, top - h * 0.85), Vector2(w * 0.35, top - 2), Color("a49cc8"), 1.5)
+			ci.draw_line(Vector2(-w * 0.6, top - h * 0.55), Vector2(-w * 0.2, top - h * 0.75), Color("eeeaf8"), 1.0)
+			# Etiqueta colgada con «?» / Hanging tag with "?"
+			var tag := Vector2(w * 0.55, top - h * 0.45)
+			ci.draw_line(tag + Vector2(-3, -6), tag + Vector2(0, -1), Color("6a4e36"), 1.0)
+			ci.draw_rect(Rect2(tag + Vector2(-5, -1), Vector2(10, 11)), Color("1a1024"))
+			ci.draw_rect(Rect2(tag + Vector2(-4, 0), Vector2(8, 9)), Color("f2d488"))
+			var f := UITheme.font("caps")
+			ci.draw_string(f, tag + Vector2(-2.5, 8), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color("7a2034")))
 		return
 	# La estatua va en su propio nodo, justo delante del pedestal / The statue goes in its own node, just in front of the pedestal
 	var holder := Node2D.new()
