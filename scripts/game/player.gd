@@ -131,9 +131,29 @@ func flying() -> bool:
 
 ## Kroker convertido: el animal de la forma, con la segunda arma flotando encima con un brillo verde
 ## Kroker transformed: the form's animal, with the second weapon floating above in a green glow
-func _draw_animal(dr: WeaponDruid) -> void:
+func _draw_animal(dr: WeaponDruid, sx: float, sy: float) -> void:
+	# Transformación: la forma de antes (o Kroker) se encoge con un destello y sale la nueva
+	# Transformation: the old form (or Kroker) shrinks with a flash and the new one comes out
+	var m := dr.morph
+	if m > 0.0:
+		var glow := 1.0 - absf(m - 0.5) * 2.0
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-90, -170), Vector2(180, 190)), false, Color(WeaponDruid.COLORS[dr.form].lightened(0.3), 0.55 * glow))
+	if m > 0.5:
+		var k := (m - 0.5) / 0.5      # 1 → 0
+		var sc := 0.25 + 0.75 * k * k
+		var fl := maxf(_flash, 1.0 - k)
+		if dr.morph_from == "":
+			KrokerArt.draw(self, Transform2D(0.0, Vector2(sx * sc, sy * sc), 0.0, Vector2(-200.0 * sx * sc / 2.0, -288.0 * sy * sc)),
+				outfit, _t, {"facing": _facing, "flash": fl, "armed": false, "druid": _druid_color()})
+		else:
+			DruidArt.draw(self, Vector2.ZERO, dr.morph_from, _t, {"facing": _facing, "flash": fl, "scale": sc})
+		return
+	var grow := 1.0 if m <= 0.0 else 0.25 + 0.75 * (1.0 - m / 0.5)
+	# Un rebote al salir / A bounce as it comes out
+	var pop := 1.0 + 0.12 * sin(clampf(1.0 - m / 0.5, 0.0, 1.0) * PI) if m > 0.0 else 1.0
 	DruidArt.draw(self, Vector2.ZERO, dr.form, _t, {"facing": _facing, "walk": _walk, "moving": _moving,
-		"attack": attack_anim, "roar": dr.roar_anim, "pounce": dr.pounce_anim, "flash": _flash})
+		"attack": attack_anim, "roar": dr.roar_anim, "pounce": dr.pounce_anim, "flash": maxf(_flash, m * 1.1),
+		"scale": grow * pop})
 	if weapon2 == null or weapon_stunk(weapon2):
 		return
 	var at: Vector2 = DruidArt.HELD_AT[dr.form] * Vector2(_facing, 1.0) + Vector2(0, sin(_t * 2.0) * 4.0)
@@ -516,8 +536,8 @@ func _draw() -> void:
 	# Con el collar de druida puesto (arma principal), Kroker ES el animal / With the druid collar as
 	# the main weapon, Kroker IS the animal
 	var dr := druid()
-	if alive and armed and dr != null and dr == weapon and not weapon_stunk(dr):
-		_draw_animal(dr)
+	if alive and dr != null and dr == weapon and dr.transformed and not weapon_stunk(dr):
+		_draw_animal(dr, sx, sy)
 		if run.running:
 			# Los anillos de carga: los del collar en el lomo; los de la segunda arma, junto a ella
 			# Charge rings: the collar's on the back; the second weapon's, next to it

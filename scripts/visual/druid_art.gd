@@ -26,7 +26,8 @@ const RING_AT := {"bear": Vector2(-62, -96), "panther": Vector2(-62, -78), "vult
 static func draw(ci: CanvasItem, at: Vector2, form: String, t: float, opts := {}) -> void:
 	_ci = ci
 	var facing: float = opts.get("facing", 1.0)
-	_base = Transform2D(0.0, Vector2(facing, 1.0), 0.0, at)
+	var sc: float = opts.get("scale", 1.0)
+	_base = Transform2D(0.0, Vector2(facing * sc, sc), 0.0, at)
 	_mod = Sprites.flash_color(float(opts.get("flash", 0.0)), float(opts.get("alpha", 1.0)))
 	if opts.get("ghost", false):
 		_mod = Color(0.75, 1.0, 0.95, 0.55 * float(opts.get("alpha", 1.0)))

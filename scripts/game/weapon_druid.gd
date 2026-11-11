@@ -11,7 +11,7 @@ extends Weapon
 ##     pista y ni le tocan ni disparan; se rompe si le dan. El primer zarpazo es una EMBOSCADA
 ##     (×3 y sangrado), y cada baja prepara otra (como mucho una vez cada 5 s). Si no hay nadie
 ##     a mano, la pantera SALTA sobre uno que esté más lejos.
-##  Buitre (vuelo) — picotazos de lejos al que menos vida le queda y REMATA a los que bajan del
+##  Buitre (vuelo) — picotazos cuerpo a cuerpo al de al lado con menos vida y REMATA a los que bajan del
 ##     15 % (curando). Kroker LEVITA: pasa por encima de muebles, escombros y charcos, y los sismos
 ##     no le pillan. Cada 8 s hace RAPIÑA: agarra a un enemigo ligero (no élite ni jefe) y lo suelta
 ##     encima del agujero más cercano.
@@ -27,7 +27,7 @@ extends Weapon
 ##     nor shoot; getting hit breaks it. The first swipe is an AMBUSH (×3 and bleeding), and each
 ##     kill readies another (at most once every 5 s). With nobody at hand, the panther LEAPS on
 ##     someone further off.
-##  Vulture (flight) — pecks from afar at whoever has the least health left and FINISHES OFF those
+##  Vulture (flight) — melee pecks at whoever beside him has the least health left and FINISHES OFF those
 ##     under 15% (healing). Kroker HOVERS: over furniture, rubble and puddles, and quakes don't
 ##     catch him. Every 8 s it SNATCHES a light enemy (not elites or bosses) and drops it over the
 ##     nearest hole.
@@ -68,7 +68,7 @@ const AMBUSH_BLEED := Vector2(2.0, 3.0)   # daño por segundo, segundos / damage
 const POUNCE_RANGE := 280.0
 const POUNCE_CD := 2.5
 # Buitre / Vulture
-const VULTURE_RANGE := 300.0
+const VULTURE_RANGE := 135.0     # cuerpo a cuerpo: picotea a los de al lado / melee: pecks those beside him
 const VULTURE_CD := 0.75
 const VULTURE_DMG := 5.0
 const EXECUTE := 0.15
@@ -83,6 +83,7 @@ const SILLY_RADIUS := 240.0
 var form := "bear"
 var _form_t := FORM_TIME
 var _idx := 0
+var _was_animal := false
 ## Espíritu: dónde está (relativo a Kroker), hacia dónde se lanza y cómo de visible está
 ## Spirit: where it is (relative to Kroker), where it lunges and how visible it is
 var _spirit := Vector2(-60, 4)
@@ -94,6 +95,16 @@ var _t := 0.0
 ## Animaciones del animal cuando Kroker es el animal / The animal's animations when Kroker is the animal
 var roar_anim := 0.0
 var pounce_anim := 0.0
+## Kroker empieza cada sueño siendo él y se transforma nada más empezar la oleada; en cada cambio
+## de forma hay una pequeña transformación (morph 1 → 0: la forma de antes se encoge entre hojas
+## y sale la nueva). morph_from = "" es el Kroker humano.
+## Kroker starts every dream as himself and transforms as soon as the wave begins; every form
+## change has a little transformation (morph 1 → 0: the old form shrinks into leaves and the new
+## one comes out). morph_from = "" is human Kroker.
+var transformed := false
+var morph := 0.0
+var morph_from := ""
+const MORPH_SPEED := 2.2
 # Oso / Bear
 var _guard_t := 0.0              # 0 = pelaje listo / 0 = fur ready
 var _guard_fx := 0.0
@@ -132,6 +143,10 @@ func _physics_process(delta: float) -> void:
 	_guard_fx = maxf(0.0, _guard_fx - delta * 2.5)
 	roar_anim = maxf(0.0, roar_anim - delta * 1.6)
 	pounce_anim = maxf(0.0, pounce_anim - delta * 4.0)
+	morph = maxf(0.0, morph - delta * MORPH_SPEED)
+	if run.running and player.alive and not transformed:
+		transformed = true
+		_set_form(form, true)
 	if run.running and player.alive:
 		_form_t -= delta
 		_stealth_cd = maxf(0.0, _stealth_cd - delta)
@@ -161,13 +176,18 @@ func _physics_process(delta: float) -> void:
 
 
 func _set_form(f: String, announce: bool) -> void:
+	if announce:
+		morph_from = form if _was_animal else ""
+		morph = 1.0
+		_was_animal = true
 	form = f
 	_form_t = FORM_TIME
 	cooldown = {"bear": BEAR_CD, "panther": CAT_CD, "vulture": VULTURE_CD}[f]
 	_timer = minf(_timer, 0.3)
-	player.form_speed = {"bear": BEAR_SPEED, "panther": CAT_SPEED, "vulture": 1.0}[f]
-	player.form_armor = BEAR_ARMOR if f == "bear" else 0.0
-	player.form_hover = f == "vulture"
+	# Hasta que empieza la oleada sigue siendo Kroker, sin nada de la forma / Until the wave starts he's still Kroker, with nothing of the form
+	player.form_speed = {"bear": BEAR_SPEED, "panther": CAT_SPEED, "vulture": 1.0}[f] if transformed else 1.0
+	player.form_armor = BEAR_ARMOR if f == "bear" and transformed else 0.0
+	player.form_hover = f == "vulture" and transformed
 	player.stealth_t = 0.0
 	_guard_t = 0.0
 	_pounce_t = 0.0
@@ -260,11 +280,10 @@ func _panther() -> bool:
 	_strike(target, dir, 1.0 if pounce else 0.7, 300.0 if pounce else 90.0)
 	if pounce:
 		_pounce_t = POUNCE_CD
-		# Si Kroker es la pantera, salta él mismo hasta su presa / If Kroker is the panther, he leaps onto the prey himself
-		if primary:
-			var gap := maxf(0.0, _body(target).distance_to(origin()) - 60.0)
-			player.dash(dir * 1100.0, gap / 1100.0)
-			pounce_anim = 1.0
+		# Una zarpa de sombra salta hasta la presa (Kroker no se mueve: así no pierdes el control)
+		# A shadow claw leaps onto the prey (Kroker doesn't move: so you never lose control)
+		pounce_anim = 1.0
+		run.fx.bolt(PackedVector2Array([origin(), _body(target)]), COLORS["panther"].darkened(0.3))
 		run.fx.swing(_body(target), 40.0, dir.angle(), 0.9, COLORS["panther"], 4.0)
 	for k in 3:
 		run.fx.swing(_body(target), 26.0 + k * 4.0, dir.angle() + 1.2 + k * 0.25, 0.5, COLORS["panther"], 2.0)
@@ -321,7 +340,7 @@ func _vulture() -> bool:
 		deal(best, VULTURE_DMG * _mult(), dir * 40.0)
 	_bounce(best, VULTURE_DMG)
 	_strike(best, dir, 0.9)
-	run.fx.bolt(PackedVector2Array([player.global_position + _spirit, _body(best)]), COLORS["vulture"])
+	run.fx.swing(_body(best), 22.0, dir.angle(), 0.8, COLORS["vulture"], 3.0)
 	Audio.play("peck", -8.0, 0.1)
 	return true
 
@@ -537,7 +556,7 @@ func _draw() -> void:
 	# Si el collar es el arma principal, Kroker ya es el animal: aquí solo van las hojas del cambio
 	# y el buitre fantasma de la rapiña / If the collar is the main weapon, Kroker already is the
 	# animal: here only the shifting leaves and the snatch's ghost vulture
-	if primary and player.armed:
+	if primary:
 		if _carry_phase != "":
 			var face := signf(_carry_to.x - _bird.x) if absf(_carry_to.x - _bird.x) > 4.0 else 1.0
 			DruidArt.draw(self, _spirit + Vector2(0, 70), "vulture", _t, {"ghost": true, "facing": face, "attack": 0.0})
