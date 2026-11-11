@@ -3344,6 +3344,71 @@ def lynx():
     add("npc_lynx_arm", 44, 100, 120, 116, a, px=PX_NPC, flat=True)
 
 
+def sinister_cat():
+    """El Gato Siniestro, consejero del plano astral: un gato larguirucho sentado, de pelo azul
+    noche con rayas oscuras y motas de estrella, orejas enormes y mejillas de punta. Los ojos y la
+    sonrisa se pintan aparte (NpcArt._cat) porque son lo único que queda cuando se desvanece. La
+    cola va aparte para menearla.
+    The Sinister Cat, the astral plane's adviser: a lanky sitting cat with night-blue fur, dark
+    stripes and star specks, huge ears and pointed cheeks. The eyes and grin are painted apart
+    (NpcArt._cat) because they're all that's left when he fades away. The tail is apart so it can
+    swish."""
+    F0, F1, F2, F3, F4 = "#1b1538", "#2e2660", "#41378a", "#5a4cb0", "#7a6ad0"
+    EAR, NOSE = "#c86a9a", "#e88ab8"
+    STAR, GOLD = "#9be3ff", "#f6d993"
+    b = ""
+    # Ancas / Haunches
+    b += flat(ellipse_d(100, 246, 52, 40), F2)
+    b += flat("M118,210 Q152,222 152,248 Q152,282 112,286 Q140,268 138,244 Q136,222 118,210 Z", F1)
+    b += flat("M56,232 Q60,214 78,208 L80,214 Q66,220 62,236 Z", F3)
+    # Rayas de las ancas / Haunch stripes
+    for (x, y, w) in ((58, 238, 16), (62, 254, 14), (140, 236, -16), (138, 254, -14)):
+        b += flat("M%g,%g Q%g,%g %g,%g L%g,%g Q%g,%g %g,%g Z" % (x, y, x + w * 0.6, y - 6, x + w, y + 2, x + w, y + 6, x + w * 0.6, y - 1, x, y + 4), F0)
+    # Pecho / Chest
+    b += flat(ellipse_d(100, 186, 34, 56), F2)
+    b += flat("M112,134 Q136,150 134,190 Q132,226 112,240 Q124,212 124,186 Q124,156 112,134 Z", F1)
+    b += flat(ellipse_d(98, 196, 15, 34), F3)
+    b += flat(ellipse_d(95, 182, 7, 18), F4)
+    # Patas delanteras con rayas / Striped front legs
+    for x in (78, 106):
+        b += flat("M%g,204 L%g,204 L%g,280 L%g,280 Z" % (x, x + 16, x + 16, x), F2 if x == 78 else F1)
+        b += flat("M%g,206 L%g,206 L%g,278 L%g,278 Z" % (x + 2, x + 6, x + 6, x + 2), F3 if x == 78 else F2)
+        for y in (226, 244, 262):
+            b += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x, y, x + 16, y - 2, x + 16, y + 3, x, y + 5), F0)
+        b += flat(ellipse_d(x + 8, 282, 12, 7), F3 if x == 78 else F2)
+        for k in (-4, 0, 4):
+            b += flat("M%g,280 L%g,286 L%g,286 Z" % (x + 8 + k, x + 7 + k, x + 9 + k), F0)
+    # Orejas enormes / Huge ears
+    b += flat("M56,96 L60,24 L96,70 Z", F2) + flat("M144,96 L140,24 L104,70 Z", F1)
+    b += flat("M64,86 L65,40 L88,70 Z", EAR) + flat("M136,86 L135,40 L112,70 Z", "#a85a86")
+    b += flat("M60,24 L62,16 L66,30 Z", F2) + flat("M140,24 L138,16 L134,30 Z", F1)
+    # Cabeza ancha con mejillas de punta / Wide head with pointed cheeks
+    b += flat(ellipse_d(100, 104, 48, 38), F2)
+    b += flat("M58,104 L40,126 L64,124 Z", F2) + flat("M142,104 L160,126 L136,124 Z", F1)
+    b += flat("M54,116 L42,124 L60,122 Z", F3)
+    b += flat("M118,72 Q148,84 148,106 Q148,134 116,142 Q134,128 136,106 Q136,86 118,72 Z", F1)
+    b += flat("M64,86 Q74,72 92,68 L92,73 Q76,78 68,90 Z", F3)
+    # Rayas de la frente y las mejillas / Forehead and cheek stripes
+    b += flat("M100,68 L96,86 L104,86 Z", F0)
+    b += flat("M86,70 L84,82 L90,80 Z", F0) + flat("M114,70 L116,82 L110,80 Z", F0)
+    b += flat("M52,110 L66,108 L64,112 Z", F0) + flat("M148,110 L134,108 L136,112 Z", F0)
+    # Hocico y nariz / Muzzle and nose
+    b += flat(ellipse_d(100, 118, 16, 9), F3)
+    b += flat("M95,110 L105,110 L100,116 Z", NOSE)
+    # Motas de estrella en el pelo / Star specks in the fur
+    for (x, y, c) in ((70, 160, STAR), (126, 176, GOLD), (82, 230, STAR), (120, 252, GOLD), (110, 92, STAR), (72, 120, GOLD)):
+        b += flat(ellipse_d(x, y, 1.8, 1.8), c)
+    add("npc_cat", 36, 12, 128, 280, b, px=PX_NPC, flat=True)
+    # Cola: sale de la anca derecha, sube y se enrosca en la punta; se gira desde (138, 270)
+    # Tail: comes out of the right haunch, rises and curls at the tip; it swings from (138, 270)
+    t = flat("M132,274 Q170,276 176,236 Q180,206 168,186 Q160,174 166,164 Q178,156 184,168 L178,172 Q174,166 172,172 Q170,180 178,194 Q192,222 184,250 Q174,286 134,284 Z", F2)
+    t += flat("M172,240 Q178,212 172,194 L178,196 Q186,220 180,244 Z", F1)
+    for y in (196, 222, 250):
+        t += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (166, y, 186, y - 4, 188, y + 2, 168, y + 6), F0)
+    t += flat(ellipse_d(176, 164, 5, 5), F4)
+    add("npc_cat_tail", 124, 150, 72, 140, t, px=PX_NPC, flat=True)
+
+
 def act2_npcs():
     charo_body(False)
     charo_body(True)
@@ -3380,6 +3445,7 @@ def build():
     act3_enemies()
     botcher()
     druid_spirits()
+    sinister_cat()
     ufo()
     elite_horn()
     cyberpunk()

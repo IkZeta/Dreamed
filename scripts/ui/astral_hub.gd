@@ -383,10 +383,11 @@ func _open(spot: Dictionary) -> void:
 func _speaker(id: String) -> void:
 	_box_title.text = tr("CHARO_NAME") if id == "charo" else tr("GIVER_%s_NAME" % id.to_upper())
 	_box_role.text = tr("CHARS_CHARO_ROLE") if id == "charo" else tr("GIVER_%s_ROLE" % id.to_upper())
-	_box_hearts.visible = true
-	_box_hearts.color = HubLayout.ISLES[id]["aura"]
+	# El Gato no tiene isla ni amistad: aconseja a todos por igual / The Cat has no island or friendship: he advises everyone alike
+	var aura: Color = NpcArt.CAT_AURA if id == "cat" else HubLayout.ISLES[id]["aura"]
+	_box_hearts.visible = id != "cat"
+	_box_hearts.color = aura
 	_box_hearts.set_level(Progress.friend_level(id))
-	var aura: Color = HubLayout.ISLES[id]["aura"]
 	_portrait.who = id
 	_portrait.aura = aura
 	_portrait.pop()
@@ -406,6 +407,8 @@ func _chat_line() -> void:
 ## Cada vez que hablas con alguien dice otra cosa, de las que ya te ha contado por amistad
 ## Each time you talk to someone they say something else, from what friendship has unlocked
 func _next_line(id: String) -> String:
+	if id == "cat":
+		return CatAdvice.next_line()
 	# Primero, qué tal fue el último sueño / First, how the last dream went
 	var react := Progress.run_reaction(id)
 	if react != "":
@@ -428,6 +431,7 @@ func _next_line(id: String) -> String:
 
 func _close_box() -> void:
 	_talking = {}
+	_world._cat_news = CatAdvice.has_new()
 	_box.visible = false
 	_box_deco.visible = false
 	_typing = false

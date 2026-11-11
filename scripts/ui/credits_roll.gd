@@ -11,7 +11,7 @@ signal closed
 
 const SPEED := 46.0          # px/s
 const FAST := 6.0            # multiplicador al mantener / multiplier while held
-const CAST: Array[String] = ["charo", "svinho", "stolk", "silly", "doc", "ad", "pinche", "magnus", "superk", "lilkey", "lynx"]
+const CAST: Array[String] = ["cat", "charo", "svinho", "stolk", "silly", "doc", "ad", "pinche", "magnus", "superk", "lilkey", "lynx"]
 
 var _col: VBoxContainer
 var _scroll := 0.0

@@ -797,7 +797,23 @@ def giver_lynx():
     return _motif(f, 3.2)
 
 
-GIVERS = {"giver_svinho": giver_svinho, "giver_stolk": giver_stolk, "giver_silly": giver_silly, "giver_doc": giver_doc,
+def giver_cat():
+    """El Gato Siniestro: notas de celesta que bajan de lado (tonos enteros, algo traviesas),
+    un pizzicato grave que se escabulle y un ronroneo suave debajo.
+    The Sinister Cat: celesta notes slinking down sideways (whole tones, a bit mischievous), a
+    low pizzicato sneaking off and a soft purr underneath."""
+    def f(x):
+        for at, n in ((0.0, 80), (0.22, 78), (0.44, 76), (0.66, 74), (1.1, 82)):
+            place(x, vibes(midi(n), 1.6, 0.15), at, 0.2)
+        for at, n in ((0.0, 44), (0.33, 46), (0.66, 48)):
+            place(x, pluck(midi(n), 0.6, 0.22, 0.1, 0.99), at, -0.2)
+        t = np.arange(int(SR * 1.6)) / SR
+        purr = lp(noise(1.6), 300) * (0.5 + 0.5 * np.sin(2 * np.pi * 24 * t)) * np.sin(np.pi * t / 1.6) * 0.12
+        place(x, purr, 0.2, 0.0, human=False)
+    return _motif(f, 2.4)
+
+
+GIVERS = {"giver_cat": giver_cat, "giver_svinho": giver_svinho, "giver_stolk": giver_stolk, "giver_silly": giver_silly, "giver_doc": giver_doc,
           "giver_ad": giver_ad, "giver_pinche": giver_pinche, "giver_charo": giver_charo, "giver_magnus": giver_magnus,
           "giver_superk": giver_superk, "giver_lilkey": giver_lilkey, "giver_lynx": giver_lynx}
 

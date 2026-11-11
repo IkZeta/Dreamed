@@ -30,6 +30,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float, opts :=
 		"superk": _superk(t, opts)
 		"lilkey": _lilkey(t, opts)
 		"lynx": _lynx(t, opts)
+		"cat": _cat(t, opts)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
@@ -369,3 +370,86 @@ static func _lynx(t: float, opts := {}) -> void:
 		for i in 3:
 			var k := fposmod(t * 3.0 + i / 3.0, 1.0)
 			_ci.draw_arc(tip, 8.0 + k * 24.0, arm + PI * 0.5 - 0.6, arm + PI * 0.5 + 0.6, 8, Color(1, 1, 1, 0.7 * (1.0 - k)), 2.0)
+
+
+# --- El Gato Siniestro / The Sinister Cat ------------------------------------------------
+
+const CAT_AURA := Color("b98cff")
+const CAT_EYE := Color("ffd75e")
+const CAT_TAIL_PIVOT := Vector2(138, 270)
+const CAT_FADE_EVERY := 11.0
+
+
+## Cuánto se ve el cuerpo del gato (1 = entero, 0 = solo ojos y sonrisa): de vez en cuando se
+## desvanece y vuelve / How much of the cat's body shows (1 = all of it, 0 = just eyes and grin):
+## now and then he fades away and comes back
+static func cat_body_alpha(t: float) -> float:
+	var ph := fposmod(t, CAT_FADE_EVERY)
+	if ph < 7.0:
+		return 1.0
+	if ph < 8.0:
+		return 1.0 - (ph - 7.0)
+	if ph < 9.6:
+		return 0.0
+	return clampf(ph - 9.6, 0.0, 1.0)
+
+
+## opts: "fade" = se desvanece de vez en cuando (en su sitio del plano astral)
+## opts: "fade" = fades away now and then (at his spot on the astral plane)
+static func _cat(t: float, opts := {}) -> void:
+	var a := cat_body_alpha(t) if opts.get("fade", false) else 1.0
+	var col := Color(1, 1, 1, a)
+	# Cola que se menea despacio / Slowly swishing tail
+	if a > 0.0:
+		var swish := sin(t * 1.3) * 0.12 + sin(t * 3.1) * 0.03
+		_ci.draw_set_transform_matrix(_xf * Transform2D(swish, CAT_TAIL_PIVOT) * Transform2D(0.0, -CAT_TAIL_PIVOT))
+		Sprites.draw(_ci, "npc_cat_tail", col)
+		_ci.draw_set_transform_matrix(_xf)
+		Sprites.draw(_ci, "npc_cat", col)
+	# Sin cuerpo, la sonrisa flota y brilla un poco / Bodiless, the grin floats and glows a little
+	var lift := (1.0 - a) * (6.0 + sin(t * 2.0) * 3.0)
+	if a < 1.0:
+		_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(50, 70 - lift, 100, 80), false, Color(CAT_AURA, 0.25 * (1.0 - a)))
+	_cat_eyes(t, Vector2(0, -lift))
+	_cat_grin(t, Vector2(0, -lift))
+
+
+static func _cat_eyes(t: float, off: Vector2) -> void:
+	# Parpadea a ratos, despacio, como quien sabe algo / Blinks now and then, slowly, like someone who knows something
+	var bl := fposmod(t, 4.7)
+	var open := 1.0 if bl > 0.22 else absf(bl - 0.11) / 0.11
+	for x in [82.0, 118.0]:
+		var c := Vector2(x, 98) + off
+		_ci.draw_colored_polygon(_ellipse(c, Vector2(10, 8.0 * open + 1.0)), Color("1b1538"))
+		if open > 0.2:
+			_ci.draw_colored_polygon(_ellipse(c, Vector2(8.5, 6.5 * open)), CAT_EYE)
+			_ci.draw_rect(Rect2(c.x - 1.5, c.y - 6.0 * open, 3.0, 12.0 * open), Color("1b1538"))
+			_ci.draw_rect(Rect2(c.x - 5.0, c.y - 4.0 * open, 2.0, 2.0), Color(1, 1, 1, 0.9))
+
+
+## Sonrisa enorme de oreja a oreja, con dos filas de dientes / Huge ear-to-ear grin with two rows of teeth
+static func _cat_grin(t: float, off: Vector2) -> void:
+	var top := PackedVector2Array()
+	var bot := PackedVector2Array()
+	var wob := sin(t * 1.7) * 1.5
+	for i in 17:
+		var u := -1.0 + 2.0 * i / 16.0
+		var x := 100.0 + u * 38.0
+		var k := 1.0 - u * u
+		top.append(Vector2(x, 112.0 + 10.0 * k - absf(u) * wob) + off)
+		bot.append(Vector2(x, 113.0 + 30.0 * k - absf(u) * wob) + off)
+	var mouth := top.duplicate()
+	for i in range(bot.size() - 1, -1, -1):
+		mouth.append(bot[i])
+	var edge := PackedVector2Array()
+	for p in mouth:
+		edge.append(p + (p - Vector2(100, 122) - off).normalized() * 2.5)
+	_ci.draw_colored_polygon(edge, Color("1b1538"))
+	_ci.draw_colored_polygon(mouth, Color("f4f0ff"))
+	# Línea entre las dos filas y separación de los dientes / Line between the rows and gaps between teeth
+	var mid := PackedVector2Array()
+	for i in top.size():
+		mid.append(top[i].lerp(bot[i], 0.45))
+	_ci.draw_polyline(mid, Color("8a80b8"), 1.6)
+	for i in range(2, 15, 2):
+		_ci.draw_line(top[i], bot[i], Color("b8b0d8"), 1.2)

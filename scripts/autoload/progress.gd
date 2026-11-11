@@ -417,12 +417,13 @@ func tip(id: String) -> void:
 		return
 	stats["tip_" + id] = 1
 	save_progress()
-	note(tr("TIP_HEAD"), Settings.controls_text(tr("TIP_" + id.to_upper())), UITheme.MIST, 7.0, "ui_click")
+	# Los consejos los da el Gato Siniestro, con su cara / Tips come from the Sinister Cat, with his face
+	note(tr("CAT_WHISPERS"), Settings.controls_text(tr("TIP_" + id.to_upper())), NpcArt.CAT_AURA, 7.0, "ui_click", "cat")
 
 
 ## Cartelito genérico arriba a la derecha (logros, combos, consejos); el texto puede llevar
 ## palabras clave / Generic note at the top right (achievements, combos, tips); the text may carry keywords
-func note(head: String, body: String, color := UITheme.GOLD, secs := 3.0, sound := "chime") -> void:
+func note(head: String, body: String, color := UITheme.GOLD, secs := 3.0, sound := "chime", face := "") -> void:
 	if _toast == null:
 		_toast = CanvasLayer.new()
 		_toast.layer = 40
@@ -437,7 +438,17 @@ func note(head: String, body: String, color := UITheme.GOLD, secs := 3.0, sound 
 	box.offset_right = -40
 	box.offset_top = 150 + 110 * (_toast.get_child_count() - 1)
 	var v := VBoxContainer.new()
-	box.add_child(v)
+	# Con cara: medallón a la izquierda / With a face: a badge on the left
+	if face != "":
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 14)
+		box.add_child(row)
+		var badge := FaceBadge.make(face, 72)
+		badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		row.add_child(badge)
+		row.add_child(v)
+	else:
+		box.add_child(v)
 	var h := UITheme.label(head, 24, color, "caps")
 	h.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	v.add_child(h)

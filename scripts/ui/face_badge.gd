@@ -7,7 +7,7 @@ extends Control
 
 const FACE := {"svinho": Vector2(100, 62), "stolk": Vector2(100, 60), "silly": Vector2(100, 70), "doc": Vector2(100, 66),
 	"ad": Vector2(100, 64), "pinche": Vector2(100, 60), "magnus": Vector2(100, 72), "superk": Vector2(100, 58),
-	"lilkey": Vector2(100, 62), "lynx": Vector2(100, 58), "charo": Vector2(100, 74)}
+	"lilkey": Vector2(100, 62), "lynx": Vector2(100, 58), "charo": Vector2(100, 74), "cat": Vector2(100, 114)}
 
 var who := "svinho"
 
@@ -49,4 +49,6 @@ func _draw() -> void:
 
 
 func _aura() -> Color:
+	if who == "cat":
+		return NpcArt.CAT_AURA
 	return HubLayout.ISLES[who]["aura"] if HubLayout.ISLES.has(who) else UITheme.GOLD

@@ -420,12 +420,30 @@ func _shadow(ci: CanvasItem, c: Vector2, r: Vector2, a := 0.28) -> void:
 
 # --- Centro / Centre ---
 
+var _cat_news := false
+
+
 func _build_nexus() -> void:
 	var c := _isle_pos("nexus")
+	_cat_news = CatAdvice.has_new()
 	# La fuente: aquí se empieza a soñar / The fountain: this is where dreaming starts
 	_spots.append({"kind": "fountain", "id": "fountain", "pos": c + Vector2(0, 22), "height": 96.0})
 	_prop(c + Vector2(0, 2), _draw_fountain)
 	_blocks.append({"c": c + Vector2(0, -2), "r": Vector2(38, 14)})
+	# El Gato Siniestro, sentado en el borde de la fuente: da consejos / The Sinister Cat, sitting on the
+	# fountain's rim: gives advice
+	var cat := c + Vector2(-34, 6)
+	_spots.append({"kind": "npc", "id": "cat", "pos": cat + Vector2(-26, 18), "height": 92.0})
+	_prop(cat, func(ci: CanvasItem) -> void:
+		_draw_npc(ci, "cat", Vector2(0, -12), false, {"fade": true})
+		# «!» cuando tiene un consejo nuevo / "!" when he has new advice
+		if _cat_news:
+			var up := absf(sin(_t * 3.0)) * 3.0
+			var r := Rect2(Vector2(-6, -112 - up), Vector2(12, 16))
+			ci.draw_rect(r.grow(1), Color(0.1, 0.08, 0.2, 0.7))
+			ci.draw_rect(r, Color("fbf8ff"))
+			ci.draw_rect(Rect2(r.position + Vector2(5, 3), Vector2(2, 7)), NpcArt.CAT_AURA.darkened(0.3))
+			ci.draw_rect(Rect2(r.position + Vector2(5, 11), Vector2(2, 2)), NpcArt.CAT_AURA.darkened(0.3)))
 	# Atril con el álbum de pegatinas del diario, junto a la fuente / Lectern with the diary's sticker album, by the fountain
 	var lec := c + Vector2(140, 6)
 	_blocks.append({"c": lec, "r": Vector2(12, 4)})
