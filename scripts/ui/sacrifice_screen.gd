@@ -55,7 +55,7 @@ func build() -> void:
 			b.text = tr("SAC_ROW").format({
 				"giver": tr("GIVER_%s_NAME" % g.to_upper()),
 				"up": tr(GameState.upgrade_key(g, weapon, "NAME")),
-				"from": lvl, "to": lvl - 1, "n": GameState.sacrifice_value(g, weapon),
+				"from": lvl, "to": lvl - 1, "n": KioskRules.sacrifice_value(g, weapon),
 			})
 			# La cara del personaje a la izquierda / The character's face on the left
 			var badge := FaceBadge.make(g, 56.0)

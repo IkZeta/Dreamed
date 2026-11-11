@@ -234,7 +234,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 
 ## Magnus no da mejora: propone un trato / Magnus gives no upgrade: he proposes a deal
 func _deal_card(v: VBoxContainer, fig: GiverFigure) -> void:
-	_deal = GameState.roll_deal()
+	_deal = MagnusDeals.roll_deal()
 	var up_row := HBoxContainer.new()
 	var title := UITheme.label("INVEST_TITLE", 26, UITheme.GOLD)
 	title.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -242,12 +242,12 @@ func _deal_card(v: VBoxContainer, fig: GiverFigure) -> void:
 	v.add_child(up_row)
 	# Las mejoras que da, una por línea / The boosts it gives, one per line
 	var boosts := Keywords.label("", 18, GiverFigure.AURA["magnus"], "caps")
-	Keywords.set_text(boosts, GameState.deal_boosts_text(_deal, "\n"))
+	Keywords.set_text(boosts, MagnusDeals.deal_boosts_text(_deal, "\n"))
 	v.add_child(boosts)
 	var desc := Keywords.label("", 19, Color(UITheme.BONE, 0.85), "light")
 	desc.custom_minimum_size.y = 84
 	Keywords.set_text(desc, tr("INVEST_DESC").format({
-		"cost": _deal["cost"], "payout": _deal["payout"], "goal": GameState.deal_goal_text(_deal),
+		"cost": _deal["cost"], "payout": _deal["payout"], "goal": MagnusDeals.deal_goal_text(_deal),
 		"n": _deal["boosts"].size()}))
 	v.add_child(desc)
 	var b := Button.new()
@@ -306,7 +306,7 @@ func _choose(giver: String) -> void:
 		return
 	_chosen = true
 	if giver == "magnus":
-		GameState.sign_deal(_deal)
+		MagnusDeals.sign_deal(_deal)
 	elif giver == "duo":
 		GameState.add_duo(_duo)
 	else:
@@ -370,7 +370,7 @@ func _talk_scene(giver: String) -> void:
 	var weapon: String = _target.get(giver, GameState.selected_character)
 	var gift_text: String
 	if giver == "magnus":
-		gift_text = tr("INVEST_SIGNED").format({"goal": GameState.deal_goal_text(_deal)})
+		gift_text = tr("INVEST_SIGNED").format({"goal": MagnusDeals.deal_goal_text(_deal)})
 	elif is_duo:
 		gift_text = tr("DUO_GIFT").format({"up": tr("DUO_%s_NAME" % _duo.to_upper())})
 	else:

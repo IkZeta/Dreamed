@@ -76,6 +76,10 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "fever", "flag": true, "goal": 1},
 	{"id": "delirium", "flag": true, "goal": 1},
 	{"id": "daily", "flag": true, "goal": 1},
+	# Agujeros: romper torretas del Chapuzas y tirar enemigos en los Bostezos
+	# Holes: break Botcher turrets and throw enemies down Yawns
+	{"id": "turrets", "stat": "turrets", "goal": 15},
+	{"id": "yawn", "stat": "yawn_falls", "goal": 10},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4

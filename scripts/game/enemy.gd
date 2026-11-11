@@ -320,6 +320,8 @@ func can_fall() -> bool:
 func _start_fall(to: Vector2) -> void:
 	_unstick()
 	Progress.add_stat("falls")
+	if is_instance_valid(run.yawns) and run.yawns.owns(to):
+		Progress.add_stat("yawn_falls")
 	GameState.run_falls += 1
 	Progress.tip("hole")
 	_fall_from = run.clamp_to_arena(position, radius)

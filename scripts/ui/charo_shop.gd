@@ -35,7 +35,7 @@ var _done := false
 func build() -> void:
 	layer = 20
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_free_rerolls = GameState.shop_free_rerolls()
+	_free_rerolls = KioskRules.shop_free_rerolls()
 	var root := Control.new()
 	root.theme = UITheme.build()
 	add_child(root)
@@ -108,7 +108,7 @@ func build() -> void:
 	_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_row.add_theme_constant_override("separation", 22)
 	col.add_child(_row)
-	_stock(GameState.roll_wares(GameState.shop_slots()))
+	_stock(KioskRules.roll_wares(KioskRules.shop_slots()))
 
 	var gap := Control.new()
 	gap.custom_minimum_size.y = 8
@@ -140,7 +140,7 @@ func build() -> void:
 ## Llena el mostrador (los huecos vendidos se quedan como están) / Fills the counter (sold slots stay as they are)
 func _stock(wares: Array[String]) -> void:
 	var fresh := wares.duplicate()
-	var n := GameState.shop_slots()
+	var n := KioskRules.shop_slots()
 	var new_wares: Array[String] = []
 	var new_offer: Array[bool] = []
 	var new_sold: Array[bool] = []
@@ -151,7 +151,7 @@ func _stock(wares: Array[String]) -> void:
 			new_sold.append(true)
 		elif not fresh.is_empty():
 			new_wares.append(fresh.pop_front())
-			new_offer.append(GameState.roll_offer())
+			new_offer.append(KioskRules.roll_offer())
 			new_sold.append(false)
 	_wares = new_wares
 	_offer = new_offer
@@ -203,7 +203,7 @@ func _card(i: int, width: float) -> Control:
 
 
 func _price(i: int) -> int:
-	var base := GameState.ware_price(_wares[i])
+	var base := KioskRules.ware_price(_wares[i])
 	return maxi(1, roundi(base * GameState.OFFER_MULT)) if _offer[i] else base
 
 
@@ -219,18 +219,18 @@ func _give_tip() -> void:
 	var cost := Progress.tip_cost("charo")
 	if GameState.reality < cost:
 		return
-	var before_free := GameState.shop_free_rerolls()
-	var before_slots := GameState.shop_slots()
+	var before_free := KioskRules.shop_free_rerolls()
+	var before_slots := KioskRules.shop_slots()
 	GameState.add_reality(-cost)
 	Progress.add_friend("charo")
 	GameState.tipped["charo"] = true
 	_hearts.set_level(Progress.friend_level("charo"))
 	# Las ventajas nuevas valen ya / The new perks count right away
-	_free_rerolls += GameState.shop_free_rerolls() - before_free
-	if GameState.shop_slots() > before_slots:
+	_free_rerolls += KioskRules.shop_free_rerolls() - before_free
+	if KioskRules.shop_slots() > before_slots:
 		var have: Array[String] = []
 		have.assign(_wares)
-		_stock(_unsold_wares() + GameState.roll_wares(GameState.shop_slots() - _wares.size(), have))
+		_stock(_unsold_wares() + KioskRules.roll_wares(KioskRules.shop_slots() - _wares.size(), have))
 	# Solo da las gracias; el saludo nuevo, la próxima vez / She just thanks you; the new greeting comes next time
 	_line.text = "SHOP_TIP_THANKS"
 	Audio.play("reality", -2.0)
@@ -253,7 +253,7 @@ func _do_reroll() -> void:
 	if _done or _ready_t > 0.0 or _unsold_wares().is_empty():
 		return
 	if _free_rerolls <= 0:
-		var cost := GameState.reroll_price(_paid_rerolls)
+		var cost := KioskRules.reroll_price(_paid_rerolls)
 		if GameState.reality < cost:
 			return
 		GameState.add_reality(-cost)
@@ -263,7 +263,7 @@ func _do_reroll() -> void:
 	var have: Array[String] = []
 	have.assign(_wares)
 	var unsold := _unsold_wares().size()
-	_stock(GameState.roll_wares(unsold, have))
+	_stock(KioskRules.roll_wares(unsold, have))
 	Audio.play("shuffle", -4.0, 0.1)
 	Audio.play("reality", -10.0, 0.2)
 	_ready_t = 0.2
@@ -295,7 +295,7 @@ func _refresh() -> void:
 			b.text = tr("SHOP_SHORT").format({"n": cost - GameState.reality})
 			b.disabled = true
 		elif _offer[i]:
-			b.text = tr("SHOP_BUY_OFFER").format({"cost": cost, "old": GameState.ware_price(_wares[i])})
+			b.text = tr("SHOP_BUY_OFFER").format({"cost": cost, "old": KioskRules.ware_price(_wares[i])})
 			b.disabled = false
 		else:
 			b.text = tr("SHOP_BUY").format({"cost": cost})
@@ -308,17 +308,17 @@ func _refresh() -> void:
 		_reroll.text = tr("SHOP_REROLL_FREE").format({"n": _free_rerolls})
 		_reroll.disabled = false
 	else:
-		var rc := GameState.reroll_price(_paid_rerolls)
+		var rc := KioskRules.reroll_price(_paid_rerolls)
 		_reroll.text = tr("SHOP_REROLL").format({"cost": rc})
 		_reroll.disabled = GameState.reality < rc
 	# Ventajas de la amistad / Friendship perks
 	var parts: Array[String] = []
-	if GameState.shop_free_rerolls() > 0:
-		parts.append(tr("SHOP_PERK_REROLLS").format({"n": GameState.shop_free_rerolls()}))
-	if GameState.shop_offer_chance() > 0.0:
-		parts.append(tr("SHOP_PERK_OFFERS").format({"n": int(GameState.shop_offer_chance())}))
-	if GameState.shop_slots() > 3:
-		parts.append(tr("SHOP_PERK_SLOTS").format({"n": GameState.shop_slots()}))
+	if KioskRules.shop_free_rerolls() > 0:
+		parts.append(tr("SHOP_PERK_REROLLS").format({"n": KioskRules.shop_free_rerolls()}))
+	if KioskRules.shop_offer_chance() > 0.0:
+		parts.append(tr("SHOP_PERK_OFFERS").format({"n": int(KioskRules.shop_offer_chance())}))
+	if KioskRules.shop_slots() > 3:
+		parts.append(tr("SHOP_PERK_SLOTS").format({"n": KioskRules.shop_slots()}))
 	_perks.text = tr("SHOP_PERKS_NONE") if parts.is_empty() else " · ".join(parts)
 
 
@@ -343,7 +343,7 @@ func _buy(i: int) -> void:
 	GameState.add_reality(-cost)
 	_sold[i] = true
 	_bought_n += 1
-	GameState.apply_ware(_wares[i])
+	KioskRules.apply_ware(_wares[i])
 	bought.emit(_wares[i])
 	Audio.play("reality", -2.0)
 	Audio.play("pickup", -6.0)

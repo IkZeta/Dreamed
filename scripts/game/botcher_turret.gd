@@ -111,6 +111,7 @@ func _fire() -> void:
 
 func _death_sound() -> void:
 	Audio.play("crack", -6.0, 0.1)
+	Progress.add_stat("turrets")
 
 
 func _draw() -> void:

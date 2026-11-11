@@ -79,6 +79,14 @@ func _open_k(h: Dictionary) -> float:
 	return clampf(k, 0.0, 1.0)
 
 
+## ¿Es el centro de uno de estos agujeros? / Is it the centre of one of these holes?
+func owns(c: Vector2) -> bool:
+	for h: Dictionary in _holes:
+		if (h["c"] as Vector2).distance_to(c) < 1.0:
+			return true
+	return false
+
+
 ## ¿Cae aquí? Solo cuando está bien abierto / Does it fall here? Only when it's wide open
 func hole_at(p: Vector2, margin: float) -> Vector2:
 	for h: Dictionary in _holes:

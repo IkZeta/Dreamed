@@ -48,7 +48,7 @@ Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza
 |---|---|---|---|---|
 | **El Bateador** | Bate | Golpe cuerpo a cuerpo al enemigo más cercano | +20 % de daño y 3 de regeneración | Desde el principio |
 | **El Guardián** | Escudo-almohada | Poco daño, pero empuja mucho en cono | +4 de defensa, +5 de vida máxima, 2 de regeneración y algo más lento | Desde el principio |
-| **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo | −2 de vida máxima, −10 de suerte y 6 % de robo de salud | Desde el principio |
+| **El Cuentacuentos** | Libro | Hace caer de 1 a 3 rayos del cielo; cada uno golpea a un enemigo. Su golpe fuerte (cada 4) empuja hacia el agujero más cercano (a menos de 320) y un rayito violeta lo señala | −2 de vida máxima, −10 de suerte y 6 % de robo de salud | Desde el principio |
 | **El Barrepesadillas** | Aspiradora | Atrae al enemigo al que apunta mientras lo daña. Si está a media vida o menos y lo arrastras por un agujero, se cae | +20 % de velocidad, +3 de vida máxima y 5 % de robo de salud | Desde el principio |
 | **El Pistolero** | Pistola de dedos | Rayos láser con un efecto al azar: normal, atraviesa, empuja, crítico x1,75, rebota... o sale hacia atrás. La suerte hace más probables los buenos | +10 de suerte y 5 % de robo de salud | Llegar al Acto 2 |
 | **El Abrazaosos** | Oso de peluche | Le arranca pelusa al osito y se la pega al enemigo: cada pelusa lo frena, los que se tocan se quedan pegados y una bola de 5 se aplasta | +6 de vida máxima y 3 de regeneración | Llegar al Acto 3 |
@@ -352,7 +352,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
-- **Logros:** hay 35 (entre ellos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 37 (entre ellos, romper 15 torretas del Chapuzas, tirar a 10 enemigos por los Bostezos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla;
   - avisos para daltónicos;
@@ -408,6 +408,7 @@ Para hacer una demo nueva basta con volver a exportar con esos presets.
 ```
 scenes/                 escenas principales (menú, partida, plano astral, ajustes)
 scripts/autoload/       I18n (textos ES/EN), Settings, GameState (reglas), Progress (guardado y logros), Audio
+scripts/rules/          reglas sacadas de GameState: kiosk_rules (kiosco y chimenea) y magnus_deals (tratos de Magnus)
 scripts/data/           datos para equilibrar: run_data (oleadas, pijamas, subidas de nivel), upgrade_data (mejoras, dúos, combos), shop_data (kiosco, tratos de Magnus)
 scripts/game/           la partida: run.gd (bucle de la partida) con run_bosses.gd (jefes), run_events.gd (sucesos, timbre, taquilla, edificios que caen) y run_cinematics.gd (llegadas y despertares); salas, Kroker, enemigos, armas, HUD, efectos
 scripts/game/city/      piezas de la Metrópolis: edificios, carteles, decorados, ambiente y enjambre de anuncios
@@ -524,5 +525,5 @@ El informe queda en `user://balance_report.json`. Otras opciones: `--bot-weapons
 - **Fever and daily dream:** optional pacts (more enemies, faster or harder-hitting enemies, less health, no kiosk, one weapon...) raise Kroker's temperature and the star-shard reward; a daily dream with a date-based pajama, pacts and seed.
 - **Feel:** throwing an enemy down a hole freezes the game for an instant, shakes the screen and plays a falling kalimba glissando; big enemies get a hit stop too, and most enemies have their own death sound. A "Yawns" dream event opens short-lived holes next to enemies.
 - **Credits:** from the main menu, and on their own the first time you wake from dream 20, listing the cast you have met and the nightmares you have seen.
-- **Extras:** Nightmare difficulty, a bestiary, 35 achievements, hover cards that explain keywords and status effects, accessibility options, full gamepad support (the UI adapts to keyboard or gamepad), a God mode for testing and demo builds for Windows, Linux and macOS.
+- **Extras:** Nightmare difficulty, a bestiary, 37 achievements, hover cards that explain keywords and status effects, accessibility options, full gamepad support (the UI adapts to keyboard or gamepad), a God mode for testing and demo builds for Windows, Linux and macOS.
 - **Running it:** open `project.godot` and press **F5**. All sprites, sounds and the font are generated by the scripts in `tools/`.

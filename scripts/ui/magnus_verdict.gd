@@ -62,7 +62,7 @@ func build(result: String, deal: Dictionary, progress: int) -> void:
 	var stamp := UITheme.label("INVEST_STAMP_WON" if won else "INVEST_STAMP_LOST", 22, AURA if won else UITheme.EMBER, "caps")
 	goal_row.add_child(stamp)
 	var hits := String(deal["goal"]) == "hits"
-	var goal := UITheme.label("%s  (%d/%d%s)" % [GameState.deal_goal_text(deal), progress, int(deal["target"]), " " + tr("INVEST_HITS_UNIT") if hits else ""], 22, UITheme.BONE, "body")
+	var goal := UITheme.label("%s  (%d/%d%s)" % [MagnusDeals.deal_goal_text(deal), progress, int(deal["target"]), " " + tr("INVEST_HITS_UNIT") if hits else ""], 22, UITheme.BONE, "body")
 	goal.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	goal.size_flags_horizontal = Control.SIZE_EXPAND_FILL

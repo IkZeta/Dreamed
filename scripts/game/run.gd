@@ -350,8 +350,8 @@ func _on_ware(id: String) -> void:
 	player.refresh_stats()
 	if player.max_hp > before:
 		player.hp += player.max_hp - before
-	if GameState.ware_heal(id) > 0.0:
-		player.heal(player.max_hp * GameState.ware_heal(id))
+	if KioskRules.ware_heal(id) > 0.0:
+		player.heal(player.max_hp * KioskRules.ware_heal(id))
 	hud.set_hp(player.hp, player.max_hp)
 	hud.set_reality()
 	hud.set_xp()
@@ -429,7 +429,7 @@ func _open_sacrifice() -> void:
 	sc.chosen.connect(func(giver: String, weapon: String) -> void:
 		_modal = null
 		get_tree().paused = false
-		GameState.sacrifice(giver, weapon)
+		KioskRules.sacrifice(giver, weapon)
 		Progress.add_stat("sacrifices")
 		player.refresh_stats()
 		hud.set_hp(player.hp, player.max_hp)
@@ -443,7 +443,7 @@ func _open_sacrifice() -> void:
 		var at := Bedroom.to_world(LivingRoom.FIREBOX.get_center())
 		fx.dissipate(at, Color("b98aff"))
 		fx.ring(at, 40.0, Color("b98aff"), 0.8, 3.0)
-		gain_reality(GameState.sacrifice_value(giver, weapon, true), at))
+		gain_reality(KioskRules.sacrifice_value(giver, weapon, true), at))
 	sc.cancelled.connect(func() -> void:
 		_modal = null
 		get_tree().paused = false)
@@ -1187,8 +1187,8 @@ func _settle_deal() -> void:
 	if GameState.invest.is_empty():
 		return
 	var deal := GameState.invest.duplicate(true)
-	var progress := GameState.invest_progress()
-	var result := GameState.settle_deal()
+	var progress := MagnusDeals.invest_progress()
+	var result := MagnusDeals.settle_deal()
 	_deal_result = {"result": result, "deal": deal, "progress": progress}
 	player.refresh_stats()
 	hud.set_reality()
