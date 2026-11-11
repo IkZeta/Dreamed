@@ -21,6 +21,7 @@ var form_armor := 0.0
 ## Buitre: Kroker levita (pasa por encima de muebles, escombros y charcos, y no le pillan los sismos)
 ## Vulture: Kroker hovers (over furniture, rubble and puddles, and quakes don't catch him)
 var form_hover := false
+var _turn := 0.0              # 1 → 0 al darse la vuelta / 1 → 0 when turning round
 var _hover := 0.0
 ## Pantera: sigilo; los enemigos le pierden la pista mientras dura / Panther: stealth; enemies lose track of him while it lasts
 var stealth_t := 0.0
@@ -152,7 +153,7 @@ func _draw_animal(dr: WeaponDruid, sx: float, sy: float) -> void:
 	# Un rebote al salir / A bounce as it comes out
 	var pop := 1.0 + 0.12 * sin(clampf(1.0 - m / 0.5, 0.0, 1.0) * PI) if m > 0.0 else 1.0
 	DruidArt.draw(self, Vector2.ZERO, dr.form, _t, {"facing": _facing, "walk": _walk, "moving": _moving,
-		"attack": attack_anim, "roar": dr.roar_anim, "pounce": dr.pounce_anim, "flash": maxf(_flash, m * 1.1),
+		"attack": attack_anim, "roar": dr.roar_anim, "pounce": dr.pounce_anim, "flash": maxf(_flash, m * 1.1), "turn": _turn,
 		"scale": grow * pop})
 	if weapon2 == null or weapon_stunk(weapon2):
 		return
@@ -248,6 +249,7 @@ func _physics_process(delta: float) -> void:
 	_land = move_toward(_land, 0.0, delta * 4.0)
 	stealth_t = maxf(0.0, stealth_t - delta)
 	_hover = move_toward(_hover, 1.0 if form_hover and alive else 0.0, delta * 3.0)
+	_turn = maxf(0.0, _turn - delta * 6.0)
 	# En sigilo se vuelve casi una sombra / In stealth he turns almost into a shadow
 	modulate = Color(0.75, 0.68, 1.0, 0.55) if stealth_t > 0.0 and alive else Color(1, 1, 1, 1.0 if alive else 0.35)
 	if alive and run.running:
@@ -270,6 +272,8 @@ func _physics_process(delta: float) -> void:
 				_invuln = maxf(_invuln, DASH_INVULN)
 		position = run.clamp_to_arena(position + _vel * delta, 24.0, form_hover)
 		if absf(_vel.x) > 10.0:
+			if signf(_vel.x) != _facing:
+				_turn = 1.0
 			_facing = signf(_vel.x)
 	else:
 		_vel = Vector2.ZERO

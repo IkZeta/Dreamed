@@ -27,7 +27,10 @@ static func draw(ci: CanvasItem, at: Vector2, form: String, t: float, opts := {}
 	_ci = ci
 	var facing: float = opts.get("facing", 1.0)
 	var sc: float = opts.get("scale", 1.0)
-	_base = Transform2D(0.0, Vector2(facing * sc, sc), 0.0, at)
+	# Al darse la vuelta se estrecha un instante, como si girara / When turning round it narrows for an instant, as if rotating
+	var turn: float = opts.get("turn", 0.0)
+	var tw := 1.0 - 0.55 * sin(turn * PI)
+	_base = Transform2D(0.0, Vector2(facing * sc * tw, sc), 0.0, at)
 	_mod = Sprites.flash_color(float(opts.get("flash", 0.0)), float(opts.get("alpha", 1.0)))
 	if opts.get("ghost", false):
 		_mod = Color(0.75, 1.0, 0.95, 0.55 * float(opts.get("alpha", 1.0)))
@@ -57,8 +60,18 @@ static func _shadow(c: Vector2, r: Vector2, a: float) -> void:
 	_ci.draw_colored_polygon(pts, Color(0.05, 0.02, 0.15, 0.3 * a * _mod.a))
 
 
-# --- Oso: pesado, se balancea al andar; zarpazo con la pata delantera y rugido de pie ---
-# --- Bear: heavy, sways as it walks; swipe with the front paw and a rearing roar ---
+## Una pata en su fase del paso: se balancea y, al ir hacia delante, se levanta del suelo
+## A leg at its step phase: it swings and, while moving forward, lifts off the ground
+static func _step(sprite: String, joint: Vector2, phase: float, amp: float, lift: float, extra: float, body: Transform2D) -> void:
+	var rot := sin(phase) * amp + extra
+	var up := maxf(0.0, cos(phase)) * lift
+	_put(sprite, body * Transform2D(rot, joint + Vector2(0, -up)))
+
+
+# --- Oso: pesado; paso cruzado con las patas que se levantan, cuerpo que rueda de lado a lado,
+# --- cabeza que cabecea a contratiempo; olfatea quieto; zarpazo y rugido de pie ---
+# --- Bear: heavy; cross-gait with lifting paws, a body that rolls side to side, a head nodding
+# --- off-beat; sniffs when still; swipe and a rearing roar ---
 
 static func _bear(t: float, o: Dictionary) -> void:
 	var w: float = o.get("walk", 0.0)
@@ -67,27 +80,33 @@ static func _bear(t: float, o: Dictionary) -> void:
 	var roar: float = o.get("roar", 0.0)
 	var swipe := sin((1.0 - atk) * PI) if atk > 0.0 else 0.0
 	var rear := sin((1.0 - roar) * PI) if roar > 0.0 else 0.0
-	_shadow(Vector2(-6, 0), Vector2(64, 9), 1.0)
-	# Se levanta un poco sobre las patas traseras al rugir; respira y se balancea al andar
-	# Rears up a little on its hind legs when roaring; breathes and sways when walking
-	var bob := -absf(sin(w)) * 3.0 * m + sin(t * 1.8) * 0.8
-	var body := Transform2D(-0.16 * rear - 0.04 * swipe, Vector2(-40, 0)) * Transform2D(0.0, Vector2(40, bob))
-	var amp := 0.42 * m
-	_limb("druidf_bear_leg_far", Vector2(-34, -46), sin(w + PI) * amp, Transform2D(0.0, Vector2(0, bob * 0.5)))
-	_limb("druidf_bear_leg_far", Vector2(30, -46), sin(w) * amp - 0.3 * rear, body)
-	_limb("druidf_bear_leg", Vector2(-44, -46), sin(w) * amp, Transform2D(0.0, Vector2(0, bob * 0.5)))
+	_shadow(Vector2(-6, 0), Vector2(64 - 4.0 * m, 9), 1.0)
+	var bob := -absf(sin(w)) * 4.0 * m + sin(t * 1.8) * 0.8 * (1.0 - m)
+	var roll := sin(w) * 0.035 * m
+	var breathe := 1.0 + sin(t * 1.8) * 0.012 * (1.0 - m)
+	var body := Transform2D(-0.16 * rear - 0.04 * swipe, Vector2(-40, 0)) * Transform2D(roll, Vector2(1.0, breathe), 0.0, Vector2(40, bob))
+	var hips := Transform2D(roll * 0.5, Vector2(0, bob * 0.6))
+	var amp := 0.5 * m
+	var lift := 6.0 * m
+	_step("druidf_bear_leg_far", Vector2(-34, -46), w + PI, amp, lift, 0.0, hips)
+	_step("druidf_bear_leg_far", Vector2(30, -46), w, amp, lift, -0.3 * rear, body)
+	_step("druidf_bear_leg", Vector2(-44, -46), w, amp, lift, 0.0, hips)
 	if swipe <= 0.0:
-		_limb("druidf_bear_leg", Vector2(20, -46), sin(w + PI) * amp - 0.5 * rear, body)
+		_step("druidf_bear_leg", Vector2(20, -46), w + PI, amp, lift, -0.5 * rear, body)
 	_put("druidf_bear_body", body)
-	var head_rot := -0.4 * rear + sin(t * 1.6) * 0.03 + sin(w * 2.0) * 0.03 * m - 0.1 * swipe
-	_limb("druidf_bear_head_roar" if rear > 0.25 else "druidf_bear_head", Vector2(44, -70), head_rot, body)
-	# El zarpazo, por delante del cuerpo / The swipe, in front of the body
+	# Quieto, de vez en cuando levanta el hocico a olfatear / Standing still, now and then it lifts its snout to sniff
+	var sniff := (1.0 - m) * maxf(0.0, sin(t * 0.9)) ** 6 * (0.18 + 0.04 * sin(t * 18.0))
+	var head_rot := -0.4 * rear + sin(w * 2.0 + 0.8) * 0.05 * m - 0.1 * swipe - sniff + sin(t * 1.6) * 0.02
+	var head := body * Transform2D(0.0, Vector2(0, sin(w * 2.0 + 0.8) * 1.5 * m))
+	_limb("druidf_bear_head_roar" if rear > 0.25 else "druidf_bear_head", Vector2(44, -70), head_rot, head)
 	if swipe > 0.0:
 		_limb("druidf_bear_leg", Vector2(20, -46), -1.7 * swipe, body)
 
 
-# --- Pantera: ágil y baja; la cola ondea; zarpazo rápido y salto estirada ---
-# --- Panther: lithe and low; the tail ripples; a quick swipe and a stretched-out leap ---
+# --- Pantera: zancadas largas que doblan la espalda (se estira y se encoge), cola que sigue el
+# --- movimiento con retraso, cabeza estable; quieta, mueve la punta de la cola ---
+# --- Panther: long strides that flex the spine (it stretches and bunches), a tail following the
+# --- motion with a lag, a steady head; standing still, it flicks the tip of its tail ---
 
 static func _panther(t: float, o: Dictionary) -> void:
 	var w: float = o.get("walk", 0.0)
@@ -97,37 +116,50 @@ static func _panther(t: float, o: Dictionary) -> void:
 	var swipe := sin((1.0 - atk) * PI) if atk > 0.0 else 0.0
 	var leap := sin((1.0 - pounce) * PI) if pounce > 0.0 else 0.0
 	_shadow(Vector2(-4, 0), Vector2(58, 7), 1.0 - 0.4 * leap)
-	var bob := -absf(sin(w)) * 2.0 * m + sin(t * 2.2) * 0.6 - 16.0 * leap
-	# Al saltar se estira hacia delante / When leaping it stretches forward
-	var body := Transform2D(0.0, Vector2(1.0 + 0.18 * leap, 1.0 - 0.08 * leap), 0.0, Vector2(4.0 * swipe, bob))
-	var amp := 0.55 * m
-	var tail := sin(t * 2.4) * 0.18 + sin(w) * 0.12 * m - 0.5 * leap
+	var flex := sin(w) * 0.07 * m
+	var bob := -absf(sin(w)) * 3.0 * m + sin(t * 2.2) * 0.6 * (1.0 - m) - 12.0 * leap
+	var pitch := sin(w + 0.5) * 0.04 * m
+	# La espalda se estira y se encoge con cada zancada / The spine stretches and bunches with each stride
+	var body := Transform2D(pitch, Vector2(1.0 + flex + 0.18 * leap + 0.05 * swipe, 1.0 - flex * 0.6 - 0.08 * leap), 0.0, Vector2(4.0 * swipe, bob))
+	var amp := 0.7 * m
+	var lift := 5.0 * m
+	var flick := (1.0 - m) * maxf(0.0, sin(t * 1.3)) ** 8 * 0.4
+	var tail := sin(w - 1.4) * 0.3 * m + sin(t * 2.0) * 0.12 * (1.0 - m) - flick - 0.5 * leap
 	_limb("druidf_panther_tail", Vector2(-60, -54), tail, body)
-	_limb("druidf_panther_hind_far", Vector2(-40, -42), sin(w + PI) * amp + 0.8 * leap, body)
-	_limb("druidf_panther_leg_far", Vector2(38, -38), sin(w) * amp - 0.9 * leap, body)
-	_limb("druidf_panther_hind", Vector2(-48, -42), sin(w) * amp + 0.9 * leap, body)
+	_step("druidf_panther_hind_far", Vector2(-40, -42), w + PI * 0.9, amp, lift, 0.8 * leap, body)
+	_step("druidf_panther_leg_far", Vector2(38, -38), w + 0.2, amp, lift, -0.9 * leap, body)
+	_step("druidf_panther_hind", Vector2(-48, -42), w - PI * 0.1, amp, lift, 0.9 * leap, body)
 	if swipe <= 0.0:
-		_limb("druidf_panther_leg", Vector2(30, -38), sin(w + PI) * amp - 1.0 * leap, body)
+		_step("druidf_panther_leg", Vector2(30, -38), w + PI + 0.2, amp, lift, -1.0 * leap, body)
 	_put("druidf_panther_body", body)
-	_limb("druidf_panther_head", Vector2(46, -62), sin(t * 1.9) * 0.03 - 0.12 * swipe + 0.1 * leap, body)
+	# La cabeza no se mueve con el cuerpo: mira fija a la presa / The head doesn't move with the body: it stays locked on the prey
+	var head_rot := -pitch * 1.4 + sin(t * 1.9) * 0.03 * (1.0 - m) - 0.12 * swipe + 0.1 * leap
+	_limb("druidf_panther_head", Vector2(46, -62), head_rot, body)
 	if swipe > 0.0:
 		_limb("druidf_panther_leg", Vector2(30, -38), -1.5 * swipe, body)
 
 
-# --- Buitre: vuela bajito, batiendo las alas; picotea estirando el cuello ---
-# --- Vulture: flies low, flapping; pecks by stretching its neck ---
+# --- Buitre: aletea más rápido y se inclina hacia delante al moverse; quieto, planea a ratos con
+# --- las alas abiertas y mira a los lados; picotea estirando el cuello ---
+# --- Vulture: flaps faster and leans forward when moving; still, it glides now and then with
+# --- open wings and looks around; pecks by stretching its neck ---
 
 static func _vulture(t: float, o: Dictionary) -> void:
 	var atk: float = o.get("attack", 0.0)
 	var peck := sin((1.0 - atk) * PI) if atk > 0.0 else 0.0
 	var m: float = o.get("moving", 0.0)
-	var flap := sin(t * 7.0)
+	# Planea un rato cada pocos segundos cuando está quieto / Glides for a while every few seconds when still
+	var glide := (1.0 - m) * clampf(sin(t * 0.55) * 3.0 - 1.5, 0.0, 1.0)
+	var freq := 6.0 + 4.0 * m
+	var flap := sin(t * freq) * (1.0 - glide)
 	_shadow(Vector2(-4, 0), Vector2(40, 6), 0.7)
-	# Sube al bajar las alas / Rises as the wings beat down
-	var bob := -flap * 4.0 - 4.0
-	var body := Transform2D(0.08 * m + 0.1 * peck, Vector2(0, -66)) * Transform2D(0.0, Vector2(0, 66 + bob))
-	var wing := -0.15 + flap * 0.55
-	_put("druidf_vulture_wing_far", body * Transform2D(wing * 0.9, Vector2(1.0, 0.85 + 0.15 * flap), 0.0, Vector2(2, -86)))
+	var bob := -flap * (4.0 + 2.0 * m) - 4.0 + sin(t * 1.1) * 2.0 * glide
+	var lean := 0.16 * m + 0.12 * peck
+	var body := Transform2D(lean, Vector2(0, -66)) * Transform2D(0.0, Vector2(0, 66 + bob))
+	var wing := lerpf(-0.15 + flap * (0.55 + 0.15 * m), -0.35, glide)
+	var squash := 0.8 + 0.2 * flap
+	_put("druidf_vulture_wing_far", body * Transform2D(wing * 0.9, Vector2(1.0, squash + 0.05), 0.0, Vector2(2, -86)))
 	_put("druidf_vulture_body", body)
-	_limb("druidf_vulture_head", Vector2(34, -82), 0.45 * peck + sin(t * 1.5) * 0.06, Transform2D(0.0, Vector2(4.0 * peck, 0)) * body)
-	_put("druidf_vulture_wing", body * Transform2D(wing, Vector2(1.0, 0.8 + 0.2 * flap), 0.0, Vector2(8, -80)))
+	var look := sin(t * 0.8) * 0.12 * (1.0 - m)
+	_limb("druidf_vulture_head", Vector2(34, -82), 0.45 * peck + look - lean * 0.6, Transform2D(0.0, Vector2(4.0 * peck, 0)) * body)
+	_put("druidf_vulture_wing", body * Transform2D(wing, Vector2(1.0, squash), 0.0, Vector2(8, -80)))
