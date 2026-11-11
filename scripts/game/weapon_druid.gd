@@ -45,7 +45,7 @@ const COLORS := {"bear": Color("c98a52"), "panther": Color("9a7cff"), "vulture":
 # Oso / Bear
 const BEAR_RANGE := 130.0
 const BEAR_CD := 1.15
-const BEAR_DMG := 9.0
+const BEAR_DMG := 8.0
 const BEAR_KNOCK := 320.0
 const BEAR_ARMOR := 2.0
 const BEAR_SPEED := 0.88
@@ -58,7 +58,7 @@ const RETALIATE_MULT := 1.5
 # Pantera / Panther
 const CAT_RANGE := 115.0
 const CAT_CD := 0.42
-const CAT_DMG := 6.5
+const CAT_DMG := 6.0
 const CAT_CRIT := 25.0
 const CAT_SPEED := 1.25
 const STEALTH_SHIFT := 1.5       # sigilo al transformarse / stealth on shifting
