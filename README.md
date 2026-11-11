@@ -354,7 +354,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 - **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
 - **Logros:** hay 37 (entre ellos, romper 15 torretas del Chapuzas, tirar a 10 enemigos por los Bostezos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
-  - intensidad de la sacudida de pantalla;
+  - intensidad de la sacudida de pantalla (a 0 también quita las micro-pausas);
   - avisos para daltónicos;
   - números de daño;
   - vibración.
@@ -376,7 +376,7 @@ Cada combo que descubres, cada mejora dúo y cada mejora legendaria que consigue
 
 ### Accesibilidad y consejos
 
-En Ajustes → Accesibilidad: fuerza del temblor de pantalla, modo daltónico (avisos en amarillo y, además, un símbolo sobre cada élite: flechas para el que se divide, gota para el de los charcos y rayo para el rápido), números de daño, vibración, **reducir destellos** (los fogonazos de pantalla, los glitches del sueño 20 y los fundidos a blanco se suavizan), **texto grande** (un 25 % más, en las pantallas que se abran después) y **consejos la primera vez**: un cartelito corto la primera vez que pasa algo (si en partidas anteriores ya te había pasado, no sale) (al empezar, el primer trozo de estrella, el primer agujero, el primer élite, el primer sangrado, la primera Realidad Fragmentada y el primer jefe).
+En Ajustes → Accesibilidad: fuerza del temblor de pantalla (a 0 quita también las micro-pausas), modo daltónico (avisos en amarillo y, además, un símbolo sobre cada élite: flechas para el que se divide, gota para el de los charcos y rayo para el rápido), números de daño, vibración, **reducir destellos** (los fogonazos de pantalla, los glitches del sueño 20 y los fundidos a blanco se suavizan), **texto grande** (un 25 % más, en las pantallas que se abran después) y **consejos la primera vez**: un cartelito corto la primera vez que pasa algo (si en partidas anteriores ya te había pasado, no sale) (al empezar, el primer trozo de estrella, el primer agujero, el primer élite, el primer sangrado, la primera Realidad Fragmentada y el primer jefe).
 
 ### Modo Dios (para probar)
 

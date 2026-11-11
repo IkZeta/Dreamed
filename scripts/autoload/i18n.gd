@@ -37,7 +37,7 @@ const STRINGS := {
 	"DISPLAY_VSYNC": {"es": "Sincronización vertical", "en": "Vertical sync"},
 	"DISPLAY_FPS": {"es": "Límite de FPS", "en": "FPS limit"},
 	"FPS_UNLIMITED": {"es": "Sin límite", "en": "Unlimited"},
-	"DISPLAY_SHAKE": {"es": "Temblor de pantalla", "en": "Screen shake"},
+	"DISPLAY_SHAKE": {"es": "Temblor y micro-pausas", "en": "Shake and hit stop"},
 	"BTN_BACK": {"es": "Volver", "en": "Back"},
 	"BTN_RESET": {"es": "Restablecer", "en": "Reset defaults"},
 

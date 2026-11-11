@@ -896,7 +896,8 @@ func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
 var _stop_at := -1000
 func hit_stop(duration := 0.05, slow := 0.15) -> void:
 	var now := Time.get_ticks_msec()
-	if not is_equal_approx(Engine.time_scale, 1.0) or now - _stop_at < 400 or not running:
+	# Con el temblor quitado en ajustes, tampoco hay micro-pausas / With shake turned off in settings, no hit stops either
+	if not Settings.screen_shake or not is_equal_approx(Engine.time_scale, 1.0) or now - _stop_at < 400 or not running:
 		return
 	_stop_at = now
 	Engine.time_scale = slow

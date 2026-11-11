@@ -79,6 +79,16 @@ func _open_k(h: Dictionary) -> float:
 	return clampf(k, 0.0, 1.0)
 
 
+## Centros de los agujeros bien abiertos (para quien busca un agujero cerca)
+## Centres of the wide-open holes (for whoever looks for a nearby hole)
+func open_centers() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for h: Dictionary in _holes:
+		if _open_k(h) >= 0.75 and float(h["t"]) < LIFE - 1.0:
+			out.append(h["c"])
+	return out
+
+
 ## ¿Es el centro de uno de estos agujeros? / Is it the centre of one of these holes?
 func owns(c: Vector2) -> bool:
 	for h: Dictionary in _holes:

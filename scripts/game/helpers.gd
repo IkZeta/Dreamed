@@ -214,6 +214,11 @@ func nearest_hole(from: Vector2) -> Vector2:
 		var c := Bedroom.rect_world(holes[i]).get_center()
 		if in_view(c, 20.0) and not run.hole_covered(Bedroom.rect_world(holes[i])) and (best == Vector2.INF or from.distance_to(c) < from.distance_to(best)):
 			best = c
+	# También los Bostezos abiertos / Open Yawns too
+	if is_instance_valid(run.yawns):
+		for c in run.yawns.open_centers():
+			if in_view(c, 20.0) and (best == Vector2.INF or from.distance_to(c) < from.distance_to(best)):
+				best = c
 	return best
 
 

@@ -122,6 +122,11 @@ func _void_push(target: Node2D) -> Vector2:
 			continue
 		if best == Vector2.INF or c.distance_to(from) < best.distance_to(from):
 			best = c
+	# También los Bostezos abiertos / Open Yawns too
+	if is_instance_valid(run.yawns):
+		for c in run.yawns.open_centers():
+			if c.distance_to(from) <= VOID_REACH and (best == Vector2.INF or c.distance_to(from) < best.distance_to(from)):
+				best = c
 	if best == Vector2.INF:
 		return Vector2.ZERO
 	run.fx.bolt(_jagged(_body(target), best), Color("8d7ff0"))
