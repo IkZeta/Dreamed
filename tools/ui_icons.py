@@ -248,6 +248,15 @@ def wares(ms):
     out["music_box"] = (hs(R(-13, -2, 26, 14), "#7a2e4a") + hs(P([(-13, -2), (-9, -9), (9, -9), (13, -2)]), "#9a4060")
                         + F(R(-13, 3, 26, 2), GOLD) + F(R(13, 0, 3, 2), GOLD) + F(R(15, -2, 2, 6), GOLD)
                         + F(E(-5, -14, 2.4, 2), PURPLE) + F(R(-3.2, -21, 1.4, 7), PURPLE) + F(E(4, -17, 2.4, 2), PURPLE) + F(R(5.8, -24, 1.4, 7), PURPLE))
+    # Brújula de sueños: la aguja señala un agujerito estrellado / Dream compass: the needle points at a starry little hole
+    out["compass"] = (hs(E(0, 0, 13, 13), GOLD) + F(E(0, 0, 10, 10), CREAM)
+                      + F(E(6, -6, 3.4, 2.4), "#0a0820") + F(E(6, -6, 0.9, 0.9), W)
+                      + F(P([(-8, 8), (5, -5), (2, 1), (-1, -2)]), RED) + F(P([(-8, 8), (-1, -2), (2, 1)]), "#a8304a")
+                      + F(E(0, 0, 1.8, 1.8), INK) + hs(R(-2, -17, 4, 4), GOLD))
+    # Pala de playa clavada junto a un hoyo que da al cielo / Beach shovel stuck next to a hole that opens onto the sky
+    out["beach_shovel"] = (F(E(-4, 12, 11, 4), "#0a0820") + F(E(-4, 12, 8, 2.6), "#2a2350") + F(E(-7, 12, 1, 1), W) + F(E(-1, 11.5, 0.8, 0.8), W)
+                           + hs(R(8, -18, 3, 22), "#c98a52") + hs(R(5, -21, 9, 4), "#ff7a8a")
+                           + hs("M3,3 L16,3 L16,10 Q16,17 9.5,18 Q3,17 3,10 Z", "#ff7a8a") + F(R(8, 5, 3, 7), "#ffb0b8"))
     for k, body in out.items():
         ms.add("ware_" + k, -16, -20, 32, 36, body, px=1.0, flat=True, outline=OUTLINE)
 

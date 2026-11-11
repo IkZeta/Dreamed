@@ -86,7 +86,7 @@ func _strike(target: Node2D) -> void:
 	var bounces := int(uv("svinho", "extra"))
 	var from := to
 	while target != null:
-		deal(target, dmg, _void_push(target) if hit.is_empty() else Vector2.ZERO)
+		deal(target, dmg)
 		if lv("silly") > 0:
 			_echo(target, dmg * player.damage_mult * uv("silly", "pct") / 100.0)
 			# El eco lo deja glitcheado un momento (sin daño extra) / The echo leaves it glitched for a moment (no extra damage)
@@ -101,37 +101,6 @@ func _strike(target: Node2D) -> void:
 			run.fx.bolt(_jagged(from, next), Color("e8d9a8"))
 			from = next
 			dmg *= FALLOFF
-
-
-## Rayo que señala el vacío: si toca golpe fuerte y hay un agujero cerca del enemigo, el rayo lo
-## empuja hacia él en vez de alejarlo de Kroker (y se ve un rayito violeta que lo señala).
-## A bolt that points at the void: if a heavy hit is due and there's a hole near the enemy, the bolt
-## shoves it towards it instead of away from Kroker (with a little violet bolt pointing at it).
-const VOID_REACH := 320.0
-func _void_push(target: Node2D) -> Vector2:
-	var every: int = GameState.HEAVY_EVERY.get(id, 0)
-	if every <= 0 or heavy_count + 1 < every or not target is Enemy or not (target as Enemy).can_fall():
-		return Vector2.ZERO
-	var from := target.global_position
-	var best := Vector2.INF
-	var list: Array = run.room.holes_list()
-	for i in run.room.hole_count():
-		var rc := Bedroom.rect_world(list[i])
-		var c := rc.get_center()
-		if run.hole_covered(rc) or c.distance_to(from) > VOID_REACH:
-			continue
-		if best == Vector2.INF or c.distance_to(from) < best.distance_to(from):
-			best = c
-	# También los Bostezos abiertos / Open Yawns too
-	if is_instance_valid(run.yawns):
-		for c in run.yawns.open_centers():
-			if c.distance_to(from) <= VOID_REACH and (best == Vector2.INF or c.distance_to(from) < best.distance_to(from)):
-				best = c
-	if best == Vector2.INF:
-		return Vector2.ZERO
-	run.fx.bolt(_jagged(_body(target), best), Color("8d7ff0"))
-	run.fx.ring(best, 34.0, Color("8d7ff0"), 0.35, 2.2)
-	return (best - from).normalized() * 2.0
 
 
 ## El daño se repite al cabo de un segundo / The damage repeats one second later

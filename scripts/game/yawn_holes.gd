@@ -10,10 +10,16 @@ extends Node2D
 
 const EVERY := Vector2(5.5, 8.0)
 const FIRST := 2.5
+## Pala de playa (kiosco): cava uno de estos agujeros de vez en cuando aunque no haya Bostezos
+## Beach shovel (kiosk): digs one of these holes now and then even without the Yawns event
+const SHOVEL_EVERY := Vector2(16.0, 20.0)
+const SHOVEL_FIRST := 6.0
 const OPEN_TIME := 0.6
 const LIFE := 5.0
 const HALF := Vector2(66, 28)     # medio tamaño del agujero / hole half-size
 const MAX_OPEN := 2
+var every := EVERY
+var max_open := MAX_OPEN
 const AWAY := 260.0              # lejos de Kroker / away from Kroker
 ## Al abrirse, el bostezo aspira un poco: acerca a los enemigos cercanos (sin dañarlos)
 ## When it opens, the yawn breathes in a little: it draws nearby enemies closer (without hurting them)
@@ -24,6 +30,36 @@ const INHALE_PULL := 130.0
 var run: Run
 var _holes: Array = []           # {c, t, seed}
 var _wait := FIRST
+
+
+## El de esta sala, creándolo si hace falta / This room's one, creating it if needed
+static func ensure(r: Run) -> YawnHoles:
+	if is_instance_valid(r.yawns):
+		return r.yawns
+	var y := YawnHoles.new()
+	y.run = r
+	r.yawns = y
+	r.world.add_child(y)
+	r.world.move_child(y, r.room.get_index() + 1)
+	return y
+
+
+## La pala de playa: si ya hay Bostezos no cambia nada; si no, uno cada 16–20 s (antes con más palas)
+## The beach shovel: with the Yawns event nothing changes; otherwise one every 16–20 s (sooner with more shovels)
+func add_shovel(n: int) -> void:
+	if _event:
+		return
+	every = SHOVEL_EVERY / (1.0 + 0.35 * (n - 1))
+	max_open = 1
+	_wait = SHOVEL_FIRST
+
+
+var _event := false
+func set_event() -> void:
+	_event = true
+	every = EVERY
+	max_open = MAX_OPEN
+	_wait = minf(_wait, FIRST)
 var _t := 0.0
 
 
@@ -54,8 +90,8 @@ func _process(delta: float) -> void:
 	_holes = _holes.filter(func(h: Dictionary) -> bool: return h["t"] < LIFE)
 	_wait -= delta
 	if _wait <= 0.0:
-		_wait = randf_range(EVERY.x, EVERY.y)
-		if _holes.size() < MAX_OPEN:
+		_wait = randf_range(every.x, every.y)
+		if _holes.size() < max_open:
 			_open()
 	queue_redraw()
 

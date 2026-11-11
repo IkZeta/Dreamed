@@ -219,6 +219,9 @@ func _ready() -> void:
 	trinkets = Trinkets.new()
 	trinkets.setup(self)
 	world.add_child(trinkets)
+	# Pala de playa: agujeros pasajeros aunque no haya Bostezos / Beach shovel: short-lived holes even without the Yawns event
+	if Trinkets.count("beach_shovel") > 0:
+		YawnHoles.ensure(self).add_shovel(Trinkets.count("beach_shovel"))
 	# SuperK y Lil Key, si te han dado algún don / SuperK and Lil Key, if they've given you a gift
 	helpers = Helpers.new()
 	add_child(helpers)

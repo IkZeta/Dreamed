@@ -38,6 +38,7 @@ const WARES := {
 	"whistle": {"tier": 2, "price": 13},      # curas al tirar enemigos por agujeros / heals on hole falls
 	"voodoo": {"tier": 2, "price": 16},       # quien te pega recibe el triple / attackers take triple
 	"magnet": {"tier": 2, "price": 11},       # trozos de estrella desde más lejos / shards from further away
+	"compass": {"tier": 2, "price": 15},      # el golpe fuerte empuja hacia el agujero / the heavy hit shoves towards the hole
 	# Nivel 3 / Tier 3
 	"gold_sticker": {"tier": 3, "price": 24}, # estadística épica al azar / random epic stat
 	"cake": {"tier": 3, "price": 23},         # toda la vida y +5 de vida máxima / all health and +5 max health
@@ -47,6 +48,7 @@ const WARES := {
 	"matches": {"tier": 3, "price": 26},      # las muertes a veces queman a los de al lado / kills sometimes burn neighbours
 	"alarm_clock": {"tier": 3, "price": 26},  # con poca vida congela a los de alrededor / at low health freezes those around
 	"pinata": {"tier": 3, "price": 28},       # los élites sueltan objeto y Realidad / elites drop an item and Reality
+	"beach_shovel": {"tier": 3, "price": 26}, # cava agujeros pasajeros junto a los enemigos / digs short-lived holes next to enemies
 	# Nivel 4 (Acto 4, la Metrópolis): lo mejor y lo más caro / Tier 4 (Act 4, the Metropolis): the best and priciest
 	"energy_drink": {"tier": 4, "price": 35}, # +20 % de velocidad de ataque y +8 % de velocidad / +20% attack speed and +8% speed
 	"lucky_cat": {"tier": 4, "price": 38},    # +20 de suerte y +2 de parry / +20 luck and +2 parry

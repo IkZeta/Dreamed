@@ -129,6 +129,59 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0
 		player.heal_sustain(1.0)
 
 
+## Alcance del golpe fuerte hacia los agujeros: el libro llega a 320 por sí solo; la brújula de
+## sueños se lo da a todas (220, +80 por cada una más) y al libro le suma 100.
+## Reach of the heavy hit towards holes: the book reaches 320 by itself; the dream compass gives
+## it to every weapon (220, +80 for each extra) and adds 100 to the book.
+const VOID_BOOK := 320.0
+const VOID_COMPASS := 220.0
+func void_reach() -> float:
+	var n := Trinkets.count("compass")
+	if id == "book":
+		return VOID_BOOK + (100.0 if n > 0 else 0.0)
+	return VOID_COMPASS + 80.0 * (n - 1) if n > 0 else 0.0
+
+
+## Dirección hacia el agujero libre más cercano al enemigo (o cero si no hay ninguno a mano); se ve
+## un rayito que lo señala (violeta el del libro, dorado el de la brújula).
+## Direction towards the free hole nearest the enemy (or zero if none is close); a little bolt shows
+## it (violet for the book, gold for the compass).
+func void_dir(e: Node2D) -> Vector2:
+	var reach := void_reach()
+	if reach <= 0.0 or not e is Enemy or not (e as Enemy).can_fall():
+		return Vector2.ZERO
+	var from := e.global_position
+	var best := Vector2.INF
+	var list: Array = run.room.holes_list()
+	for i in run.room.hole_count():
+		var rc := Bedroom.rect_world(list[i])
+		var c := rc.get_center()
+		if run.hole_covered(rc) or c.distance_to(from) > reach:
+			continue
+		if best == Vector2.INF or c.distance_to(from) < best.distance_to(from):
+			best = c
+	if is_instance_valid(run.yawns):
+		for c in run.yawns.open_centers():
+			if c.distance_to(from) <= reach and (best == Vector2.INF or c.distance_to(from) < best.distance_to(from)):
+				best = c
+	if best == Vector2.INF:
+		return Vector2.ZERO
+	var col := Color("8d7ff0") if id == "book" else UITheme.GOLD
+	run.fx.bolt(_jagged_line(from + Vector2(0, -(e as Enemy).aim_height), best), col)
+	run.fx.ring(best, 34.0, col, 0.35, 2.2)
+	return (best - from).normalized()
+
+
+func _jagged_line(a: Vector2, b: Vector2) -> PackedVector2Array:
+	var pts := PackedVector2Array([a])
+	var n := 6
+	for i in range(1, n):
+		var p := a.lerp(b, float(i) / n)
+		pts.append(p + (b - a).orthogonal().normalized() * randf_range(-10.0, 10.0))
+	pts.append(b)
+	return pts
+
+
 ## Golpes desde el último golpe fuerte / Hits since the last heavy hit
 var heavy_count := 0
 
@@ -144,6 +197,11 @@ func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
 		return impulse
 	heavy_count = 0
 	var dir := impulse.normalized() if impulse.length() > 1.0 else (e.global_position - player.global_position).normalized()
+	# Hacia el agujero: el libro de por sí, y cualquier arma con la brújula de sueños
+	# Towards the hole: the book by itself, and any weapon with the dream compass
+	var to_hole := void_dir(e)
+	if to_hole != Vector2.ZERO:
+		dir = to_hole
 	var en := e as Enemy
 	player.run.fx.ring(en.aim_point(), 30.0, UITheme.BONE, 0.3, 3.0)
 	player.run.fx.text(en.global_position + Vector2(0, -en.aim_height * 2.0 - 30), tr("HEAVY_HIT"), UITheme.BONE, 22)

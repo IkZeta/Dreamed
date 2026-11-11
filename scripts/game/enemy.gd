@@ -337,6 +337,7 @@ func _start_fall(to: Vector2) -> void:
 	# Make it land: a frozen instant and a shake, stronger the heavier it is
 	run.hit_stop(0.045 + 0.02 * minf(2.0, mass - 1.0))
 	run.shake(3.0 + 2.0 * minf(2.0, mass - 1.0))
+	Settings.rumble(0.35, 0.1, 0.12)
 	if run.get("trinkets"):
 		run.trinkets.on_fall(self)
 	if run.has_method("on_fall_chain"):
