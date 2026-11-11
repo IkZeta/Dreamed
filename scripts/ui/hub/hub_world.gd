@@ -589,6 +589,10 @@ func _build_museum() -> void:
 	var minor: Array[String] = []
 	var bosses: Array[String] = []
 	for id: String in Progress.BESTIARY:
+		# El élite y el Foox dorado son variantes: no tienen estatua propia
+		# The elite and the golden Foox are variants: they don't get a statue of their own
+		if id == "elite" or id == "golden_foox":
+			continue
 		(bosses if id.begins_with("boss_") else minor).append(id)
 	for i in minor.size():
 		var side := -1.0 if i % 2 == 0 else 1.0

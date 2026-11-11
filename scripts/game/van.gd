@@ -123,6 +123,12 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	var alt := ALTITUDE + sin(_t * 2.2) * 8.0 + _arrive * 300.0
 	if state == State.DYING:
 		alt *= _fade
+	# En estatua, posada en el pedestal y sin luces / As a statue, resting on the pedestal with no lights
+	if statue:
+		draw_set_transform(offset + Vector2(0, -6), 0.0, Vector2(_facing, 1.0))
+		Sprites.draw(self, "van_" + style, Sprites.flash_color(0.0, a) * tint)
+		draw_set_transform(Vector2.ZERO)
+		return
 	# Sombra en el suelo y luz de los focos / Shadow on the ground and searchlight
 	draw_colored_polygon(_ellipse(Vector2.ZERO, Vector2(90, 20)), Color(0.05, 0.02, 0.15, 0.35 * a))
 	draw_colored_polygon(PackedVector2Array([Vector2(-20, -alt + 10), Vector2(20, -alt + 10), Vector2(70, 0), Vector2(-70, 0)]), Color(1.0, 0.95, 0.75, 0.08 * a))

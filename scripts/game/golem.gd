@@ -112,7 +112,7 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	draw_set_transform(offset + Vector2(0, -absf(step) * 4.0), lean * 0.4, Vector2(_facing, 1.0))
 	Sprites.draw(self, "golem_body", mod)
 	# Tiras de papel que se arrastran / Paper streamers trailing behind
-	for i in 3:
+	for i in (0 if statue else 3):
 		var y := -60.0 - i * 34.0
 		var pts := PackedVector2Array()
 		for kk in 6:

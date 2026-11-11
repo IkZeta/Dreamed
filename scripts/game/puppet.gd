@@ -180,13 +180,15 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	draw_colored_polygon(_ellipse(Vector2.ZERO, Vector2(22, 7)), Color(0.05, 0.02, 0.15, 0.4 * a))
 	draw_set_transform(offset + Vector2(0, bob - 4), sway, Vector2(_facing, 1.0))
 	# Hilos hacia la cruceta / Strings up to the control bar
-	var bar := Vector2(sin(_t * 1.6 + _phase) * 10.0, -200)
-	var thread := Color("e8e2d0", 0.55 * a)
-	draw_line(bar + Vector2(-26, 0), Vector2(-14, -74), thread, 1.5)
-	draw_line(bar + Vector2(26, 0), Vector2(36, -60), thread, 1.5)
-	draw_line(bar, Vector2(0, -114), thread, 1.5)
-	draw_rect(Rect2(bar + Vector2(-30, -3), Vector2(60, 6)), Color("8a5a3e", a))
-	draw_rect(Rect2(bar + Vector2(-3, -18), Vector2(6, 30)), Color("6a4430", a))
+	# (En estatua, sin hilos: quedarían flotando sueltos / As a statue, no strings: they'd float loose)
+	if not statue:
+		var bar := Vector2(sin(_t * 1.6 + _phase) * 10.0, -200)
+		var thread := Color("e8e2d0", 0.55 * a)
+		draw_line(bar + Vector2(-26, 0), Vector2(-14, -74), thread, 1.5)
+		draw_line(bar + Vector2(26, 0), Vector2(36, -60), thread, 1.5)
+		draw_line(bar, Vector2(0, -114), thread, 1.5)
+		draw_rect(Rect2(bar + Vector2(-30, -3), Vector2(60, 6)), Color("8a5a3e", a))
+		draw_rect(Rect2(bar + Vector2(-3, -18), Vector2(6, 30)), Color("6a4430", a))
 	# Piernas que cuelgan y patalean / Legs that dangle and kick
 	for i in 2:
 		var x := -7.0 if i == 0 else 7.0

@@ -47,7 +47,7 @@ func _ready() -> void:
 	_enemy = e
 
 ## Alto de cada dibujo (con cuernos y aura) / Height of each drawing (with horns and aura)
-const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "puppet": 210.0, "golem": 210.0, "police": 160.0, "van": 260.0, "riot": 175.0, "botcher": 125.0, "boss_chef": 290.0, "boss_ufo": 160.0, "boss_evil_ad": 420.0,
+const HEIGHTS := {"foox": 70.0, "golden_foox": 70.0, "elite": 70.0, "thug": 170.0, "sling": 130.0, "skeleton": 130.0, "nest": 60.0, "mosquito": 70.0, "cyber": 150.0, "puppet": 130.0, "golem": 210.0, "police": 160.0, "van": 150.0, "riot": 175.0, "botcher": 125.0, "boss_chef": 290.0, "boss_ufo": 160.0, "boss_evil_ad": 420.0,
 	"boss_bed": 200.0, "boss_shelf": 190.0, "boss_chest": 130.0}
 
 ## Escala para que quepa entero en el hueco / Scale so it fits whole in the space
@@ -55,7 +55,7 @@ func _fit() -> float:
 	var h: float = HEIGHTS.get(id, 120.0) * (1.3 if id == "elite" else 1.0)
 	# Los anchos (el ovni, los muebles) un poco más pequeños para que no se coman el pedestal
 	# The wide ones (the UFO, the furniture) a little smaller so they don't swallow the pedestal
-	var wide: float = {"boss_ufo": 0.55, "boss_bed": 0.8, "boss_shelf": 0.85, "boss_chest": 0.75, "van": 0.8}.get(id, 1.0)
+	var wide: float = {"boss_ufo": 0.55, "boss_bed": 0.8, "boss_shelf": 0.85, "boss_chest": 0.75, "van": 0.62}.get(id, 1.0)
 	return minf(1.6 * size.y / 58.0, size.y * (0.86 if id.begins_with("boss_") else 0.74) / h) * wide
 
 func _process(delta: float) -> void:
@@ -72,7 +72,8 @@ func _process(delta: float) -> void:
 	if _enemy:
 		_enemy.set("_t", _t)
 		# Evil Ad flota: en estatua se apoya en el pedestal / Evil Ad floats: as a statue it rests on the pedestal
-		_enemy.position = Vector2(size.x / 2.0, size.y * (0.98 if id == "boss_evil_ad" else 0.84))
+		var low: float = {"boss_evil_ad": 0.98, "mosquito": 0.95}.get(id, 0.84)
+		_enemy.position = Vector2(size.x / 2.0, size.y * low)
 		_enemy.scale = Vector2.ONE * (1.3 if id == "elite" else 1.0) * _fit()
 		_enemy.queue_redraw()
 	queue_redraw()
