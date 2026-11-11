@@ -1094,6 +1094,8 @@ const STRINGS := {
 	"TIP_BLEED": {"es": "Estás sangrando: pierdes vida poco a poco y tu defensa baja un rato.", "en": "You're bleeding: you lose health bit by bit and your defence drops for a while."},
 	"TIP_REALITY": {"es": "Has ganado Realidad Fragmentada: gástala en el kiosco de Charo o en propinas a los personajes.", "en": "You got Fragmented Reality: spend it at Charo's kiosk or on tips for the characters."},
 	"TIP_BOSS": {"es": "Un jefe: tiene muchísima vida y no se puede tirar por agujeros. Muévete sin parar.", "en": "A boss: it has loads of health and can't be pushed down holes. Keep moving."},
+	"TIP_YAWN": {"es": "El sueño bosteza: se abre un agujero pasajero junto a un enemigo, por el lado contrario a ti. Empújalo hacia fuera antes de que se cierre.", "en": "The dream yawns: a short-lived hole opens next to an enemy, on the side away from you. Shove it outwards before it closes."},
+	"TIP_BOTCHER": {"es": "El Chapuzas ha tapado un agujero y le ha montado una torreta. Rómpela y los tablones se hundirán; a él hay que tumbarlo a golpes, no cae.", "en": "The Botcher has boarded up a hole and mounted a turret on it. Break it and the planks cave in; he has to be beaten down, he won't fall."},
 	"DIARY_STICKERS": {"es": "Pegatinas nuevas para el álbum:", "en": "New stickers for the album:"},
 	"ALBUM_TITLE": {"es": "Álbum de pegatinas", "en": "Sticker album"},
 	"ALBUM_SUB": {"es": "Lo que Kroker ha ido pegando en su diario: combos descubiertos, dúos y mejoras legendarias.", "en": "What Kroker has stuck in his diary: combos discovered, duos and legendary upgrades."},

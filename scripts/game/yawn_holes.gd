@@ -42,6 +42,7 @@ func _open() -> void:
 	if p == Vector2.INF:
 		return
 	_holes.append({"c": p, "t": 0.0, "seed": randf() * 10.0})
+	Progress.tip("yawn")
 	Audio.play("yawn", -10.0, 0.15)
 	run.fx.ring(p, 40.0, Color("8d7ff0", 0.7), 0.5, 2.0)
 

@@ -123,6 +123,7 @@ func _act(delta: float) -> void:
 
 
 func _build() -> void:
+	Progress.tip("botcher")
 	var t := BotcherTurret.new()
 	t.setup(run)
 	t.elite = false

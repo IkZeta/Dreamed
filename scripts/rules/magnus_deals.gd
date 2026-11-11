@@ -58,25 +58,16 @@ static func roll_deal() -> Dictionary:
 	}
 
 
-## ¿Puede alguna de tus armas tirar enemigos por los agujeros? / Can any of your weapons push enemies down holes?
-## Empujan lo bastante: la almohada, la aspiradora (lo que arrastras), la pistola de dedos (sus rayos
-## que empujan), la pelota, las botas y el libro (su rayo fuerte empuja hacia el agujero); el bate
-## solo con Svinho; el portátil con el muñeco de Stolk, con el fogón del Pinche o con torretas de
-## nivel 3. El oso no empuja.
-## Push hard enough: pillow, vacuum (what you drag), finger gun (its pushing beams), ball, boots and
-## book (its heavy bolt shoves towards the hole); the bat only with Svinho; the laptop with Stolk's
-## dummy, the Kitchen Boy's stove or level-3 turrets. The teddy doesn't push.
+## ¿Puede alguna de tus armas tirar enemigos por los agujeros? Desde que todas tienen golpe fuerte
+## (GameState.HEAVY_EVERY), o empujan de por sí (almohada, aspiradora), sí; solo hace falta que la
+## sala tenga agujeros, y todas los tienen desde el sueño 2.
+## Can any of your weapons push enemies down holes? Since they all have a heavy hit
+## (GameState.HEAVY_EVERY), or push on their own (pillow, vacuum), yes; the room just needs holes,
+## and every room has them from dream 2.
 static func can_push_into_holes() -> bool:
 	for w in GameState.weapons():
-		match w:
-			"shield", "vacuum", "finger", "ball", "boots", "book":
-				return true
-			"bat":
-				if GameState.level("svinho", w) > 0:
-					return true
-			"laptop":
-				if GameState.level("stolk", w) > 0 or GameState.level("pinche", w) > 0 or WeaponLaptop.turret_level() >= 3:
-					return true
+		if w in ["shield", "vacuum"] or GameState.HEAVY_EVERY.has(w):
+			return true
 	return false
 
 
