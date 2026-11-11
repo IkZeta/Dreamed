@@ -158,4 +158,7 @@ class WeaponIcon extends Control:
 				draw_set_transform(c - Vector2(100, 278) * bs + Vector2(0, -absf(sin(_t * 2.0)) * 6.0), 0.0, Vector2(bs, bs))
 				Sprites.draw(self, "wicon_boot_r")
 				Sprites.draw(self, "wicon_boot_l")
+			"druid":
+				draw_set_transform(c.round(), sin(_t * 1.3) * 0.08, Vector2.ONE * 1.25)
+				Sprites.draw(self, "weapon_collar")
 		draw_set_transform(Vector2.ZERO)

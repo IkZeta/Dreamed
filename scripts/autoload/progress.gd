@@ -60,6 +60,8 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "laptop", "check": "silly4", "goal": 4, "drawing": "laptop"},
 	# Las botas steampunk: amistad 4 con Doc / The steampunk boots: friendship 4 with Doc
 	{"id": "boots", "check": "doc4", "goal": 4, "drawing": "boots"},
+	# El collar de druida: llegar a nivel 20 en una partida / The druid collar: reach level 20 in a run
+	{"id": "druid", "stat": "best_level", "goal": 20},
 	# SuperK: tumbar los tres muebles a la vez en pesadilla (no vale aguantar hasta el final)
 	# SuperK: knock out all three pieces at once on nightmare (holding out till the end doesn't count)
 	{"id": "superk", "flag": true, "goal": 1, "drawing": "superk"},

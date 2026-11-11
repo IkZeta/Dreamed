@@ -4,7 +4,7 @@ extends Node
 
 const CHARACTERS := RunData.CHARACTERS
 ## Logro que desbloquea cada pijama nuevo / Achievement that unlocks each new pajama
-const WEAPON_UNLOCK := {"finger": "finger", "teddy": "teddy", "ball": "ball", "laptop": "laptop", "boots": "boots"}
+const WEAPON_UNLOCK := {"finger": "finger", "teddy": "teddy", "ball": "ball", "laptop": "laptop", "boots": "boots", "druid": "druid"}
 ## Svinho le regala su mejora a nivel 3 a la pelota / Svinho gives the ball his upgrade at level 3
 const BALL_SVINHO := 3
 
@@ -24,7 +24,7 @@ const WEAPON_BONUS := RunData.WEAPON_BONUS
 ## "shop_met": Charo opens her kiosk here, but only once you've met her in the living room.
 ## Every floor brings a new, more dangerous enemy; floor 5 is the boss.
 ## Qué hace El Pinche con cada arma / What the Kitchen Boy does with each weapon
-const PINCHE_KIND := {"bat": "bleed", "shield": "burn", "book": "burn", "vacuum": "bleed", "finger": "burn", "teddy": "bleed", "ball": "bleed", "laptop": "bleed", "boots": "burn"}
+const PINCHE_KIND := {"bat": "bleed", "shield": "burn", "book": "burn", "vacuum": "bleed", "finger": "burn", "teddy": "bleed", "ball": "bleed", "laptop": "bleed", "boots": "burn", "druid": "bleed"}
 
 const WAVES := RunData.WAVES
 ## Primer sueño de cada acto / First dream of each act
@@ -37,7 +37,7 @@ const FINAL_DREAM := 20
 const CITY_STYLES: Array[String] = ["synthwave", "steampunk", "cheese", "aero", "solarpunk", "dieselpunk", "brutalist"]
 ## Armas cuerpo a cuerpo y a distancia: la segunda arma tiene que ser del otro tipo
 ## Melee and ranged weapons: the second weapon must be of the other kind
-const MELEE: Array[String] = ["bat", "shield", "teddy", "boots"]
+const MELEE: Array[String] = ["bat", "shield", "teddy", "boots", "druid"]
 const RANGED: Array[String] = ["book", "vacuum", "finger", "ball", "laptop"]
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
@@ -545,7 +545,7 @@ func stat(id: String) -> float:
 ## --- Mr. Ad: cuanta más Realidad Fragmentada ahorrada, más estadística ----------------
 ## --- Mr. Ad: the more Fragmented Reality saved, the higher the stat ------------------------
 ## Qué estadística sube Mr. Ad con cada arma / Which stat Mr. Ad raises with each weapon
-const AD_STAT := {"bat": "attack", "shield": "defense", "book": "attack_speed", "vacuum": "speed", "finger": "luck", "teddy": "regen", "ball": "parry", "laptop": "attack_speed", "boots": "speed"}
+const AD_STAT := {"bat": "attack", "shield": "defense", "book": "attack_speed", "vacuum": "speed", "finger": "luck", "teddy": "regen", "ball": "parry", "laptop": "attack_speed", "boots": "speed", "druid": "attack"}
 const AD_MAX_TIERS := 10   # cuenta hasta 100 de Realidad Fragmentada / counts up to 100 Fragmented Reality
 
 
@@ -1068,7 +1068,7 @@ const OFFER_MULT := 0.5
 ## todas las armas tienen una forma de usar los agujeros (la almohada y la aspiradora ya la tienen).
 ## Heavy hit: every N hits, one shoves hard enough to throw enemies down holes. This way every weapon
 ## has a way to use the holes (the pillow and the vacuum already have one).
-const HEAVY_EVERY := {"bat": 3, "book": 4, "finger": 5, "teddy": 3, "laptop": 5, "ball": 3, "boots": 3}
+const HEAVY_EVERY := {"bat": 3, "book": 4, "finger": 5, "teddy": 3, "laptop": 5, "ball": 3, "boots": 3, "druid": 3}
 const HEAVY_KNOCK := 520.0
 ## Caídas en cadena: tirar a varios seguidos (con menos de este hueco) da trozos de estrella extra
 ## Fall chains: throwing several in a row (with less than this gap) gives extra star shards

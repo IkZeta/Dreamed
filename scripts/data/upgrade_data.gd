@@ -39,6 +39,8 @@ const UPGRADE_VALUES := {
 		"laptop": {"extra": [1, 2, 3]},
 		# Las patadas y el dash lanzan al enemigo contra "chain" más con "pct" % del daño
 		"boots": {"chain": [1, 2, 3], "pct": [30, 45, 60]},
+		# Zarpazos, garras y picotazos saltan a "extra" enemigos más con "pct" % del daño
+		"druid": {"extra": [1, 2, 3], "pct": [35, 45, 55]},
 	},
 	"stolk": {
 		"bat": {"pct": [30, 60, 100]},                    # +daño / +damage
@@ -51,6 +53,7 @@ const UPGRADE_VALUES := {
 		# Muñeco de boxeo: puñetazos de "dmg" y atrae con fuerza "pull" / Boxing dummy: "dmg" punches, "pull" strength
 		"laptop": {"dmg": [6, 9, 13], "pull": [60, 90, 130]},
 		"boots": {"pct": [30, 60, 100]},                  # +daño de patadas y dash / +kick and dash damage
+		"druid": {"pct": [30, 60, 100]},                  # +daño de todas las formas / +damage in every form
 	},
 	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
 	## Doc: more max health in exchange for weakening another weapon stat
@@ -66,6 +69,7 @@ const UPGRADE_VALUES := {
 		# +cooldown and −damage, but a healing turret that heals "heal" every 4 s
 		"laptop": {"hp": [10, 18, 28], "pct": [8, 12, 16], "dmg": [10, 15, 20], "heal": [0.6, 0.9, 1.2]},
 		"boots": {"hp": [10, 18, 28], "pct": [8, 12, 16]},     # +recarga de las patadas / +kick cooldown
+		"druid": {"hp": [10, 18, 28], "pct": [8, 12, 16]},     # −daño / −damage
 	},
 	## Mr. Ad: "extra" = % de ganar 1 más de Realidad Fragmentada; "per10" = estadística por cada 10 ahorradas
 	## Mr. Ad: "extra" = % chance of 1 extra Fragmented Reality; "per10" = stat per 10 saved
@@ -80,6 +84,7 @@ const UPGRADE_VALUES := {
 		# Torreta de cobro: remata y da "cash" de Realidad Fragmentada / Debt-collector turret: finishes off and gives "cash"
 		"laptop": {"extra": [20, 35, 50], "per10": [0, 0, 0], "cash": [1, 2, 3]},
 		"boots": {"extra": [20, 35, 50], "per10": [2, 4, 6]},          # +% velocidad / +% speed
+		"druid": {"extra": [20, 35, 50], "per10": [3, 5, 8]},          # +% ataque / +% attack
 	},
 	"silly": {
 		"bat": {"chance": [8, 15, 25], "secs": [0.5, 0.8, 1.2]},   # congelar / freeze
@@ -93,6 +98,8 @@ const UPGRADE_VALUES := {
 		"laptop": {"turrets": [1, 1, 2], "chance": [10, 18, 28], "secs": [0.6, 0.9, 1.3]},
 		# −"pct" % de recarga del dash y el dash congela "secs" s / −"pct" % dash cooldown and the dash freezes for "secs" s
 		"boots": {"pct": [15, 25, 35], "secs": [0.6, 1.0, 1.5]},
+		# Al cambiar de forma, "chance" % de congelar "secs" s a los de alrededor / On shifting, "chance" % to freeze those around for "secs" s
+		"druid": {"chance": [40, 65, 90], "secs": [0.8, 1.2, 1.8]},
 	},
 	## El Pinche: sangrado (daño residual fuerte) o quemadura (flojo, pero baja su daño y su defensa)
 	## The Kitchen Boy: bleed (strong damage over time) or burn (weak, but lowers its damage and defence)
@@ -108,6 +115,7 @@ const UPGRADE_VALUES := {
 		# Stove: pulls with "pull" strength; with "count" enemies beside it, it explodes for "boom" damage
 		"laptop": {"count": [5, 5, 4], "boom": [20, 30, 45], "pull": [50, 70, 90]},
 		"boots": {"dps": [1, 1.5, 2], "secs": [3, 4, 5], "pct": [15, 20, 25]},  # quemadura / burn
+		"druid": {"dps": [1.3, 2, 3], "secs": [3, 3.5, 4]},               # sangrado / bleed
 	},	## SuperK: puñetazo (cada "cd" s baja volando y pega "dmg" con mucho empuje), escudo ("chance" % de
 	## parar un golpe, recarga "cd"), láser de los ojos ("dmg" en línea cada "cd" s) y lanzar (agarra a uno
 	## y lo tira a un agujero o contra los demás, "dmg")
@@ -124,6 +132,7 @@ const UPGRADE_VALUES := {
 		"ball": {"cd": [14.0, 11.0, 8.0], "dmg": [20, 30, 45]},
 		"laptop": {"cd": [12.0, 9.0, 7.0], "dmg": [14, 20, 28]},
 		"boots": {"cd": [14.0, 11.0, 8.0], "dmg": [30, 45, 65]},
+		"druid": {"cd": [14.0, 11.0, 8.0], "dmg": [30, 45, 65]},
 	},
 	## Lil Key: baile (cada "cd" s, los de alrededor bailan "secs" s sin hacer daño) o canto (se pone a
 	## cantar lejos de ti "secs" s: atrae a los enemigos y les hace "dmg" por segundo)
@@ -139,6 +148,7 @@ const UPGRADE_VALUES := {
 		"ball": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
 		"laptop": {"cd": [15.0, 12.0, 9.0], "secs": [4, 5, 6], "dmg": [2, 3, 4]},
 		"boots": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
+		"druid": {"cd": [16.0, 13.0, 10.0], "secs": [3, 4, 5]},
 	},
 	## D. Lynx: "¡Acción!" (cada "cd" s, "count" enemigos de alrededor se vuelven actores "secs" s y
 	## pegan a los demás con "dmg"), "¡Corten! Toma 2" (una vez por partida, si te matan vuelves con
@@ -149,6 +159,7 @@ const UPGRADE_VALUES := {
 	"lynx": {
 		"bat": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
 		"boots": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
+		"druid": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
 		"vacuum": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
 		"shield": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
 		"teddy": {"hp": [30, 50, 75], "inv": [2, 3, 4]},
@@ -165,13 +176,13 @@ const UPGRADE_VALUES := {
 ## SuperK and Lil Key don't change the weapon: they show up on the map and help. Each weapon gets
 ## one of their powers (weapons with the same power share a name and description).
 const HELPER_POWER := {
-	"superk": {"bat": "punch", "boots": "punch", "shield": "guard", "teddy": "guard",
+	"superk": {"bat": "punch", "boots": "punch", "druid": "punch", "shield": "guard", "teddy": "guard",
 		"book": "laser", "finger": "laser", "laptop": "laser", "vacuum": "throw", "ball": "throw"},
-	"lilkey": {"bat": "dance", "shield": "dance", "teddy": "dance", "boots": "dance",
+	"lilkey": {"bat": "dance", "shield": "dance", "teddy": "dance", "boots": "dance", "druid": "dance",
 		"book": "sing", "vacuum": "sing", "finger": "sing", "ball": "sing", "laptop": "sing"},
 	# D. Lynx: "actor" (enemigos que luchan para ti), "retake" (una vida extra) y "cut" (sueños más cortos)
 	# D. Lynx: "actor" (enemies that fight for you), "retake" (an extra life) and "cut" (shorter dreams)
-	"lynx": {"bat": "actor", "boots": "actor", "vacuum": "actor", "shield": "retake", "teddy": "retake", "ball": "retake",
+	"lynx": {"bat": "actor", "boots": "actor", "druid": "actor", "vacuum": "actor", "shield": "retake", "teddy": "retake", "ball": "retake",
 		"book": "cut", "finger": "cut", "laptop": "cut"},
 }
 
@@ -186,6 +197,7 @@ const DUOS := {
 	"silly_lynx": {"a": "silly", "b": "lynx", "weapon": "vacuum"},
 	"stolk_magnus": {"a": "stolk", "b": "magnus", "weapon": "finger"},
 	"doc_lilkey": {"a": "doc", "b": "lilkey", "weapon": "teddy"},
+	"ad_pinche": {"a": "ad", "b": "pinche", "weapon": "druid"},
 }
 
 
@@ -200,6 +212,7 @@ const DUO_VALUES := {
 	"silly_lynx": {"secs": 1.5, "dur": 6, "max": 3},
 	"stolk_magnus": {"crit": 2, "pct": 50, "chance": 15},
 	"doc_lilkey": {"heal": 0.3, "max": 1.5},
+	"ad_pinche": {"pct": 15, "chance": 35},
 }
 
 

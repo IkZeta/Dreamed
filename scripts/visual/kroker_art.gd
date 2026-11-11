@@ -26,6 +26,7 @@ const PAJAMAS := {
 	"ball": {"base": Color("f2c94c"), "pattern": Color("2f9e5b"), "piping": Color("2f9e5b"), "slippers": Color("2f5fb3"), "print": "stripes"},
 	"laptop": {"base": Color("2b2f45"), "pattern": Color("5ff2a0"), "piping": Color("5ff2a0"), "slippers": Color("4a4f72"), "print": "dots"},
 	"boots": {"base": Color("2f5450"), "pattern": Color("d8a040"), "piping": Color("e8c070"), "slippers": Color("3a2a22"), "print": "plaid"},
+	"druid": {"base": Color("3e5f3e"), "pattern": Color("b8d870"), "piping": Color("e8d8a0"), "slippers": Color("5a3a22"), "print": "leaves"},
 }
 
 ## Color de acento del arma / Weapon accent color
@@ -40,6 +41,7 @@ const ACCENT := {
 	"ball": Color("ffffff"),
 	"laptop": Color("5ff2a0"),
 	"boots": Color("e0b860"),
+	"druid": Color("b8d870"),
 }
 
 static var _ci: CanvasItem
@@ -176,6 +178,11 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 
 	# Pijama / Pajamas
 	Sprites.draw(ci, _sp("kroker_torso_" + o), mod)
+	# Collar de druida al cuello (el colgante brilla del color de la forma)
+	# Druid collar around the neck (the pendant glows in the form's colour)
+	var druid_col: Color = opts.get("druid", Color(0, 0, 0, 0))
+	if druid_col.a > 0.0:
+		_collar(t, druid_col, mod)
 
 	# Cabeza (se inclina un poco al estirarse) / Head (tilts back when stretching)
 	_use(Transform2D(-0.12 * stretch, Vector2(100, 170)) * Transform2D(0.0, Vector2(-100, -170)))
@@ -197,6 +204,37 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 			(aim_main if mine else aim_2) * Vector2(facing, 1), suck_main if mine else suck_2, mod)
 
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+
+
+## Collar de cuero con colmillo, garra y pluma; el colgante del medio brilla del color de la forma
+## Leather collar with a fang, a claw and a feather; the middle pendant glows in the form's colour
+static func _collar(t: float, col: Color, mod: Color) -> void:
+	var ink := Color("1a1024")
+	var cord := PackedVector2Array()
+	for i in 9:
+		var f := i / 8.0
+		cord.append(Vector2(lerpf(86.0, 114.0, f), 160.0 + sin(f * PI) * 9.0))
+	_ci.draw_polyline(cord, ink, 4.0)
+	_ci.draw_polyline(cord, Color("8a5a34") * mod, 2.0)
+	# Colmillo y pluma a los lados / Fang and feather on the sides
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(92, 166), Vector2(96, 166), Vector2(94, 174)]), Color("efe6d6") * mod)
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(105, 166), Vector2(110, 167), Vector2(109, 177), Vector2(106, 172)]), Color("5aa86a") * mod)
+	# Garra del centro, con brillo / Middle claw, glowing
+	var pulse := 0.6 + 0.4 * sin(t * 3.0)
+	_ci.draw_circle(Vector2(100, 172), 7.0, Color(col, 0.25 * pulse))
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(97, 167), Vector2(103, 167), Vector2(101, 177), Vector2(99, 179)]), ink)
+	_ci.draw_colored_polygon(PackedVector2Array([Vector2(98, 168), Vector2(102, 168), Vector2(100.5, 176), Vector2(99.3, 177)]), col.lightened(0.3) * mod)
+
+
+## Mano libre del druida: un brillo del color de la forma, más fuerte al atacar
+## The druid's free hand: a glow in the form's colour, stronger when attacking
+static func _druid_hand(t: float, a: float, hand: Vector2) -> void:
+	_use(Transform2D.IDENTITY)
+	var r := 6.0 + 4.0 * a + sin(t * 4.0)
+	_ci.draw_circle(hand, r, Color("b8d870", 0.25 + 0.3 * a))
+	for k in 3:
+		var ang := t * 3.0 + k * TAU / 3.0
+		_ci.draw_rect(Rect2(hand + Vector2(cos(ang), sin(ang)) * (r + 2.0) - Vector2(1.5, 1.5), Vector2(3, 3)), Color("7fc46a", 0.8))
 
 
 ## Mano con la que se lleva cada arma: almohada y oso en la izquierda, el resto en la derecha
@@ -273,6 +311,7 @@ static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: flo
 		"ball": _ball(t, a, hand, mod)
 		"laptop": _laptop(t, a, hand, mod)
 		"boots": _remote(t, a, hand, mod)
+		"druid": _druid_hand(t, a, hand)
 
 
 ## Gira una extremidad alrededor de su articulación / Rotates a limb around its joint

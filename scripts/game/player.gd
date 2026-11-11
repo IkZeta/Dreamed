@@ -14,6 +14,10 @@ var hp := 20.0
 var speed := 300.0
 var damage_mult := 1.0
 var armor := 0.0
+## Lo que añade la forma del collar de druida (pantera: velocidad; oso: defensa)
+## What the druid collar's form adds (panther: speed; bear: defence)
+var form_speed := 1.0
+var form_armor := 0.0
 var alive := true
 var attack_anim := 0.0  # 1 → 0 tras un golpe / after a strike
 var aim := Vector2(1, 0.5)   # hacia dónde apunta el arma / where the weapon points
@@ -98,6 +102,7 @@ func _make_weapon(id: String, primary: bool) -> Weapon:
 		"ball": w = WeaponBall.new()
 		"laptop": w = WeaponLaptop.new()
 		"boots": w = WeaponBoots.new()
+		"druid": w = WeaponDruid.new()
 		_: w = WeaponBat.new()
 	w.id = id
 	w.primary = primary
@@ -105,6 +110,15 @@ func _make_weapon(id: String, primary: bool) -> Weapon:
 	w.player = self
 	add_child(w)
 	return w
+
+
+## Color de la forma del collar de druida, si lo lleva (si no, transparente)
+## The druid collar's form colour, if he wears it (otherwise transparent)
+func _druid_color() -> Color:
+	var d: WeaponDruid = weapon as WeaponDruid if weapon is WeaponDruid else (weapon2 as WeaponDruid if weapon2 is WeaponDruid else null)
+	if d == null:
+		return Color(0, 0, 0, 0)
+	return WeaponDruid.COLORS[d.form]
 
 
 ## Vuelve a leer las estadísticas (al subir de nivel) / Re-reads the stats (after a level-up)
@@ -189,7 +203,7 @@ func _physics_process(delta: float) -> void:
 			input = Vector2.ZERO
 		_update_bleed(delta)
 		slow_t = maxf(0.0, slow_t - delta)
-		var spd := speed * (0.6 if slow_t > 0.0 else 1.0)
+		var spd := speed * form_speed * (0.6 if slow_t > 0.0 else 1.0)
 		# Suelo helado: cuesta arrancar y frenar / Icy floor: hard to get going and to stop
 		var grip := 2.2 if run.event == "ice" else 14.0
 		_vel = _vel.lerp(input * spd + push, minf(1.0, delta * grip))
@@ -279,7 +293,7 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 			who = source.get("cause")
 		if who != null and str(who) != "":
 			GameState.last_hit = str(who)
-	var def := armor * (Enemy.BLEED_DEFENSE if bleed_t > 0.0 else 1.0)
+	var def := (armor + form_armor) * (Enemy.BLEED_DEFENSE if bleed_t > 0.0 else 1.0)
 	var dmg := maxf(maxf(1.0, amount * 0.5), amount - def)
 	hp = maxf(0.0, hp - dmg)
 	_invuln = HIT_INVULN
@@ -466,6 +480,7 @@ func _draw() -> void:
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
+		"druid": _druid_color(),
 		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),
 		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
 		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})

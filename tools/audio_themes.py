@@ -1322,4 +1322,42 @@ SFX.update({"pin": (sfx_pin, 0.3, 0.15), "whistle": (sfx_whistle, 0.28, 0.1), "f
             "paper": (sfx_paper, 0.32, 0.15), "wood_clack": (sfx_wood_clack, 0.32, 0.15), "rubber": (sfx_rubber, 0.3, 0.1),
             "zap_down": (sfx_zap_down, 0.26, 0.15)})
 
+def sfx_druid_shift():
+    """Collar de druida que cambia de forma: un remolino de hojas y dos notas de flauta de madera que suben
+    Druid collar shifting form: a swirl of leaves and two rising wooden-flute notes."""
+    leaves = A.sweep_noise(0.45, 900, 3200, 1.5, 0.07)
+    flute = np.zeros(int(SR * 0.6))
+    for k, m in enumerate((67, 74)):
+        d = 0.32
+        t = t_axis(d)
+        n = (np.sin(2 * np.pi * midi(m) * t) + 0.25 * np.sin(4 * np.pi * midi(m) * t)) * np.minimum(1.0, t * 30) * np.exp(-t * 7) * 0.11
+        at = int(SR * k * 0.12)
+        flute[at:at + len(n)] += n[:len(flute) - at]
+    return mix(lp(flute, 3000), lp(leaves, 3500))
+
+
+def sfx_bear_swipe():
+    """Zarpazo de oso: un golpe sordo y peludo con un soplo grave / Bear swipe: a dull furry thump with a low whoosh."""
+    return mix(lp(thump(95, 0.22, 0.28, 14), 900), A.sweep_noise(0.18, 1400, 400, 3.0, 0.08))
+
+
+def sfx_claw():
+    """Zarpazo de pantera: dos rasguños cortos y suaves / Panther claw: two short soft scratches."""
+    x = np.zeros(int(SR * 0.2))
+    for k in range(2):
+        d = 0.05
+        b = bp(noise(d), 2200, 6000) * np.exp(-t_axis(d) * 55) * 0.12
+        at = int(SR * k * 0.045)
+        x[at:at + len(b)] += b
+    return lp(x, 6500)
+
+
+def sfx_peck():
+    """Picotazo de buitre: un toc seco de madera hueca / Vulture peck: a dry hollow wooden tock."""
+    return bar(RNG.uniform(700, 820), 0.12, 0.28, "wood", 0.5)
+
+
+SFX.update({"druid_shift": (sfx_druid_shift, 0.3, 0.1), "bear_swipe": (sfx_bear_swipe, 0.3, 0.12),
+            "claw": (sfx_claw, 0.28, 0.15), "peck": (sfx_peck, 0.28, 0.12)})
+
 OVERRIDES = set(MUSIC) | set(SFX)

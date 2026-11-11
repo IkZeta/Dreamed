@@ -62,11 +62,13 @@ const PICKUP := {
 	"ball": Vector2(1010, 482),
 	"laptop": Vector2(1676, 424),
 	"boots": Vector2(842, 402),
+	"druid": Vector2(380, 566),
 }
 ## Armas que esperan en el suelo (en su sitio en el lienzo) / Weapons waiting on the floor (their spot on the canvas)
 const BALL_AT := Vector2(1062, 460)
 const LAPTOP_AT := Vector2(1612, 292)
 const BOOTS_AT := Vector2(892, 360)
+const DRUID_AT := Vector2(410, 548)     # en la alfombrita, junto al conejo / on the little rug, by the bunny
 ## Los sprites de las armas están a la escala de Kroker / The weapon sprites are at Kroker's scale
 const ART_K := Player.ART_SCALE / S
 const WAKE_POINT := Vector2(440, 560)    # donde aterriza al bajar de la cama / where he lands
@@ -653,6 +655,14 @@ func _draw_props() -> void:
 			var y := -8.0 - fposmod(_t * 18.0 + i * 6.0, 24.0)
 			var w := 8.0 + float((i * 7 + int(_t * 3.0)) % 5) * 4.0
 			draw_rect(Rect2(-14, y, w, 2), Color("5ff2a0", 0.85))
+		draw_set_transform(Vector2.ZERO)
+	# El collar de druida en la alfombrita del conejo; la gema late como si respirara
+	# The druid collar on the bunny's little rug; the gem pulses as if it breathed
+	if GameState.weapon_unlocked("druid") and not (outfit == "druid" and weapon_taken):
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(DRUID_AT - Vector2(50, 44), Vector2(100, 80)), false, Color("7fd49a", 0.14 + 0.08 * sin(_t * 1.6)))
+		_floor_shadow(DRUID_AT + Vector2(0, 14), Vector2(26, 5))
+		draw_set_transform(DRUID_AT, -0.15, Vector2.ONE * ART_K * 1.8)
+		Sprites.draw(self, "weapon_collar")
 		draw_set_transform(Vector2.ZERO)
 	# El balón de fútbol en el haz de luna / The football in the moonbeam
 	if GameState.weapon_unlocked("ball") and not (outfit == "ball" and weapon_taken):
