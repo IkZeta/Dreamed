@@ -434,7 +434,7 @@ func _close_box() -> void:
 	_world.frozen = false
 
 
-## El álbum de pegatinas del diario, en el atril del museo / The diary's sticker album, on the museum lectern
+## El álbum de pegatinas del diario, en el atril junto a la fuente / The diary's sticker album, on the lectern by the fountain
 func _open_album() -> void:
 	_world.frozen = true
 	Audio.play("fluff", -6.0)

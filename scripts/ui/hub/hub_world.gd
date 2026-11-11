@@ -76,11 +76,38 @@ func _ready() -> void:
 	_motes_node.world = self
 	add_child(_motes_node)
 	var sh := Shader.new()
-	# Piedra: gris lila en cuatro tonos, como tallado en pixel art. La luz se reparte para que los
-	# enemigos oscuros y los claros acaben siendo de la misma piedra.
-	# Stone: lilac grey in four tones, like carved pixel art. The light is spread so dark and light
-	# enemies end up as the same stone.
-	sh.code = "shader_type canvas_item;\nvoid fragment() {\n\tvec4 c = texture(TEXTURE, UV) * COLOR;\n\tif (c.a < 0.4) discard;\n\tfloat g = dot(c.rgb, vec3(0.3, 0.59, 0.11));\n\tg = 0.18 + 0.64 * pow(g, 0.55);\n\tg = floor(clamp(g, 0.0, 0.999) * 4.0) / 3.0;\n\tvec3 dark = vec3(0.28, 0.25, 0.42);\n\tvec3 lite = vec3(0.88, 0.85, 0.80);\n\tCOLOR = vec4(mix(dark, lite, g), 1.0);\n}"
+	# Piedra tallada: cada estatua se pinta una vez en su propia textura y este sombreado la convierte
+	# en piedra gris lila de cuatro tonos, con la luz repartida (oscuros y claros acaban siendo la
+	# misma piedra), contorno oscuro, filo de luz arriba a la izquierda, sombra abajo a la derecha y
+	# un grano de cincel.
+	# Carved stone: each statue is painted once into its own texture and this shader turns it into
+	# four-tone lilac-grey stone, with the light spread out (dark and light ones end up as the same
+	# stone), a dark outline, a light edge top-left, a shadow bottom-right and a chisel grain.
+	sh.code = """shader_type canvas_item;
+float solid(sampler2D t, vec2 uv) { return step(0.4, texture(t, uv).a); }
+void fragment() {
+	vec2 px = TEXTURE_PIXEL_SIZE;
+	vec4 c = texture(TEXTURE, UV);
+	float me = step(0.4, c.a);
+	float around = solid(TEXTURE, UV + vec2(px.x, 0.0)) + solid(TEXTURE, UV - vec2(px.x, 0.0)) + solid(TEXTURE, UV + vec2(0.0, px.y)) + solid(TEXTURE, UV - vec2(0.0, px.y));
+	vec3 ink = vec3(0.10, 0.06, 0.16);
+	if (me < 0.5) {
+		if (around > 0.5) { COLOR = vec4(ink, 1.0); } else { discard; }
+	} else {
+		float g = dot(c.rgb, vec3(0.3, 0.59, 0.11));
+		g = 0.2 + 0.6 * pow(g, 0.55);
+		vec2 cell = floor(UV / px);
+		float grain = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
+		g += (grain - 0.5) * 0.035;
+		float lit = 1.0 - solid(TEXTURE, UV - px);
+		float shade = 1.0 - solid(TEXTURE, UV + px);
+		g += lit * 0.22 - shade * 0.18;
+		g = floor(clamp(g, 0.0, 0.999) * 4.0) / 3.0;
+		vec3 dark = vec3(0.30, 0.27, 0.45);
+		vec3 lite = vec3(0.90, 0.87, 0.82);
+		COLOR = vec4(mix(dark, lite, g), 1.0);
+	}
+}"""
 	_stone = ShaderMaterial.new()
 	_stone.shader = sh
 	var rng := RandomNumberGenerator.new()
@@ -375,6 +402,22 @@ func _build_nexus() -> void:
 	_spots.append({"kind": "fountain", "id": "fountain", "pos": c + Vector2(0, 22), "height": 96.0})
 	_prop(c + Vector2(0, 2), _draw_fountain)
 	_blocks.append({"c": c + Vector2(0, -2), "r": Vector2(38, 14)})
+	# Atril con el álbum de pegatinas del diario, junto a la fuente / Lectern with the diary's sticker album, by the fountain
+	var lec := c + Vector2(140, 6)
+	_blocks.append({"c": lec, "r": Vector2(12, 4)})
+	_spots.append({"kind": "album", "id": "album", "pos": lec + Vector2(0, 10), "height": 64.0})
+	_prop(lec, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(14, 4))
+		ci.draw_rect(Rect2(-3, -30, 6, 30), Color("8a6a4a"))
+		ci.draw_rect(Rect2(-10, -2, 20, 3), Color("6a4e36"))
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-16, -34), Vector2(16, -34), Vector2(13, -28), Vector2(-13, -28)]), Color("6a4e36"))
+		# Libreta abierta con pegatinas / Open notebook with stickers
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(-15, -36)]), Color("efe6cf"))
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(15, -36)]), Color("e6dcc0"))
+		ci.draw_circle(Vector2(-8, -39), 2.5, Color("ff9ad0"))
+		ci.draw_circle(Vector2(7, -39), 2.5, Color("e0a93a"))
+		var tw := 0.5 + 0.5 * sin(_t * 2.0)
+		ci.draw_circle(Vector2(0, -50 - tw * 3.0), 1.5, Color(1, 1, 1, 0.4 + 0.4 * tw)))
 	for p: Vector2 in [Vector2(-150, -62), Vector2(150, -62), Vector2(-178, 62), Vector2(178, 62)]:
 		var at := c + p
 		_blocks.append({"c": at, "r": Vector2(6, 3)})
@@ -444,25 +487,59 @@ func _build_wardrobe() -> void:
 
 func _build_museum() -> void:
 	var c := _isle_pos("museum")
-	# Atril con el álbum de pegatinas del diario, junto a la entrada / Lectern with the diary's sticker album, by the entrance
-	var lec := c + Vector2(122, 106)
-	_blocks.append({"c": lec, "r": Vector2(12, 4)})
-	_spots.append({"kind": "album", "id": "album", "pos": lec + Vector2(0, 10), "height": 64.0})
-	_prop(lec, func(ci: CanvasItem) -> void:
-		_shadow(ci, Vector2.ZERO, Vector2(14, 4))
-		ci.draw_rect(Rect2(-3, -30, 6, 30), Color("8a6a4a"))
-		ci.draw_rect(Rect2(-10, -2, 20, 3), Color("6a4e36"))
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(-16, -34), Vector2(16, -34), Vector2(13, -28), Vector2(-13, -28)]), Color("6a4e36"))
-		# Libreta abierta con pegatinas / Open notebook with stickers
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(-15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(-15, -36)]), Color("efe6cf"))
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(15, -36)]), Color("e6dcc0"))
-		ci.draw_circle(Vector2(-8, -39), 2.5, Color("ff9ad0"))
-		ci.draw_circle(Vector2(7, -39), 2.5, Color("e0a93a"))
-		var tw := 0.5 + 0.5 * sin(_t * 2.0)
-		ci.draw_circle(Vector2(0, -50 - tw * 3.0), 1.5, Color(1, 1, 1, 0.4 + 0.4 * tw)))
 	# Columnas a los lados de la tarima / Columns beside the dais
 	for p: Vector2 in [Vector2(-226, -70), Vector2(226, -70)]:
 		_piece(c + p, "hub_column", Vector2(10, 4))
+	# Arco de la entrada con el cartel «Museo de las pesadillas» / Entrance arch with the "Museum of nightmares" sign
+	_prop(c + Vector2(0, 124), _draw_museum_banner)
+	# Haces de luz sobre los jefes / Beams of light on the bosses
+	for i in 6:
+		var bx := -150.0 + i * 60.0
+		_prop(c + Vector2(bx, -80.0), func(ci: CanvasItem) -> void:
+			var a := 0.12 + 0.03 * sin(_t * 1.3 + bx)
+			var top := Color(1.0, 0.96, 0.82, 0.0)
+			var low := Color(1.0, 0.96, 0.82, a)
+			ci.draw_polygon(PackedVector2Array([Vector2(-9, -96), Vector2(9, -96), Vector2(24, 4), Vector2(-24, 4)]), PackedColorArray([top, top, low, low]))
+			ci.draw_polygon(PackedVector2Array([Vector2(-3, -96), Vector2(3, -96), Vector2(12, 4), Vector2(-12, 4)]), PackedColorArray([top, top, low, low])))
+	# Bancos de terciopelo para mirar las estatuas / Velvet benches to look at the statues
+	for bx in [-128.0, 150.0]:
+		var at := c + Vector2(bx, 112)
+		_blocks.append({"c": at, "r": Vector2(26, 5)})
+		_prop(at, func(ci: CanvasItem) -> void:
+			_shadow(ci, Vector2.ZERO, Vector2(28, 4))
+			for lx in [-22.0, 20.0]:
+				ci.draw_rect(Rect2(lx, -8, 3, 8), Color("5a3a24"))
+			ci.draw_rect(Rect2(-26, -14, 52, 7), Color("1a1024"))
+			ci.draw_rect(Rect2(-25, -13, 50, 5), Color("8a2438"))
+			ci.draw_rect(Rect2(-25, -13, 50, 1), Color("b84a5e"))
+			for k in 4:
+				ci.draw_rect(Rect2(-18 + k * 12, -11, 1, 1), Color("d6a84a")))
+	# Caballete con el cartel de la exposición, a la entrada / Easel with the exhibition poster, at the entrance
+	var easel := c + Vector2(-196, 108)
+	_blocks.append({"c": easel, "r": Vector2(10, 4)})
+	_prop(easel, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(12, 3))
+		ci.draw_line(Vector2(-9, 0), Vector2(-3, -40), Color("6a4e36"), 2.0)
+		ci.draw_line(Vector2(9, 0), Vector2(3, -40), Color("6a4e36"), 2.0)
+		ci.draw_rect(Rect2(-14, -44, 28, 32), Color("1a1024"))
+		ci.draw_rect(Rect2(-13, -43, 26, 30), Color("efe6cf"))
+		# Silueta de un Foox y una luna / A Foox silhouette and a moon
+		ci.draw_circle(Vector2(6, -36), 3.0, Color("e0a93a"))
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-9, -18), Vector2(-7, -26), Vector2(-4, -23), Vector2(2, -24), Vector2(5, -28), Vector2(6, -22), Vector2(9, -18)]), Color("4a3f7a"))
+		ci.draw_rect(Rect2(-10, -16, 20, 1), Color("a8304a")))
+	# Macetas con plantas de sueño junto a las columnas / Pots with dream plants by the columns
+	for px in [-200.0, 200.0]:
+		var at := c + Vector2(px, -58)
+		_blocks.append({"c": at, "r": Vector2(7, 3)})
+		_prop(at, func(ci: CanvasItem) -> void:
+			_shadow(ci, Vector2.ZERO, Vector2(8, 2))
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(-6, -10), Vector2(6, -10), Vector2(4, 0), Vector2(-4, 0)]), Color("b8673a"))
+			ci.draw_rect(Rect2(-7, -12, 14, 3), Color("d6844e"))
+			for k in 5:
+				var ang := -PI * 0.5 + (k - 2) * 0.45 + sin(_t * 1.2 + k + px) * 0.05
+				var tip := Vector2(0, -12) + Vector2.from_angle(ang) * (16.0 + (k % 2) * 6.0)
+				ci.draw_line(Vector2(0, -12), tip, Color("5aa88a"), 2.0)
+				ci.draw_circle(tip, 2.0, Color("9be3ff") if k % 2 else Color("c9b8ff")))
 	# Postes con cordón de terciopelo a los lados del pasillo / Posts with a velvet rope along the aisle
 	for side in [-1.0, 1.0]:
 		for k in 4:
@@ -498,6 +575,30 @@ func _build_museum() -> void:
 		_statue(bosses[i], c + Vector2(-150.0 + i * 60.0, -78.0), true)
 
 
+## Cartel de tela colgado entre las dos columnas / Cloth banner hung between the two columns
+func _draw_museum_banner(ci: CanvasItem) -> void:
+	var f := UITheme.font("caps")
+	var txt := tr("HUB_MUSEUM_BANNER").to_upper()
+	var fs := 9
+	var w := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var h := maxf(46.0, w * 0.5 + 10.0)
+	# Dos postes de latón / Two brass posts
+	for x in [-h, h]:
+		_shadow(ci, Vector2(x, 0), Vector2(6, 2))
+		ci.draw_rect(Rect2(x - 3, -66, 6, 66), Color("1a1024"))
+		ci.draw_rect(Rect2(x - 2, -66, 4, 66), Color("d6a84a"))
+		ci.draw_rect(Rect2(x - 2, -66, 1, 66), Color("f2d488"))
+		ci.draw_circle(Vector2(x, -68), 4.0, Color("f2d488"))
+	# Cartel de tela granate con letras doradas / Burgundy cloth sign with gold letters
+	var sway := sin(_t * 0.9) * 1.0
+	var pts := PackedVector2Array([Vector2(-h - 2, -64), Vector2(h + 2, -64), Vector2(h + 2, -46 + sway), Vector2(0, -40 + sway), Vector2(-h - 2, -46 + sway)])
+	ci.draw_colored_polygon(pts, Color("1a1024"))
+	var inner := PackedVector2Array([Vector2(-h, -62), Vector2(h, -62), Vector2(h, -47 + sway), Vector2(0, -42 + sway), Vector2(-h, -47 + sway)])
+	ci.draw_colored_polygon(inner, Color("7a2034"))
+	ci.draw_line(Vector2(-h, -60), Vector2(h, -60), Color("d6a84a"), 1.0)
+	ci.draw_string(f, Vector2(-w * 0.5, -50 + sway * 0.5), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color("f2d488"))
+
+
 ## Un pedestal (más grande y con placa dorada para los jefes) y, si ya lo has visto, su estatua
 ## A pedestal (bigger and with a gold plaque for bosses) and, if you've seen it, its statue
 func _statue(id: String, at: Vector2, boss: bool) -> void:
@@ -526,14 +627,31 @@ func _statue(id: String, at: Vector2, boss: bool) -> void:
 	if boss:
 		top.scale = Vector2.ONE * (0.6 if id == "boss_ufo" else (0.45 if id == "boss_evil_ad" else 0.8))
 	holder.add_child(top)
+	# Se pinta una vez en su propia textura y se congela: es piedra, no se mueve
+	# Painted once into its own texture and frozen: it's stone, it doesn't move
+	var vp := SubViewport.new()
+	vp.size = Vector2i(STATUE_SIZE) + Vector2i(4, 4)
+	vp.transparent_bg = true
+	vp.disable_3d = true
+	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	holder.add_child(vp)
 	var st: Control = Statue.new()
 	st.id = id
 	st.size = STATUE_SIZE
 	st.custom_minimum_size = STATUE_SIZE
-	st.position = Vector2(-STATUE_SIZE.x / 2.0, -STATUE_SIZE.y * 0.84)
-	st.material = _stone
-	top.add_child(st)
+	st.position = Vector2(2, 2)
+	vp.add_child(st)
+	var spr := Sprite2D.new()
+	spr.texture = vp.get_texture()
+	spr.centered = false
+	spr.position = Vector2(-STATUE_SIZE.x / 2.0 - 2.0, -STATUE_SIZE.y * 0.84 - 2.0)
+	spr.material = _stone
+	top.add_child(spr)
 	_statues.append(st)
+	get_tree().create_timer(0.3).timeout.connect(func() -> void:
+		if is_instance_valid(vp):
+			vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+			st.process_mode = Node.PROCESS_MODE_DISABLED)
 
 # --- Svinho: practica tiros a portería / practises shots at goal ---
 
@@ -1165,10 +1283,6 @@ func _process(delta: float) -> void:
 	_motes_node.position = off
 	for p in _props:
 		p.queue_redraw()
-	for st in _statues:
-		var e: CanvasItem = st.get("_enemy")
-		if e and e.material != _stone:
-			e.material = _stone
 	_ground.queue_redraw()
 	_far.queue_redraw()
 	_motes_node.queue_redraw()

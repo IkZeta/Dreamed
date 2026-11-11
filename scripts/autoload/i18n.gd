@@ -1149,6 +1149,7 @@ const STRINGS := {
 	"CHAT_LYNX_AD_3": {"es": "«Exacto. La gente comprará la carencia de algo.»", "en": "“Exactly. People will buy the lack of something.”"},
 	"CHAT_LYNX_AD_4": {"es": "«QuUuEeEeE??¿¿?.»", "en": "“WhAaAaAaT??¿¿?”"},
 	"HUB_OPEN_ALBUM": {"es": "{interact} Abrir el álbum de pegatinas", "en": "{interact} Open the sticker album"},
+	"HUB_MUSEUM_BANNER": {"es": "Museo de las pesadillas", "en": "Museum of nightmares"},
 	"DIARY_TITLE": {"es": "Querido diario:", "en": "Dear diary:"},
 	"DIARY_SUB": {"es": "{outfit} · {diff}", "en": "{outfit} · {diff}"},
 	"DIARY_WON": {"es": "Esta noche he soñado {n} sueños, uno dentro de otro, y al final me he despertado de verdad. Ha durado {time}.", "en": "Tonight I dreamed {n} dreams, one inside the other, and in the end I really woke up. It lasted {time}."},
