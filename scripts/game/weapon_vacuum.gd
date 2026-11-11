@@ -18,7 +18,16 @@ const RANGE := 320.0
 const CONE := 0.42        # medio ángulo en radianes (~24°) / half angle in radians
 const PULL := 170.0       # px/s hacia Kroker / toward Kroker
 const DPS := 13.0
-const TICK := 0.25
+## Cada cuánto muerde el chupón. Empieza lento y la velocidad de ataque lo acorta poco a poco
+## (la mitad de lo que sube: +20 % de velocidad de ataque = un 10 % más rápido), nunca por debajo
+## de 0,25 s. Cada mordisco hace el daño de ese rato, así que con 0 de velocidad de ataque son
+## 13 de daño por segundo.
+## How often the suction bites. It starts slow and attack speed shortens it bit by bit (half as
+## much as it rises: +20% attack speed = 10% faster), never below 0.25 s. Each bite deals that
+## stretch's worth of damage, so with 0 attack speed it's 13 damage per second.
+const TICK := 0.5
+const TICK_MIN := 0.25
+const SPEED_SCALE := 0.5
 
 var _tick := 0.0
 var _t := 0.0
@@ -62,7 +71,7 @@ func _physics_process(delta: float) -> void:
 	_tick -= delta
 	var do_tick := _tick <= 0.0
 	if do_tick:
-		_tick = TICK
+		_tick = tick_time()
 	for e: Node2D in run.enemies.get_children():
 		if not e.is_targetable() or e.bounce_t > 0.0:
 			continue
@@ -77,10 +86,16 @@ func _physics_process(delta: float) -> void:
 		if GameState.has_duo("silly_lynx") and primary:
 			_digitize(e, delta)
 		if do_tick:
-			deal(e, DPS * TICK * _boost * speed_mult(), Vector2.ZERO, 0.3)
+			deal(e, DPS * TICK * _boost, Vector2.ZERO, 0.6)
 			if lv("silly") > 0:
 				e.glitch(0.0, 0.0, uv("silly", "secs"), 1.0 + uv("silly", "pct") / 100.0)
 	queue_redraw()
+
+
+## Espera entre mordiscos según la velocidad de ataque / Wait between bites by attack speed
+func tick_time() -> float:
+	var k := maxf(0.5, 1.0 + GameState.stat("attack_speed") / 100.0 * SPEED_SCALE)
+	return maxf(TICK_MIN, TICK / k)
 
 
 ## Dúo Silly y D. Lynx: lo que aspiras un rato sale convertido en un doble digital que actúa para

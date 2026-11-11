@@ -296,7 +296,7 @@ const STRINGS := {
 	"KW_LUCK_NAME": {"es": "Suerte", "en": "Luck"},
 	"KW_LUCK_DESC": {"es": "Mejoras de nivel más raras, más objetos de los enemigos y más probabilidad de que vuelvan los personajes que ya te ayudaron.", "en": "Rarer level-up upgrades, more items from enemies and a better chance that characters who already helped you come back."},
 	"KW_ATTACK_SPEED_NAME": {"es": "Velocidad de ataque", "en": "Attack speed"},
-	"KW_ATTACK_SPEED_DESC": {"es": "Tus armas atacan más a menudo.", "en": "Your weapons attack more often."},
+	"KW_ATTACK_SPEED_DESC": {"es": "Tus armas atacan más a menudo. La aspiradora muerde más seguido, pero la mitad de lo que sube.", "en": "Your weapons attack more often. The vacuum bites more often, but by half as much."},
 	"KW_REGEN_NAME": {"es": "Regeneración", "en": "Regeneration"},
 	"KW_REGEN_DESC": {"es": "Recuperas esa cantidad de vida cada 5 segundos. Por encima de 1,5 rinde menos, y junto al robo de salud no cura más de 0,5 por segundo.", "en": "You recover that much health every 5 seconds. Above 1.5 it's worth less, and together with life steal it can't heal more than 0.5 per second."},
 	"KW_LIFESTEAL_NAME": {"es": "Robo de salud", "en": "Lifesteal"},

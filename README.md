@@ -313,7 +313,7 @@ La amistad con cada personaje se guarda entre partidas y llega hasta el nivel 5.
 
 Los enemigos sueltan **trozos de estrella**; cuanto más duro es el enemigo, más sueltan. Al subir de nivel sale un aviso («¡Nivel 3!») y el nivel del HUD marca cuántas mejoras tienes pendientes (+1, +2...). Al acabar el sueño eliges, por cada nivel, 1 de 3 mejoras de estadística, cada una con su rareza: común, poco común, rara, épica o legendaria. Con mando, izquierda y derecha pasan de carta en carta y desde *Cambiar* se vuelve a la del centro.
 
-Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud, suerte y parry.
+Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud, suerte y parry. La aspiradora no tiene cadencia: hace daño a mordiscos, uno cada 0,5 s, y la velocidad de ataque los acerca solo la mitad de lo que sube (+20 % = un 10 % más seguidos; como mucho, uno cada 0,25 s).
 
 - **Defensa, recuperación y robo de salud rinden menos cuanto más tienes**, para que juntarlas no te haga inmortal:
   - La defensa resta daño a cada golpe, pero nunca más de la mitad; por encima de 6, cada punto vale la mitad.
