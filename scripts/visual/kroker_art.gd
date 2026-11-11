@@ -88,8 +88,10 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var mod := Sprites.flash_color(flash)
 
 	# Sombra suave en el suelo / Soft ground shadow
-	_use(Transform2D(0.0, Vector2(1.0, 0.2), 0.0, Vector2(100, 288)))
-	ci.draw_circle(Vector2.ZERO, 44, Color(0.05, 0.03, 0.18, 0.35))
+	# (si levita, la sombra se queda en el suelo y se encoge) / (if hovering, the shadow stays on the floor and shrinks)
+	var hover: float = opts.get("hover", 0.0)
+	_use(Transform2D(0.0, Vector2(1.0, 0.2) * (1.0 - minf(0.35, hover * 0.012)), 0.0, Vector2(100, 288 + hover)))
+	ci.draw_circle(Vector2.ZERO, 44, Color(0.05, 0.03, 0.18, 0.35 * (1.0 - minf(0.4, hover * 0.015))))
 	_use(Transform2D.IDENTITY)
 
 	# Segunda arma (desde El Chef): va en la mano libre / Second weapon (after The Chef): goes in the free hand

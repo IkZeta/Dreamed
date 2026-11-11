@@ -18,6 +18,12 @@ var armor := 0.0
 ## What the druid collar's form adds (panther: speed; bear: defence)
 var form_speed := 1.0
 var form_armor := 0.0
+## Buitre: Kroker levita (pasa por encima de muebles, escombros y charcos, y no le pillan los sismos)
+## Vulture: Kroker hovers (over furniture, rubble and puddles, and quakes don't catch him)
+var form_hover := false
+var _hover := 0.0
+## Pantera: sigilo; los enemigos le pierden la pista mientras dura / Panther: stealth; enemies lose track of him while it lasts
+var stealth_t := 0.0
 var alive := true
 var attack_anim := 0.0  # 1 → 0 tras un golpe / after a strike
 var aim := Vector2(1, 0.5)   # hacia dónde apunta el arma / where the weapon points
@@ -114,8 +120,17 @@ func _make_weapon(id: String, primary: bool) -> Weapon:
 
 ## Color de la forma del collar de druida, si lo lleva (si no, transparente)
 ## The druid collar's form colour, if he wears it (otherwise transparent)
+func druid() -> WeaponDruid:
+	return weapon as WeaponDruid if weapon is WeaponDruid else (weapon2 as WeaponDruid if weapon2 is WeaponDruid else null)
+
+
+## ¿Va levitando (forma de buitre)? / Is he hovering (vulture form)?
+func flying() -> bool:
+	return form_hover
+
+
 func _druid_color() -> Color:
-	var d: WeaponDruid = weapon as WeaponDruid if weapon is WeaponDruid else (weapon2 as WeaponDruid if weapon2 is WeaponDruid else null)
+	var d := druid()
 	if d == null:
 		return Color(0, 0, 0, 0)
 	return WeaponDruid.COLORS[d.form]
@@ -195,14 +210,17 @@ func _physics_process(delta: float) -> void:
 	reload_anim = maxf(0.0, reload_anim - delta / RELOAD_TIME)
 	hurt_lean = move_toward(hurt_lean, 0.0, delta * 1.5)
 	_land = move_toward(_land, 0.0, delta * 4.0)
-	modulate.a = 1.0 if alive else 0.35
+	stealth_t = maxf(0.0, stealth_t - delta)
+	_hover = move_toward(_hover, 1.0 if form_hover and alive else 0.0, delta * 3.0)
+	# En sigilo se vuelve casi una sombra / In stealth he turns almost into a shadow
+	modulate = Color(0.75, 0.68, 1.0, 0.42) if stealth_t > 0.0 and alive else Color(1, 1, 1, 1.0 if alive else 0.35)
 	if alive and run.running:
 		var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		root_t = maxf(0.0, root_t - delta)
 		if root_t > 0.0:
 			input = Vector2.ZERO
 		_update_bleed(delta)
-		slow_t = maxf(0.0, slow_t - delta)
+		slow_t = 0.0 if form_hover else maxf(0.0, slow_t - delta)
 		var spd := speed * form_speed * (0.6 if slow_t > 0.0 else 1.0)
 		# Suelo helado: cuesta arrancar y frenar / Icy floor: hard to get going and to stop
 		var grip := 2.2 if run.event == "ice" else 14.0
@@ -214,7 +232,7 @@ func _physics_process(delta: float) -> void:
 				_vel = _dash_vel.normalized() * spd
 				# Un poco de invulnerabilidad al acabar (parpadea) / A little invulnerability when it ends (he blinks)
 				_invuln = maxf(_invuln, DASH_INVULN)
-		position = run.clamp_to_arena(position + _vel * delta, 24.0)
+		position = run.clamp_to_arena(position + _vel * delta, 24.0, form_hover)
 		if absf(_vel.x) > 10.0:
 			_facing = signf(_vel.x)
 	else:
@@ -273,6 +291,11 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 	if randf() * 100.0 < GameState.parry_chance():
 		_parry(source)
 		return
+	# Oso: el pelaje para el golpe entero y el oso devuelve el zarpazo / Bear: the fur stops the whole hit and the bear swipes back
+	var dr := druid()
+	if dr and not weapon_stunk(dr) and dr.try_guard(source):
+		_invuln = HIT_INVULN
+		return
 	# SuperK aparece y para el golpe / SuperK shows up and stops the hit
 	if run.helpers and run.helpers.try_guard(source):
 		_invuln = HIT_INVULN
@@ -302,6 +325,9 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 	hurt_lean = -0.18
 	run.fx.text(global_position + Vector2(0, -88), "-%d" % roundi(dmg), UITheme.EMBER, 26)
 	run.on_player_hit(dmg)
+	stealth_t = 0.0
+	if dr and not weapon_stunk(dr):
+		dr.on_hurt(source)
 	if run.trinkets:
 		run.trinkets.on_hurt(dmg, source)
 	if hp <= 0.0 and not _retake():
@@ -473,6 +499,9 @@ func _draw() -> void:
 		_draw_spin_trail(spin_a, false)
 	# Un saltito al girar / A little hop while spinning
 	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
+	# Levitando: flota un palmo y se mece / Hovering: floats a hand's breadth up and sways
+	var hover_px := _hover * (16.0 + sin(_t * 2.6) * 4.0)
+	lift += hover_px
 	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift)),
 		outfit, _t, {"facing": facing, "boots": boots != null and armed, "reload": reload_anim,
 		"shades": GameState.run_shades or (run.helpers != null and run.helpers.shades), "fedora": fedora, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
@@ -480,7 +509,7 @@ func _draw() -> void:
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
-		"druid": _druid_color(),
+		"druid": _druid_color(), "hover": hover_px / sy,
 		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),
 		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
 		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})

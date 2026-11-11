@@ -867,9 +867,12 @@ func _blocked(p: Vector2, margin: float) -> bool:
 
 ## Mantiene a alguien dentro del suelo y fuera de los muebles.
 ## Keeps someone on the floor and out of the furniture.
-func clamp_to_arena(p: Vector2, margin: float) -> Vector2:
+func clamp_to_arena(p: Vector2, margin: float, over_blockers := false) -> Vector2:
 	var r := arena_rect().grow(-margin * 0.5)
 	p = Vector2(clampf(p.x, r.position.x, r.end.x), clampf(p.y, r.position.y, r.end.y))
+	# Volando (Kroker con el buitre): por encima de muebles y escombros / Flying (Kroker as the vulture): over furniture and rubble
+	if over_blockers:
+		return p
 	for o in room.blockers_near(p):
 		var g := Bedroom.rect_world(o).grow(margin * 0.6)
 		if g.has_point(p):

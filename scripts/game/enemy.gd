@@ -224,9 +224,11 @@ func _physics_process(delta: float) -> void:
 			if actor_t > 0.0:
 				_actor_strike(delta)
 			else:
-				if stun_t <= 0.0 and is_dangerous():
+				# Kroker en sigilo (pantera): no le encuentran / Kroker in stealth (panther): they can't find him
+				var lost := lost_track()
+				if stun_t <= 0.0 and is_dangerous() and not lost:
 					_touch_player()
-				if stun_t <= 0.0:
+				if stun_t <= 0.0 and not lost:
 					_act(delta)
 	queue_redraw()
 
@@ -236,6 +238,17 @@ func _desired_velocity() -> Vector2:
 	var to_player: Vector2 = run.player.global_position - global_position
 	var dir := to_player.normalized()
 	return dir * speed
+
+
+## ¿Ha perdido de vista a Kroker? (sigilo de la pantera; los jefes no se dejan engañar)
+## Has it lost sight of Kroker? (panther stealth; bosses aren't fooled)
+func lost_track() -> bool:
+	return not is_boss() and run.player is Player and (run.player as Player).stealth_t > 0.0
+
+
+## Husmea despacio dando vueltas, sin rumbo / Sniffs about slowly in circles, aimlessly
+func _sniff() -> Vector2:
+	return Vector2.from_angle(_t * 0.9 + float(get_instance_id() % 97)) * speed * 0.3
 
 
 ## Para comportamientos extra, como disparar / For extra behaviour, such as shooting
@@ -251,7 +264,7 @@ func is_dangerous() -> bool:
 func _move(delta: float) -> void:
 	var vel := Vector2.ZERO
 	if stun_t <= 0.0:
-		var want := _actor_velocity() if actor_t > 0.0 else _desired_velocity()
+		var want := _actor_velocity() if actor_t > 0.0 else (_sniff() if lost_track() else _desired_velocity())
 		# Saliendo en estampida de la puerta: corre hacia el pasillo / Stampeding out of the door: runs into the hall
 		if rush_t > 0.0:
 			want = rush_dir * maxf(speed, 95.0) * 2.2

@@ -23,7 +23,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var player: Player = run.player
 	var d := player.global_position - global_position
-	if Vector2(d.x, d.y / 0.45).length() < RADIUS:
+	if Vector2(d.x, d.y / 0.45).length() < RADIUS and not player.flying():
 		player.take_damage(DAMAGE * GameState.enemy_dmg_mult(), self)
 	queue_redraw()
 

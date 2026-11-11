@@ -304,7 +304,7 @@ func _land() -> void:
 	run.shake(16.0)
 	run.fx.dissipate(global_position, Color("cfc6e8"))
 	var player: Player = run.player
-	if player.global_position.distance_to(global_position) < QUAKE_RADIUS:
+	if player.global_position.distance_to(global_position) < QUAKE_RADIUS and not player.flying():
 		player.take_damage(5.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult(), self)
 	_waves.append({"r": 40.0, "hit": false})
 
@@ -318,7 +318,7 @@ func _update_waves(delta: float) -> void:
 		# Una onda achatada (perspectiva del suelo) / A flattened wave (floor perspective)
 		var d := player.global_position - global_position
 		var dist := Vector2(d.x, d.y / 0.45).length()
-		if not w["hit"] and absf(dist - r) < 26.0 and r > QUAKE_RADIUS:
+		if not w["hit"] and absf(dist - r) < 26.0 and r > QUAKE_RADIUS and not player.flying():
 			w["hit"] = true
 			player.take_damage(3.0 * GameState.BOSS_POWER * GameState.enemy_dmg_mult() * atk_mult(), self)
 		if r > WAVE_REACH:

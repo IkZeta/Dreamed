@@ -1357,6 +1357,29 @@ def sfx_peck():
     return bar(RNG.uniform(700, 820), 0.12, 0.28, "wood", 0.5)
 
 
+def sfx_roar():
+    """Rugido de oso, suave: un gruñido grave que sube y baja, con aire / Soft bear roar: a low growl rising and falling, breathy."""
+    t = t_axis(0.8)
+    f = 70 + 40 * np.sin(np.pi * t / 0.8)
+    env = np.sin(np.pi * np.minimum(1.0, t / 0.8)) ** 1.5
+    growl = np.sin(2 * np.pi * np.cumsum(f) / SR) * (1.0 + 0.5 * np.sin(2 * np.pi * 28 * t)) * env * 0.16
+    breath = lp(bp(noise(0.8), 200, 1400), 1600) * env * 0.08
+    return mix(lp(growl, 700), breath)
+
+
+def sfx_flap():
+    """Aleteo de buitre: tres batidas de aire / Vulture wingbeat: three gusts of air."""
+    x = np.zeros(int(SR * 0.5))
+    for k in range(3):
+        d = 0.09
+        b = lp(bp(noise(d), 300, 1800), 2000) * np.sin(np.pi * t_axis(d) / d) * (0.14 - k * 0.03)
+        at = int(SR * k * 0.13)
+        x[at:at + len(b)] += b
+    return x
+
+
+SFX.update({"roar": (sfx_roar, 0.3, 0.1), "flap": (sfx_flap, 0.28, 0.12)})
+
 SFX.update({"druid_shift": (sfx_druid_shift, 0.3, 0.1), "bear_swipe": (sfx_bear_swipe, 0.3, 0.12),
             "claw": (sfx_claw, 0.28, 0.15), "peck": (sfx_peck, 0.28, 0.12)})
 
