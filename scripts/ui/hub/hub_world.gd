@@ -76,36 +76,60 @@ func _ready() -> void:
 	_motes_node.world = self
 	add_child(_motes_node)
 	var sh := Shader.new()
-	# Piedra tallada: cada estatua se pinta una vez en su propia textura y este sombreado la convierte
-	# en piedra gris lila de cuatro tonos, con la luz repartida (oscuros y claros acaban siendo la
-	# misma piedra), contorno oscuro, filo de luz arriba a la izquierda, sombra abajo a la derecha y
-	# un grano de cincel.
-	# Carved stone: each statue is painted once into its own texture and this shader turns it into
-	# four-tone lilac-grey stone, with the light spread out (dark and light ones end up as the same
-	# stone), a dark outline, a light edge top-left, a shadow bottom-right and a chisel grain.
+	# Piedra tallada. Cada estatua se pinta una vez a triple tamaño en su propia textura; aquí se
+	# reduce promediando (así los bordes y las formas salen limpios) y se esculpe: el relieve sale
+	# de la forma (luz de arriba a la izquierda, sombra en los huecos y abajo), el color del enemigo
+	# solo deja un poco de detalle, y todo pasa a cinco tonos de piedra gris lila con contorno.
+	# Carved stone. Each statue is painted once at triple size into its own texture; here it's
+	# shrunk by averaging (so edges and shapes come out clean) and sculpted: the relief comes from the
+	# shape (light from the top left, shadow in hollows and lower down), the enemy's colours only leave
+	# a little detail, and everything becomes five tones of lilac-grey stone with an outline.
 	sh.code = """shader_type canvas_item;
-float solid(sampler2D t, vec2 uv) { return step(0.4, texture(t, uv).a); }
+const int SS = 3;
+const vec3 RAMP[5] = vec3[](vec3(0.20, 0.17, 0.34), vec3(0.36, 0.33, 0.56), vec3(0.55, 0.52, 0.72), vec3(0.74, 0.72, 0.86), vec3(0.92, 0.90, 0.95));
+vec4 cell(sampler2D t, vec2 uv, vec2 tx) {
+	vec4 acc = vec4(0.0);
+	for (int y = 0; y < SS; y++) {
+		for (int x = 0; x < SS; x++) {
+			vec4 c = texture(t, uv + (vec2(float(x), float(y)) - 1.0) * tx);
+			acc += vec4(c.rgb * c.a, c.a);
+		}
+	}
+	return acc / float(SS * SS);
+}
+float A(sampler2D t, vec2 uv, vec2 tx) { return cell(t, uv, tx).a; }
 void fragment() {
-	vec2 px = TEXTURE_PIXEL_SIZE;
-	vec4 c = texture(TEXTURE, UV);
-	float me = step(0.4, c.a);
-	float around = solid(TEXTURE, UV + vec2(px.x, 0.0)) + solid(TEXTURE, UV - vec2(px.x, 0.0)) + solid(TEXTURE, UV + vec2(0.0, px.y)) + solid(TEXTURE, UV - vec2(0.0, px.y));
-	vec3 ink = vec3(0.10, 0.06, 0.16);
-	if (me < 0.5) {
-		if (around > 0.5) { COLOR = vec4(ink, 1.0); } else { discard; }
+	vec2 tx = TEXTURE_PIXEL_SIZE;
+	vec2 px = tx * float(SS);
+	vec4 c = cell(TEXTURE, UV, tx);
+	float a = c.a;
+	float n = max(max(A(TEXTURE, UV + vec2(px.x, 0.0), tx), A(TEXTURE, UV - vec2(px.x, 0.0), tx)),
+		max(A(TEXTURE, UV + vec2(0.0, px.y), tx), A(TEXTURE, UV - vec2(0.0, px.y), tx)));
+	if (a < 0.45) {
+		if (n >= 0.45) { COLOR = vec4(0.09, 0.06, 0.15, 1.0); } else { discard; }
 	} else {
-		float g = dot(c.rgb, vec3(0.3, 0.59, 0.11));
-		g = 0.2 + 0.6 * pow(g, 0.55);
-		vec2 cell = floor(UV / px);
-		float grain = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
-		g += (grain - 0.5) * 0.035;
-		float lit = 1.0 - solid(TEXTURE, UV - px);
-		float shade = 1.0 - solid(TEXTURE, UV + px);
-		g += lit * 0.22 - shade * 0.18;
-		g = floor(clamp(g, 0.0, 0.999) * 4.0) / 3.0;
-		vec3 dark = vec3(0.30, 0.27, 0.45);
-		vec3 lite = vec3(0.90, 0.87, 0.82);
-		COLOR = vec4(mix(dark, lite, g), 1.0);
+		float lum = dot(c.rgb / max(a, 0.001), vec3(0.3, 0.59, 0.11));
+		// Relieve por la forma: cuánto "aire" hay arriba a la izquierda y abajo a la derecha
+		// Relief from the shape: how much "air" there is to the top left and to the bottom right
+		float r = 2.0;
+		float tl = 1.0 - A(TEXTURE, UV - px * r, tx);
+		float br = 1.0 - A(TEXTURE, UV + px * r, tx);
+		float near = 1.0 - min(min(A(TEXTURE, UV + vec2(px.x, 0.0) * 1.5, tx), A(TEXTURE, UV - vec2(px.x, 0.0) * 1.5, tx)),
+			min(A(TEXTURE, UV + vec2(0.0, px.y) * 1.5, tx), A(TEXTURE, UV - vec2(0.0, px.y) * 1.5, tx)));
+		// Detalle: lo que el color tiene de más claro u oscuro que su alrededor (ojos, bocas, pliegues)
+		// Detail: how much lighter or darker the colour is than its surroundings (eyes, mouths, folds)
+		float avg = 0.0;
+		float wsum = 0.0;
+		for (int i = 0; i < 4; i++) {
+			vec2 o = vec2(i == 0 ? 1.0 : (i == 1 ? -1.0 : 0.0), i == 2 ? 1.0 : (i == 3 ? -1.0 : 0.0)) * px * 1.5;
+			vec4 q = cell(TEXTURE, UV + o, tx);
+			if (q.a > 0.45) { avg += dot(q.rgb / q.a, vec3(0.3, 0.59, 0.11)); wsum += 1.0; }
+		}
+		float detail = wsum > 0.0 ? clamp(lum - avg / wsum, -0.18, 0.18) : 0.0;
+		float g = 0.55 + (pow(lum, 0.6) - 0.5) * 0.30 + detail * 1.1 + tl * 0.36 - br * 0.32 - near * 0.08;
+		g -= UV.y * 0.10;
+		int k = int(clamp(g, 0.0, 0.999) * 5.0);
+		COLOR = vec4(RAMP[k], 1.0);
 	}
 }"""
 	_stone = ShaderMaterial.new()
@@ -624,27 +648,30 @@ func _statue(id: String, at: Vector2, boss: bool) -> void:
 	var top := Node2D.new()
 	top.position = Vector2(0, -19 * k)
 	# Los jefes son enormes: en estatua, más pequeños / Bosses are huge: as statues, smaller
-	if boss:
-		top.scale = Vector2.ONE * (0.6 if id == "boss_ufo" else (0.45 if id == "boss_evil_ad" else 0.8))
+	# Los jefes, en un hueco más grande para que se lean bien / Bosses get a bigger space so they read well
+	var size := STATUE_SIZE * (1.35 if boss else 1.0)
 	holder.add_child(top)
 	# Se pinta una vez en su propia textura y se congela: es piedra, no se mueve
 	# Painted once into its own texture and frozen: it's stone, it doesn't move
 	var vp := SubViewport.new()
-	vp.size = Vector2i(STATUE_SIZE) + Vector2i(4, 4)
+	const SS := 3
+	vp.size = (Vector2i(size) + Vector2i(4, 4)) * SS
 	vp.transparent_bg = true
 	vp.disable_3d = true
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	holder.add_child(vp)
 	var st: Control = Statue.new()
 	st.id = id
-	st.size = STATUE_SIZE
-	st.custom_minimum_size = STATUE_SIZE
-	st.position = Vector2(2, 2)
+	st.size = size * SS
+	st.custom_minimum_size = size * SS
+	st.position = Vector2(2, 2) * SS
 	vp.add_child(st)
 	var spr := Sprite2D.new()
 	spr.texture = vp.get_texture()
 	spr.centered = false
-	spr.position = Vector2(-STATUE_SIZE.x / 2.0 - 2.0, -STATUE_SIZE.y * 0.84 - 2.0)
+	spr.scale = Vector2.ONE / SS
+	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	spr.position = Vector2(-size.x / 2.0 - 2.0, -size.y * 0.84 - 2.0)
 	spr.material = _stone
 	top.add_child(spr)
 	_statues.append(st)

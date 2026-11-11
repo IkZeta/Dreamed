@@ -35,6 +35,7 @@ var elite := false
 var elite_power := ""
 var _puddle_t := 0.0
 var preview := false       # solo se dibuja (bestiario) / only drawn (bestiary)
+var statue := false        # estatua del museo: sin aura ni ascuas / museum statue: no aura or embers
 var state := State.SPAWNING
 var knock := Vector2.ZERO
 var external_pull := Vector2.ZERO  # lo usa la aspiradora / used by the vacuum
@@ -716,7 +717,7 @@ func _death_sound() -> void:
 func _draw() -> void:
 	var a := _fade
 	var bob := sin(_t * 2.6 + _phase) * 3.0
-	if elite:
+	if elite and not statue:
 		# Sombra de su color que late bajo el élite / Pulsing shadow in its colour under the elite
 		var pulse := 0.85 + 0.15 * sin(_t * 5.0)
 		var r := (radius + 22.0) * pulse
