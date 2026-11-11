@@ -50,7 +50,7 @@ func _ready() -> void:
 	add_child(hint)
 	hint.set_anchors_and_offsets_preset(PRESET_BOTTOM_RIGHT, PRESET_MODE_MINSIZE, 30)
 
-	Audio.play_music("music_menu", 1.2)
+	Audio.play_music("music_credits", 1.2)
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.8)
 	_scroll = get_viewport_rect().size.y + 40.0

@@ -1073,9 +1073,48 @@ def city_theme() -> np.ndarray:
     return loop_render(build, bar_len * bars, 0.28)
 
 
+def credits_theme() -> np.ndarray:
+    """Créditos: la nana del menú convertida en caja de música, más lenta y con el bajo de arpa
+    respirando; en la segunda mitad la contramelodía la canta una kalimba, como si Kroker se
+    despertara tarareándola.
+    Credits: the menu lullaby turned into a music box, slower and with a breathing harp bass; in the
+    second half a kalimba sings the countermelody, as if Kroker woke up humming it."""
+    beat = 60.0 / 56
+    bar_len = beat * 4
+    chords = [[50, 57, 62, 66], [47, 54, 59, 62], [43, 50, 55, 59], [45, 52, 57, 61],
+              [43, 55, 59, 62], [45, 57, 61, 64], [47, 54, 59, 62], [45, 52, 57, 62]]
+    mel_a = [(0, 0, 74), (0, 2, 73), (0, 3, 71), (1, 0, 69), (2, 0, 71), (2, 2, 74),
+             (3, 0, 73), (4, 0, 78), (4, 2, 76), (4, 3, 74), (5, 0, 71), (6, 0, 69),
+             (6, 2, 71), (6, 3, 73), (7, 0, 74)]
+    mel_b = [(0, 0, 79), (0, 2, 78), (1, 0, 76), (1, 3, 73), (2, 0, 74), (2, 2, 78),
+             (3, 0, 76), (4, 0, 74), (4, 1, 76), (4, 2, 78), (5, 0, 81), (6, 0, 78), (6, 2, 76), (7, 0, 74)]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 4] if i < 8 else chords[4 + i % 4]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 2.4, 0.07, 2.2, 2.4, 1100), s, human=False)
+            place(buf, pluck(midi(ch[0] - 12), 5.0, 0.26, 0.15, 0.998), s)
+            place(buf, pluck(midi(ch[0] - 5), 3.0, 0.12, 0.25, 0.997), s + beat * 2, 0.2)
+            # Arpa que sube despacio / A slowly rising harp
+            for k, idx in enumerate((1, 2, 3, 2)):
+                place(buf, pluck(midi(ch[idx]), 2.2, 0.07, 0.35, 0.996), s + k * beat + beat * 0.5, -0.3 + 0.2 * k)
+        for bi, b, n in mel_a:
+            t = off + bi * bar_len + b * beat
+            place(buf, glock(midi(n + 12), 2.2, 0.11), t, 0.1)
+            place(buf, glock(midi(n + 12), 1.2, 0.03), t + beat * 0.75, -0.5)   # eco / echo
+        for bi, b, n in mel_a:
+            place(buf, glock(midi(n + 12), 2.2, 0.08), off + (bi + 8) * bar_len + b * beat, 0.2)
+        for bi, b, n in mel_b:
+            place(buf, bar(midi(n - 12), 2.8, 0.17, "kalimba", 0.3), off + (bi + 8) * bar_len + b * beat, -0.2)
+
+    return loop_render(build, bar_len * bars, 0.35)
+
+
 MUSIC = {"music_menu": (menu_theme, 0.55), "music_dream1": (dream_theme, 0.55), "music_astral": (astral_theme, 0.55),
          "music_boss": (boss_theme, 0.55), "music_school": (school_theme, 0.55), "music_ufo": (ufo_theme, 0.55),
-         "music_city": (city_theme, 0.55)}
+         "music_city": (city_theme, 0.55), "music_credits": (credits_theme, 0.5)}
 
 
 # --- Efectos mejorados / Improved sound effects ------------------------------------------

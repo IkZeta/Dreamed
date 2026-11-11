@@ -335,7 +335,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
 ## Más
 
 - **Menú principal:** se ve la versión del juego y hay un botón **Borrar partida** (hay que pulsarlo tres veces) que borra todo el progreso y la partida a medias; los ajustes se quedan. El icono del juego es la cara de Mr. Ad.
-- **Créditos:** desde el menú principal, y solos la primera vez que despiertas del sueño 20. Suben despacio sobre el cielo del sueño con Kroker, el reparto (solo los personajes que ya conoces, con su medallón) y las pesadillas que has visto. Mantener cualquier tecla los acelera; Esc los cierra.
+- **Créditos:** desde el menú principal, y solos la primera vez que despiertas del sueño 20. Suben despacio sobre el cielo del sueño, con su propia música (la nana del menú hecha caja de música, y en la segunda mitad una kalimba que tararea la contramelodía), con Kroker, el reparto (solo los personajes que ya conoces, con su medallón) y las pesadillas que has visto. Mantener cualquier tecla los acelera; Esc los cierra.
 - **Golpes que se notan:** al tirar a alguien por un agujero, el juego se para un instante, la pantalla tiembla (más cuanto más pesa) y suena un glissando de kalimba que cae, con un «plof» lejano. Los enemigos grandes y los élite también paran un instante al morir. Como mucho una micro-pausa cada 0,4 s.
 - **Sonidos propios:** el Gólem se deshace como papel, la Marioneta suelta maderitas, el Tirachinas pierde la goma, el Cyberpunk se apaga chisporroteando, la torreta del Chapuzas dispara vapor y su llave suena contra la madera.
 - **Ritmo:** las frases que ya has leído (plano astral, Charo, el hub) salen casi de golpe. El diario cuenta cuánto tiempo has pasado peleando y cuánto entre pelea y pelea.

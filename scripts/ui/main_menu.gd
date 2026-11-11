@@ -184,7 +184,9 @@ func _on_achievements() -> void:
 func _on_credits() -> void:
 	var c := CreditsRoll.make()
 	add_child(c)
-	c.closed.connect(func() -> void: _credits.grab_focus())
+	c.closed.connect(func() -> void:
+		Audio.play_music("music_menu", 1.2)
+		_credits.grab_focus())
 
 
 func _on_settings() -> void:
