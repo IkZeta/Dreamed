@@ -3,14 +3,14 @@ extends Weapon
 ## Collar de druida (cuerpo a cuerpo): un collar de cuero con un colmillo, una garra y una pluma.
 ## Cada 8 s Kroker cambia de forma y a su lado aparece el espíritu de ese animal, que es el que
 ## ataca. Cada forma juega distinto:
-##  Oso (tanque) — zarpazo en abanico con mucho empuje, +3 de defensa y algo más lento. Al
+##  Oso (tanque) — zarpazo en abanico con mucho empuje, +2 de defensa y algo más lento. Al
 ##     transformarse RUGE: aturde y aparta a los de alrededor. Su PELAJE para un golpe entero
 ##     (se recarga en 7 s) y, cuando le dan, el oso devuelve el zarpazo alrededor (REPRESALIA).
 ##  Pantera (pícara) — garras rapidísimas con 25 % de crítico y +25 % de velocidad. Al
-##     transformarse, y tras cada baja (como mucho una vez cada 5 s), Kroker entra en SIGILO: los
-##     enemigos (no los jefes) le pierden la pista y ni le tocan ni disparan; se rompe si le dan.
-##     El primer zarpazo desde el sigilo es una EMBOSCADA (×3 y sangrado). Si no hay nadie a
-##     mano, la pantera SALTA sobre uno que esté más lejos.
+##     transformarse, Kroker entra en SIGILO 1,5 s: los enemigos (no los jefes) le pierden la
+##     pista y ni le tocan ni disparan; se rompe si le dan. El primer zarpazo es una EMBOSCADA
+##     (×3 y sangrado), y cada baja prepara otra (como mucho una vez cada 5 s). Si no hay nadie
+##     a mano, la pantera SALTA sobre uno que esté más lejos.
 ##  Buitre (vuelo) — picotazos de lejos al que menos vida le queda y REMATA a los que bajan del
 ##     15 % (curando). Kroker LEVITA: pasa por encima de muebles, escombros y charcos, y los sismos
 ##     no le pillan. Cada 8 s hace RAPIÑA: agarra a un enemigo ligero (no élite ni jefe) y lo suelta
@@ -19,13 +19,14 @@ extends Weapon
 ## Druid collar (melee): a leather collar with a fang, a claw and a feather. Every 8 s Kroker
 ## shifts form and that animal's spirit appears beside him and does the attacking. Each form
 ## plays differently:
-##  Bear (tank) — a fanned swipe with a big shove, +3 defence and a bit slower. On shifting it
+##  Bear (tank) — a fanned swipe with a big shove, +2 defence and a bit slower. On shifting it
 ##     ROARS: stuns and pushes away those around. Its FUR stops one whole hit (recharges in 7 s)
 ##     and, when he gets hit, the bear swipes back all around (RETALIATION).
-##  Panther (rogue) — lightning-fast claws with a 25% crit and +25% speed. On shifting, and after
-##     each kill (at most once every 5 s), Kroker goes into STEALTH: enemies (not bosses) lose
-##     track of him and neither touch him nor shoot; getting hit breaks it. The first swipe from
-##     stealth is an AMBUSH (×3 and bleeding). With nobody at hand, the panther LEAPS on someone further off.
+##  Panther (rogue) — lightning-fast claws with a 25% crit and +25% speed. On shifting, Kroker
+##     goes into STEALTH for 1.5 s: enemies (not bosses) lose track of him and neither touch him
+##     nor shoot; getting hit breaks it. The first swipe is an AMBUSH (×3 and bleeding), and each
+##     kill readies another (at most once every 5 s). With nobody at hand, the panther LEAPS on
+##     someone further off.
 ##  Vulture (flight) — pecks from afar at whoever has the least health left and FINISHES OFF those
 ##     under 15% (healing). Kroker HOVERS: over furniture, rubble and puddles, and quakes don't
 ##     catch him. Every 8 s it SNATCHES a light enemy (not elites or bosses) and drops it over the
@@ -46,7 +47,7 @@ const BEAR_RANGE := 130.0
 const BEAR_CD := 1.15
 const BEAR_DMG := 9.0
 const BEAR_KNOCK := 320.0
-const BEAR_ARMOR := 3.0
+const BEAR_ARMOR := 2.0
 const BEAR_SPEED := 0.88
 const ROAR_RADIUS := 230.0
 const ROAR_STUN := 0.6
@@ -60,8 +61,7 @@ const CAT_CD := 0.42
 const CAT_DMG := 6.5
 const CAT_CRIT := 25.0
 const CAT_SPEED := 1.25
-const STEALTH_SHIFT := 1.8       # sigilo al transformarse / stealth on shifting
-const STEALTH_KILL := 0.8        # sigilo tras una baja / stealth after a kill
+const STEALTH_SHIFT := 1.5       # sigilo al transformarse / stealth on shifting
 const STEALTH_CD := 5.0
 const AMBUSH_MULT := 3.0
 const AMBUSH_BLEED := Vector2(2.0, 3.0)   # daño por segundo, segundos / damage per second, seconds
@@ -234,7 +234,7 @@ func _panther() -> bool:
 	if target == null:
 		return false
 	var dir := (_body(target) - origin()).normalized()
-	var ambush := _ambush and player.stealth_t > 0.0
+	var ambush := _ambush
 	var crit := ambush or randf() * 100.0 < CAT_CRIT
 	var mult := AMBUSH_MULT if ambush else (2.0 if crit else 1.0)
 	deal(target, CAT_DMG * _mult() * mult, dir * (160.0 if pounce else 60.0))
@@ -247,9 +247,10 @@ func _panther() -> bool:
 		run.hit_stop(0.035)
 	elif crit:
 		run.fx.text(_body(target) + Vector2(0, -40), tr("DRUID_CRIT"), COLORS["panther"], 18)
-	# Una baja: se esconde otra vez entre las sombras / A kill: back into the shadows
+	# Una baja: prepara otra emboscada (como mucho una vez cada 5 s) / A kill: readies another ambush (at most once every 5 s)
 	if target is Enemy and (target as Enemy).state == Enemy.State.DYING and _stealth_cd <= 0.0:
-		_hide(STEALTH_KILL)
+		_stealth_cd = STEALTH_CD
+		_ambush = true
 	_bounce(target, CAT_DMG)
 	_strike(target, dir, 1.0 if pounce else 0.7, 300.0 if pounce else 90.0)
 	if pounce:
