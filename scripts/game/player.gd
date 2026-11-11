@@ -287,11 +287,36 @@ func _process(delta: float) -> void:
 	if _last_pos != Vector2.INF and delta > 0.0:
 		var spd := position.distance_to(_last_pos) / delta
 		_moving = move_toward(_moving, clampf(spd / 200.0, 0.0, 1.0), delta * 8.0)
+		var before := int(_walk / PI)
 		_walk += spd * delta * 0.045
+		# Polvillo a cada pisada (no si levita) / A little dust at each footstep (not when hovering)
+		if int(_walk / PI) != before and _moving > 0.5 and not form_hover and alive:
+			var dr := druid()
+			var heavy := dr != null and dr == weapon and dr.transformed and dr.form == "bear"
+			_dust.append({"p": global_position + Vector2(-_facing * 10.0, 0), "t": 0.0, "big": heavy})
 		if not run.running and absf(position.x - _last_pos.x) > 0.3:
 			_facing = signf(position.x - _last_pos.x)
 	_last_pos = position
+	for d: Dictionary in _dust:
+		d["t"] = float(d["t"]) + delta / 0.45
+	_dust = _dust.filter(func(d: Dictionary) -> bool: return float(d["t"]) < 1.0)
 	queue_redraw()
+
+
+var _dust: Array = []
+
+
+func _draw_dust() -> void:
+	for d: Dictionary in _dust:
+		var k: float = d["t"]
+		var at: Vector2 = Vector2(d["p"]) - global_position
+		var big: bool = d["big"]
+		var n := 4 if big else 2
+		for i in n:
+			var side := -1.0 if i % 2 == 0 else 1.0
+			var p := at + Vector2(side * (4.0 + k * (14.0 if big else 8.0)) + i * 2.0, -2.0 - k * 6.0)
+			var r := (3.0 if big else 2.0) + k * (5.0 if big else 3.0)
+			draw_circle(p, r, Color(0.85, 0.82, 0.95, 0.35 * (1.0 - k)))
 
 
 ## Pequeño rebote al caer de un salto / Small bounce when landing from a hop
@@ -518,6 +543,7 @@ func weapon_stunk(w: Weapon) -> bool:
 
 func _draw() -> void:
 	# Parpadea mientras es invulnerable / Blinks while invulnerable
+	_draw_dust()
 	var visible_now := _invuln <= 0.0 or fmod(_t, 0.12) < 0.07 or not alive
 	if not visible_now:
 		return

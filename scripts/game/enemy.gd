@@ -213,6 +213,7 @@ func _physics_process(delta: float) -> void:
 			return
 		State.ALIVE:
 			_move(delta)
+			_animate_motion(delta)
 			# Élite del charco: deja charcos que frenan / Puddle elite: leaves slowing puddles
 			if elite and elite_power == "puddle":
 				_puddle_t -= delta
@@ -231,6 +232,35 @@ func _physics_process(delta: float) -> void:
 				if stun_t <= 0.0 and not lost:
 					_act(delta)
 	queue_redraw()
+
+
+# --- Movimiento animado / Animated motion ---
+var _walk_vel := Vector2.ZERO
+var _turn_t := 0.0
+var _step_ph := 0.0
+var _anim_last := Vector2.INF
+
+
+## Para todos los enemigos que andan: se inclinan hacia donde van (y hacia atrás si los empujan),
+## rebotan un poco a cada paso y se estrechan un instante al darse la vuelta. Los jefes y las
+## estatuas llevan su propia animación.
+## For every walking enemy: they lean into where they're going (and backwards when shoved), bounce
+## a little with each step and narrow for an instant when turning round. Bosses and statues have
+## their own animation.
+func _animate_motion(delta: float) -> void:
+	if is_boss() or statue or speed <= 0.0:
+		return
+	if _anim_last == Vector2.INF:
+		_anim_last = position
+	var moved := (position - _anim_last) / maxf(delta, 0.0001)
+	_anim_last = position
+	var k := clampf(_walk_vel.length() / maxf(speed, 60.0), 0.0, 1.0) if stun_t <= 0.0 else 0.0
+	_step_ph += moved.length() * delta * 0.085
+	var lean := clampf(_walk_vel.x / 900.0, -0.14, 0.14) - clampf(knock.x / 1600.0, -0.3, 0.3)
+	skew = lerpf(skew, lean, minf(1.0, delta * 10.0))
+	_turn_t = maxf(0.0, _turn_t - delta * 6.0)
+	var bounce := absf(sin(_step_ph)) * 0.045 * k
+	scale = Vector2((1.0 + bounce * 0.6) * (1.0 - 0.3 * sin(_turn_t * PI)), 1.0 - bounce)
 
 
 ## Velocidad que quiere llevar (por defecto, ir a por Kroker) / Desired velocity (by default, chase Kroker)
@@ -302,7 +332,10 @@ func _move(delta: float) -> void:
 	vacuumed = false
 	knock = knock.move_toward(Vector2.ZERO, (500.0 if bounce_t > 0.0 or heavy_t > 0.0 else 1400.0) * delta)
 	external_pull = Vector2.ZERO
+	_walk_vel = vel
 	if absf(vel.x) > 5.0:
+		if signf(vel.x) != _facing:
+			_turn_t = 1.0
 		_facing = signf(vel.x)
 	var clamped: Vector2 = run.clamp_to_arena(position, radius)
 	# En la ciudad, si un obstáculo le corta el paso, lo rodea por el lado que da a Kroker
@@ -333,6 +366,7 @@ func can_fall() -> bool:
 
 func _start_fall(to: Vector2) -> void:
 	_unstick()
+	skew = 0.0
 	Progress.add_stat("falls")
 	if is_instance_valid(run.yawns) and run.yawns.owns(to):
 		Progress.add_stat("yawn_falls")

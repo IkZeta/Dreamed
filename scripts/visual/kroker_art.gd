@@ -101,9 +101,12 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	if (outfit == "vacuum" and armed) or (second == "vacuum" and show2):
 		_vacuum_tank(t, mod)
 
-	# Rebote al andar e inclinación / Walking bounce and lean
+	# Rebote al andar, inclinación hacia delante y un leve aplastamiento al apoyar cada pie
+	# Walking bounce, a forward lean and a slight squash as each foot lands
 	var bob := -absf(sin(walk)) * 5.0 * moving
-	_xf = _xf * Transform2D(lean, Vector2(100, 288 + bob)) * Transform2D(0.0, Vector2(-100, -288))
+	var land := (1.0 - absf(sin(walk))) * moving
+	var lean_fwd := 0.06 * moving
+	_xf = _xf * Transform2D(lean + lean_fwd, Vector2(1.0 + 0.025 * land, 1.0 - 0.03 * land), 0.0, Vector2(100, 288 + bob)) * Transform2D(0.0, Vector2(-100, -288))
 
 	# Qué lleva cada mano: el pijama decide la suya y la segunda arma va en la otra
 	# What each hand holds: the pajama picks its hand and the second weapon goes in the other
@@ -129,7 +132,10 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 			a_l = anim2
 
 	# Ángulos de piernas y brazos / Leg and arm angles
-	var swing := sin(walk) * 0.42 * moving
+	var swing := sin(walk) * 0.48 * moving
+	# La pierna que va hacia delante se levanta / The leg moving forward lifts
+	var lift_l := maxf(0.0, -sin(walk + 0.4)) * 9.0 * moving
+	var lift_r := maxf(0.0, sin(walk + 0.4)) * 9.0 * moving
 	var arm_l := _arm_pose(w_l, -swing * 0.8 + 2.7 * stretch, a_l, swing)
 	# Lo que se lleva por delante con la derecha (libro, dedo, portátil, mando), en la izquierda va en
 	# espejo: el brazo se abre hacia fuera en vez de cruzar por detrás del cuerpo y quedar tapado
@@ -149,11 +155,11 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	# Legs (with the steampunk boots, kicks and engine flames)
 	var boots: bool = opts.get("boots", outfit == "boots")
 	var thrust: float = opts.get("thrust", 0.0)
-	_limb(swing - 1.25 * float(opts.get("kick_l", 0.0)), Vector2(87, 227))
+	_limb(swing - 1.25 * float(opts.get("kick_l", 0.0)), Vector2(87, 227), lift_l)
 	Sprites.draw(ci, _sp("kroker_leg_l_" + o), mod)
 	if boots:
 		_boot("l", t, thrust, mod)
-	_limb(-swing - 1.25 * float(opts.get("kick_r", 0.0)), Vector2(113, 227))
+	_limb(-swing - 1.25 * float(opts.get("kick_r", 0.0)), Vector2(113, 227), lift_r)
 	Sprites.draw(ci, _sp("kroker_leg_r_" + o), mod)
 	if boots:
 		_boot("r", t, thrust, mod)
@@ -187,7 +193,9 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 		_collar(t, druid_col, mod)
 
 	# Cabeza (se inclina un poco al estirarse) / Head (tilts back when stretching)
-	_use(Transform2D(-0.12 * stretch, Vector2(100, 170)) * Transform2D(0.0, Vector2(-100, -170)))
+	# La cabeza rebota con un poco de retraso al andar / The head bounces with a slight lag when walking
+	var nod := sin(walk * 2.0 - 0.9) * 1.6 * moving
+	_use(Transform2D(-0.12 * stretch - 0.04 * moving * sin(walk * 2.0 - 0.6), Vector2(100, 170 + nod)) * Transform2D(0.0, Vector2(-100, -170)))
 	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod)
 	if opts.get("shades", false):
 		_shades(t)
@@ -329,8 +337,8 @@ static func draw_held(ci: CanvasItem, xf: Transform2D, w: String, t: float, hand
 
 
 ## Gira una extremidad alrededor de su articulación / Rotates a limb around its joint
-static func _limb(rot: float, pivot: Vector2) -> void:
-	_use(Transform2D(rot, pivot) * Transform2D(0.0, -pivot))
+static func _limb(rot: float, pivot: Vector2, lift := 0.0) -> void:
+	_use(Transform2D(rot, pivot + Vector2(0, -lift)) * Transform2D(0.0, -pivot))
 
 
 # --- Cabeza / Head -----------------------------------------------------------
