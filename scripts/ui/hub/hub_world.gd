@@ -76,8 +76,11 @@ func _ready() -> void:
 	_motes_node.world = self
 	add_child(_motes_node)
 	var sh := Shader.new()
-	# Piedra: gris lila en cuatro tonos, como tallado en pixel art / Stone: lilac grey in four tones, like carved pixel art
-	sh.code = "shader_type canvas_item;\nvoid fragment() {\n\tvec4 c = texture(TEXTURE, UV) * COLOR;\n\tif (c.a < 0.4) discard;\n\tfloat g = dot(c.rgb, vec3(0.3, 0.59, 0.11));\n\tg = floor(clamp(g * 1.15 + 0.1, 0.0, 0.999) * 4.0) / 3.0;\n\tvec3 dark = vec3(0.30, 0.27, 0.44);\n\tvec3 lite = vec3(0.93, 0.89, 0.80);\n\tCOLOR = vec4(mix(dark, lite, g), 1.0);\n}"
+	# Piedra: gris lila en cuatro tonos, como tallado en pixel art. La luz se reparte para que los
+	# enemigos oscuros y los claros acaben siendo de la misma piedra.
+	# Stone: lilac grey in four tones, like carved pixel art. The light is spread so dark and light
+	# enemies end up as the same stone.
+	sh.code = "shader_type canvas_item;\nvoid fragment() {\n\tvec4 c = texture(TEXTURE, UV) * COLOR;\n\tif (c.a < 0.4) discard;\n\tfloat g = dot(c.rgb, vec3(0.3, 0.59, 0.11));\n\tg = 0.18 + 0.64 * pow(g, 0.55);\n\tg = floor(clamp(g, 0.0, 0.999) * 4.0) / 3.0;\n\tvec3 dark = vec3(0.28, 0.25, 0.42);\n\tvec3 lite = vec3(0.88, 0.85, 0.80);\n\tCOLOR = vec4(mix(dark, lite, g), 1.0);\n}"
 	_stone = ShaderMaterial.new()
 	_stone.shader = sh
 	var rng := RandomNumberGenerator.new()
@@ -441,8 +444,8 @@ func _build_wardrobe() -> void:
 
 func _build_museum() -> void:
 	var c := _isle_pos("museum")
-	# Atril con el álbum de pegatinas del diario / Lectern with the diary's sticker album
-	var lec := c + Vector2(166, 90)
+	# Atril con el álbum de pegatinas del diario, junto a la entrada / Lectern with the diary's sticker album, by the entrance
+	var lec := c + Vector2(122, 106)
 	_blocks.append({"c": lec, "r": Vector2(12, 4)})
 	_spots.append({"kind": "album", "id": "album", "pos": lec + Vector2(0, 10), "height": 64.0})
 	_prop(lec, func(ci: CanvasItem) -> void:
@@ -457,36 +460,80 @@ func _build_museum() -> void:
 		ci.draw_circle(Vector2(7, -39), 2.5, Color("e0a93a"))
 		var tw := 0.5 + 0.5 * sin(_t * 2.0)
 		ci.draw_circle(Vector2(0, -50 - tw * 3.0), 1.5, Color(1, 1, 1, 0.4 + 0.4 * tw)))
-	for p: Vector2 in [Vector2(-246, -62), Vector2(246, -62), Vector2(-262, 52), Vector2(262, 52)]:
+	# Columnas a los lados de la tarima / Columns beside the dais
+	for p: Vector2 in [Vector2(-226, -70), Vector2(226, -70)]:
 		_piece(c + p, "hub_column", Vector2(10, 4))
-	for i in Progress.BESTIARY.size():
-		var id: String = Progress.BESTIARY[i]
-		# Tres filas de siete / Three rows of seven
-		var at := c + Vector2(-156 + (i % 7) * 52, -70 + (i / 7) * 78)
-		_blocks.append({"c": at + Vector2(0, -6), "r": Vector2(15, 6)})
-		_spots.append({"kind": "statue", "id": id, "pos": at + Vector2(0, 6), "height": 86.0})
-		_prop(at, func(ci: CanvasItem) -> void:
-			_shadow(ci, Vector2(0, -2), Vector2(16, 4))
-			Sprites.draw(ci, "hub_pedestal"))
-		if Progress.has_seen(id):
-			# La estatua va en su propio nodo, justo delante del pedestal / The statue goes in its own node, just in front of the pedestal
-			var holder := Node2D.new()
-			holder.position = at + Vector2(0, 0.5)
-			_sort.add_child(holder)
-			var top := Node2D.new()
-			top.position = Vector2(0, -19)
-			# Los jefes son enormes: en estatua, más pequeños / Bosses are huge: as statues, smaller
-			if id.begins_with("boss_"):
-				top.scale = Vector2.ONE * (0.55 if id == "boss_ufo" else (0.4 if id == "boss_evil_ad" else 0.72))
-			holder.add_child(top)
-			var st: Control = Statue.new()
-			st.id = id
-			st.size = STATUE_SIZE
-			st.custom_minimum_size = STATUE_SIZE
-			st.position = Vector2(-STATUE_SIZE.x / 2.0, -STATUE_SIZE.y * 0.84)
-			st.material = _stone
-			top.add_child(st)
-			_statues.append(st)
+	# Postes con cordón de terciopelo a los lados del pasillo / Posts with a velvet rope along the aisle
+	for side in [-1.0, 1.0]:
+		for k in 4:
+			var post := c + Vector2(side * 30.0, -36.0 + k * 40.0)
+			_blocks.append({"c": post, "r": Vector2(4, 2)})
+			var last := k == 3
+			_prop(post, func(ci: CanvasItem) -> void:
+				_shadow(ci, Vector2.ZERO, Vector2(5, 2))
+				ci.draw_rect(Rect2(-4, -2, 8, 3), Color("8a6a2a"))
+				ci.draw_rect(Rect2(-1.5, -22, 3, 20), Color("d6a84a"))
+				ci.draw_rect(Rect2(-1.5, -22, 1, 20), Color("f2d488"))
+				ci.draw_circle(Vector2(0, -23), 3.0, Color("f2d488"))
+				if not last:
+					# Cordón que cuelga hasta el siguiente poste / Rope sagging to the next post
+					var pts := PackedVector2Array()
+					for i in 9:
+						var f := i / 8.0
+						pts.append(Vector2(0, -19).lerp(Vector2(0, 21), f) + Vector2(sin(f * PI) * 5.0 * side, sin(f * PI) * 4.0))
+					ci.draw_polyline(pts, Color("1a1024"), 3.0)
+					ci.draw_polyline(pts, Color("a8304a"), 2.0))
+	# Pesadillas a los dos lados del pasillo y jefes en la tarima del fondo
+	# Nightmares on both sides of the aisle and bosses on the dais at the back
+	var minor: Array[String] = []
+	var bosses: Array[String] = []
+	for id: String in Progress.BESTIARY:
+		(bosses if id.begins_with("boss_") else minor).append(id)
+	for i in minor.size():
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var j := i / 2
+		var at := c + Vector2(side * (68.0 + (j % 4) * 50.0), -12.0 + (j / 4) * 70.0)
+		_statue(minor[i], at, false)
+	for i in bosses.size():
+		_statue(bosses[i], c + Vector2(-150.0 + i * 60.0, -78.0), true)
+
+
+## Un pedestal (más grande y con placa dorada para los jefes) y, si ya lo has visto, su estatua
+## A pedestal (bigger and with a gold plaque for bosses) and, if you've seen it, its statue
+func _statue(id: String, at: Vector2, boss: bool) -> void:
+	var k := 1.3 if boss else 1.0
+	_blocks.append({"c": at + Vector2(0, -6), "r": Vector2(15, 6) * k})
+	_spots.append({"kind": "statue", "id": id, "pos": at + Vector2(0, 6 * k), "height": 86.0 * k})
+	_prop(at, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2(0, -2), Vector2(16, 4) * k)
+		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2(k, k))
+		Sprites.draw(ci, "hub_pedestal")
+		ci.draw_set_transform(Vector2.ZERO))
+	if not Progress.has_seen(id):
+		# Sin ver: un signo de interrogación de piedra / Not seen yet: a stone question mark
+		_prop(at + Vector2(0, 0.5), func(ci: CanvasItem) -> void:
+			var f := UITheme.font("display")
+			ci.draw_string_outline(f, Vector2(-7, -24 * k), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, 4, Color("1a1024", 0.7))
+			ci.draw_string(f, Vector2(-7, -24 * k), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("8a82b2")))
+		return
+	# La estatua va en su propio nodo, justo delante del pedestal / The statue goes in its own node, just in front of the pedestal
+	var holder := Node2D.new()
+	holder.position = at + Vector2(0, 0.5)
+	_sort.add_child(holder)
+	var top := Node2D.new()
+	top.position = Vector2(0, -19 * k)
+	# Los jefes son enormes: en estatua, más pequeños / Bosses are huge: as statues, smaller
+	if boss:
+		top.scale = Vector2.ONE * (0.6 if id == "boss_ufo" else (0.45 if id == "boss_evil_ad" else 0.8))
+	holder.add_child(top)
+	var st: Control = Statue.new()
+	st.id = id
+	st.size = STATUE_SIZE
+	st.custom_minimum_size = STATUE_SIZE
+	st.position = Vector2(-STATUE_SIZE.x / 2.0, -STATUE_SIZE.y * 0.84)
+	st.material = _stone
+	top.add_child(st)
+	_statues.append(st)
 
 # --- Svinho: practica tiros a portería / practises shots at goal ---
 

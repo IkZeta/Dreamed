@@ -349,9 +349,9 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - **la fuente de estrellas**, en el centro: con la **F** se abre la ventana de empezar a soñar (con la dificultad y el Modo Dios);
   - **el armario**, con un maniquí por pijama (los que aún no tienes, con el soporte vacío): al acercarte sale la carta del pijama y con la **F** te lo pones;
   - **el tatami**, detrás del armario, con un **muñeco de pruebas** para probar el arma, como el esqueleto de Hades: con la **F** entras a entrenar. No se rompe nunca, no hace daño, se tambalea con los golpes y enseña el daño por segundo. Los empujones lo arrastran por el tatami y, si lo sacas por el borde, cae al vacío; al segundo vuelve a su sitio. Con **Esc** → *Volver al plano astral* sales;
-  - **el museo**, que sustituye al bestiario: una estatua por cada enemigo que has visto, con su ficha al mirarla, y pedestales vacíos para los que faltan.
+  - **el museo**, que sustituye al bestiario: una galería de mármol en rombos con un pasillo de alfombra granate y cordones de terciopelo desde la entrada; las pesadillas a los dos lados del pasillo y los jefes en pedestales grandes sobre la tarima del fondo, entre dos columnas. Una estatua por cada enemigo que has visto, con su ficha al mirarla; los que faltan tienen un signo de interrogación de piedra. El álbum de pegatinas está en un atril junto a la entrada.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
-- **Museo:** las estatuas son de piedra tallada y cada ficha está escrita con la voz de Kroker.
+- **Museo:** las estatuas son todas de la misma piedra tallada (la luz se reparte para que los enemigos oscuros y los claros casen) y cada ficha está escrita con la voz de Kroker.
 - **Logros:** hay 37 (entre ellos, romper 15 torretas del Chapuzas, tirar a 10 enemigos por los Bostezos, vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla (a 0 también quita las micro-pausas);

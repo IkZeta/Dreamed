@@ -342,27 +342,50 @@ def floor_magnus(lx, ly, rng, irx, iry):
 
 
 def floor_marble(lx, ly, rng, irx, iry):
-    A, B, S = night("#c4bedc", 0.58), night("#bdb6d6", 0.58), night("#aea6cc", 0.58)
-    row = (ly + 400) // 20
-    off = (row % 2) * 17
-    out = np.where(((((lx + 400 + off) // 34) * 5 + row * 3) % 3 == 0)[..., None], B, A)
-    out[((lx + 400 + off) % 34 == 0) | ((ly + 400) % 20 == 0)] = S
+    """Museo: mármol en rombos claros y oscuros con vetas, un pasillo de alfombra granate desde la
+    entrada (abajo) hasta la tarima del fondo, donde están los jefes, y un círculo de luz en el
+    suelo bajo cada uno.
+    Museum: marble in light and dark diamonds with veins, a burgundy carpet aisle from the entrance
+    (bottom) to the dais at the back, where the bosses stand, and a pool of light on the floor under
+    each of them."""
+    A, B, S = night("#d2cce6", 0.55), night("#9d95c2", 0.55), night("#8a82b2", 0.55)
+    u = (lx + ly + 800) // 18
+    v = (lx - ly + 800) // 18
+    out = np.where(((u + v) % 2 == 0)[..., None], A, B)
+    out[((lx + ly + 800) % 18 == 0) | ((lx - ly + 800) % 18 == 0)] = S
     # Vetas del mármol / Marble veins
     r2 = np.random.default_rng(10)
     vein = np.zeros(lx.shape, dtype=bool)
     h, w = lx.shape
-    for _ in range(40):
+    for _ in range(46):
         x, y = r2.integers(0, w), r2.integers(0, h)
         for s in range(r2.integers(6, 18)):
             if 0 <= x < w and 0 <= y < h:
                 vein[y, x] = True
             x += 1
             y += r2.integers(-1, 2)
-    out[vein] = mix(out[vein], night("#a39cc4", 0.58), 0.6)
-    # Alfombra roja entre las filas de pedestales / Red runner between the rows of pedestals
-    run = np.abs(ly - 2) <= 7
-    out[run] = night("#8a2438")
-    out[run & (np.abs(np.abs(ly - 2) - 6) < 1)] = night("#d0a040")
+    out[vein] = mix(out[vein], night("#efeaff", 0.55), 0.35)
+    # Tarima del fondo: losas lisas más claras con canto en sombra / Back dais: smoother, lighter slabs with a shaded front edge
+    dais = (ly <= -60) & (np.abs(lx) <= 200)
+    out[dais] = np.where((((lx + 800) // 30) % 2 == 0)[..., None], night("#e2ddf2", 0.5), night("#d6d0ec", 0.5))[dais]
+    out[dais & ((lx + 800) % 30 == 0)] = night("#b9b1d8", 0.5)
+    edge = (ly > -60) & (ly <= -54) & (np.abs(lx) <= 200)
+    out[edge] = night("#6c6496", 0.5)
+    out[(ly == -60) & (np.abs(lx) <= 200)] = night("#f4f0ff", 0.5)
+    for sx in (-200, 200):
+        side = (np.abs(lx - sx) <= 1) & (ly <= -54)
+        out[side] = night("#6c6496", 0.5)
+    # Círculos de luz bajo los jefes (6, de -150 a 150) / Pools of light under the bosses (6, from -150 to 150)
+    for k in range(6):
+        bx = -150 + k * 60
+        d = ((lx - bx) / 24.0) ** 2 + ((ly + 78) / 9.0) ** 2
+        glow = d < 1.0
+        out[glow] = mix(out[glow], night("#fff6d8", 0.4), 0.35)
+    # Pasillo de alfombra granate con ribete dorado / Burgundy carpet aisle with gold trim
+    car = (np.abs(lx) <= 16) & (ly > -54)
+    out[car] = night("#7a2034", 0.45)
+    out[car & (np.abs(lx) <= 12) & ((ly + 800) % 16 < 2)] = night("#8e2a40", 0.45)
+    out[car & (np.abs(np.abs(lx) - 14) < 1.5)] = night("#d6a84a", 0.45)
     return out
 
 
