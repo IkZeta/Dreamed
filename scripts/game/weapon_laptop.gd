@@ -36,6 +36,7 @@ const PLACE_RANGE := 420.0      # solo pone torretas si hay enemigos cerca / onl
 const MAX_TURRETS := 3
 const QUICK_START := 1.2        # espera entre las 2 primeras torretas / wait between the first 2 turrets
 const RELOCATE := 900.0         # más lejos que esto, la recoloca / further than this, he moves it back
+const RELOCATE_BOSS := 420.0    # contra un jefe, que se mueve mucho, la acerca antes / against a boss, who moves a lot, he brings it closer sooner
 const SPECIAL_GAP := 380.0      # distancia mínima entre especiales / minimum distance between specials
 const GUN_GAP := 60.0           # separación entre torretas de disparo / gap between gun turrets
 const STOVE_BACK := 8.0         # segundos hasta que vuelve el fogón / seconds until the stove comes back
@@ -105,7 +106,8 @@ func attack() -> bool:
 		# Con el máximo puesto, recoloca la que se haya quedado más lejos (en el pasillo infinito)
 		# With the maximum placed, move back the one left furthest away (in the endless hallway)
 		var far: Node2D = null
-		var far_d := RELOCATE
+		var boss_fight: bool = is_instance_valid(run.boss) and run.boss.state != Enemy.State.DYING
+		var far_d := RELOCATE_BOSS if boss_fight else RELOCATE
 		for t in _all():
 			var d := t.global_position.distance_to(player.global_position)
 			if d > far_d:
@@ -115,6 +117,13 @@ func attack() -> bool:
 			return false
 		far.position = _spot() if far.kind == "gun" else _random_spot(far)
 		run.fx.ring(far.position, 26.0, Color("5ff2ff"), 0.35, 2.0)
+		# Contra un jefe, recolocar es rápido: así las torretas le siguen el ritmo
+		# Against a boss, moving one is quick: so the turrets keep up with him
+		if boss_fight:
+			swung(true)
+			Audio.play("typing", -6.0, 0.1)
+			_timer = QUICK_START
+			return false
 	swung(true)
 	Audio.play("typing", -6.0, 0.1)
 	# Al empezar el sueño monta las primeras torretas deprisa / At the start of the dream he sets up the first turrets quickly

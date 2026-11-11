@@ -214,7 +214,7 @@ Desde el sueño 2, más de la mitad de los sueños (55 %) traen un evento al aza
 - **Suelo helado:** una capa de escarcha; Kroker resbala y le cuesta arrancar, frenar y girar.
 - **Fiebre de estrellas:** los enemigos salen más a menudo y van más rápido, pero cada uno suelta un trozo de estrella más.
 - **Sonámbulos:** los enemigos van medio dormidos, muy lentos y con zetas en la cabeza, pero salen muchos más.
-- **Bostezos:** el sueño bosteza y cada pocos segundos se abre un agujero pasajero junto a un enemigo, por el lado contrario a Kroker (como mucho 2 a la vez). Se abre como una boca, dura 5 s y se cierra solo; mientras está bien abierto, todo lo que empujes dentro cae.
+- **Bostezos:** el sueño bosteza y cada pocos segundos se abre un agujero pasajero junto a un enemigo, por el lado contrario a Kroker (como mucho 2 a la vez). Se abre como una boca, dura 5 s y se cierra solo. Al abrirse aspira un poco (1 s): acerca a los enemigos de alrededor, sin dañarlos, y se ven motas de polvo entrando; mientras está bien abierto, todo lo que empujes dentro cae.
 
 **Timbre del colegio** (Acto 3, aparte del evento): suena en todos los sueños del pasillo, la primera vez a los 6-12 s y luego otra vez cada 14-22 s después de cada recreo. Mientras dura el recreo sale un montón de enemigos de las puertas: aparecen enseguida y salen corriendo hacia el pasillo en abanico durante un segundo, de lado y alejándose de Kroker, así que no se amontonan en la puerta ni se le echan encima.
 

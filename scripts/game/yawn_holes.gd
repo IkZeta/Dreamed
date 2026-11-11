@@ -15,11 +15,34 @@ const LIFE := 5.0
 const HALF := Vector2(66, 28)     # medio tamaño del agujero / hole half-size
 const MAX_OPEN := 2
 const AWAY := 260.0              # lejos de Kroker / away from Kroker
+## Al abrirse, el bostezo aspira un poco: acerca a los enemigos cercanos (sin dañarlos)
+## When it opens, the yawn breathes in a little: it draws nearby enemies closer (without hurting them)
+const INHALE := Vector2(0.3, 1.5)  # de cuándo a cuándo aspira (s) / from when to when it breathes in (s)
+const INHALE_R := 200.0
+const INHALE_PULL := 130.0
 
 var run: Run
 var _holes: Array = []           # {c, t, seed}
 var _wait := FIRST
 var _t := 0.0
+
+
+func _physics_process(_delta: float) -> void:
+	if not run.running:
+		return
+	for h: Dictionary in _holes:
+		var t: float = h["t"]
+		if t < INHALE.x or t > INHALE.y:
+			continue
+		var c: Vector2 = h["c"]
+		var k := sin(PI * (t - INHALE.x) / (INHALE.y - INHALE.x))
+		for e: Node in run.enemies.get_children():
+			if not e is Enemy or e.is_boss() or not (e as Enemy).can_fall() or (e as Enemy).state != Enemy.State.ALIVE:
+				continue
+			var to := c - (e as Enemy).global_position
+			var d := to.length()
+			if d < INHALE_R and d > 4.0:
+				(e as Enemy).external_pull += to / d * INHALE_PULL * k * (1.0 - d / INHALE_R * 0.5)
 
 
 func _process(delta: float) -> void:
@@ -135,6 +158,17 @@ func _draw() -> void:
 		for i in 6:
 			var sp := c + Vector2(sin(i * 2.3 + s) * rr.x * 0.6, cos(i * 1.7 + s) * rr.y * 0.5)
 			draw_circle(sp, 1.6, Color(UITheme.BONE, (0.4 + 0.4 * sin(_t * 2.0 + i)) * ease))
+		# Mientras aspira, motas de polvo que entran / While it breathes in, motes of dust flowing in
+		var t: float = h["t"]
+		if t > INHALE.x and t < INHALE.y:
+			var ik := sin(PI * (t - INHALE.x) / (INHALE.y - INHALE.x))
+			for i in 8:
+				var ang := TAU * i / 8.0 + s
+				var ph := fmod(t * 1.6 + i * 0.37, 1.0)
+				var r := lerpf(INHALE_R * 0.8, rr.x * 0.6, ph)
+				var p := c + Vector2(cos(ang) * r, sin(ang) * r * 0.5)
+				draw_rect(Rect2(p - Vector2(3, 3), Vector2(6, 6)), Color("1a1024", 0.5 * ik * (1.0 - ph)))
+				draw_rect(Rect2(p - Vector2(2, 2), Vector2(4, 4)), Color("e6e0ff", 0.85 * ik * (1.0 - ph)))
 		# Bostezo: un leve resplandor que respira mientras está abierto / Yawn: a faint glow that breathes while open
 		var breath := 0.5 + 0.5 * sin(_t * 3.0 + s)
 		draw_polyline(rim + PackedVector2Array([rim[0]]), Color("8d7ff0", (0.25 + 0.25 * breath) * ease), 2.0, true)
