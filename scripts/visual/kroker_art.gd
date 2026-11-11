@@ -316,6 +316,18 @@ static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: flo
 		"druid": _druid_hand(t, a, hand)
 
 
+## Dibuja solo un arma, como si la llevara en la mano "hand" del lienzo de Kroker (para el druida
+## convertido en animal, que lleva la segunda arma flotando) / Draws just a weapon, as if held in
+## hand "hand" of Kroker's canvas (for the druid turned animal, whose second weapon floats)
+static func draw_held(ci: CanvasItem, xf: Transform2D, w: String, t: float, hand: Vector2, a: float, aim: Vector2, sucking: bool, mod := Color.WHITE) -> void:
+	_ci = ci
+	_xf = xf
+	_reload = 0.0
+	_use(Transform2D.IDENTITY)
+	_weapon(ci, w, t, hand, 0.0, Vector2(1, 0), a, aim, sucking, mod, true)
+	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+
+
 ## Gira una extremidad alrededor de su articulación / Rotates a limb around its joint
 static func _limb(rot: float, pivot: Vector2) -> void:
 	_use(Transform2D(rot, pivot) * Transform2D(0.0, -pivot))

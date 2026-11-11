@@ -129,6 +129,22 @@ func flying() -> bool:
 	return form_hover
 
 
+## Kroker convertido: el animal de la forma, con la segunda arma flotando encima con un brillo verde
+## Kroker transformed: the form's animal, with the second weapon floating above in a green glow
+func _draw_animal(dr: WeaponDruid) -> void:
+	DruidArt.draw(self, Vector2.ZERO, dr.form, _t, {"facing": _facing, "walk": _walk, "moving": _moving,
+		"attack": attack_anim, "roar": dr.roar_anim, "pounce": dr.pounce_anim, "flash": _flash})
+	if weapon2 == null or weapon_stunk(weapon2):
+		return
+	var at: Vector2 = DruidArt.HELD_AT[dr.form] * Vector2(_facing, 1.0) + Vector2(0, sin(_t * 2.0) * 4.0)
+	draw_texture_rect(DreamBackground.soft_texture(), Rect2(at - Vector2(34, 34), Vector2(68, 68)), false, Color("7fd49a", 0.3))
+	var s := ART_SCALE * 0.85
+	var hand := Vector2(100, 170)
+	var xf := Transform2D(0.0, Vector2(s * _facing, s), 0.0, at - Vector2(hand.x * s * _facing, hand.y * s))
+	KrokerArt.draw_held(self, xf, weapon2.id, _t, hand, weapon2.anim,
+		(weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5), weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking)
+
+
 func _druid_color() -> Color:
 	var d := druid()
 	if d == null:
@@ -213,7 +229,7 @@ func _physics_process(delta: float) -> void:
 	stealth_t = maxf(0.0, stealth_t - delta)
 	_hover = move_toward(_hover, 1.0 if form_hover and alive else 0.0, delta * 3.0)
 	# En sigilo se vuelve casi una sombra / In stealth he turns almost into a shadow
-	modulate = Color(0.75, 0.68, 1.0, 0.42) if stealth_t > 0.0 and alive else Color(1, 1, 1, 1.0 if alive else 0.35)
+	modulate = Color(0.75, 0.68, 1.0, 0.55) if stealth_t > 0.0 and alive else Color(1, 1, 1, 1.0 if alive else 0.35)
 	if alive and run.running:
 		var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		root_t = maxf(0.0, root_t - delta)
@@ -497,6 +513,21 @@ func _draw() -> void:
 		facing = _facing * (1.0 if c >= 0.0 else -1.0)
 		sx *= maxf(0.4, absf(c))
 		_draw_spin_trail(spin_a, false)
+	# Con el collar de druida puesto (arma principal), Kroker ES el animal / With the druid collar as
+	# the main weapon, Kroker IS the animal
+	var dr := druid()
+	if alive and armed and dr != null and dr == weapon and not weapon_stunk(dr):
+		_draw_animal(dr)
+		if run.running:
+			# Los anillos de carga: los del collar en el lomo; los de la segunda arma, junto a ella
+			# Charge rings: the collar's on the back; the second weapon's, next to it
+			if weapon2 and not weapon_stunk(weapon2):
+				_ring_b = _draw_charge_rings(weapon2.charge_bars(), (DruidArt.HELD_AT[dr.form] + Vector2(30, 6)) * Vector2(_facing, 1.0), _ring_b)
+			_ring_a = _draw_charge_rings(dr.charge_bars(), DruidArt.RING_AT[dr.form] * Vector2(_facing, 1.0), _ring_a)
+			_draw_heavy_pips(dr, Vector2(0, 14))
+		_draw_hearth_ring()
+		_draw_shield_bubble()
+		return
 	# Un saltito al girar / A little hop while spinning
 	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
 	# Levitando: flota un palmo y se mece / Hovering: floats a hand's breadth up and sways

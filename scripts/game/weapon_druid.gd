@@ -91,6 +91,9 @@ var _lunge_to := Vector2.ZERO
 var _alpha := 0.0
 var _shift_fx := 0.0
 var _t := 0.0
+## Animaciones del animal cuando Kroker es el animal / The animal's animations when Kroker is the animal
+var roar_anim := 0.0
+var pounce_anim := 0.0
 # Oso / Bear
 var _guard_t := 0.0              # 0 = pelaje listo / 0 = fur ready
 var _guard_fx := 0.0
@@ -127,6 +130,8 @@ func _physics_process(delta: float) -> void:
 	_shift_fx = maxf(0.0, _shift_fx - delta * 2.0)
 	_alpha = minf(1.0, _alpha + delta * 3.0)
 	_guard_fx = maxf(0.0, _guard_fx - delta * 2.5)
+	roar_anim = maxf(0.0, roar_anim - delta * 1.6)
+	pounce_anim = maxf(0.0, pounce_anim - delta * 4.0)
 	if run.running and player.alive:
 		_form_t -= delta
 		_stealth_cd = maxf(0.0, _stealth_cd - delta)
@@ -255,6 +260,11 @@ func _panther() -> bool:
 	_strike(target, dir, 1.0 if pounce else 0.7, 300.0 if pounce else 90.0)
 	if pounce:
 		_pounce_t = POUNCE_CD
+		# Si Kroker es la pantera, salta él mismo hasta su presa / If Kroker is the panther, he leaps onto the prey himself
+		if primary:
+			var gap := maxf(0.0, _body(target).distance_to(origin()) - 60.0)
+			player.dash(dir * 1100.0, gap / 1100.0)
+			pounce_anim = 1.0
 		run.fx.swing(_body(target), 40.0, dir.angle(), 0.9, COLORS["panther"], 4.0)
 	for k in 3:
 		run.fx.swing(_body(target), 26.0 + k * 4.0, dir.angle() + 1.2 + k * 0.25, 0.5, COLORS["panther"], 2.0)
@@ -334,6 +344,7 @@ func _roar() -> void:
 	run.fx.text(at + Vector2(0, -180), tr("DRUID_ROAR"), COLORS["bear"], 24)
 	run.shake(5.0)
 	Audio.play("roar", -6.0, 0.06)
+	roar_anim = 1.0
 	_lunge = 0.6
 	_lunge_to = Vector2(player._facing * 30.0, 0.0)
 
@@ -523,6 +534,15 @@ func _draw() -> void:
 			pts.append(Vector2(cos(a) * 46.0, sin(a) * 15.0 - 4.0) * tuft * (1.0 + _guard_fx * 0.4))
 		draw_polyline(pts, Color("1a1024", 0.45), 6.0)
 		draw_polyline(pts, Color(COLORS["bear"], 0.55 + 0.3 * pulse), 3.0)
+	# Si el collar es el arma principal, Kroker ya es el animal: aquí solo van las hojas del cambio
+	# y el buitre fantasma de la rapiña / If the collar is the main weapon, Kroker already is the
+	# animal: here only the shifting leaves and the snatch's ghost vulture
+	if primary and player.armed:
+		if _carry_phase != "":
+			var face := signf(_carry_to.x - _bird.x) if absf(_carry_to.x - _bird.x) > 4.0 else 1.0
+			DruidArt.draw(self, _spirit + Vector2(0, 70), "vulture", _t, {"ghost": true, "facing": face, "attack": 0.0})
+		_draw_leaves()
+		return
 	var col: Color = COLORS[form]
 	var lunge := sin(_lunge * PI) if _lunge > 0.0 else 0.0
 	var at := _spirit.lerp(_lunge_to, lunge * 0.7)
@@ -552,7 +572,11 @@ func _draw() -> void:
 			draw_set_transform(at + Vector2(2.0 * face, -24.0), (0.2 + flap) * face, Vector2(face, 1.0) * 0.8)
 			Sprites.draw(self, "druid_wing", tint)
 	draw_set_transform(Vector2.ZERO)
-	# Hojas que giran al cambiar de forma / Leaves swirling when shifting form
+	_draw_leaves()
+
+
+## Hojas que giran al cambiar de forma / Leaves swirling when shifting form
+func _draw_leaves() -> void:
 	if _shift_fx > 0.0:
 		for k in 10:
 			var ang := k * TAU / 10.0 + (1.0 - _shift_fx) * 5.0

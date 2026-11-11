@@ -2682,6 +2682,170 @@ def druid_spirits():
     c += flat(ellipse_d(0, 2, 2.6, 2.6), "#7fd49a")
     add("weapon_collar", -26, -18, 52, 36, c, flat=True, outline=INK)
 
+def druid_forms():
+    """Kroker convertido en cada forma del collar de druida, a su tamaño y en piezas para animarlo:
+    de lado mirando a +x, unidades del mundo, pies en y = 0. Todos llevan sus gafas redondas, su
+    mechón negro y el collar al cuello, para que se vea que sigue siendo él.
+    Kroker turned into each druid collar form, at his size and in pieces so it can be animated:
+    side-on facing +x, world units, feet at y = 0. They all wear his round glasses, his black tuft
+    and the collar round the neck, so you can tell it's still him.
+      Oso / Bear:      druidf_bear_body, druidf_bear_head (+ _roar), druidf_bear_leg (+ _far)
+      Pantera/Panther: druidf_panther_body, druidf_panther_head, druidf_panther_tail, druidf_panther_leg (+ _far)
+      Buitre/Vulture:  druidf_vulture_body, druidf_vulture_head, druidf_vulture_wing (+ _far)
+    Las piezas que giran tienen la articulación en (0, 0) / Rotating pieces have their joint at (0, 0)."""
+    INK = "#1a1024"
+    GL, GLF, GLS = "#1a1024", "#a9c2e8", "#f4f8ff"
+    LEATHER, FANG, GEM = "#6a4428", "#efe6d6", "#7fd49a"
+
+    def glasses(cx, cy, r, arm_to):
+        g = flat(ellipse_d(cx, cy, r + 2.2, r + 2.2), GL) + flat(ellipse_d(cx, cy, r, r), GLF)
+        g += flat(ellipse_d(cx - r * 0.35, cy - r * 0.35, r * 0.3, r * 0.3), GLS)
+        g += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='2.4'/>" % (cx - r - 1, cy, arm_to[0], arm_to[1], GL)
+        return g
+
+    def tuft(x, y, s=1.0):
+        return flat("M%g,%g L%g,%g L%g,%g L%g,%g L%g,%g L%g,%g Z" % (
+            x - 7 * s, y + 3 * s, x - 4 * s, y - 8 * s, x, y - 1 * s, x + 4 * s, y - 10 * s, x + 6 * s, y, x + 9 * s, y - 5 * s), INK)
+
+    def collar(x0, y0, x1, y1, w=6):
+        c = "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='%g'/>" % (x0, y0, x1, y1, LEATHER, w)
+        c += flat("M%g,%g L%g,%g L%g,%g Z" % (x1 - 3, y1, x1 + 3, y1, x1, y1 + 8), FANG)
+        c += flat(ellipse_d(x1 + 4, y1 - 2, 3.2, 3.2), GEM)
+        return c
+
+    # ---------------- Oso / Bear ----------------
+    B0, B1, B2, B3, B4, MZ = "#24150f", "#3f2618", "#5e3a24", "#80522f", "#a06a3c", "#c9a070"
+    b = flat(ellipse_d(-64, -66, 7, 6), B2)
+    # Cuerpo redondo con joroba sobre los hombros y flecos de pelo en la tripa
+    # Round body with a hump over the shoulders and fur fringes on the belly
+    b += flat("M-66,-52 C-72,-72 -60,-88 -42,-90 C-28,-92 -14,-90 -2,-96 C10,-104 28,-106 40,-96 C52,-88 56,-72 52,-58 C48,-46 40,-40 30,-38 L24,-32 L18,-37 L10,-31 L4,-37 L-4,-31 L-10,-37 L-18,-31 L-24,-37 L-32,-31 L-38,-37 C-50,-38 -62,-42 -66,-52 Z", B2)
+    b += flat("M-62,-46 C-50,-40 -34,-40 -20,-40 C0,-40 24,-42 44,-46 C40,-40 34,-38 30,-38 L24,-32 L18,-37 L10,-31 L4,-37 L-4,-31 L-10,-37 L-18,-31 L-24,-37 L-32,-31 L-38,-37 C-50,-38 -58,-41 -62,-46 Z", B1)
+    b += flat("M-44,-84 C-28,-88 -14,-86 -2,-92 C10,-100 26,-102 36,-94 C24,-96 12,-94 2,-88 C-10,-82 -26,-82 -40,-78 Z", B3)
+    b += flat("M-2,-92 C8,-99 20,-100 28,-97 C18,-97 8,-94 0,-90 Z", B4)
+    b += flat("M-64,-58 C-66,-70 -58,-82 -48,-86 C-54,-76 -58,-68 -56,-58 Z", B3)
+    for (x0, y0, x1, y1) in ((-40, -70, -32, -62), (-20, -74, -12, -64), (-50, -60, -44, -52), (10, -82, 16, -72), (-6, -60, 0, -52)):
+        b += "<path d='M%g,%g Q%g,%g %g,%g' fill='none' stroke='%s' stroke-width='2'/>" % (x0, y0, (x0 + x1) / 2 + 3, (y0 + y1) / 2, x1, y1, B1)
+    b += flat("M34,-96 C46,-90 54,-78 54,-64 C50,-74 44,-86 34,-92 Z", B3)
+    b += collar(40, -94, 48, -52, 7)
+    add("druidf_bear_body", -76, -110, 134, 82, b, px=PX_ENEMY, flat=True, outline=INK)
+
+    def bear_head(roar):
+        h = flat(ellipse_d(4, -22, 8, 8), B2) + flat(ellipse_d(4, -22, 4, 4), "#3a2218")
+        h += flat(ellipse_d(19, -25, 7, 7), B1) + flat(ellipse_d(19, -25, 3.4, 3.4), B0)
+        h += flat(ellipse_d(14, -5, 23, 19), B2)
+        h += flat("M-4,-16 C4,-24 18,-26 28,-20 C16,-20 4,-16 -2,-10 Z", B3)
+        h += flat("M-8,2 C-6,10 2,14 10,14 C2,10 -4,6 -8,2 Z", B1)
+        h += flat("M30,-6 C36,-14 30,-23 22,-23 C28,-18 30,-12 28,-4 Z", B1)
+        if roar:
+            h += flat("M22,0 C30,-5 44,-7 52,-3 C52,2 48,4 42,4 L28,6 Z", MZ)
+            h += flat("M24,4 C32,2 44,2 50,4 C46,16 34,22 24,16 Z", "#6a1c2c")
+            h += flat("M28,13 C34,11 42,11 46,8 C42,17 32,19 28,16 Z", "#d8607a")
+            for x in (30, 37, 44):
+                h += flat("M%g,4 L%g,4 L%g,9 Z" % (x - 2, x + 2, x), FANG)
+            h += flat("M22,14 C30,21 42,21 48,12 C46,23 34,27 24,23 Z", B2)
+            h += flat(ellipse_d(50, -5, 4.4, 3.4), "#1a1012")
+        else:
+            h += flat(ellipse_d(34, 0, 14, 10), MZ)
+            h += flat("M24,6 C30,11 42,11 47,6 C43,13 30,13 24,8 Z", "#a07a50")
+            h += flat(ellipse_d(46, -3, 4.6, 3.6), "#1a1012") + flat(ellipse_d(45, -4.6, 1.5, 1), "#7a6a6a")
+            h += "<path d='M33,8 Q39,11 45,7' fill='none' stroke='#2a1912' stroke-width='1.8'/>"
+        h += glasses(24, -9, 6.2, (6, -11))
+        h += flat(ellipse_d(25.5, -9, 2, 2.6), "#1a1012")
+        h += tuft(10, -25, 1.15)
+        return h
+    add("druidf_bear_head", -14, -38, 70, 56, bear_head(False), px=PX_ENEMY, flat=True, outline=INK)
+    add("druidf_bear_head_roar", -14, -38, 70, 66, bear_head(True), px=PX_ENEMY, flat=True, outline=INK)
+
+    def bear_leg(c0, c1, c2):
+        # Pata gorda: ancha arriba, tobillo y una zarpa ovalada con tres uñas hacia delante
+        # Chunky leg: wide at the top, an ankle and an oval paw with three claws pointing forward
+        g = flat("M-15,0 L15,0 C16,10 14,22 12,30 C16,32 20,36 20,40 C20,44 14,45 2,45 L-12,45 C-15,41 -13,36 -11,31 C-14,22 -16,10 -15,0 Z", c0)
+        g += flat("M-15,0 L-7,0 C-7,14 -8,26 -7,32 C-9,38 -9,42 -8,44 L-12,44 C-14,38 -12,34 -11,30 C-14,20 -16,10 -15,0 Z", c1)
+        g += flat("M8,4 C12,14 12,22 10,30 C8,22 6,14 4,4 Z", c2)
+        for (x, y) in ((18, 40), (20, 43), (15, 44)):
+            g += flat("M%g,%g L%g,%g L%g,%g Z" % (x, y - 2, x + 5, y, x, y + 1.5), FANG)
+        return g
+    add("druidf_bear_leg", -20, -4, 48, 54, bear_leg(B2, B1, B3), px=PX_ENEMY, flat=True, outline=INK)
+    add("druidf_bear_leg_far", -20, -4, 48, 54, bear_leg(B1, B0, B2), px=PX_ENEMY, flat=True, outline=INK)
+
+    # ---------------- Pantera / Panther ----------------
+    P0, P1, P2, P3, EYE = "#120c1c", "#221838", "#33264f", "#54428a", "#ffd04a"
+    # Cuerpo esbelto: pecho hondo delante, tripa recogida y lomo con brillo violeta
+    # Slender body: deep chest at the front, tucked belly and a back with a violet sheen
+    p = flat("M-64,-52 C-64,-62 -52,-68 -34,-66 C-16,-64 2,-62 18,-66 C34,-70 50,-66 52,-54 C54,-42 46,-34 32,-34 C16,-32 0,-38 -18,-38 C-34,-38 -50,-40 -58,-44 C-62,-46 -64,-49 -64,-52 Z", P1)
+    p += flat("M-56,-44 C-44,-40 -30,-39 -18,-39 C0,-39 14,-34 30,-35 C38,-35 44,-38 48,-42 C46,-36 40,-34 32,-34 C16,-32 0,-38 -18,-38 C-34,-38 -50,-40 -56,-44 Z", P0)
+    p += flat("M-54,-62 C-38,-67 -18,-64 2,-63 C14,-63 26,-69 38,-69 C26,-66 14,-61 0,-61 C-18,-61 -36,-63 -52,-58 Z", P3)
+    p += flat("M-62,-54 C-60,-60 -56,-64 -48,-66 C-54,-60 -58,-56 -58,-50 Z", P2)
+    for (x, y) in ((-42, -54), (-26, -51), (-10, -55), (6, -51), (-34, -45), (20, -57)):
+        p += flat(ellipse_d(x, y, 3, 2.2), P2)
+    p += collar(40, -70, 47, -40, 5)
+    add("druidf_panther_body", -70, -76, 128, 50, p, px=PX_ENEMY, flat=True, outline=INK)
+    ph = flat("M7,-13 L8,-31 L18,-17 Z", P1) + flat("M10,-18 L10.5,-26 L15,-18 Z", "#7a4a7a")
+    ph += flat("M19,-16 L24,-32 L28,-16 Z", P0)
+    ph += flat("M-5,-8 C1,-20 18,-24 31,-16 C40,-11 46,-4 44,3 C38,9 22,10 8,8 C-3,6 -7,-2 -5,-8 Z", P1)
+    ph += flat("M1,-15 C10,-21 23,-21 30,-16 C19,-16 10,-13 3,-8 Z", P3)
+    ph += flat(ellipse_d(35, 2, 10, 6.5), P2)
+    ph += flat(ellipse_d(44, -2, 2.8, 2.2), "#e88aa8")
+    ph += flat("M33,7 L36.5,7 L34.7,11.5 Z", FANG) + flat("M39.5,6 L42,6 L40.7,9.5 Z", FANG)
+    ph += "<path d='M36,3 L51,0 M36,5 L50,7' stroke='#cfc8ec' stroke-width='0.8'/>"
+    ph += glasses(24, -8, 5.8, (6, -9))
+    ph += flat(ellipse_d(25.5, -8, 2.8, 3.4), EYE) + flat("M25,-11.5 L26,-11.5 L26,-4.5 L25,-4.5 Z", P0)
+    ph += tuft(14, -21, 0.95)
+    add("druidf_panther_head", -12, -36, 66, 52, ph, px=PX_ENEMY, flat=True, outline=INK)
+    # Cola: baja hacia atrás y la punta se enrosca hacia arriba / Tail: drops back and the tip curls up
+    pt = flat("M0,-3 C-14,-2 -24,6 -30,16 C-35,25 -35,33 -29,37 C-22,41 -13,37 -11,30 L-15,28 C-17,32 -21,33 -24,30 C-28,26 -26,18 -21,11 C-15,4 -8,2 0,3 Z", P1)
+    pt += flat("M-4,-2 C-14,0 -22,6 -27,14 C-20,7 -12,3 -4,1 Z", P3)
+    add("druidf_panther_tail", -40, -8, 44, 52, pt, px=PX_ENEMY, flat=True, outline=INK)
+
+    def cat_leg(c0, c1):
+        g = flat("M-6,0 L7,0 C8,14 6,26 6,34 L13,36 L13,39 L-4,39 C-5,26 -7,12 -6,0 Z", c0)
+        g += flat("M-6,0 L-2,0 C-2,12 -3,26 -2,37 L-4,37 C-5,26 -7,12 -6,0 Z", c1)
+        return g
+    def cat_hind(c0, c1):
+        # Pata trasera con el corvejón doblado / Hind leg with the bent hock
+        g = flat("M-11,0 L9,0 C11,8 8,16 2,22 C4,28 6,33 7,35 L13,37 L13,40 L-2,40 C-3,33 -5,27 -7,22 C-12,14 -12,6 -11,0 Z", c0)
+        g += flat("M-11,0 L-4,0 C-5,8 -4,14 0,20 C-2,26 0,32 1,38 L-2,38 C-3,32 -5,27 -7,22 C-12,14 -12,6 -11,0 Z", c1)
+        return g
+    add("druidf_panther_leg", -10, -4, 28, 48, cat_leg(P1, P2), px=PX_ENEMY, flat=True, outline=INK)
+    add("druidf_panther_leg_far", -10, -4, 28, 48, cat_leg(P0, P1), px=PX_ENEMY, flat=True, outline=INK)
+    add("druidf_panther_hind", -16, -4, 34, 48, cat_hind(P1, P2), px=PX_ENEMY, flat=True, outline=INK)
+    add("druidf_panther_hind_far", -16, -4, 34, 48, cat_hind(P0, P1), px=PX_ENEMY, flat=True, outline=INK)
+
+    # ---------------- Buitre / Vulture ----------------
+    V0, V1, V2, V3, RUFF, SKIN, SKIN2, BEAK, TAL = "#1a120f", "#30231c", "#4a3729", "#6e5440", "#ece4d6", "#e09090", "#b86868", "#e8c070", "#c9a070"
+    v = flat("M-30,-64 L-66,-70 L-62,-63 L-72,-59 L-62,-55 L-68,-49 L-30,-55 Z", V0)
+    v += flat("M-34,-62 L-58,-64 L-54,-60 L-34,-58 Z", V2)
+    v += flat("M-44,-66 C-34,-82 -4,-90 18,-84 C32,-80 38,-72 34,-62 C26,-52 6,-50 -14,-52 C-28,-54 -40,-56 -44,-66 Z", V1)
+    v += flat("M-30,-56 C-10,-52 14,-52 30,-60 C22,-52 4,-49 -14,-50 C-24,-51 -30,-53 -30,-56 Z", V2)
+    v += flat("M-30,-80 C-14,-88 6,-88 20,-84 C4,-84 -12,-82 -26,-76 Z", V3)
+    # Patas colgando con garras / Dangling legs with talons
+    for x in (-2, 8):
+        v += flat("M%g,-54 L%g,-54 L%g,-38 L%g,-38 Z" % (x - 2.5, x + 2.5, x + 2, x - 2), TAL)
+        v += flat("M%g,-39 L%g,-39 L%g,-33 L%g,-36 L%g,-33 L%g,-36 Z" % (x - 5, x + 5, x + 6, x + 2, x - 1, x - 4), TAL)
+    v += flat("M16,-86 C24,-94 36,-90 40,-80 C34,-76 26,-76 18,-78 Z", RUFF)
+    v += flat("M20,-88 C26,-92 32,-90 36,-86 C30,-86 24,-85 20,-84 Z", "#fbf6ee")
+    v += collar(30, -92, 38, -74, 4)
+    add("druidf_vulture_body", -76, -100, 122, 72, v, px=PX_ENEMY, flat=True, outline=INK)
+    vh = flat("M-4,0 C-2,-12 2,-22 10,-28 C16,-32 24,-33 29,-28 C32,-25 32,-19 29,-17 L23,-17 C18,-18 14,-15 10,-9 C7,-4 5,0 3,3 Z", SKIN)
+    vh += flat("M0,0 C2,-10 6,-18 12,-24 C8,-16 5,-8 4,1 Z", SKIN2)
+    vh += flat("M28,-26 C35,-27 40,-23 39,-17 L34,-16 C35,-19 33,-22 28,-22 Z", BEAK)
+    vh += flat("M37,-18 L39,-14 L35,-16 Z", "#5a4030")
+    vh += glasses(21, -24, 4.8, (10, -24))
+    vh += flat(ellipse_d(22, -24, 1.8, 2.2), "#1a1012")
+    vh += tuft(14, -31, 0.75)
+    add("druidf_vulture_head", -8, -42, 52, 48, vh, px=PX_ENEMY, flat=True, outline=INK)
+
+    def wing(c0, c1, c2):
+        w = flat("M0,0 C-10,-14 -34,-30 -64,-36 L-86,-34 L-78,-30 L-92,-28 L-82,-24 L-94,-20 L-82,-17 L-90,-11 L-74,-11 C-52,-7 -26,-1 0,7 Z", c0)
+        w += flat("M0,1 C-12,-12 -32,-24 -56,-29 C-36,-16 -18,-7 -2,4 Z", c1)
+        w += flat("M-6,-6 C-18,-16 -34,-24 -50,-28 C-36,-20 -22,-12 -8,-2 Z", c2)
+        for (x, y) in ((-70, -26), (-76, -20), (-72, -14)):
+            w += "<path d='M%g,%g L%g,%g' stroke='%s' stroke-width='1.6'/>" % (x + 16, y + 2, x - 6, y, V0)
+        return w
+    add("druidf_vulture_wing", -98, -42, 104, 54, wing(V1, V2, V3), px=PX_ENEMY, flat=True, outline=INK)
+    add("druidf_vulture_wing_far", -98, -42, 104, 54, wing(V0, V1, V2), px=PX_ENEMY, flat=True, outline=INK)
+
+
 def elite_horn():
     """Cuerno de demonio de los élites (el izquierdo; el derecho se dibuja reflejado): corto y
     curvado hacia fuera, granate con anillos. La base está en el origen y la punta se ilumina con
@@ -3429,6 +3593,7 @@ def build():
     act3_enemies()
     botcher()
     druid_spirits()
+    druid_forms()
     sinister_cat()
     ufo()
     elite_horn()
