@@ -202,8 +202,15 @@ func _physics_process(delta: float) -> void:
 				knock = knock.move_toward(Vector2.ZERO, 1400.0 * delta)
 			external_pull = Vector2.ZERO
 			vacuumed = false
+			# Brota del suelo del sueño: sale aplastado y se estira / Sprouts from the dream floor: comes out squashed and stretches up
+			if sprouts():
+				var f := _fade
+				var spring := sin(f * PI) * 0.12
+				scale = Vector2(1.0 + 0.3 * (1.0 - f) - spring, 0.35 + 0.65 * f + spring)
 			if _fade >= 1.0:
 				state = State.ALIVE
+				if not is_boss():
+					scale = Vector2.ONE
 		State.DYING:
 			if _fall_t >= 0.0:
 				_update_fall(delta)
@@ -374,6 +381,11 @@ func _move(delta: float) -> void:
 
 
 ## Jefes: no cuentan para el límite de enemigos ni se borran con la K / Bosses: don't count for the enemy cap and survive the K key
+## ¿Brota del suelo al aparecer? (no los que vuelan o llegan por su cuenta) / Does it sprout from the floor when appearing? (not flyers or those that arrive on their own)
+func sprouts() -> bool:
+	return not is_boss() and not statue and not bestiary_id in ["van", "mosquito", "exam"]
+
+
 func is_boss() -> bool:
 	return false
 
@@ -784,6 +796,15 @@ func _death_sound() -> void:
 func _draw() -> void:
 	var a := _fade
 	var bob := sin(_t * 2.6 + _phase) * 3.0
+	# Remolino de bruma a sus pies mientras aparece / A swirl of mist at its feet while it appears
+	if state == State.SPAWNING and sprouts() and not preview:
+		var k := 1.0 - _fade
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0 / maxf(scale.x, 0.01), 0.4 / maxf(scale.y, 0.01)))
+		for i in 3:
+			var r := radius + 10.0 + i * 9.0
+			var st := _t * (5.0 - i) + i * 2.0
+			draw_arc(Vector2.ZERO, r, st, st + 2.2, 14, Color(UITheme.MIST, 0.55 * k), 2.0)
+		draw_set_transform(Vector2.ZERO)
 	if elite and not statue:
 		# Sombra de su color que late bajo el élite / Pulsing shadow in its colour under the elite
 		var pulse := 0.85 + 0.15 * sin(_t * 5.0)
