@@ -353,32 +353,69 @@ static func _lilkey(t: float, opts := {}) -> void:
 ## Luna, the astronaut: with low gravity she floats a hand's breadth and sways slowly; the fishbowl
 ## helmet (glass with a glint), the antenna with its little light and the odd spark from the rocket pack
 static func _luna(t: float, opts := {}) -> void:
-	var lift := 6.0 + sin(t * 1.3) * 5.0
+	# Flota: sube y baja despacio, con un leve vaivén / She floats: rising and sinking slowly, swaying a little
+	var lift := 10.0 + sin(t * 1.3) * 6.0
 	var sway := sin(t * 0.9) * 0.05
-	# Sombra en el suelo, más pequeña cuanto más sube / Shadow on the floor, smaller the higher she goes
 	var sh := PackedVector2Array()
-	for i in 16:
-		var ang := TAU * i / 16.0
-		sh.append(Vector2(100 + cos(ang) * (26.0 - lift), 288 + sin(ang) * 5.0))
-	_ci.draw_colored_polygon(sh, Color(0, 0, 0, 0.18))
+	for i in 18:
+		var ang := TAU * i / 18.0
+		sh.append(Vector2(100 + cos(ang) * (34.0 - lift * 0.8), 288 + sin(ang) * 6.0))
+	_ci.draw_colored_polygon(sh, Color(0, 0, 0, 0.16))
 	var body := _xf * Transform2D(sway, Vector2(100, 288 - lift)) * Transform2D(0.0, Vector2(-100, -288))
 	_ci.draw_set_transform_matrix(body)
-	# Chispas de la mochila cohete / Sparks from the rocket pack
-	for i in 4:
-		var ph := fposmod(t * 1.6 + i * 0.25, 1.0)
-		for x in [73.0, 127.0]:
-			_ci.draw_circle(Vector2(x + sin(ph * 9.0 + i) * 3.0, 242 + ph * 26.0), 2.5 * (1.0 - ph), Color(1.0, 0.75 - 0.4 * ph, 0.3, 0.8 * (1.0 - ph)))
+	# Llamitas de las botellas-propulsor / Little flames from the bottle thrusters
+	for x: float in [64.0, 136.0]:
+		var f := 9.0 + sin(t * 23.0 + x) * 2.5 + sin(t * 37.0) * 1.5
+		_ci.draw_colored_polygon(PackedVector2Array([Vector2(x - 5, 186), Vector2(x + 5, 186), Vector2(x, 186 + f * 1.6)]), Color(1.0, 0.55, 0.3, 0.75))
+		_ci.draw_colored_polygon(PackedVector2Array([Vector2(x - 3, 186), Vector2(x + 3, 186), Vector2(x, 186 + f)]), Color(1.0, 0.92, 0.6, 0.95))
+		for i in 3:
+			var ph := fposmod(t * 1.8 + i * 0.33 + x * 0.01, 1.0)
+			_ci.draw_circle(Vector2(x + sin(ph * 8.0 + i) * 4.0, 194 + ph * 30.0), 2.2 * (1.0 - ph), Color(1.0, 0.8 - 0.4 * ph, 0.4, 0.7 * (1.0 - ph)))
+	# Cable de seguridad que flota en espiral / Safety tether floating in a coil
+	var cord := PackedVector2Array()
+	for i in 26:
+		var f := i / 25.0
+		var base := Vector2(80, 182).lerp(Vector2(38, 214), f)
+		cord.append(base + Vector2(cos(f * 18.0 + t * 2.0), sin(f * 18.0 + t * 2.0)) * 4.0 * f + Vector2(0, sin(t * 1.1 + f * 3.0) * 6.0 * f))
+	_ci.draw_polyline(cord, Color("1e1f48"), 3.4)
+	_ci.draw_polyline(cord, Color("ff8a5c"), 1.6)
+	_ci.draw_circle(cord[cord.size() - 1], 3.0, Color("9aa0c0"))
 	Sprites.draw(_ci, "npc_luna")
-	# Antena con su lucecita / Antenna with its little light
-	var top := Vector2(100, 96)
-	_ci.draw_line(top, top + Vector2(10, -20), Color("8c90a8"), 2.0)
-	var blink := 0.4 + 0.6 * float(fmod(t, 1.4) < 0.7)
-	_ci.draw_circle(top + Vector2(10, -22), 4.0, Color("ff6a6a", blink))
-	# Casco de pecera / Fishbowl helmet
-	_ci.draw_circle(Vector2(100, 128), 33.0, Color(0.75, 0.9, 1.0, 0.16))
-	_ci.draw_arc(Vector2(100, 128), 33.0, 0.0, TAU, 40, Color(0.85, 0.95, 1.0, 0.7), 2.0)
-	_ci.draw_arc(Vector2(100, 128), 26.0, -2.6, -1.6, 10, Color(1, 1, 1, 0.75), 3.0)
-	_ci.draw_circle(Vector2(84, 108), 3.0, Color(1, 1, 1, 0.8))
+	# Brazo que saluda de vez en cuando / Arm waving now and then
+	var wp := fposmod(t, 8.0)
+	var wave_k := clampf(minf(wp - 5.0, 7.6 - wp) * 2.5, 0.0, 1.0) if not opts.has("wave") else float(opts["wave"])
+	var shoulder := Vector2(132, 106)
+	var arm := lerpf(0.08 + sin(t * 1.2) * 0.04, -2.5 + sin(t * 9.0) * 0.3, wave_k)
+	_ci.draw_set_transform_matrix(body * Transform2D(arm, shoulder) * Transform2D(0.0, -shoulder))
+	Sprites.draw(_ci, "npc_luna_arm")
+	_ci.draw_set_transform_matrix(body)
+	# Casco de pecera: cristal, reflejos y burbujitas que suben / Fishbowl helmet: glass, glints and rising bubbles
+	var hc := Vector2(100, 55)
+	var hr := 43.0
+	_ci.draw_circle(hc, hr, Color(0.72, 0.86, 1.0, 0.13))
+	for i in 5:
+		var ph := fposmod(t * 0.35 + i * 0.21, 1.0)
+		var bp := hc + Vector2(sin(i * 2.3 + t) * 22.0, 30.0 - ph * 64.0)
+		_ci.draw_arc(bp, 1.6 + i % 2, 0.0, TAU, 8, Color(1, 1, 1, 0.5 * sin(ph * PI)), 1.0)
+	_ci.draw_arc(hc, hr, 0.0, TAU, 48, Color("1e1f48"), 3.4)
+	_ci.draw_arc(hc, hr - 1.0, 0.0, TAU, 48, Color(0.85, 0.94, 1.0, 0.8), 1.6)
+	_ci.draw_arc(hc, hr - 7.0, -2.75, -1.75, 14, Color(1, 1, 1, 0.8), 4.0)
+	_ci.draw_arc(hc, hr - 7.0, -1.6, -1.4, 4, Color(1, 1, 1, 0.8), 4.0)
+	_ci.draw_arc(hc, hr - 5.0, 0.35, 0.95, 10, Color(0.75, 0.9, 1.0, 0.45), 2.0)
+	# Un brillo que cruza el cristal / A glint sweeping across the glass
+	var g := fposmod(t * 0.25, 1.0)
+	if g < 0.3:
+		var gx := lerpf(-hr, hr, g / 0.3)
+		_ci.draw_line(hc + Vector2(gx - 6, -sqrt(maxf(0.0, hr * hr - gx * gx)) * 0.8), hc + Vector2(gx + 6, sqrt(maxf(0.0, hr * hr - gx * gx)) * 0.8), Color(1, 1, 1, 0.22), 5.0)
+	# Antena con estrella que parpadea / Antenna with a blinking star
+	var root := hc + Vector2(28, -32)
+	var tip := root + Vector2(12 + sin(t * 2.0) * 2.0, -20)
+	_ci.draw_line(root, tip, Color("1e1f48"), 3.4)
+	_ci.draw_line(root, tip, Color("cdc5d6"), 1.6)
+	var on := fmod(t, 1.4) < 0.7
+	DreamBackground.draw_star(_ci, tip, 6.0 if on else 4.5, Color("f6d993") if on else Color("b8a060"))
+	if on:
+		_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(tip - Vector2(14, 14), Vector2(28, 28)), false, Color("f6d993", 0.35))
 	_ci.draw_set_transform_matrix(_xf)
 
 

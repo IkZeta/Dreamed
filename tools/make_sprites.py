@@ -3468,68 +3468,122 @@ def lynx():
 
 
 def luna():
-    """Luna, la astronauta: la niña de la clase de Kroker que quería ser astronauta. Del tamaño de
-    Kroker, con traje plateado acolchado y parches cosidos a mano (una luna y una estrella), cinturón
-    de herramientas, botas blancas y una mochila cohete hecha con dos botellas. Pelo castaño a lo
-    garçon con flequillo, pecas y una sonrisa enorme. El casco de pecera (cristal) y la antena se
-    pintan en el juego (NpcArt._luna) para que se vea a través.
-    Luna, the astronaut: the girl in Kroker's class who wanted to be an astronaut. Kroker's size,
-    in a padded silver suit with hand-sewn patches (a moon and a star), a tool belt, white boots and
-    a rocket backpack made of two bottles. Short brown hair with a fringe, freckles and a huge grin.
-    The fishbowl helmet (glass) and antenna are painted in game (NpcArt._luna) so you can see through."""
-    SV, SV1, SV2, SV3 = "#e4e6f0", "#b8bccf", "#8c90a8", "#ffffff"
-    S, S1 = "#f2c9a8", "#d4a688"
-    H, H1 = "#7a4a2e", "#5a341e"
-    R = "#e85d75"
+    """Luna, la astronauta de cartón. A la escala de los demás (como Silly): traje espacial retro
+    acolchado color crema con hombreras y rodilleras azul lavanda, costuras en rombo, articulaciones
+    de acordeón en codos y rodillas, guantes y botas lunares gordísimas con suela coral. En el pecho,
+    la caja de mandos (pantallita verde, cuatro botones y una rueda) con dos tubos coral que van a la
+    mochila: un soporte vital casero con dos botellas de refresco por tanques. El pelo azul noche
+    flota dentro del casco (sin gravedad): dos moños espaciales y mechones hacia arriba. Pecas,
+    mofletes rosas y sonrisa. El brazo derecho va aparte para saludar; el casco de pecera, la antena
+    y las llamitas se pintan en el juego (NpcArt._luna).
+    Luna, the cardboard astronaut. At the others' scale (like Silly): a padded retro cream space
+    suit with periwinkle shoulder and knee pads, diamond quilting, accordion joints at the elbows and
+    knees, and huge gloves and moon boots with coral soles. On her chest, the control box (a little
+    green screen, four buttons and a dial) with two coral hoses running to the backpack: a home-made
+    life support with two soda bottles for tanks. Her midnight-blue hair floats inside the helmet
+    (no gravity): two space buns and strands drifting up. Freckles, rosy cheeks and a grin. The right
+    arm is separate so she can wave; the fishbowl helmet, antenna and little flames are painted in
+    game (NpcArt._luna)."""
+    C0, C1, C2, C3 = "#fbf8f0", "#ece6d8", "#cdc5d6", "#a39bb8"
+    P1, P2, P3 = "#5f6fd6", "#8fa2ff", "#bcc8ff"
+    O1, O2 = "#ff8a5c", "#d4603a"
+    S, S1, CH = "#f6d6c0", "#d9ae9e", "#ff9fb0"
+    H1, H2, H3 = "#232662", "#3a4196", "#6a74d0"
+    BOT, BOT1 = "#a8f0c0", "#6ac890"
+    DK = "#262744"
     b = ""
-    # Mochila cohete detrás: dos botellas con aletas / Rocket backpack behind: two bottles with fins
-    for x in (66, 120):
-        b += flat("M%g,170 C%g,160 %g,160 %g,170 L%g,232 L%g,232 Z" % (x, x + 2, x + 12, x + 14, x + 14, x), "#cfe6ff")
-        b += flat("M%g,170 C%g,162 %g,162 %g,170 L%g,232 L%g,232 Z" % (x + 8, x + 9, x + 12, x + 14, x + 14, x + 8), "#9fc0e8")
-        b += flat("M%g,232 L%g,232 L%g,240 L%g,240 Z" % (x + 2, x + 12, x + 10, x + 4), "#5a5a72")
-        b += flat("M%g,214 L%g,226 L%g,232 Z" % (x, x - 6, x), R) + flat("M%g,214 L%g,226 L%g,232 Z" % (x + 14, x + 20, x + 14), R)
-    # Piernas y botas / Legs and boots
-    for x in (84, 102):
-        b += flat("M%g,228 L%g,228 L%g,270 L%g,270 Z" % (x, x + 15, x + 15, x), SV)
-        b += flat("M%g,228 L%g,228 L%g,270 L%g,270 Z" % (x + 10, x + 15, x + 15, x + 10), SV1)
-        b += flat("M%g,246 L%g,246 L%g,250 L%g,250 Z" % (x, x + 15, x + 15, x), SV2)
-        b += flat("M%g,266 L%g,266 C%g,266 %g,276 %g,288 L%g,288 Z" % (x - 2, x + 17, x + 21, x + 22, x + 22, x - 2), SV3)
-        b += flat("M%g,283 L%g,283 L%g,288 L%g,288 Z" % (x - 2, x + 22, x + 22, x - 2), SV1)
+    # Mochila de soporte vital con dos botellas de refresco / Life-support pack with two soda bottles
+    b += flat("M70,100 L130,100 L132,182 L68,182 Z", C2) + flat("M112,100 L130,100 L132,182 L114,182 Z", C3)
+    for x in (56, 128):
+        b += flat("M%g,104 C%g,98 %g,98 %g,104 L%g,110 L%g,172 C%g,178 %g,178 %g,172 L%g,110 Z" % (x + 3, x + 4, x + 12, x + 13, x + 16, x + 16, x + 14, x + 2, x, x), BOT)
+        b += flat("M%g,110 L%g,110 L%g,172 C%g,176 %g,176 %g,172 Z" % (x + 10, x + 16, x + 16, x + 15, x + 12, x + 10), BOT1)
+        b += flat("M%g,128 L%g,128 L%g,146 L%g,146 Z" % (x, x + 16, x + 16, x), O1)
+        b += flat("M%g,132 L%g,132 L%g,142 L%g,142 Z" % (x + 3, x + 13, x + 13, x + 3), C0)
+        b += flat("M%g,92 L%g,92 L%g,100 L%g,100 Z" % (x + 4, x + 12, x + 12, x + 4), "#e85d75")
+        b += flat("M%g,174 L%g,174 L%g,186 L%g,186 Z" % (x + 3, x + 13, x + 15, x + 1), "#9aa0c0")
+        b += flat("M%g,174 L%g,174 L%g,186 L%g,186 Z" % (x + 9, x + 13, x + 15, x + 11), "#6a6e8e")
+    # Pelo que flota dentro del casco: moños y mechones hacia arriba / Hair floating inside the helmet: buns and strands drifting up
+    b += flat(ellipse_d(80, 30, 11, 11), H2) + flat(ellipse_d(120, 30, 11, 11), H2)
+    b += flat(ellipse_d(77, 27, 5, 4), H3) + flat(ellipse_d(117, 27, 5, 4), H3)
+    b += flat("M74,58 C70,40 72,24 64,14 C78,20 82,34 82,46 Z", H1) + flat("M126,58 C130,40 128,24 136,14 C122,20 118,34 118,46 Z", H1)
+    b += flat("M78,74 L76,50 C76,36 86,30 100,30 C114,30 124,36 124,50 L122,74 Z", H2)
+    # Cuello y cabeza / Neck and head
+    b += flat("M93,82 L107,82 L107,96 L93,96 Z", S1)
+    b += flat("M80,62 C80,44 89,38 100,38 C111,38 120,44 120,62 C120,76 112,86 100,86 C88,86 80,76 80,62 Z", S)
+    b += flat("M110,42 C116,47 120,54 120,62 C120,74 115,82 106,86 C112,78 114,70 114,62 C114,54 113,47 110,42 Z", S1)
+    # Flequillo y mechones que suben / Fringe and strands lifting
+    b += flat("M80,56 C80,42 90,34 100,34 C110,34 120,42 120,56 L114,50 L108,54 L100,48 L92,54 L86,50 Z", H2)
+    b += flat("M84,46 C88,39 94,36 100,36 L99,40 C94,41 90,43 87,48 Z", H3)
+    b += flat("M100,34 C98,26 102,18 108,14 C106,22 106,28 104,34 Z", H2)
+    b += flat(ellipse_d(86, 72, 4, 2.6), CH) + flat(ellipse_d(114, 72, 4, 2.6), CH)
+    for (x, y) in ((84, 68), (88, 70), (112, 70), (116, 68)):
+        b += flat(ellipse_d(x, y, 0.8, 0.8), S1)
     # Cuerpo acolchado / Padded body
-    b += flat("M76,170 C76,164 82,160 90,160 L110,160 C118,160 124,164 124,170 L126,232 L74,232 Z", SV)
-    b += flat("M114,160 C120,162 124,166 124,172 L126,232 L114,232 C118,208 118,184 114,160 Z", SV1)
-    for y in (182, 202):
-        b += "<path d='M76,%g Q100,%g 125,%g' fill='none' stroke='%s' stroke-width='2'/>" % (y, y + 4, y, SV2)
-    # Cinturón con herramientas / Tool belt
-    b += flat("M74,216 L126,216 L126,224 L74,224 Z", "#5a5a72") + flat(ellipse_d(100, 220, 5, 4), "#f6c86a")
-    b += flat("M80,224 L88,224 L88,234 L80,234 Z", "#8c90a8") + flat("M112,224 L120,224 L118,236 L114,236 Z", R)
-    # Panel del pecho / Chest panel
-    b += flat("M90,170 L110,170 L110,188 L90,188 Z", "#3a3a52")
-    for (x, y, c) in ((94, 175, "#7fe08a"), (100, 175, R), (106, 175, "#f6c86a"), (94, 182, "#5fc8ff")):
-        b += flat(ellipse_d(x, y, 2.2, 2.2), c)
-    # Parches cosidos: una luna y una estrella / Sewn patches: a moon and a star
-    b += flat(ellipse_d(82, 200, 6.5, 6.5), "#3a3480") + flat("M80,196 C84,197 86,203 82,206 C88,205 89,197 84,195 Z", "#f6d993")
-    b += "<ellipse cx='82' cy='200' rx='7.5' ry='7.5' fill='none' stroke='%s' stroke-width='1.2' stroke-dasharray='2,2'/>" % SV2
-    b += flat(star_d(116, 196, 6, 0.45), "#ff9fc8")
-    # Brazos con guantes / Arms with gloves
-    b += flat("M74,168 L64,206 L72,210 L82,174 Z", SV) + flat("M70,206 C66,204 60,208 62,214 C64,220 72,218 73,212 Z", SV3)
-    b += flat("M126,168 L136,206 L128,210 L118,174 Z", SV1) + flat("M130,206 C134,204 140,208 138,214 C136,220 128,218 127,212 Z", SV3)
-    # Collarín del casco / Helmet collar ring
-    b += flat("M80,156 L120,156 L122,166 L78,166 Z", SV2) + flat("M80,156 L120,156 L120,159 L80,159 Z", SV)
-    # Cabeza / Head
-    b += flat(ellipse_d(100, 130, 22, 23), S) + flat("M112,112 C120,118 123,128 121,140 C119,148 114,152 108,154 C116,144 117,126 112,112 Z", S1)
-    # Pelo a lo garçon con flequillo / Short hair with a fringe
-    b += flat("M77,128 C76,110 88,104 100,104 C114,104 124,112 123,130 L118,124 C112,118 104,121 96,118 C90,121 84,124 77,128 Z", H)
-    b += flat("M110,106 C120,110 124,118 123,130 L118,124 C118,116 115,110 110,106 Z", H1)
-    b += flat("M78,126 L78,142 L83,134 Z", H) + flat("M122,126 L122,142 L117,134 Z", H1)
-    # Ojos, pecas y sonrisa / Eyes, freckles and grin
-    b += flat(ellipse_d(92, 132, 3, 3.6), "#1a1328") + flat(ellipse_d(108, 132, 3, 3.6), "#1a1328")
-    b += flat(ellipse_d(91, 131, 1, 1), "#ffffff") + flat(ellipse_d(107, 131, 1, 1), "#ffffff")
-    for (x, y) in ((86, 139), (89, 141), (111, 141), (114, 139)):
-        b += flat(ellipse_d(x, y, 0.9, 0.9), S1)
-    b += flat("M92,143 C96,149 104,149 108,143 C104,146 96,146 92,143 Z", "#8a3a4a")
-    b += flat("M94,144 C98,147 102,147 106,144 L106,145 C102,147 98,147 94,145 Z", "#ffffff")
-    add("npc_luna", 44, 96, 120, 196, b, px=PX_NPC, flat=True)
+    b += flat("M70,104 C70,98 80,94 92,94 L108,94 C120,94 130,98 130,104 L134,186 L66,186 Z", C1)
+    b += flat("M118,96 C126,98 130,102 130,106 L134,186 L120,186 C124,156 124,124 118,96 Z", C2)
+    b += flat("M74,104 C76,100 82,97 88,96 L88,100 C83,101 79,103 77,108 Z", C0)
+    # Costuras del acolchado, suaves / Soft padding seams
+    for y in (150, 162):
+        b += "<path d='M70,%g Q100,%g 132,%g' fill='none' stroke='%s' stroke-width='1.6'/>" % (y, y + 5, y, C2)
+    b += "<path d='M100,142 L100,168' stroke='%s' stroke-width='1.4'/>" % C2
+    # Hombreras lavanda / Periwinkle shoulder pads
+    b += flat("M64,104 C64,96 72,92 82,94 L84,112 C76,114 68,112 64,104 Z", P2) + flat("M66,106 C68,110 74,112 82,110 L83,113 C75,115 68,112 64,105 Z", P1)
+    b += flat("M136,104 C136,96 128,92 118,94 L116,112 C124,114 132,112 136,104 Z", P1) + flat("M120,96 C126,95 132,97 134,101 L130,102 C127,99 123,98 120,99 Z", P3)
+    # Parche de misión cosido a mano: una luna y una estrella pintadas con cera / Hand-sewn mission patch: a moon and a star in crayon
+    b += flat(ellipse_d(124, 124, 8, 8), "#2a2a6e")
+    b += flat("M121,118 C126,119 128,126 123,130 C130,129 131,119 125,117 Z", "#f6d993") + flat(star_d(120, 125, 2.6, 0.45), "#ff9fc8")
+    b += "<ellipse cx='124' cy='124' rx='9' ry='9' fill='none' stroke='%s' stroke-width='1.2' stroke-dasharray='2,1.6'/>" % O1
+    # Caja de mandos y tubos / Control box and hoses
+    b += "<path d='M84,128 C74,132 70,146 72,160' fill='none' stroke='%s' stroke-width='4'/>" % O2
+    b += "<path d='M84,128 C74,132 70,146 72,160' fill='none' stroke='%s' stroke-width='2'/>" % O1
+    b += flat("M84,110 L116,110 L117,140 L83,140 Z", DK) + flat("M84,110 L116,110 L116,113 L84,113 Z", "#3a3c62")
+    b += flat("M88,116 L112,116 L112,123 L88,123 Z", "#1a3a2a") + flat("M90,118 L98,118 L98,121 L90,121 Z", "#7dffb0") + flat("M101,119 L106,119 L106,121 L101,121 Z", "#7dffb0")
+    for (x, c) in ((89, "#ff6a6a"), (95, "#f6d993"), (101, "#5fc8ff"), (107, "#7fe08a")):
+        b += flat(ellipse_d(x, 131, 2.4, 2.4), c)
+    b += flat(ellipse_d(112, 131, 3.2, 3.2), "#9aa0c0") + flat("M111.4,128 L112.6,128 L112.6,131 L111.4,131 Z", DK)
+    # Cinturón con hebilla de luna y bolsillos / Belt with a moon buckle and pouches
+    b += flat("M66,170 L134,170 L134,178 L66,178 Z", P1) + flat("M66,170 L134,170 L134,172 L66,172 Z", P2)
+    b += flat(ellipse_d(100, 174, 5.5, 5.5), "#f6d993") + flat(ellipse_d(102, 173, 4, 4), P1)
+    b += flat("M74,176 L86,176 L86,188 L74,188 Z", C2) + flat("M114,176 L126,176 L126,188 L114,188 Z", C3)
+    # Brazo izquierdo (el de la cadera), con acordeón en el codo y guante gordo / Left arm (on her hip), accordion elbow and chunky glove
+    b += flat("M66,104 C56,108 52,120 52,134 L64,136 C64,124 66,116 72,110 Z", C1)
+    for y in (136, 141, 146):
+        b += flat("M51,%g L65,%g L66,%g L50,%g Z" % (y, y, y + 4, y + 4), C2 if y != 141 else C3)
+    b += flat("M50,150 L66,150 C68,156 70,160 74,164 L64,172 C58,166 52,160 50,150 Z", C1)
+    b += flat("M62,160 L72,154 L78,160 L70,168 Z", O1)
+    b += flat("M70,162 C76,158 84,160 84,168 C84,174 76,178 70,174 Z", C0) + flat("M72,172 C78,174 82,172 84,168 L84,170 C82,176 76,178 71,175 Z", C2)
+    # Piernas acolchadas con acordeón y rodilleras / Padded legs with accordion knees and knee pads
+    for (x, sh) in ((78, C1), (102, C2)):
+        b += flat("M%g,186 L%g,186 L%g,226 L%g,226 Z" % (x, x + 20, x + 20, x), sh)
+        for y in (226, 231, 236):
+            b += flat("M%g,%g L%g,%g L%g,%g L%g,%g Z" % (x - 1, y, x + 21, y, x + 21, y + 4, x - 1, y + 4), C3 if y == 231 else C2)
+        b += flat("M%g,240 L%g,240 L%g,262 L%g,262 Z" % (x, x + 20, x + 20, x), sh)
+        b += flat("M%g,214 L%g,214 L%g,226 L%g,226 Z" % (x + 3, x + 17, x + 17, x + 3), P2 if x == 78 else P1)
+    b += flat("M98,186 L102,186 L102,226 L98,226 Z", C3)
+    # Botas lunares gordísimas con suela coral / Huge moon boots with coral soles
+    for x in (74, 100):
+        b += flat("M%g,258 C%g,252 %g,252 %g,258 L%g,278 L%g,278 Z" % (x, x + 4, x + 22, x + 26, x + 27, x - 1), C0)
+        b += flat("M%g,258 C%g,254 %g,254 %g,258 L%g,278 L%g,278 Z" % (x + 16, x + 20, x + 24, x + 26, x + 27, x + 18), C2)
+        b += flat("M%g,264 L%g,264 L%g,269 L%g,269 Z" % (x, x + 26, x + 26, x), P1)
+        b += flat("M%g,278 L%g,278 L%g,288 L%g,288 Z" % (x - 2, x + 28, x + 27, x - 1), O1)
+        b += flat("M%g,284 L%g,284 L%g,288 L%g,288 Z" % (x - 1, x + 27, x + 27, x - 1), O2)
+    # Collarín del casco: anillo coral con tornillos / Helmet collar: a coral ring with bolts
+    b += flat(ellipse_d(100, 96, 31, 8), O2) + flat(ellipse_d(100, 94, 31, 7), O1)
+    b += flat(ellipse_d(100, 92, 24, 4.5), "#ffb08a")
+    for x in (75, 88, 112, 125):
+        b += flat(ellipse_d(x, 96, 1.6, 1.4), "#fff0e0")
+    add("npc_luna", 46, 6, 108, 282, b, px=PX_NPC, flat=True, post=npc_face(64, "#1e1f48", 1))
+    # El brazo derecho, que saluda: hombro en (132,106), colgando; se gira en el juego
+    # The right arm, which waves: shoulder at (132,106), hanging down; rotated in game
+    a = flat("M128,100 C140,104 148,116 148,132 L136,134 C136,122 132,114 126,110 Z", C2)
+    for y in (134, 139, 144):
+        a += flat("M135,%g L149,%g L150,%g L134,%g Z" % (y, y, y + 4, y + 4), C3 if y == 139 else C2)
+    a += flat("M134,148 L150,148 C150,156 148,162 146,166 L136,166 C134,160 134,154 134,148 Z", C2)
+    a += flat("M133,162 L149,162 L149,170 L133,170 Z", O1)
+    a += flat("M132,170 C132,166 150,166 150,172 C152,184 146,190 141,190 C134,190 130,182 132,170 Z", C0)
+    a += flat("M146,170 C150,172 152,180 149,186 C147,189 144,190 141,190 C146,184 148,178 146,170 Z", C2)
+    a += flat("M131,174 C127,172 125,178 128,181 L133,180 Z", C0)
+    add("npc_luna_arm", 120, 96, 38, 98, a, px=PX_NPC, flat=True)
 
 
 def sinister_cat():

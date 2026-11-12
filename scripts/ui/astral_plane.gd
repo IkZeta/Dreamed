@@ -599,7 +599,10 @@ class GiverFigure extends Control:
 				draw_texture_rect(DreamBackground.soft_texture(), Rect2(o + Vector2(-20, 40) * k, Vector2(240, 300) * k), false, Color(AURA[g], 0.12 + 0.12 * _glow))
 				NpcArt.draw(self, Transform2D(0.0, Vector2(k * (-1.0 if i == 1 else 1.0), k), 0.0, o + Vector2(200.0 * k if i == 1 else 0.0, bob)), g, _t)
 			return
-		NpcArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin), who, _t)
+		# Luna ya flota sola (y lleva antena): se dibuja un poco más abajo para que no se corte el casco
+		# Luna already floats on her own (and has an antenna): drawn a bit lower so the helmet isn't cut off
+		var drop := Vector2(0, 20.0 * s) if who == "luna" else Vector2.ZERO
+		NpcArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin + drop), who, _t)
 
 
 ## Kroker flotando en el centro, con su arma / Kroker floating in the middle, with his weapon

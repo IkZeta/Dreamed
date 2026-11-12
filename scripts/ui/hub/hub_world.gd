@@ -1043,93 +1043,416 @@ func _build_lynx() -> void:
 ## que pita con la lucecita y un tirachinas de cráter (los cráteres del suelo son agujeros de práctica)
 ## Luna's moon: a cardboard rocket with its little window, a flag with a sewn-on moon, a beeping
 ## antenna with its light, and the craters on the floor (practice holes)
+const INK := Color("1a1024")
+const LUNA_PAD := Vector2(-88, -2)
+const LUNA_CRATER := Vector2(-52, 50)
+## Cuenta atrás del cohete: cada LUNA_LAUNCH s, «3, 2, 1...» y casi despega
+## The rocket's countdown: every LUNA_LAUNCH s, "3, 2, 1..." and it almost takes off
+const LUNA_LAUNCH := 16.0
+var _rover: Prop
+
+## La base lunar de Luna / Luna's moon base
 func _build_luna() -> void:
 	var c := _isle_pos("luna")
-	# Cohete de cartón / Cardboard rocket
-	var rk := c + Vector2(-96, -10)
-	_blocks.append({"c": rk, "r": Vector2(16, 6)})
-	_prop(rk, func(ci: CanvasItem) -> void:
-		_shadow(ci, Vector2.ZERO, Vector2(20, 4))
-		var shake := Vector2(sin(_t * 30.0) * 0.6, 0) if fmod(_t, 7.0) > 6.2 else Vector2.ZERO
-		ci.draw_set_transform(shake)
-		for side in [-1.0, 1.0]:
-			ci.draw_colored_polygon(PackedVector2Array([Vector2(side * 9, -10), Vector2(side * 18, 0), Vector2(side * 9, -24)]), Color("c83a3a"))
-		ci.draw_rect(Rect2(-10, -66, 20, 60), Color("1a1024"))
-		ci.draw_rect(Rect2(-9, -65, 18, 58), Color("c9a27a"))
-		ci.draw_rect(Rect2(2, -65, 7, 58), Color("a8845e"))
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(-10, -66), Vector2(10, -66), Vector2(0, -88)]), Color("c83a3a"))
-		ci.draw_circle(Vector2(0, -48), 5.0, Color("1a1024"))
-		ci.draw_circle(Vector2(0, -48), 4.0, Color("8fe0ff"))
-		ci.draw_line(Vector2(-7, -30), Vector2(6, -30), Color("1a1024"), 1.0)
-		ci.draw_line(Vector2(-7, -24), Vector2(4, -24), Color("1a1024"), 1.0)
-		# A ratos echa humo, como si fuera a despegar / Now and then it puffs smoke, as if about to take off
-		if fmod(_t, 7.0) > 6.2:
-			for i in 5:
-				var ph := fposmod(_t * 3.0 + i * 0.2, 1.0)
-				ci.draw_circle(Vector2(sin(i * 2.0) * 8.0 * ph, ph * 10.0), 3.0 + ph * 5.0, Color(0.95, 0.95, 1.0, 0.6 * (1.0 - ph)))
-		ci.draw_set_transform(Vector2.ZERO))
-	# Bandera con la luna cosida / Flag with the sewn-on moon
-	var fl := c + Vector2(92, -24)
-	_blocks.append({"c": fl, "r": Vector2(4, 3)})
-	_prop(fl, func(ci: CanvasItem) -> void:
-		_shadow(ci, Vector2.ZERO, Vector2(6, 2))
-		ci.draw_line(Vector2(0, 1), Vector2(0, -55), Color("1a1024"), 4.0)
-		ci.draw_line(Vector2.ZERO, Vector2(0, -54), Color("b8bccf"), 2.0)
-		var pts := PackedVector2Array()
-		for i in 7:
-			var f := i / 6.0
-			pts.append(Vector2(f * 28.0, -52.0 + sin(_t * 2.0 + f * 4.0) * 2.0 * f))
-		for i in range(6, -1, -1):
-			var f := i / 6.0
-			pts.append(Vector2(f * 28.0, -34.0 + sin(_t * 2.0 + f * 4.0) * 2.0 * f))
-		ci.draw_colored_polygon(pts, Color("3a3480"))
-		ci.draw_circle(Vector2(14, -43 + sin(_t * 2.0 + 2.0)), 5.0, Color("f6d993"))
-		ci.draw_circle(Vector2(16, -44 + sin(_t * 2.0 + 2.0)), 4.0, Color("3a3480")))
-	# Antena que pita / Beeping antenna
-	var an := c + Vector2(60, 40)
-	_blocks.append({"c": an, "r": Vector2(6, 3)})
-	_prop(an, func(ci: CanvasItem) -> void:
-		_shadow(ci, Vector2.ZERO, Vector2(12, 3))
-		# Trípode de palos de escoba y una antena parabólica hecha con un colador
-		# A tripod of broomsticks and a satellite dish made out of a colander
-		for lx: float in [-9.0, 0.0, 9.0]:
-			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -16), Color("1a1024"), 3.0)
-			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -16), Color("8c90a8"), 1.5)
-		ci.draw_line(Vector2(0, -14), Vector2(0, -30), Color("1a1024"), 4.0)
-		ci.draw_line(Vector2(0, -14), Vector2(0, -30), Color("b8bccf"), 2.0)
-		var turn := sin(_t * 0.5) * 0.25
-		ci.draw_set_transform(Vector2(0, -34), turn - 0.35)
-		var dish := PackedVector2Array()
-		for i in 11:
-			var a := PI * i / 10.0
-			dish.append(Vector2(cos(a) * 14.0, sin(a) * 7.0))
-		ci.draw_colored_polygon(dish, Color("1a1024"))
-		dish.clear()
-		for i in 11:
-			var a := PI * i / 10.0
-			dish.append(Vector2(cos(a) * 12.5, sin(a) * 5.8))
-		ci.draw_colored_polygon(dish, Color("e4e6f0"))
-		for hx: float in [-5.0, 0.0, 5.0]:
-			ci.draw_circle(Vector2(hx, 2.5), 1.0, Color("8c90a8"))
-		ci.draw_line(Vector2.ZERO, Vector2(0, -10), Color("8c90a8"), 1.5)
-		var on := fmod(_t, 1.2) < 0.25
-		ci.draw_circle(Vector2(0, -11), 2.5, Color("ff6a6a") if on else Color("6a2a3a"))
-		if on:
-			for k in 2:
-				ci.draw_arc(Vector2(0, -11), 6.0 + k * 5.0, -PI * 0.8, -PI * 0.2, 8, Color(1, 0.6, 0.6, 0.6), 1.0)
-		ci.draw_set_transform(Vector2.ZERO))
+	_build_luna_rocket(c + LUNA_PAD)
+	_build_luna_dome(c + Vector2(80, -36))
+	_build_luna_flag(c + Vector2(36, -48))
+	_build_luna_scope(c + Vector2(98, 26))
+	_build_luna_dish(c + Vector2(-116, 18))
+	_build_luna_earth(c + Vector2(-20, -80))
+	# Rover de juguete dando vueltas al cráter / A toy rover circling the crater
+	_rover = _prop(c + LUNA_CRATER, func(ci: CanvasItem) -> void: _paint_rover(ci))
+	# Piedrecitas que flotan por la gravedad baja / Pebbles floating in the low gravity
+	_prop(c + Vector2(0, -70), func(ci: CanvasItem) -> void:
+		for i in 12:
+			var bx := sin(i * 7.3) * 120.0
+			var by := 70.0 + cos(i * 3.1) * 50.0
+			var ph := fposmod(_t * 0.18 + i * 0.29, 1.0)
+			var p := Vector2(bx + sin(_t * 0.7 + i) * 3.0, by - sin(ph * PI) * 26.0 - 4.0)
+			var r := 1.2 + (i % 3) * 0.6
+			ci.draw_circle(Vector2(bx, by), r + 0.6, Color(0, 0, 0, 0.12 * sin(ph * PI)))
+			ci.draw_rect(Rect2(p - Vector2(r, r), Vector2(r, r) * 2.0), INK)
+			ci.draw_rect(Rect2(p - Vector2(r, r) + Vector2(0.6, 0.6), Vector2(r, r) * 2.0 - Vector2(1.2, 1.2)), Color("c9c7da")))
 	var ln := _npc_prop("luna", c + Vector2(4, -6))
 	ln.painter = func(ci: CanvasItem) -> void:
 		_draw_npc(ci, "luna", Vector2.ZERO, false)
 
 
+## Cohete de cartón en su plataforma: tubo de cartón con cinta, ojos de buey (en uno asoma un peluche),
+## morro de gorro de cumpleaños a rayas, aletas de caja de cereales y tobera de vaso de yogur con
+## papel de plata. Al lado, una torre de palitos de helado con una luz. Cada pocos segundos hace la
+## cuenta atrás, tiembla, echa humo y chispas, se levanta un palmo... y vuelve a bajar.
+## A cardboard rocket on its pad: a taped cardboard tube, portholes (a teddy peeks out of one), a
+## striped party-hat nose cone, cereal-box fins and a yoghurt-pot nozzle wrapped in foil. Beside it,
+## a tower of lolly sticks with a light. Every few seconds it counts down, shakes, smokes and sparks,
+## lifts a hand's breadth... and settles back down.
+func _build_luna_rocket(at: Vector2) -> void:
+	_blocks.append({"c": at, "r": Vector2(22, 9)})
+	_prop(at, func(ci: CanvasItem) -> void:
+		var k := fposmod(_t, LUNA_LAUNCH)
+		var count := k - (LUNA_LAUNCH - 4.0)          # -..0..4: 3, 2, 1 y despegue / 3, 2, 1 and lift-off
+		var lift := 0.0
+		var shake := 0.0
+		if count > 3.0:
+			var f := count - 3.0
+			lift = sin(f * PI) * 10.0
+			shake = 1.0
+		elif count > 2.0:
+			shake = 0.6
+		_shadow(ci, Vector2.ZERO, Vector2(18.0 - lift * 0.4, 4.0))
+		# Torre de palitos de helado / Lolly-stick tower
+		var tw := Vector2(26, 2)
+		for x: float in [tw.x - 5.0, tw.x + 5.0]:
+			ci.draw_line(Vector2(x, tw.y), Vector2(x, -70), INK, 3.0)
+			ci.draw_line(Vector2(x, tw.y), Vector2(x, -70), Color("e8c890"), 1.5)
+		for y in range(-6, -70, -8):
+			ci.draw_line(Vector2(tw.x - 5.0, y), Vector2(tw.x + 5.0, y - 4), Color("c8a070"), 1.2)
+		ci.draw_line(Vector2(tw.x - 5.0, -52), Vector2(12, -52), INK, 3.0)
+		ci.draw_line(Vector2(tw.x - 5.0, -52), Vector2(12, -52), Color("e8c890"), 1.5)
+		var blink := fmod(_t, 1.0) < 0.5 or count > 0.0
+		ci.draw_circle(Vector2(tw.x, -73), 3.0, INK)
+		ci.draw_circle(Vector2(tw.x, -73), 2.0, Color("ff6a6a") if blink else Color("6a2a3a"))
+		# Humo y chispas al despegar / Smoke and sparks at lift-off
+		if count > 1.5:
+			var power := clampf(count - 1.5, 0.0, 1.0)
+			for i in 9:
+				var ph := fposmod(_t * 2.2 + i * 0.11, 1.0)
+				var side := -1.0 if i % 2 == 0 else 1.0
+				ci.draw_circle(Vector2(side * ph * 26.0 + sin(i * 3.0) * 4.0, -2.0 - ph * 6.0), (3.0 + ph * 7.0) * power, Color(0.95, 0.94, 1.0, 0.65 * (1.0 - ph) * power))
+		var j := Vector2(sin(_t * 60.0), cos(_t * 47.0)) * shake
+		ci.draw_set_transform(Vector2(0, -lift) + j)
+		if count > 2.5:
+			var fl := 8.0 + sin(_t * 40.0) * 3.0 + (count - 2.5) * 6.0
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(-6, -8), Vector2(6, -8), Vector2(0, -8 + fl * 1.6)]), Color(1.0, 0.55, 0.3, 0.85))
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(-3, -8), Vector2(3, -8), Vector2(0, -8 + fl)]), Color(1.0, 0.95, 0.65))
+		# Tobera de vaso de yogur con papel de plata / Yoghurt-pot nozzle wrapped in foil
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-9, -18), Vector2(9, -18), Vector2(7, -7), Vector2(-7, -7)]), INK)
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-8, -17), Vector2(8, -17), Vector2(6, -8), Vector2(-6, -8)]), Color("c8ccdc"))
+		ci.draw_line(Vector2(-4, -16), Vector2(-3, -9), Color("f4f6ff"), 1.2)
+		# Aletas de caja de cereales / Cereal-box fins
+		for side: float in [-1.0, 1.0]:
+			var fin := PackedVector2Array([Vector2(side * 11, -46), Vector2(side * 25, -24), Vector2(side * 25, -10), Vector2(side * 11, -20)])
+			var out := PackedVector2Array()
+			for q in fin:
+				out.append(q + Vector2(side * 1.2, 0) + (Vector2(0, 1.2) if q.y > -30 else Vector2(0, -1.2)))
+			ci.draw_colored_polygon(out, INK)
+			ci.draw_colored_polygon(fin, Color("e85d3a") if side < 0.0 else Color("c8482c"))
+			ci.draw_line(Vector2(side * 15, -32), Vector2(side * 22, -20), Color("f6d993"), 1.5)
+		# Cuerpo: tubo de cartón con cinta adhesiva y estrellas de cera / Body: cardboard tube with tape and crayon stars
+		ci.draw_rect(Rect2(-13, -86, 26, 72), INK)
+		ci.draw_rect(Rect2(-12, -85, 24, 70), Color("d2a878"))
+		ci.draw_rect(Rect2(4, -85, 8, 70), Color("b48a5c"))
+		ci.draw_rect(Rect2(-12, -85, 3, 70), Color("e6c496"))
+		for y: float in [-70.0, -40.0]:
+			ci.draw_rect(Rect2(-12, y, 24, 4), Color("e8e0c8", 0.9))
+		for sp: Vector2 in [Vector2(-6, -28), Vector2(5, -50), Vector2(-4, -76)]:
+			_crayon_star(ci, sp, Color("ffe36a"))
+		# Ojos de buey: el de arriba con un peluche que asoma / Portholes: the top one with a teddy peeking out
+		for py: float in [-60.0, -32.0]:
+			ci.draw_circle(Vector2(0, py), 6.5, INK)
+			ci.draw_circle(Vector2(0, py), 5.5, Color("c8ccdc"))
+			ci.draw_circle(Vector2(0, py), 4.2, Color("2a3a6a"))
+		ci.draw_circle(Vector2(0, -59), 3.0, Color("b07a4a"))
+		ci.draw_circle(Vector2(-2.2, -61.5), 1.2, Color("b07a4a"))
+		ci.draw_circle(Vector2(2.2, -61.5), 1.2, Color("b07a4a"))
+		ci.draw_rect(Rect2(-1.2, -59.5, 0.9, 0.9), INK)
+		ci.draw_rect(Rect2(0.6, -59.5, 0.9, 0.9), INK)
+		ci.draw_arc(Vector2(0, -32), 3.2, -2.4, -1.4, 6, Color(1, 1, 1, 0.7), 1.2)
+		# Morro: gorro de cumpleaños a rayas con pompón / Nose cone: a striped party hat with a pompom
+		var cone := PackedVector2Array([Vector2(-14, -85), Vector2(14, -85), Vector2(0, -116)])
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-15.5, -84), Vector2(15.5, -84), Vector2(0, -118.5)]), INK)
+		ci.draw_colored_polygon(cone, Color("f4f1ea"))
+		for b in 3:
+			var y0 := -85.0 - b * 10.0
+			var w0 := 14.0 * (1.0 - (y0 + 85.0) / -31.0)
+			var w1 := 14.0 * (1.0 - (y0 - 5.0 + 85.0) / -31.0)
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(-w0, y0), Vector2(w0, y0), Vector2(w1, y0 - 5.0), Vector2(-w1, y0 - 5.0)]), Color("e85d75"))
+		ci.draw_circle(Vector2(0, -118), 3.6, INK)
+		ci.draw_circle(Vector2(0, -118), 2.6, Color("ffe36a"))
+		ci.draw_set_transform(Vector2.ZERO)
+		# Cuenta atrás / Countdown
+		if count > 0.0 and count < 3.0:
+			var num := str(3 - int(count))
+			var f := fposmod(count, 1.0)
+			var font := UITheme.font("display")
+			var sz := int(22.0 + 8.0 * (1.0 - f))
+			ci.draw_string_outline(font, Vector2(-7, -128 - f * 6.0), num, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, 5, INK)
+			ci.draw_string(font, Vector2(-7, -128 - f * 6.0), num, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, Color("fff6c0")))
+
+
+## La cúpula donde duerme Luna: medio balón de playa forrado de papel de plata, con un ojo de buey
+## que brilla cálido, una portezuela de tela, un panel solar de caja de bombones y su nombre en cera
+## The dome where Luna sleeps: half a beach ball lined with tin foil, a porthole glowing warm, a
+## fabric flap door, a solar panel made of a chocolate box and her name in crayon
+func _build_luna_dome(at: Vector2) -> void:
+	_blocks.append({"c": at, "r": Vector2(30, 11)})
+	_prop(at, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(34, 7))
+		# Panel solar al lado / Solar panel beside it
+		ci.draw_line(Vector2(34, 0), Vector2(34, -18), INK, 3.0)
+		ci.draw_line(Vector2(34, 0), Vector2(34, -18), Color("9aa0c0"), 1.5)
+		var sp := PackedVector2Array([Vector2(24, -30), Vector2(46, -26), Vector2(44, -14), Vector2(22, -18)])
+		var spo := PackedVector2Array([Vector2(22.5, -31.5), Vector2(47.5, -27), Vector2(45.5, -12.5), Vector2(20.5, -17)])
+		ci.draw_colored_polygon(spo, INK)
+		ci.draw_colored_polygon(sp, Color("3a4aa8"))
+		for q in 3:
+			ci.draw_line(sp[0].lerp(sp[3], (q + 1) / 4.0), sp[1].lerp(sp[2], (q + 1) / 4.0), Color("8fa2ff"), 1.0)
+		ci.draw_line(sp[0].lerp(sp[1], 0.5), sp[3].lerp(sp[2], 0.5), Color("8fa2ff"), 1.0)
+		var gl := fposmod(_t * 0.3, 1.0)
+		ci.draw_line(sp[0].lerp(sp[1], gl), sp[3].lerp(sp[2], gl), Color(1, 1, 1, 0.5), 2.0)
+		# Cúpula / Dome
+		var dome := PackedVector2Array()
+		var dome_o := PackedVector2Array()
+		for q in 17:
+			var a := PI + PI * q / 16.0
+			dome.append(Vector2(cos(a) * 30.0, sin(a) * 34.0))
+			dome_o.append(Vector2(cos(a) * 31.5, sin(a) * 35.5))
+		dome_o.append(Vector2(31.5, 1.5))
+		dome_o.append(Vector2(-31.5, 1.5))
+		ci.draw_colored_polygon(dome_o, INK)
+		ci.draw_colored_polygon(dome, Color("d8dcea"))
+		# Gajos del balón: franjas de papel de plata arrugado / The ball's panels: strips of crinkled foil
+		for q in 5:
+			var a0 := PI + PI * (q * 0.2 + 0.1)
+			var pts := PackedVector2Array([Vector2(0, -34)])
+			for r in 6:
+				var aa := a0 + 0.12 * sin(r * 1.7)
+				pts.append(Vector2(cos(aa) * 30.0 * (r + 1) / 6.0 * 1.0, -34.0 + (sin(aa) * 34.0 + 34.0) * (r + 1) / 6.0))
+			ci.draw_polyline(pts, Color("a8aec4"), 1.0)
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-26, -14), Vector2(-20, -26), Vector2(-10, -32), Vector2(-14, -22)]), Color("f4f6ff"))
+		# Portezuela de tela con cremallera / Fabric flap door with a zip
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-12, 0), Vector2(-9, -18), Vector2(0, -22), Vector2(9, -18), Vector2(12, 0)]), INK)
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-10.5, 0), Vector2(-8, -16.5), Vector2(0, -20.5), Vector2(8, -16.5), Vector2(10.5, 0)]), Color("5f6fd6"))
+		ci.draw_line(Vector2(0, -20), Vector2(0, 0), Color("bcc8ff"), 1.0)
+		# Ojo de buey con luz cálida / Porthole with warm light
+		var warm := 0.85 + 0.15 * sin(_t * 3.0) * sin(_t * 1.7)
+		ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(17, -21) - Vector2(16, 16), Vector2(32, 32)), false, Color("ffd27a", 0.35 * warm))
+		ci.draw_circle(Vector2(17, -21), 6.0, INK)
+		ci.draw_circle(Vector2(17, -21), 5.0, Color("c8ccdc"))
+		ci.draw_circle(Vector2(17, -21), 3.8, Color("ffd27a", warm))
+		# Una luna y dos estrellas pintadas con cera / A moon and two stars in crayon
+		ci.draw_arc(Vector2(-20, -16), 4.0, 0.9, 5.4, 10, Color("e85d75"), 1.6)
+		_crayon_star(ci, Vector2(-14, -24), Color("e85d75"))
+		_crayon_star(ci, Vector2(-25, -7), Color("5f6fd6")))
+
+
+## Bandera clavada: tela azul noche con una luna y una estrella cosidas, que ondea despacio
+## A planted flag: midnight-blue cloth with a sewn moon and star, waving slowly
+func _build_luna_flag(at: Vector2) -> void:
+	_blocks.append({"c": at, "r": Vector2(4, 3)})
+	_prop(at, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(7, 2))
+		ci.draw_line(Vector2(0, 1), Vector2(0, -66), INK, 4.0)
+		ci.draw_line(Vector2.ZERO, Vector2(0, -65), Color("cdd0e0"), 2.0)
+		ci.draw_line(Vector2(-1, -64), Vector2(36, -64), INK, 3.0)
+		ci.draw_line(Vector2(-1, -64), Vector2(36, -64), Color("cdd0e0"), 1.2)
+		var top := PackedVector2Array()
+		var bot := PackedVector2Array()
+		for q in 9:
+			var f := q / 8.0
+			var w := sin(_t * 1.8 - f * 4.0) * 2.5 * f
+			top.append(Vector2(f * 36.0, -63.0 + w))
+			bot.append(Vector2(f * 36.0, -40.0 + w * 1.4))
+		var cloth := PackedVector2Array(top)
+		var rev := bot.duplicate()
+		rev.reverse()
+		cloth.append_array(rev)
+		var outline := PackedVector2Array()
+		for q in cloth:
+			outline.append(q + (q - Vector2(18, -52)).normalized() * 1.4)
+		ci.draw_colored_polygon(outline, INK)
+		ci.draw_colored_polygon(cloth, Color("2a2a6e"))
+		for q in 8:
+			var f := (q + 0.5) / 8.0
+			var shade := sin(_t * 1.8 - f * 4.0 + 1.2)
+			if shade > 0.3:
+				ci.draw_line(top[q].lerp(top[q + 1], 0.5) + Vector2(0, 2), bot[q].lerp(bot[q + 1], 0.5) - Vector2(0, 2), Color(1, 1, 1, 0.08 * shade), 4.0)
+		var mid := top[4].lerp(bot[4], 0.5)
+		ci.draw_circle(mid + Vector2(-2, 0), 6.0, Color("f6d993"))
+		ci.draw_circle(mid + Vector2(0.5, -1), 5.0, Color("2a2a6e"))
+		_crayon_star(ci, mid + Vector2(8, -4), Color("ff9fc8"))
+		# Puntadas del borde / Edge stitches
+		for q in range(0, 9, 2):
+			ci.draw_rect(Rect2(bot[q] + Vector2(-0.6, -2.5), Vector2(1.2, 1.2)), Color("f6d993")))
+
+
+## Estrellita pintada con cera: una cruz de píxeles / A little crayon star: a cross of pixels
+func _crayon_star(ci: CanvasItem, p: Vector2, col: Color) -> void:
+	ci.draw_rect(Rect2(p + Vector2(-2.5, -0.75), Vector2(5, 1.5)), col)
+	ci.draw_rect(Rect2(p + Vector2(-0.75, -2.5), Vector2(1.5, 5)), col)
+
+
+## Telescopio en trípode, mirando la Tierra; de vez en cuando se gira un poco
+## A telescope on a tripod, looking at the Earth; now and then it turns a little
+func _build_luna_scope(at: Vector2) -> void:
+	_blocks.append({"c": at, "r": Vector2(9, 4)})
+	_prop(at, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(12, 3))
+		for lx: float in [-10.0, 0.0, 10.0]:
+			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -22), INK, 3.0)
+			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -22), Color("b48a5c"), 1.5)
+		var aim := -2.55 + sin(_t * 0.4) * 0.12
+		ci.draw_set_transform(Vector2(0, -24), aim)
+		ci.draw_rect(Rect2(-6, -4.5, 30, 9), INK)
+		ci.draw_rect(Rect2(-5, -3.5, 28, 7), Color("5f6fd6"))
+		ci.draw_rect(Rect2(-5, -3.5, 28, 2), Color("8fa2ff"))
+		ci.draw_rect(Rect2(20, -5.5, 6, 11), INK)
+		ci.draw_rect(Rect2(21, -4.5, 4, 9), Color("f6d993"))
+		ci.draw_rect(Rect2(-11, -2.5, 6, 5), INK)
+		ci.draw_rect(Rect2(-10, -1.5, 4, 3), Color("9aa0c0"))
+		ci.draw_set_transform(Vector2.ZERO)
+		ci.draw_circle(Vector2(0, -24), 2.5, INK))
+
+
+## Antena parabólica hecha con un colador, en un trípode de palos de escoba; pita y se gira
+## A satellite dish made from a colander, on a broomstick tripod; it beeps and turns
+func _build_luna_dish(at: Vector2) -> void:
+	_blocks.append({"c": at, "r": Vector2(10, 4)})
+	_prop(at, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(14, 3))
+		for lx: float in [-11.0, 0.0, 11.0]:
+			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -20), INK, 3.0)
+			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -20), Color("c8a070"), 1.5)
+		ci.draw_line(Vector2(0, -18), Vector2(0, -36), INK, 4.0)
+		ci.draw_line(Vector2(0, -18), Vector2(0, -36), Color("b8bccf"), 2.0)
+		var turn := sin(_t * 0.5) * 0.3
+		ci.draw_set_transform(Vector2(0, -40), turn - 0.4)
+		var dish := PackedVector2Array()
+		var dish_o := PackedVector2Array()
+		for q in 13:
+			var a := PI * q / 12.0
+			dish.append(Vector2(cos(a) * 18.0, sin(a) * 9.0))
+			dish_o.append(Vector2(cos(a) * 19.5, sin(a) * 10.5))
+		dish_o.append(Vector2(-19.5, -1.0))
+		dish_o.append(Vector2(19.5, -1.0))
+		ci.draw_colored_polygon(dish_o, INK)
+		ci.draw_colored_polygon(dish, Color("e4e6f0"))
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-18, 0), Vector2(18, 0), Vector2(14, 3), Vector2(-14, 3)]), Color("ff8a5c"))
+		for hx: float in [-10.0, -5.0, 0.0, 5.0, 10.0]:
+			ci.draw_circle(Vector2(hx, 4.5 + absf(hx) * -0.15), 1.0, Color("8c90a8"))
+		ci.draw_line(Vector2.ZERO, Vector2(0, -14), INK, 3.0)
+		ci.draw_line(Vector2.ZERO, Vector2(0, -14), Color("8c90a8"), 1.5)
+		var on := fmod(_t, 1.2) < 0.25
+		ci.draw_circle(Vector2(0, -15), 3.0, INK)
+		ci.draw_circle(Vector2(0, -15), 2.2, Color("ff6a6a") if on else Color("6a2a3a"))
+		if on:
+			for q in 3:
+				ci.draw_arc(Vector2(0, -15), 6.0 + q * 5.0, -PI * 0.8, -PI * 0.2, 8, Color(1, 0.7, 0.7, 0.6 - q * 0.15), 1.2)
+		ci.draw_set_transform(Vector2.ZERO))
+
+
+## La Tierra flotando detrás de la base, girando despacio, con la casita de Kroker encima (con la
+## ventana de su cuarto encendida). Es lo que mira el telescopio.
+## The Earth floating behind the base, turning slowly, with Kroker's little house on top (his
+## bedroom window lit). It's what the telescope looks at.
+func _build_luna_earth(at: Vector2) -> void:
+	_prop(at, func(ci: CanvasItem) -> void:
+		var c := Vector2(0, -92 + sin(_t * 0.6) * 4.0)
+		var r := 30.0
+		ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(r, r) * 2.2, Vector2(r, r) * 4.4), false, Color("7fb8ff", 0.22))
+		ci.draw_circle(c, r + 1.8, INK)
+		ci.draw_circle(c, r, Color("3f7fd8"))
+		# Continentes que pasan (se recortan al borde de la esfera) / Continents drifting past (clipped to the sphere's edge)
+		for q in 5:
+			var lon := fposmod(_t * 0.04 + q * 0.21, 1.0) * 2.0 - 1.0
+			var lat := sin(q * 2.3) * 0.55
+			var p := c + Vector2(lon * r, lat * r)
+			var shrink := sqrt(maxf(0.0, 1.0 - lon * lon))
+			if shrink <= 0.05:
+				continue
+			var blob := PackedVector2Array()
+			for k in 9:
+				var a := TAU * k / 9.0
+				var rr := (7.0 + 4.0 * sin(a * 3.0 + q)) * (0.8 + 0.2 * (q % 2))
+				var v := p + Vector2(cos(a) * rr * shrink, sin(a) * rr * 0.8)
+				if v.distance_to(c) > r - 1.0:
+					v = c + (v - c).normalized() * (r - 1.0)
+				blob.append(v)
+			ci.draw_colored_polygon(blob, Color("5fbf6a"))
+		# Nubes / Clouds
+		for q in 3:
+			var lon2 := fposmod(_t * 0.07 + q * 0.37, 1.0) * 2.0 - 1.0
+			var cy := c.y + (q - 1) * 13.0
+			var w := 10.0 * sqrt(maxf(0.0, 1.0 - lon2 * lon2))
+			ci.draw_line(Vector2(c.x + lon2 * (r - 4.0) - w, cy), Vector2(c.x + lon2 * (r - 4.0) + w, cy), Color(1, 1, 1, 0.75), 3.0)
+		# Sombra del lado de la noche y brillo / Night-side shade and a glint
+		var night := PackedVector2Array()
+		for k in 17:
+			var a := -PI * 0.5 + PI * k / 16.0
+			night.append(c + Vector2(cos(a), sin(a)) * r)
+		for k in 17:
+			var a := PI * 0.5 - PI * k / 16.0
+			night.append(c + Vector2(cos(a) * r * 0.45, sin(a) * r))
+		ci.draw_colored_polygon(night, Color(0.05, 0.03, 0.2, 0.35))
+		ci.draw_arc(c, r - 5.0, -2.6, -1.9, 8, Color(1, 1, 1, 0.6), 3.0)
+		# La casa de Kroker encima, con la luz de su cuarto / Kroker's house on top, his bedroom light on
+		var h := c + Vector2(0, -r + 2.0)
+		ci.draw_rect(Rect2(h + Vector2(-9, -12), Vector2(18, 13)), INK)
+		ci.draw_rect(Rect2(h + Vector2(-8, -11), Vector2(16, 12)), Color("f4e6d0"))
+		ci.draw_colored_polygon(PackedVector2Array([h + Vector2(-12, -11), h + Vector2(12, -11), h + Vector2(0, -22)]), INK)
+		ci.draw_colored_polygon(PackedVector2Array([h + Vector2(-10, -12), h + Vector2(10, -12), h + Vector2(0, -20)]), Color("c84a4a"))
+		var lamp := 0.8 + 0.2 * sin(_t * 2.0)
+		ci.draw_rect(Rect2(h + Vector2(-5, -8), Vector2(4, 4)), Color("ffd27a", lamp))
+		ci.draw_rect(Rect2(h + Vector2(2, -6), Vector2(3, 7)), Color("6a4a3a"))
+		ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(h + Vector2(-11, -14), Vector2(12, 12)), false, Color("ffd27a", 0.3 * lamp)))
+
+
+## Rover de juguete: coche teledirigido con antena y faro, dando vueltas al cráter grande
+## A toy rover: a radio-controlled car with an antenna and a headlight, circling the big crater
+func _tick_luna() -> void:
+	var a := _t * 0.45
+	var c := _isle_pos("luna") + LUNA_CRATER
+	_rover.position = c + Vector2(cos(a) * 37.0, sin(a) * 20.0)
+	_rover.set_meta("dir", Vector2(-sin(a) * 37.0, cos(a) * 20.0).normalized())
+
+
+func _paint_rover(ci: CanvasItem) -> void:
+	var dir: Vector2 = _rover.get_meta("dir", Vector2.RIGHT) if is_instance_valid(_rover) else Vector2.RIGHT
+	var face := signf(dir.x) if absf(dir.x) > 0.05 else 1.0
+	var bump := absf(sin(_t * 9.0)) * 0.8
+	_shadow(ci, Vector2.ZERO, Vector2(11, 3))
+	ci.draw_set_transform(Vector2(0, -bump), 0.0, Vector2(face, 1.0))
+	for wx: float in [-7.0, 0.0, 7.0]:
+		ci.draw_circle(Vector2(wx, -3), 3.4, INK)
+		ci.draw_circle(Vector2(wx, -3), 2.4, Color("4a4a62"))
+		var sp := _t * 12.0 + wx
+		ci.draw_line(Vector2(wx, -3), Vector2(wx, -3) + Vector2(cos(sp), sin(sp)) * 2.0, Color("9aa0c0"), 1.0)
+	ci.draw_rect(Rect2(-11, -12, 22, 7), INK)
+	ci.draw_rect(Rect2(-10, -11, 20, 5), Color("f4f1ea"))
+	ci.draw_rect(Rect2(-10, -8, 20, 2), Color("ff8a5c"))
+	ci.draw_rect(Rect2(-4, -17, 9, 6), INK)
+	ci.draw_rect(Rect2(-3, -16, 7, 4), Color("5f6fd6"))
+	ci.draw_line(Vector2(-8, -12), Vector2(-10, -24), INK, 2.0)
+	ci.draw_line(Vector2(-8, -12), Vector2(-10, -24), Color("cdd0e0"), 1.0)
+	var on := fmod(_t, 0.8) < 0.4
+	ci.draw_circle(Vector2(-10, -25), 1.6, Color("7fe08a") if on else Color("2a5a3a"))
+	ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(10, -16), Vector2(18, 10)), false, Color("fff4c0", 0.35))
+	ci.draw_rect(Rect2(9, -10, 2, 3), Color("fff4c0"))
+	ci.draw_set_transform(Vector2.ZERO)
+
+
+
 # --- Kroker ---
 
+## En la base de Luna hay poca gravedad: Kroker anda dando saltos lentos y levanta polvo al caer
+## On Luna's base gravity is low: Kroker walks in slow bounces and kicks up dust as he lands
+var _dust: Array[Vector3] = []     # x, y, edad / x, y, age
+var _moon_k := 0.0
+
+func _on_moon() -> bool:
+	return _walk_polys.has("luna") and Geometry2D.is_point_in_polygon(_pos, _walk_polys["luna"])
+
 func _draw_kroker(ci: CanvasItem) -> void:
-	ci.draw_colored_polygon(_ellipse(Vector2.ZERO, Vector2(11, 3)), Color(0, 0, 0, 0.3))
+	for d in _dust:
+		var k := d.z / 0.7
+		for q in 3:
+			var off := Vector2((q - 1) * 5.0 * (0.6 + k), -k * 6.0 - absf(q - 1) * 1.0)
+			ci.draw_circle(Vector2(d.x, d.y) - _pos + off, 2.0 + k * 3.0, Color(0.85, 0.84, 0.92, 0.55 * (1.0 - k)))
+	var hop := _moon_k * (absf(sin(_walk * 0.5)) * 12.0 * _moving + (1.0 - _moving) * (2.0 + sin(_t * 1.6) * 2.0))
+	ci.draw_colored_polygon(_ellipse(Vector2.ZERO, Vector2(11.0 - hop * 0.3, 3)), Color(0, 0, 0, 0.3))
 	var outfit := GameState.selected_character if GameState.weapon_unlocked(GameState.selected_character) else "bat"
-	KrokerArt.draw(ci, Transform2D(0.0, Vector2(KROKER_SCALE, KROKER_SCALE), 0.0, Vector2(-100.0 * KROKER_SCALE, -288.0 * KROKER_SCALE)),
-		outfit, _t, {"facing": _facing, "walk": _walk, "moving": _moving, "armed": true})
+	KrokerArt.draw(ci, Transform2D(0.0, Vector2(KROKER_SCALE, KROKER_SCALE), 0.0, Vector2(-100.0 * KROKER_SCALE, -288.0 * KROKER_SCALE - hop)),
+		outfit, _t, {"facing": _facing, "walk": _walk * (1.0 - _moon_k * 0.5), "moving": _moving, "armed": true})
 	# Nubecita de cambiarse / Changing puff
 	if _poof_t > 0.0:
 		var k := 1.0 - _poof_t / 0.5
@@ -1216,8 +1539,19 @@ func _process(delta: float) -> void:
 	_still = _still + delta if _moving < 0.1 else 0.0
 	KrokerArt.yoyo_idle = move_toward(KrokerArt.yoyo_idle, 1.0 if _still > 1.5 else 0.0, delta * 3.0)
 	# Pisadas suaves sobre la piedra del plano astral / Soft footsteps on the astral plane's stone
-	if int(_walk / PI) != step_before and _moving > 0.5:
+	_moon_k = move_toward(_moon_k, 1.0 if _on_moon() else 0.0, delta * 3.0)
+	if _moon_k > 0.5:
+		# En la luna, un saltito cada dos pasos: al caer, polvo y un «puf» blando
+		# On the moon, a hop every two steps: on landing, dust and a soft "poof"
+		if int(_walk / TAU) != int((_walk - moved * delta * 0.09) / TAU) and _moving > 0.5:
+			_dust.append(Vector3(_pos.x, _pos.y, 0.0))
+			Audio.play("step", -20.0, 0.12, 0.7)
+	elif int(_walk / PI) != step_before and _moving > 0.5:
 		Audio.play("step", -22.0, 0.12, 0.92)
+	for q in range(_dust.size() - 1, -1, -1):
+		_dust[q].z += delta
+		if _dust[q].z > 0.7:
+			_dust.remove_at(q)
 	_cam = _cam.lerp(_pos + Vector2(0, -24), minf(1.0, delta * 4.0))
 	_kroker.position = _pos
 	if is_instance_valid(_ball):
@@ -1226,6 +1560,8 @@ func _process(delta: float) -> void:
 		_tick_pinche()
 	if is_instance_valid(_silly):
 		_tick_silly()
+	if is_instance_valid(_rover):
+		_tick_luna()
 	_check_zone()
 	var off := _offset()
 	_ground.position = off

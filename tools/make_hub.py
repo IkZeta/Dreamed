@@ -462,21 +462,78 @@ def floor_zigzag(lx, ly, rng, irx, iry):
 
 
 def floor_moon(lx, ly, rng, irx, iry):
-    """La luna de Luna: polvo gris claro con cráteres de borde iluminado (como agujeros de verdad)
-    Luna's moon: pale grey dust with craters whose rims catch the light (like real holes)"""
-    A, B = night("#c8c6d4"), night("#b6b4c4")
+    """La base lunar de Luna: regolito gris lavanda con grano de tres tonos y piedrecitas, cráteres
+    con la sombra dentro arriba y el borde iluminado abajo (uno grande con rayos de polvo claro),
+    la plataforma de lanzamiento del cohete (chapa redonda con franjas de peligro y una luna pintada),
+    el surco que deja el rover de juguete dando vueltas al cráter y un rastro de huellas de botas
+    lunares que va del borde a Luna, al cohete y a la cúpula.
+    Luna's moon base: lavender-grey regolith with a three-tone grain and pebbles, craters shaded on
+    the inside at the top with a lit rim at the bottom (a big one with rays of pale dust), the
+    rocket's launch pad (a round plate with hazard stripes and a painted moon), the rut the toy rover
+    leaves circling the crater and a trail of moon-boot prints from the edge to Luna, the rocket and
+    the dome."""
+    T = [night("#c9c7da"), night("#bdbbd0"), night("#b0aec6"), night("#9d9bb6"), night("#e6e4f0")]
     noise = np.random.default_rng(16).random(lx.shape)
-    out = np.where((noise < 0.5)[..., None], A, B)
-    out[noise < 0.03] = night("#a4a2b4")
-    out[noise > 0.985] = night("#e4e2ee")
-    for (cx, cy, r) in ((-62, -14, 18), (40, 16, 13), (78, -22, 9), (-20, 30, 8), (-96, 22, 7)):
-        d = np.sqrt((lx - cx) ** 2 + ((ly - cy) * 1.6) ** 2)
-        out[d < r] = night("#8e8ca0")
-        inner = d < r - 3
-        out[inner & (ly - cy < 0)] = night("#7a788c")
-        out[inner & (ly - cy >= 0)] = night("#9c9aae")
-        rim = (d >= r) & (d < r + 2) & (ly - cy > -2)
-        out[rim] = night("#ecebf4")
+    grain = np.random.default_rng(17).random(lx.shape)
+    out = np.where((noise < 0.42)[..., None], T[0], T[1])
+    out[(noise >= 0.42) & (noise < 0.55)] = T[2]
+    out[grain < 0.012] = T[3]
+    out[grain > 0.992] = T[4]
+    # Manchas oscuras grandes (mares) / Large dark patches (maria)
+    for (cx, cy, rx, ry) in ((40, -20, 46, 18), (-20, 44, 40, 12)):
+        d = ((lx - cx) / rx) ** 2 + ((ly - cy) / ry) ** 2
+        m = (d < 1.0) & (noise < 0.75)
+        out[m] = out[m] * 0.93
+    # Rayos de polvo claro del cráter grande / Pale dust rays from the big crater
+    big = (-52, 30, 21)
+    ang = np.arctan2((ly - big[1]) * 1.7, lx - big[0])
+    dd = np.sqrt((lx - big[0]) ** 2 + ((ly - big[1]) * 1.7) ** 2)
+    rays = (np.cos(ang * 7.0 + 0.6) > 0.93) & (dd > big[2] + 3) & (dd < big[2] + 34) & (grain < 0.7)
+    out[rays] = T[4] * 0.98
+    # Surco del rover alrededor del cráter / The rover's rut around the crater
+    rr = np.sqrt(((lx - big[0]) / 40.0) ** 2 + ((ly - big[1]) / 22.0) ** 2)
+    out[np.abs(rr - 1.0) < 0.03] = T[3]
+    out[np.abs(rr - 0.86) < 0.03] = T[3]
+    # Cráteres / Craters
+    for (cx, cy, r) in (big, (34, 10, 11), (96, -18, 8), (-6, -44, 7), (-112, 26, 6), (66, 44, 7), (114, 30, 5), (-36, -12, 4)):
+        d = np.sqrt((lx - cx) ** 2 + ((ly - cy) * 1.7) ** 2)
+        inside = d < r
+        out[inside & (ly - cy < 0)] = night("#7c7a96")
+        out[inside & (ly - cy >= 0)] = night("#a09eb8")
+        out[(d < r * 0.45) & (ly - cy > 0)] = night("#8c8aa6")
+        out[(d >= r) & (d < r + 1.8) & (ly - cy > -1)] = night("#f2f0f8")
+        out[(d >= r) & (d < r + 1.6) & (ly - cy <= -1)] = night("#8e8ca8")
+    # Plataforma de lanzamiento / Launch pad
+    pc = (-88, -18)
+    pd = np.sqrt((lx - pc[0]) ** 2 + ((ly - pc[1]) * 1.8) ** 2)
+    out[pd < 26] = night("#8a8ea8")
+    out[pd < 24] = night("#a8acc4")
+    hz = (pd >= 19) & (pd < 23)
+    stripe = ((np.arctan2((ly - pc[1]) * 1.8, lx - pc[0]) * 8 / np.pi).astype(int) % 2 == 0)
+    out[hz & stripe] = night("#f6c84a", 0.15)
+    out[hz & ~stripe] = night("#2a2440")
+    out[(pd < 18) & ((np.abs(lx - pc[0]) < 0.6) | (np.abs((ly - pc[1]) * 1.8) < 0.6))] = night("#8a8ea8")
+    md = np.sqrt((lx - pc[0] + 2) ** 2 + ((ly - pc[1]) * 1.8) ** 2)
+    md2 = np.sqrt((lx - pc[0] - 3) ** 2 + ((ly - pc[1] + 1) * 1.8) ** 2)
+    out[(md < 9) & (md2 >= 8)] = night("#f6d993", 0.15)
+    # Huellas de botas lunares (pares, con dibujo de suela) / Moon-boot prints (in pairs, with tread)
+    trail = []
+    for path in (((2, 70), (6, 40), (2, 14)), ((-4, 2), (-40, -2), (-70, -10)), ((14, 0), (44, -18), (66, -28))):
+        for k in range(len(path) - 1):
+            (x0, y0), (x1, y1) = path[k], path[k + 1]
+            n = int(max(abs(x1 - x0), abs(y1 - y0)) / 9) + 1
+            for t in range(n):
+                f = t / n
+                trail.append((x0 + (x1 - x0) * f, y0 + (y1 - y0) * f, np.arctan2(y1 - y0, x1 - x0), t % 2))
+    for (px, py, a, side) in trail:
+        nx, ny = -np.sin(a), np.cos(a)
+        fx, fy = px + nx * (2.5 if side else -2.5), py + ny * (2.5 if side else -2.5) * 0.6
+        dx, dy = lx - fx, (ly - fy) * 1.6
+        u = dx * np.cos(a) + dy * np.sin(a)
+        v = -dx * np.sin(a) + dy * np.cos(a)
+        print_ = (np.abs(u) < 2.6) & (np.abs(v) < 1.4)
+        out[print_] = night("#9896b2")
+        out[print_ & (np.abs(u).astype(int) % 2 == 0)] = night("#82809e")
     return out
 
 
