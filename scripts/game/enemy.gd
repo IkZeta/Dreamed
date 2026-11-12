@@ -863,6 +863,16 @@ func _draw() -> void:
 		for i in 3:
 			var y := randf_range(-aim_height * 2.5, 6)
 			draw_rect(Rect2(randf_range(-40, 10), y, randf_range(20, 50), 3), Color([GLITCH_A, GLITCH_B, Color.WHITE][i], 0.5 * a))
+	# Lanzado por un golpe fuerte: estelas de viento detrás, para que se lea hacia dónde vuela (y si va al agujero)
+	# Launched by a heavy hit: wind streaks behind it, so you can read where it's flying (and whether it's going down the hole)
+	if state == State.ALIVE and heavy_t > 0.0 and knock.length() > 250.0 and not statue:
+		var back := -knock.normalized()
+		var side := back.orthogonal()
+		var k := clampf((knock.length() - 250.0) / 500.0, 0.2, 1.0)
+		for i in 3:
+			var o := side * (i - 1) * radius * 0.7 + Vector2(0, -aim_height * (0.6 + 0.4 * i))
+			var len := (26.0 + 14.0 * i) * k
+			draw_line(o + back * (radius * 0.6), o + back * (radius * 0.6 + len), Color(1, 1, 1, 0.55 * k * a), 2.0)
 	# Despiertos por el Despertador: rayitas de prisa detrás / Woken by the Alarm Clock: little hurry lines behind
 	if run and state == State.ALIVE and not is_boss() and float(run.get("haste_t")) > 0.0:
 		for i in 3:
