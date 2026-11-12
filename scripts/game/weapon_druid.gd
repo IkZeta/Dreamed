@@ -562,34 +562,16 @@ func _draw() -> void:
 			DruidArt.draw(self, _spirit + Vector2(0, 70), "vulture", _t, {"ghost": true, "facing": face, "attack": 0.0})
 		_draw_leaves()
 		return
+	# Como segunda arma, el animal acompaña a Kroker en pequeño y translúcido, como un espíritu
+	# As the second weapon, the animal goes along with Kroker, small and translucent, like a spirit
 	var col: Color = COLORS[form]
 	var lunge := sin(_lunge * PI) if _lunge > 0.0 else 0.0
 	var at := _spirit.lerp(_lunge_to, lunge * 0.7)
 	var face := signf(_lunge_to.x) if _lunge > 0.0 and absf(_lunge_to.x) > 4.0 else player._facing
-	var a := _alpha * 0.92
-	# Brillo del espíritu / Spirit glow
 	draw_texture_rect(DreamBackground.soft_texture(), Rect2(at + Vector2(-60, -80), Vector2(120, 100)), false, Color(col, 0.22 * _alpha))
-	if form != "vulture":
-		draw_set_transform(at, 0.0, Vector2(1.0, 0.3))
-		draw_circle(Vector2.ZERO, 30.0, Color(0.05, 0.02, 0.15, 0.3 * a))
-	var tint := Color(1, 1, 1, a).lerp(Color(col.lightened(0.4), a), 0.25 + 0.4 * lunge)
-	match form:
-		"bear":
-			draw_set_transform(at + Vector2(0, -absf(sin(_t * 3.0)) * 2.0), lunge * 0.15 * face, Vector2(face, 1.0) * (0.9 + 0.1 * lunge))
-			Sprites.draw(self, "druid_bear", tint)
-		"panther":
-			var stretch := 1.0 + 0.25 * lunge
-			draw_set_transform(at + Vector2(0, -absf(sin(_t * 6.0)) * 1.5), 0.0, Vector2(face * 0.75 * stretch, 0.75 / sqrt(stretch)))
-			Sprites.draw(self, "druid_panther", tint)
-		_:
-			# Ala de atrás, cuerpo y ala de delante, batiendo / Back wing, body and front wing, flapping
-			var flap := sin(_t * 9.0) * 0.6
-			draw_set_transform(at + Vector2(-4.0 * face, -26.0), (-0.3 - flap) * face, Vector2(face, 1.0) * 0.8)
-			Sprites.draw(self, "druid_wing", Color(tint, a * 0.8))
-			draw_set_transform(at, 0.0, Vector2(face, 1.0) * 0.8)
-			Sprites.draw(self, "druid_vulture", tint)
-			draw_set_transform(at + Vector2(2.0 * face, -24.0), (0.2 + flap) * face, Vector2(face, 1.0) * 0.8)
-			Sprites.draw(self, "druid_wing", tint)
+	var base := at + (Vector2(0, 40) if form == "vulture" else Vector2.ZERO)
+	DruidArt.draw(self, base, form, _t, {"facing": face, "scale": 0.55, "walk": player._walk * 1.3, "moving": player._moving,
+		"attack": _lunge, "roar": roar_anim, "tint": Color(col.lightened(0.55), 0.82 * _alpha)})
 	draw_set_transform(Vector2.ZERO)
 	_draw_leaves()
 

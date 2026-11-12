@@ -34,6 +34,8 @@ static func draw(ci: CanvasItem, at: Vector2, form: String, t: float, opts := {}
 	_mod = Sprites.flash_color(float(opts.get("flash", 0.0)), float(opts.get("alpha", 1.0)))
 	if opts.get("ghost", false):
 		_mod = Color(0.75, 1.0, 0.95, 0.55 * float(opts.get("alpha", 1.0)))
+	if opts.has("tint"):
+		_mod = _mod * Color(opts["tint"])
 	match form:
 		"bear": _bear(t, opts)
 		"panther": _panther(t, opts)

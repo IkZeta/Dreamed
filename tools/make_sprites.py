@@ -2615,64 +2615,12 @@ def botcher():
     add("botcher_barrel", -9, -11, 54, 22, c, flat=True)
 
 
-def druid_spirits():
-    """Las formas del collar de druida en pixel art plano, de lado y mirando a +x, con los pies en
-    el origen: oso pardo, pantera negra y buitre (cuerpo y ala aparte, para batirla). Y el collar
-    tal cual, para la habitación.
-    The druid collar's forms in flat pixel art, side-on and facing +x, feet at the origin: brown
-    bear, black panther and vulture (body and wing apart, to flap it). And the collar itself, for
-    the bedroom."""
+def druid_collar():
+    """El collar de druida tal cual, para la habitación y la elección de arma (las formas en las que
+    se convierte Kroker están en druid_forms).
+    The druid collar as it is, for the bedroom and the weapon choice (the forms Kroker turns into
+    are in druid_forms)."""
     INK = "#1a1024"
-    # Oso pardo: lomo con joroba, cabeza redonda con orejas y hocico claro, cuatro patas gordas
-    # Brown bear: humped back, round head with ears and a light muzzle, four chunky legs
-    B0, B1, B2, B3 = "#3a2418", "#5c3a24", "#7e5434", "#b8885a"
-    b = ""
-    for x, dk in ((-24, True), (14, True), (-14, False), (24, False)):
-        b += flat("M%g,-16 L%g,-16 L%g,0 L%g,0 Z" % (x - 6, x + 6, x + 6, x - 6), B0 if dk else B1)
-        b += flat("M%g,-2 L%g,-2 L%g,0 L%g,0 Z" % (x - 6, x + 6, x + 6, x - 6), "#2a1810")
-    b += flat("M-34,-14 C-38,-26 -30,-40 -14,-44 C0,-48 16,-46 26,-38 C32,-32 32,-20 26,-14 C10,-10 -14,-10 -34,-14 Z", B1)
-    b += flat("M-28,-30 C-22,-40 -8,-45 6,-45 C-6,-40 -18,-36 -22,-28 Z", B2)
-    b += flat("M-30,-16 C-18,-13 4,-12 24,-15 L22,-12 C2,-10 -18,-10 -30,-13 Z", B0)
-    # Cabeza / Head
-    b += flat(ellipse_d(32, -32, 13, 12), B1)
-    b += flat(ellipse_d(26, -42, 4.5, 4.5), B1) + flat(ellipse_d(26, -42, 2.2, 2.2), B0)
-    b += flat(ellipse_d(36, -43, 4, 4), B1) + flat(ellipse_d(36, -43, 1.8, 1.8), B0)
-    b += flat(ellipse_d(42, -28, 7, 5.5), B3) + flat(ellipse_d(47, -30, 2.4, 2), "#1a1012")
-    b += flat("M34,-36 L37,-36 L37,-33 L34,-33 Z", "#1a1012") + flat("M35,-36 L36,-36 L36,-35 L35,-35 Z", "#f4ecdc")
-    b += flat("M40,-24 Q44,-22 47,-24", "none") + "<path d='M40,-24 Q44,-22 47,-25' fill='none' stroke='#3a2418' stroke-width='1.2'/>"
-    b += flat(ellipse_d(24, -30, 3, 2), B2)
-    add("druid_bear", -40, -50, 92, 54, b, flat=True, outline=INK)
-
-    # Pantera negra / Black panther
-    P0, P1, P2, P3 = "#140e1e", "#2a2040", "#3e3260", "#5a4c86"
-    p = flat("M-40,-22 C-34,-30 -16,-32 4,-30 C18,-30 26,-32 32,-34 C40,-36 48,-32 50,-26 C52,-22 50,-18 46,-16 L36,-16 L34,-8 L36,0 L30,0 L28,-10 L24,-14 L-6,-14 L-10,-6 L-8,0 L-14,0 L-16,-8 L-20,-14 C-26,-14 -32,-16 -36,-18 Z", P1)
-    p += flat("M-40,-22 C-48,-24 -56,-20 -60,-12 C-62,-6 -60,-2 -56,-2 C-56,-8 -52,-14 -44,-17 Z", P1)
-    p += flat("M-30,-28 C-16,-32 4,-31 20,-31 C10,-28 -10,-27 -28,-24 Z", P3)
-    p += flat("M-20,-14 C-12,-16 10,-16 24,-14 L22,-12 L-18,-12 Z", P0)
-    p += flat("M36,-34 L38,-42 L42,-35 Z", P1) + flat("M44,-33 L47,-40 L49,-31 Z", P1)
-    p += flat("M42,-28 L46,-28 L46,-26 L42,-26 Z", "#ffd04a") + flat("M44,-28 L45,-28 L45,-26 L44,-26 Z", P0)
-    p += flat(ellipse_d(50, -22, 2, 1.8), "#e88aa8")
-    p += flat("M47,-18 L49,-18 L48.5,-15 Z", "#efe6d6")
-    add("druid_panther", -64, -46, 118, 50, p, flat=True, outline=INK)
-
-    # Buitre: cuerpo / Vulture: body
-    V0, V1, V2 = "#2a1c18", "#4a3428", "#6a4c38"
-    v = flat("M-26,-20 C-20,-30 -4,-34 10,-30 C18,-28 22,-24 22,-18 C18,-12 6,-8 -8,-8 L-22,-6 L-30,-2 L-28,-10 Z", V1)
-    v += flat("M-10,-30 C0,-33 10,-31 16,-27 C8,-28 -2,-28 -10,-26 Z", V2)
-    # Gorguera blanca y cuello pelado rosado / White ruff and bare pinkish neck
-    v += flat("M12,-30 C18,-34 24,-32 26,-28 C22,-26 18,-26 14,-26 Z", "#e6dccf")
-    v += flat("M22,-32 C24,-40 30,-44 36,-42 C40,-41 42,-38 41,-35 L36,-33 C33,-34 30,-34 28,-30 Z", "#d88a8a")
-    v += flat("M40,-38 C44,-38 47,-36 46,-33 L42,-33 C43,-34 42,-36 40,-38 Z", "#e8c070") + flat("M45,-34 L47,-32 L44,-32 Z", "#3a2a22")
-    v += flat("M34,-40 L37,-40 L37,-38 L34,-38 Z", "#1a1012")
-    v += flat("M-2,-10 L-2,-2 L0,-2 L0,-10 Z", "#c9a070") + flat("M6,-10 L6,-2 L8,-2 L8,-10 Z", "#c9a070")
-    v += flat("M-4,-2 L2,-2 L1,0 L-3,0 Z", "#c9a070") + flat("M4,-2 L10,-2 L9,0 L5,0 Z", "#c9a070")
-    add("druid_vulture", -34, -48, 84, 52, v, flat=True, outline=INK)
-    # Ala (hombro en el origen, se abre hacia atrás) / Wing (shoulder at the origin, opens backwards)
-    w = flat("M0,0 C-10,-8 -30,-14 -54,-12 L-62,-6 L-56,-4 L-60,0 L-52,0 L-54,4 L-44,3 L-44,7 L-34,4 C-22,6 -10,6 0,4 Z", V0)
-    w += flat("M0,0 C-12,-6 -28,-10 -46,-9 C-30,-6 -16,-3 -2,2 Z", V2)
-    w += "".join(flat("M%g,%g L%g,%g L%g,%g Z" % (x, -2, x - 6, 4, x + 2, 2), "#3a2a22") for x in (-20, -30, -40))
-    add("druid_wing", -66, -18, 70, 28, w, flat=True, outline=INK)
-
     # El collar, para la habitación: cordón de cuero con colmillo, garra y pluma
     # The collar, for the bedroom: leather cord with a fang, a claw and a feather
     c = "<path d='M-22,-14 Q0,14 22,-14' fill='none' stroke='#6a4428' stroke-width='3'/>"
@@ -3592,7 +3540,7 @@ def build():
     act2_enemies()
     act3_enemies()
     botcher()
-    druid_spirits()
+    druid_collar()
     druid_forms()
     sinister_cat()
     ufo()
