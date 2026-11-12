@@ -124,7 +124,7 @@ const WEAPON_BONUS := {
 	"ball": {"armor": -2.0, "speed": 60.0, "damage_mult": 0.15, "max_hp": 4.0},  # poca defensa, rápida y pega fuerte / low defence, fast and hits hard
 	"laptop": {"max_hp": 5.0},       # +5 de vida máxima / +5 max health
 	"boots": {"speed": 30.0, "armor": 1.0},  # algo más rápido y un poco de defensa / a bit faster and a little defence
-	"druid": {"max_hp": 4.0},        # +4 de vida máxima (lo demás lo dan las formas) / +4 max health (the forms give the rest)
+	"druid": {"max_hp": 1.0},        # +1 de vida máxima (lo demás lo dan las formas) / +1 max health (the forms give the rest)
 }
 
 

@@ -52,7 +52,7 @@ const BEAR_SPEED := 0.88
 const ROAR_RADIUS := 230.0
 const ROAR_STUN := 0.6
 const ROAR_KNOCK := 340.0
-const GUARD_TIME := 8.0          # recarga del pelaje / fur recharge
+const GUARD_TIME := 10.0         # recarga del pelaje / fur recharge
 const RETALIATE_RADIUS := 150.0
 const RETALIATE_MULT := 1.5
 # Pantera / Panther
