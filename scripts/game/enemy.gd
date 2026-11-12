@@ -429,6 +429,7 @@ func _start_fall(to: Vector2) -> void:
 	run.fx.flash(to, 50.0, Color("b48cff", 0.8), 0.25)
 	run.punch(0.03)
 	Audio.play("hole_fall", -7.0, 0.08)
+	Audio.play("vortex", -12.0, 0.08)
 	# Que se note: un instante parado y una sacudida, más fuerte cuanto más pesa
 	# Make it land: a frozen instant and a shake, stronger the heavier it is
 	run.hit_stop(0.045 + 0.02 * minf(2.0, mass - 1.0))

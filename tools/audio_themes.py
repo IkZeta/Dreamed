@@ -1683,4 +1683,93 @@ def sfx_knuckles():
 
 SFX.update({"plaster": (sfx_plaster, 0.3, 0.05), "knuckles": (sfx_knuckles, 0.3, 0.05)})
 
+
+# --- Sonidos de «jugo»: cortos, blandos y afinados, para que animen sin cansar ---
+# --- "Juice" sounds: short, soft and in tune, to excite without tiring ---
+
+def sfx_dream_pop():
+    """Muere un enemigo: una burbuja que estalla (seno que sube rápido) y una chispita de campana.
+    Muy corto y sin agudos que piquen; en el juego sube de tono con la racha.
+    An enemy dies: a bubble popping (a fast-rising sine) and a tiny bell glint. Very short, with no
+    piercing highs; in game it rises in pitch with the streak."""
+    d = 0.16
+    t = t_axis(d)
+    f = 420 + 900 * (1 - np.exp(-t * 60))
+    pop = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 34) * 0.5
+    x = np.zeros((int(SR * 0.6), 2))
+    place(x, lp(pop, 3500), 0.0, 0.0, human=False)
+    place(x, glock(midi(88), 0.5, 0.06), 0.02, 0.25, human=False)
+    return x
+
+
+def sfx_heavy_whomp():
+    """Golpe fuerte: un «bum» grave y redondo con un soplo de aire, como un cojín enorme
+    Heavy hit: a round low "boom" with a puff of air, like a huge cushion."""
+    x = np.zeros((int(SR * 0.7), 2))
+    place(x, thump(62, 0.45, 0.75, 7), 0.0, 0.0, human=False)
+    place(x, sweep_noise(0.25, 900, 250, 1.5, 0.25), 0.0, -0.2, human=False)
+    place(x, bar(midi(55), 0.4, 0.18, "wood", 0.3), 0.01, 0.2, human=False)
+    return lp(x, 5000)
+
+
+def sfx_vortex():
+    """El agujero se traga a alguien: un remolino de aire que baja en espiral (filtro que cae y gira
+    de un lado a otro) y un «glup» grave al final.
+    The hole swallows someone: a whirl of air spiralling down (a falling filter panning side to side)
+    and a low "gulp" at the end."""
+    d = 0.6
+    t = t_axis(d)
+    w = sweep_noise(d, 2600, 300, 3.0, 0.35) * np.sin(np.pi * t / d)
+    x = np.zeros((int(SR * 0.9), 2))
+    pan = np.sin(t * 2 * np.pi * 4.0)
+    x[:len(w), 0] += w * (0.6 - 0.4 * pan)
+    x[:len(w), 1] += w * (0.6 + 0.4 * pan)
+    place(x, thump(90, 0.25, 0.4, 5), 0.42, 0.0, human=False)
+    return x
+
+
+def sfx_level_up():
+    """Subida de nivel: arpa que sube en Re mayor con un brillo de campanas y un acorde suave debajo
+    Level up: a harp rising in D major with a bell shimmer and a soft chord underneath."""
+    x = np.zeros((int(SR * 2.4), 2))
+    for i, n in enumerate((62, 66, 69, 74, 78, 81, 86)):
+        place(x, pluck(midi(n), 1.6, 0.22, 0.45), i * 0.045, -0.6 + i * 0.2, human=False)
+    for i, n in enumerate((86, 90, 93)):
+        place(x, glock(midi(n), 1.4, 0.12), 0.32 + i * 0.06, 0.3 - i * 0.2, human=False)
+    place(x, saw_pad([midi(n) for n in (62, 66, 69)], 1.6, 0.06, 0.05, 1.0, 1400), 0.0, 0.0, human=False)
+    return x
+
+
+def sfx_streak():
+    """Hito de racha: tres campanas que suben en terceras y un barrido brillante, alegre y breve
+    Streak milestone: three bells rising in thirds and a bright sweep, cheerful and brief."""
+    x = np.zeros((int(SR * 1.8), 2))
+    for i, n in enumerate((79, 83, 86, 91)):
+        place(x, glock(midi(n), 1.2, 0.16), i * 0.06, -0.45 + i * 0.3, human=False)
+        place(x, bar(midi(n - 12), 0.8, 0.12, "kalimba", 0.3), i * 0.06, 0.45 - i * 0.3, human=False)
+    place(x, sweep_noise(0.35, 2000, 7000, 3.0, 0.08), 0.05, 0.0, human=False)
+    return x
+
+
+def sfx_streak_end():
+    """Se acaba una racha larga: dos notas de kalimba que bajan, bajito (nada de castigo)
+    A long streak ends: two kalimba notes falling, quietly (no punishment)."""
+    return lp(mix(bar(midi(76), 0.5, 0.18, "kalimba", 0.2), np.pad(bar(midi(71), 0.6, 0.15, "kalimba", 0.2), (int(SR * 0.1), 0))), 3000)
+
+
+def sfx_dream_clear():
+    """Fin del sueño: un barrido de aire que sube y un acorde de campanas que se abre
+    End of the dream: a rising air sweep and a bell chord opening up."""
+    x = np.zeros((int(SR * 3.0), 2))
+    place(x, sweep_noise(1.0, 400, 5000, 2.5, 0.18), 0.0, 0.0, human=False)
+    for i, n in enumerate((74, 78, 81, 86, 90)):
+        place(x, glock(midi(n), 2.0, 0.14), 0.55 + i * 0.05, -0.5 + i * 0.25, human=False)
+    place(x, saw_pad([midi(n) for n in (62, 69, 74, 78)], 2.2, 0.07, 0.3, 1.5, 1600), 0.5, 0.0, human=False)
+    return x
+
+
+SFX.update({"dream_pop": (sfx_dream_pop, 0.3, 0.05), "heavy_whomp": (sfx_heavy_whomp, 0.38, 0.1),
+            "vortex": (sfx_vortex, 0.3, 0.1), "level_up": (sfx_level_up, 0.38, 0.3), "streak": (sfx_streak, 0.34, 0.25),
+            "streak_end": (sfx_streak_end, 0.26, 0.1), "dream_clear": (sfx_dream_clear, 0.38, 0.4)})
+
 OVERRIDES = set(MUSIC) | set(SFX)

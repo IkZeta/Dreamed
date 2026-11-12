@@ -292,6 +292,10 @@ func _begin(depth: int) -> void:
 	hud.show_event(event)
 	hud.set_reality()
 	running = true
+	# Empieza el sueño: una onda suave sale de Kroker y unas estrellitas saltan a su alrededor
+	# The dream starts: a soft wave leaves Kroker and little stars hop around him
+	fx.shock(player.global_position + Vector2(0, -20), 30.0, Color("c9b8ff"), 0.6, 10.0)
+	fx.burst(player.global_position + Vector2(0, -50), Color("c9b8ff"), true)
 	trinkets.on_dream_start()
 	if room is LivingRoom and (room as LivingRoom).fire_lit:
 		hud.show_fire(true)
@@ -457,11 +461,14 @@ func _streak() -> void:
 	_combo_t = COMBO_GAP
 	Progress.best_stat("streak", _combo)
 	hud.set_combo(_combo, 1.0)
+	# Burbuja que estalla, un pelín más aguda cuanto más larga es la racha (hasta una quinta)
+	# A popping bubble, a touch higher the longer the streak (up to a fifth)
+	Audio.play("dream_pop", -17.0, 0.04, pow(2.0, (minf(_combo, 24.0) / 24.0 * 7.0) / 12.0))
 	if _combo in COMBO_MILESTONES:
 		var idx: int = COMBO_MILESTONES.find(_combo)
 		hud.combo_milestone(_combo, idx)
 		pulse(HudCombo.tier_color(_combo), 0.22 + idx * 0.05, 0.004 + idx * 0.001)
-		Audio.play("chime", -6.0, 0.0, pow(2.0, (idx * 2) / 12.0))
+		Audio.play("streak", -7.0, 0.0, pow(2.0, (idx * 2) / 12.0))
 		fx.burst(player.global_position + Vector2(0, -70), HudCombo.tier_color(_combo), true)
 
 
@@ -540,6 +547,8 @@ func _physics_process(delta: float) -> void:
 		hud.set_combo(_combo, _combo_t / COMBO_GAP)
 		if _combo_t <= 0.0:
 			hud.end_combo()
+			if _combo >= 10:
+				Audio.play("streak_end", -14.0)
 	_camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake * Settings.shake_amount
 	if not running:
 		player.push = Vector2.ZERO
@@ -1184,7 +1193,7 @@ func collect_shards(n: int) -> void:
 		# Las mejoras se eligen al acabar el sueño, para no cortar la pelea: aquí solo se avisa
 		# Upgrades are chosen when the dream ends, so the fight isn't cut: here it's only announced
 		fx.text(player.global_position + Vector2(0, -150), tr("LEVELUP_LATER") % GameState.plevel, UITheme.GOLD, 26)
-		Audio.play("chime", -10.0)
+		Audio.play("level_up", -8.0)
 		hud.set_xp()
 		if not running and _level_screen == null:
 			_resolve_level_ups(Callable())
@@ -1307,6 +1316,7 @@ func _on_wave_cleared() -> void:
 	fx.flash(player.global_position + Vector2(0, -40), 120.0, Color("f7f2ff", 0.8), 0.4)
 	pulse(Color("f7f2ff"), 0.35, 0.006)
 	punch(0.04)
+	Audio.play("dream_clear", -7.0)
 	for e: Node in enemies.get_children():
 		if e is Enemy and (e as Enemy).state == Enemy.State.ALIVE:
 			fx.burst((e as Enemy).aim_point(), FX.DEATH_COLORS.get(e.get("bestiary_id"), Color("dfe3f0")))

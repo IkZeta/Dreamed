@@ -240,7 +240,8 @@ func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
 	player.run.fx.shock(en.aim_point(), 22.0, spark_color(), 0.32, 9.0)
 	player.run.fx.flash(en.aim_point(), 40.0, Color(spark_color(), 0.9))
 	player.run.fx.text(en.global_position + Vector2(0, -en.aim_height * 2.0 - 30), tr("HEAVY_HIT"), UITheme.BONE, 22, true)
-	Audio.play("hit", -4.0, 0.05)
+	Audio.play("hit", -8.0, 0.05)
+	Audio.play("heavy_whomp", -7.0, 0.06)
 	player.run.shake(2.5)
 	player.run.punch(0.035)
 	# Sale disparado: frena despacio y puede caer aunque vaya lento al final; la masa cuenta menos
