@@ -306,6 +306,11 @@ func _process(delta: float) -> void:
 		if not run.running and absf(position.x - _last_pos.x) > 0.3:
 			_facing = signf(position.x - _last_pos.x)
 	_last_pos = position
+	# Quieto un rato en mitad de un sueño, le entra el sueño: bosteza / Standing still a while mid-dream, he gets sleepy: he yawns
+	var before_y := _idle_yawn()
+	_still = _still + delta if _moving < 0.05 and alive and run.running else 0.0
+	if before_y <= 0.0 and _idle_yawn() > 0.0:
+		Audio.play("yawn", -18.0, 0.1)
 	for d: Dictionary in _dust:
 		d["t"] = float(d["t"]) + delta / 0.45
 	_dust = _dust.filter(func(d: Dictionary) -> bool: return float(d["t"]) < 1.0)
@@ -313,6 +318,17 @@ func _process(delta: float) -> void:
 
 
 var _dust: Array = []
+var _still := 0.0
+const YAWN_AFTER := 4.0
+const YAWN_EVERY := 8.0
+const YAWN_TIME := 1.6
+
+
+func _idle_yawn() -> float:
+	if _still < YAWN_AFTER:
+		return 0.0
+	var ph := fmod(_still - YAWN_AFTER, YAWN_EVERY)
+	return sin(ph / YAWN_TIME * PI) if ph < YAWN_TIME else 0.0
 
 
 func _draw_dust() -> void:
@@ -637,7 +653,7 @@ func _draw() -> void:
 		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
-		"druid": _druid_color(), "hover": hover_px / sy,
+		"druid": _druid_color(), "hover": hover_px / sy, "yawn": _idle_yawn(),
 		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),
 		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
 		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})

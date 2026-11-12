@@ -74,6 +74,16 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	draw_set_transform(Vector2(offset.x, 0), 0.0, Vector2(s, s))
 	Sprites.draw(self, "nest_body", mod)
 	draw_set_transform(Vector2.ZERO)
+	# Unos mosquitos zumbando alrededor de las bocas del nido / A few mosquitoes buzzing around the nest's holes
+	if state == State.ALIVE and not statue:
+		for i in 3:
+			var ph := _t * (2.2 + i * 0.7) + _phase + i * 2.1
+			var p := offset + Vector2(cos(ph) * (26.0 + i * 6.0), -30.0 + sin(ph * 1.7) * 9.0 - i * 6.0)
+			p += Vector2(randf_range(-1, 1), randf_range(-1, 1))
+			var wing := Color(0.87, 0.9, 1.0, 0.5 * a)
+			draw_line(p + Vector2(-2, -2), p + Vector2(-4, -5 + absf(sin(_t * 40.0 + i)) * 3.0), wing, 1.5)
+			draw_line(p + Vector2(1, -2), p + Vector2(3, -5 + absf(cos(_t * 40.0 + i)) * 3.0), wing, 1.5)
+			draw_rect(Rect2(p - Vector2(2, 1), Vector2(4, 3)), Color(0.12, 0.09, 0.2, a))
 
 
 func head_top() -> Vector2:
