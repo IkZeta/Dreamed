@@ -16,15 +16,15 @@ extends Weapon
 ##  Doc    — vida máxima a cambio de +"pct" % de recarga.
 
 const RANGE := 240.0
-const DAMAGE := 9.0
+const DAMAGE := 8.0
 const KNOCKBACK := 130.0
-const COOLDOWN := 0.65
+const COOLDOWN := 0.75
 const YANK_EVERY := 3
 ## Hasta dónde busca un agujero detrás de Kroker / How far behind Kroker it looks for a hole
 const YANK_HOLE := 340.0
 const SPEED := 1100.0
 const BOUNCE_RANGE := 200.0
-const GRAZE := 0.6
+const GRAZE := 0.35
 const PINK := Color("e85d75")
 
 var _shot: Node2D
