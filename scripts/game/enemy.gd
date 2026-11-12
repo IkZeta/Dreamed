@@ -113,6 +113,7 @@ var _fall_to := Vector2.ZERO
 var _t := 0.0
 var _phase := 0.0
 var _flash := 0.0
+var _hit_squash := 0.0
 var _fade := 0.0
 var _facing := 1.0
 
@@ -260,7 +261,10 @@ func _animate_motion(delta: float) -> void:
 	skew = lerpf(skew, lean, minf(1.0, delta * 10.0))
 	_turn_t = maxf(0.0, _turn_t - delta * 6.0)
 	var bounce := absf(sin(_step_ph)) * 0.045 * k
-	scale = Vector2((1.0 + bounce * 0.6) * (1.0 - 0.3 * sin(_turn_t * PI)), 1.0 - bounce)
+	# Al recibir un golpe se aplasta y rebota (un muelle que se apaga) / When hit it squashes and springs back (a dying spring)
+	_hit_squash = maxf(0.0, _hit_squash - delta * 4.0)
+	var sq := _hit_squash * _hit_squash * cos((1.0 - _hit_squash) * 9.0)
+	scale = Vector2((1.0 + bounce * 0.6 + 0.16 * sq) * (1.0 - 0.3 * sin(_turn_t * PI)), 1.0 - bounce - 0.14 * sq)
 
 
 ## Velocidad que quiere llevar (por defecto, ir a por Kroker) / Desired velocity (by default, chase Kroker)
@@ -703,6 +707,7 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	hp -= amount
 	knock += impulse / mass
 	_flash = 1.0
+	_hit_squash = 1.0
 	Audio.play("hit", -13.0, 0.1)
 	if Settings.damage_numbers:
 		run.fx.text(global_position + Vector2(0, -aim_height - 34), str(roundi(amount)), GLITCH_A if vuln_t > 0.0 else UITheme.BONE)

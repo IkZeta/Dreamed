@@ -36,7 +36,8 @@ func _physics_process(delta: float) -> void:
 		_vz -= GRAVITY * delta
 		_hop = maxf(0.0, _hop + _vz * delta)
 		if _hop <= 0.0:
-			_vz = 0.0
+			# Rebota un par de veces antes de quedarse quieto / Bounces a couple of times before settling
+			_vz = -_vz * 0.4 if _vz < -120.0 else 0.0
 	var player: Node2D = run.player
 	var target: Vector2 = player.global_position + Vector2(0, -38)
 	var dist := global_position.distance_to(target)
