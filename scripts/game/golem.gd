@@ -49,8 +49,17 @@ func _desired_velocity() -> Vector2:
 	return to_player.normalized() * speed * step
 
 
+var _foot := 0.0
+
+
 func _act(delta: float) -> void:
 	var k := 0.5 if slow_t > 0.0 else 1.0
+	# Pisotón sordo cada vez que apoya el pie (si se le ve) / A dull stomp each time it plants a foot (if on screen)
+	var s := sin(_t * 1.6 + _phase)
+	if signf(s) != signf(_foot) and _windup <= 0.0 and stun_t <= 0.0 \
+			and global_position.distance_squared_to(run.player.global_position) < 900.0 * 900.0:
+		Audio.play("step_heavy", -15.0, 0.1, 0.8)
+	_foot = s
 	_swing = maxf(0.0, _swing - delta * 2.0)
 	var to_player: Vector2 = run.player.global_position - global_position
 	if _windup <= 0.0 and absf(to_player.x) > 6.0:
