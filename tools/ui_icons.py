@@ -349,3 +349,80 @@ def kroker_hires(ms):
             post = ms.face_painter(*sp["face"], k=2) if "face" in sp else sp["post"]
             ms.add("hk_" + name, sp["x"], sp["y"], sp["w"], sp["h"], sp["body"], xf=sp["xf"], px=sp["px"] * 2.0,
                    colors=sp["colors"], ghost=sp["ghost"], post=post, flat=sp["flat"], outline=sp["outline"])
+
+
+def menu_icons(ms):
+    """Iconos del menú principal (32 x 32, centrados en 0,0): seguir soñando, empezar, logros,
+    ajustes, créditos y salir. Los dibuja grandes (px 1.5) para que se lean junto al texto.
+    Main menu icons (32 x 32, centred on 0,0): keep dreaming, start, achievements, settings,
+    credits and quit. Drawn large (px 1.5) so they read next to the text."""
+    mix, light, dark, ellipse_d, star_d = ms.mix, ms.light, ms.dark, ms.ellipse_d, ms.star_d
+
+    def hs(d, base, sh=0.4, rim=0.5):
+        i = ms.uid()
+        return ("<defs><clipPath id='c%s'><path d='%s'/></clipPath></defs><path d='%s' fill='%s'/>"
+                "<g clip-path='url(#c%s)'><path d='%s%s' transform='translate(-2,-2)' fill-rule='evenodd' fill='%s'/>"
+                "<path d='%s%s' transform='translate(1.4,1.4)' fill-rule='evenodd' fill='%s'/></g>") % (
+            i, d, d, base, i, ms.BIG, d, mix(base, dark(base, 0.6), sh), ms.BIG, d, mix(base, "#fbf8ff", rim * 0.6))
+
+    def F(d, c):
+        return "<path d='%s' fill='%s'/>" % (d, c)
+
+    def P(pts):
+        return "M" + " L".join("%g,%g" % p for p in pts) + " Z"
+
+    def R(x, y, w, h):
+        return P([(x, y), (x + w, y), (x + w, y + h), (x, y + h)])
+
+    GOLD, GOLD_D, WHITE = "#f6d993", "#b8862a", "#fbf8ff"
+    LILAC, BLUE, BLUE_D, ROSE = "#b9a8ff", "#7fb8ff", "#3f6ac8", "#e8a6d8"
+    WOOD, WOOD_D = "#a8754e", "#6e4a34"
+    ic = {}
+
+    # Empezar: luna creciente con un gorro de dormir / Start: a crescent moon wearing a nightcap
+    moon = "M4,-13 A14,14 0 1 0 12,10 A11,11 0 1 1 4,-13 Z"
+    b = hs(moon, GOLD)
+    b += hs("M-2,-8 L8,-15 Q13,-16 13,-11 L4,-4 Z", BLUE, rim=0.3)
+    b += F(ellipse_d(13.5, -12.5, 2.6, 2.6), WHITE)
+    b += F(star_d(9, 5, 3.5, 0.45), WHITE)
+    ic["play"] = b
+
+    # Seguir soñando: almohada con una zeta / Keep dreaming: a pillow with a "z"
+    b = hs("M-14,-6 Q-14,-11 -9,-10 Q0,-12 9,-10 Q14,-11 14,-6 L14,6 Q14,11 9,10 Q0,12 -9,10 Q-14,11 -14,6 Z", WHITE, sh=0.35)
+    b += F("M-9,-1 Q0,-3 9,-1 L9,1 Q0,-1 -9,1 Z", "#d8d4f0")
+    b += F(P([(2, -16), (10, -16), (10, -14), (5, -10), (10, -10), (10, -8), (2, -8), (2, -10), (7, -14), (2, -14)]), GOLD)
+    ic["continue"] = b
+
+    # Logros: copa con una estrella / Achievements: a cup with a star
+    b = hs("M-10,-13 L10,-13 L10,-4 Q10,4 2,6 L2,9 L7,11 L7,14 L-7,14 L-7,11 L-2,9 L-2,6 Q-10,4 -10,-4 Z", GOLD)
+    b += F("M-10,-10 Q-16,-10 -15,-4 Q-14,1 -9,1 L-9,-1 Q-12,-1 -12,-4 Q-12,-8 -10,-8 Z", GOLD_D)
+    b += F("M10,-10 Q16,-10 15,-4 Q14,1 9,1 L9,-1 Q12,-1 12,-4 Q12,-8 10,-8 Z", GOLD_D)
+    b += F(star_d(0, -5, 5, 0.45), WHITE)
+    ic["trophy"] = b
+
+    # Ajustes: el despertador de la mesilla / Settings: the bedside alarm clock
+    b = hs(ellipse_d(-9, -11, 5, 5), GOLD) + hs(ellipse_d(9, -11, 5, 5), GOLD)
+    b += F(P([(-11, 10), (-7, 10), (-10, 15), (-13, 15)]), WOOD_D) + F(P([(7, 10), (11, 10), (13, 15), (10, 15)]), WOOD_D)
+    b += hs(ellipse_d(0, 1, 13, 13), ROSE)
+    b += F(ellipse_d(0, 1, 9.5, 9.5), WHITE)
+    b += F(P([(-1, 1), (1, 1), (1, -6), (-1, -6)]), "#2a2440") + F(P([(-1, 0), (6, 3), (5, 5), (-1, 2)]), "#2a2440")
+    b += F(ellipse_d(0, 1, 1.6, 1.6), ROSE)
+    ic["gear"] = b
+
+    # Créditos: una claqueta de cine / Credits: a film clapperboard
+    b = hs(R(-13, -3, 26, 16), "#2a2440", sh=0.2, rim=0.3)
+    b += F(R(-10, 2, 20, 2), WHITE) + F(R(-10, 7, 14, 2), WHITE)
+    b += "<g transform='rotate(-14,-13,-4)'>%s%s</g>" % (hs(R(-13, -10, 26, 6), WHITE, rim=0.2),
+        "".join(F(P([(x, -10), (x + 4, -10), (x + 1, -4), (x - 3, -4)]), "#2a2440") for x in (-9, -1, 7)))
+    ic["film"] = b
+
+    # Salir: la puerta del cuarto, entreabierta con luz del pasillo / Quit: the bedroom door, ajar with hallway light
+    b = hs(R(-11, -15, 22, 30), WOOD_D, sh=0.2, rim=0.1)
+    b += F(R(-8, -12, 16, 27), "#ffe9a8")
+    b += hs(P([(-8, -12), (4, -9), (4, 12), (-8, 15)]), WOOD)
+    b += F(R(-5, -7, 6, 6), WOOD_D) + F(R(-5, 3, 6, 6), WOOD_D)
+    b += F(ellipse_d(1.5, 2, 1.6, 1.6), GOLD)
+    ic["door"] = b
+
+    for k, body in ic.items():
+        ms.add("menu_" + k, -16, -16, 32, 32, body, px=1.5, flat=True, outline=OUTLINE)

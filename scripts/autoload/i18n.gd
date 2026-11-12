@@ -22,6 +22,7 @@ const STRINGS := {
 	"MENU_ACT_2": {"es": "Acto 2 · El salón", "en": "Act 2 · The living room"},
 	"MENU_ACT_3": {"es": "Acto 3 · El colegio", "en": "Act 3 · The school"},
 	"MENU_ACT_4": {"es": "Acto 4 · La metrópolis", "en": "Act 4 · The metropolis"},
+	"MENU_ACT_5": {"es": "Sueño 20 · El último sueño", "en": "Dream 20 · The last dream"},
 	"MENU_STAT_DEPTH": {"es": "Sueño más hondo", "en": "Deepest dream"},
 	"MENU_STAT_FRIENDS": {"es": "Amigos", "en": "Friends"},
 	"MENU_STAT_KILLS": {"es": "Pesadillas vencidas", "en": "Nightmares beaten"},

@@ -96,9 +96,10 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	# Sombra suave en el suelo / Soft ground shadow
 	# (si levita, la sombra se queda en el suelo y se encoge) / (if hovering, the shadow stays on the floor and shrinks)
 	var hover: float = opts.get("hover", 0.0)
-	_use(Transform2D(0.0, Vector2(1.0, 0.2) * (1.0 - minf(0.35, hover * 0.012)), 0.0, Vector2(100, 288 + hover)))
-	ci.draw_circle(Vector2.ZERO, 44, Color(0.05, 0.03, 0.18, 0.35 * (1.0 - minf(0.4, hover * 0.015))))
-	_use(Transform2D.IDENTITY)
+	if opts.get("shadow", true):
+		_use(Transform2D(0.0, Vector2(1.0, 0.2) * (1.0 - minf(0.35, hover * 0.012)), 0.0, Vector2(100, 288 + hover)))
+		ci.draw_circle(Vector2.ZERO, 44, Color(0.05, 0.03, 0.18, 0.35 * (1.0 - minf(0.4, hover * 0.015))))
+		_use(Transform2D.IDENTITY)
 
 	# Segunda arma (desde El Chef): va en la mano libre / Second weapon (after The Chef): goes in the free hand
 	var second: String = opts.get("second", "")
@@ -202,7 +203,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	# La cabeza rebota con un poco de retraso al andar / The head bounces with a slight lag when walking
 	var nod := sin(walk * 2.0 - 0.9) * 1.6 * moving
 	_use(Transform2D(-0.12 * stretch - 0.04 * moving * sin(walk * 2.0 - 0.6), Vector2(100, 170 + nod)) * Transform2D(0.0, Vector2(-100, -170)))
-	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod)
+	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod, opts.get("asleep", false))
 	if opts.get("shades", false):
 		_shades(t)
 	if opts.get("fedora", false):
@@ -351,10 +352,13 @@ static func _limb(rot: float, pivot: Vector2, lift := 0.0) -> void:
 
 # --- Cabeza / Head -----------------------------------------------------------
 
-static func _head(t: float, glasses: bool, yawn: float, mod: Color) -> void:
+static func _head(t: float, glasses: bool, yawn: float, mod: Color, asleep := false) -> void:
 	# La cara va pintada en el sprite: ojos, boca y gafas / The face is painted on the sprite: eyes, mouth and glasses
+	# Dormido: ojos cerrados (y de vez en cuando un bostezo) / Asleep: eyes closed (and a yawn now and then)
 	var face := ""
-	if yawn > 0.3:
+	if asleep:
+		face = "_yawn" if fposmod(t, 9.0) < 1.2 else "_blink"
+	elif yawn > 0.3:
 		face = "_yawn"
 	elif fposmod(t, 3.7) < 0.13 or yawn > 0.5:
 		face = "_blink"   # parpadea de vez en cuando / blinks now and then

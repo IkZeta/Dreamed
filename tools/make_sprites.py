@@ -3757,6 +3757,7 @@ def build():
     ui_icons.fx(sys.modules[__name__])
     ui_icons.weapon_icons(sys.modules[__name__])
     ui_icons.kroker_hires(sys.modules[__name__])
+    ui_icons.menu_icons(sys.modules[__name__])
 
 
 def pixelize(img, tw, th, colors, ghost):
