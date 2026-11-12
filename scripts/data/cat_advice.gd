@@ -12,7 +12,7 @@ extends RefCounted
 ## En orden de tutorial / In tutorial order
 const ORDER: Array[String] = ["intro", "fountain", "move", "holes", "heavy", "level", "gifts", "keywords",
 	"museum", "album", "training", "kiosk", "friends", "wardrobe", "elites", "events", "boss", "parry",
-	"luck", "second", "nightmare", "fever", "duos", "death"]
+	"luck", "second", "nightmare", "fever", "duos", "magnus", "druid", "death"]
 
 
 static func _ok(id: String) -> bool:
@@ -25,6 +25,8 @@ static func _ok(id: String) -> bool:
 		"fever": return GameState.pacts_unlocked()
 		"duos": return GameState.GIVERS.any(func(g: String) -> bool: return Progress.friend_level(g) >= 2)
 		"death": return int(Progress.stats.get("dreams", 0)) > 0
+		"magnus": return Progress.met("magnus")
+		"druid": return GameState.weapon_unlocked("druid")
 	return true
 
 
