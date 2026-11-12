@@ -351,3 +351,10 @@ func _ensure_buses() -> void:
 			var idx := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(idx, bus)
 			AudioServer.set_bus_send(idx, "Master")
+	# Filtro de la música para apagarla («bajo el agua») en pausa y en las pantallas de elegir
+	# Music filter to muffle it ("underwater") while paused and on choice screens
+	var mi := AudioServer.get_bus_index("Music")
+	if mi != -1 and AudioServer.get_bus_effect_count(mi) == 0:
+		var lp := AudioEffectLowPassFilter.new()
+		lp.cutoff_hz = 20000.0
+		AudioServer.add_bus_effect(mi, lp)

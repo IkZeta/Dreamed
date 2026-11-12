@@ -1022,6 +1022,7 @@ func _resolve_level_ups(then: Callable) -> void:
 			then.call()
 		return
 	get_tree().paused = true
+	Audio.muffle(true)
 	_level_screen = LevelUpScreen.new()
 	add_child(_level_screen)
 	_level_screen.build(GameState.roll_level_choices(), GameState.plevel - GameState.pending_ups + 1)
@@ -1036,6 +1037,7 @@ func _resolve_level_ups(then: Callable) -> void:
 			_resolve_level_ups.call_deferred(then)
 		else:
 			get_tree().paused = false
+			Audio.muffle(false)
 			if then.is_valid():
 				then.call())
 
@@ -1267,7 +1269,8 @@ func _show_end(title: String, subtitle: String, buttons: Array, lines: Array = [
 func _open_pause() -> void:
 	get_tree().paused = true
 	Audio.stop_loops()
-	Audio.fade_music(-16.0, 0.4)
+	Audio.fade_music(-12.0, 0.4)
+	Audio.muffle(true)
 	_overlay = DreamOverlay.new()
 	add_child(_overlay)
 	_overlay.on_cancel = _resume
@@ -1285,6 +1288,7 @@ func _resume() -> void:
 		_overlay = null
 	get_tree().paused = false
 	Audio.fade_music(-6.0, 0.4)
+	Audio.muffle(false)
 
 
 func _open_settings() -> void:
@@ -1294,6 +1298,7 @@ func _open_settings() -> void:
 
 
 func _restart() -> void:
+	Audio.muffle(false)
 	if GameState.daily != "":
 		GameState.start_daily()
 	else:
@@ -1304,6 +1309,7 @@ func _restart() -> void:
 ## Al acabar (o abandonar) un sueño se vuelve al plano astral / After (or leaving) a dream you go back to the astral plane
 func _to_menu() -> void:
 	get_tree().paused = false
+	Audio.muffle(false)
 	GameState.hub_spawn = "training" if GameState.training else "fountain"
 	GameState.training = false
 	GameState.change_scene(HUB)

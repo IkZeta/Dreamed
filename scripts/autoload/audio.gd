@@ -105,6 +105,7 @@ var _fade_tw: Tween
 
 
 func play_music(song: String, fade := 1.5, volume_db := -6.0) -> void:
+	muffle(false, 0.6)
 	if song == _music_name:
 		# La misma canción: solo vuelve a su volumen si se había bajado / Same song: just back to its volume if it was lowered
 		if _music[_music_idx].volume_db < volume_db - 0.5:
@@ -172,6 +173,24 @@ func fade_music(volume_db: float, time := 1.0) -> void:
 
 ## La música y la aspiradora ya vienen marcadas como bucle en su .import.
 ## The music and the vacuum are already marked as loops in their .import files.
+var _muffle_tw: Tween
+
+
+## Apaga la música como si sonara en otra habitación (o la devuelve) / Muffles the music as if playing in another room (or brings it back)
+func muffle(on: bool, time := 0.35) -> void:
+	var mi := AudioServer.get_bus_index("Music")
+	if mi == -1 or AudioServer.get_bus_effect_count(mi) == 0:
+		return
+	var lp := AudioServer.get_bus_effect(mi, 0) as AudioEffectLowPassFilter
+	if lp == null:
+		return
+	if _muffle_tw:
+		_muffle_tw.kill()
+	_muffle_tw = create_tween()
+	_muffle_tw.tween_method(func(hz: float) -> void: lp.cutoff_hz = hz, lp.cutoff_hz, 700.0 if on else 20000.0, time) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT if on else Tween.EASE_IN)
+
+
 func _looped(sound: String) -> AudioStream:
 	return _stream(sound)
 
