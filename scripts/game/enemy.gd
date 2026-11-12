@@ -211,6 +211,15 @@ func _physics_process(delta: float) -> void:
 			_fade -= delta / 0.35
 			if _fade <= 0.0:
 				queue_free()
+				return
+			# Se deshace hacia arriba como humo y sigue el impulso del último golpe
+			# Melts upwards like smoke and carries the last hit's momentum
+			if not is_boss() and not statue:
+				var g := 1.0 - _fade
+				scale = Vector2(1.0 - 0.45 * g, 1.0 + 0.6 * g * g)
+				if knock != Vector2.ZERO:
+					position = run.clamp_to_arena(position + knock * delta * 0.6, radius)
+					knock = knock.move_toward(Vector2.ZERO, 2200.0 * delta)
 			return
 		State.ALIVE:
 			_move(delta)
