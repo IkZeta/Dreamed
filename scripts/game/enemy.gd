@@ -114,6 +114,11 @@ var _t := 0.0
 var _phase := 0.0
 var _flash := 0.0
 var _hit_squash := 0.0
+## Luna: flotando sin gravedad (no muerde ni ataca); al acabar cae donde esté, también a un agujero
+## Luna: floating weightless (it neither bites nor attacks); when it ends it drops where it is, also into a hole
+var float_t := 0.0
+var _float_total := 1.0
+const FLOAT_KNOCK := 1.6
 var _fade := 0.0
 var _facing := 1.0
 
@@ -182,6 +187,15 @@ func _physics_process(delta: float) -> void:
 			stun_t = maxf(stun_t, 0.8)
 			run.fx.text(global_position + Vector2(0, -aim_height * 3.0 - 20.0), tr("LYNX_CUT"), Color("ffb0b0"), 18)
 	slow_t = maxf(0.0, slow_t - delta)
+	if float_t > 0.0 and state == State.ALIVE:
+		float_t -= delta
+		stun_t = maxf(stun_t, minf(float_t, 0.1))
+		rotation = sin(_t * 3.0 + _phase) * 0.3 * minf(1.0, float_t * 3.0)
+		if float_t <= 0.0:
+			rotation = 0.0
+			_land_float()
+			if state != State.ALIVE:
+				return
 	if state == State.ALIVE:
 		rush_t = maxf(0.0, rush_t - delta)
 	vuln_t = maxf(0.0, vuln_t - delta)
@@ -480,6 +494,26 @@ func _touch_player() -> void:
 		player.take_damage(contact_damage * atk_mult(), self)
 
 
+## Luna lo deja flotando "secs" segundos / Luna leaves it floating for "secs" seconds
+func float_up(secs: float) -> void:
+	if is_boss() or not can_fall() or state != State.ALIVE:
+		return
+	if float_t <= 0.0:
+		run.fx.ring(global_position, radius + 10.0, Color("c9d4ff"), 0.4, 2.0)
+	float_t = maxf(float_t, secs)
+	_float_total = float_t
+
+
+## Vuelve al suelo: si debajo hay un agujero, se cae / Back to the floor: if there's a hole below, it falls in
+func _land_float() -> void:
+	var to: Vector2 = run.hole_at(position, radius, Vector2.ZERO)
+	if to != Vector2.INF:
+		_start_fall(to)
+		run.fx.text(global_position + Vector2(0, -aim_height * 2.0 - 40), tr("LUNA_DROP"), Color("c9d4ff"), 20)
+	else:
+		run.fx.ring(global_position, radius + 6.0, Color(1, 1, 1, 0.5), 0.25, 1.5)
+
+
 ## Lo que la quemadura le deja de daño (1 = todo) / What burning leaves of its damage (1 = all of it)
 func atk_mult() -> float:
 	return 1.0 - burn_pct / 100.0 if burn_t > 0.0 else 1.0
@@ -731,6 +765,9 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 		impulse *= Riot.SHIELD_PASS
 		run.fx.ring(aim_point(), 22.0, Color("8fd8ff"), 0.25, 1.8)
 	hp -= amount
+	# Flotando (Luna): sin peso, sale despedido más lejos / Floating (Luna): weightless, it flies further
+	if float_t > 0.0:
+		impulse *= FLOAT_KNOCK
 	knock += impulse / mass
 	_flash = 1.0
 	_hit_squash = 1.0
@@ -798,6 +835,16 @@ func _death_sound() -> void:
 func _draw() -> void:
 	var a := _fade
 	var bob := sin(_t * 2.6 + _phase) * 3.0
+	# Flotando: sube un palmo, sombra pequeña y burbuja de ingravidez / Floating: rises a hand's breadth, small shadow and a zero-g bubble
+	if float_t > 0.0 and state == State.ALIVE:
+		var up := minf(1.0, (_float_total - float_t) * 5.0) * minf(1.0, float_t * 4.0)
+		bob -= 34.0 * up
+		draw_set_transform(Vector2.ZERO, -rotation, Vector2(1.0, 0.35))
+		draw_circle(Vector2.ZERO, radius * (1.0 - 0.4 * up), Color(0.05, 0.02, 0.15, 0.25 * a))
+		draw_set_transform(Vector2.ZERO)
+		for i in 4:
+			var ang := _t * 2.0 + i * TAU / 4.0
+			draw_circle(Vector2(cos(ang) * (radius + 10.0), bob - aim_height + sin(ang) * 8.0), 2.0, Color(0.79, 0.83, 1.0, 0.8 * a))
 	# Remolino de bruma a sus pies mientras aparece / A swirl of mist at its feet while it appears
 	if state == State.SPAWNING and sprouts() and not preview:
 		var k := 1.0 - _fade

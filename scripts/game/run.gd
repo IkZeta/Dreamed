@@ -230,6 +230,9 @@ func _ready() -> void:
 	helpers = Helpers.new()
 	add_child(helpers)
 	helpers.setup(self)
+	var luna := LunaPowers.new()
+	add_child(luna)
+	luna.setup(self)
 	if not GameState.training:
 		GameState.check_combos.call_deferred()
 

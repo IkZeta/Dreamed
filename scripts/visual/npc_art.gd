@@ -30,6 +30,7 @@ static func draw(ci: CanvasItem, xf: Transform2D, who: String, t: float, opts :=
 		"superk": _superk(t, opts)
 		"lilkey": _lilkey(t, opts)
 		"lynx": _lynx(t, opts)
+		"luna": _luna(t, opts)
 		"cat": _cat(t, opts)
 	_ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
@@ -345,6 +346,40 @@ static func _lilkey(t: float, opts := {}) -> void:
 		_ci.draw_circle(p, 4.0, col)
 		_ci.draw_line(p + Vector2(3.5, 0), p + Vector2(3.5, -13), col, 2.0)
 		_ci.draw_line(p + Vector2(3.5, -13), p + Vector2(9, -10), col, 2.0)
+
+
+## Luna, la astronauta: con la gravedad baja flota un palmo y se mece despacio; el casco de pecera
+## (cristal con brillo), la antena con su lucecita y unas chispas de la mochila cohete de vez en cuando
+## Luna, the astronaut: with low gravity she floats a hand's breadth and sways slowly; the fishbowl
+## helmet (glass with a glint), the antenna with its little light and the odd spark from the rocket pack
+static func _luna(t: float, opts := {}) -> void:
+	var lift := 6.0 + sin(t * 1.3) * 5.0
+	var sway := sin(t * 0.9) * 0.05
+	# Sombra en el suelo, más pequeña cuanto más sube / Shadow on the floor, smaller the higher she goes
+	var sh := PackedVector2Array()
+	for i in 16:
+		var ang := TAU * i / 16.0
+		sh.append(Vector2(100 + cos(ang) * (26.0 - lift), 288 + sin(ang) * 5.0))
+	_ci.draw_colored_polygon(sh, Color(0, 0, 0, 0.18))
+	var body := _xf * Transform2D(sway, Vector2(100, 288 - lift)) * Transform2D(0.0, Vector2(-100, -288))
+	_ci.draw_set_transform_matrix(body)
+	# Chispas de la mochila cohete / Sparks from the rocket pack
+	for i in 4:
+		var ph := fposmod(t * 1.6 + i * 0.25, 1.0)
+		for x in [73.0, 127.0]:
+			_ci.draw_circle(Vector2(x + sin(ph * 9.0 + i) * 3.0, 242 + ph * 26.0), 2.5 * (1.0 - ph), Color(1.0, 0.75 - 0.4 * ph, 0.3, 0.8 * (1.0 - ph)))
+	Sprites.draw(_ci, "npc_luna")
+	# Antena con su lucecita / Antenna with its little light
+	var top := Vector2(100, 96)
+	_ci.draw_line(top, top + Vector2(10, -20), Color("8c90a8"), 2.0)
+	var blink := 0.4 + 0.6 * float(fmod(t, 1.4) < 0.7)
+	_ci.draw_circle(top + Vector2(10, -22), 4.0, Color("ff6a6a", blink))
+	# Casco de pecera / Fishbowl helmet
+	_ci.draw_circle(Vector2(100, 128), 33.0, Color(0.75, 0.9, 1.0, 0.16))
+	_ci.draw_arc(Vector2(100, 128), 33.0, 0.0, TAU, 40, Color(0.85, 0.95, 1.0, 0.7), 2.0)
+	_ci.draw_arc(Vector2(100, 128), 26.0, -2.6, -1.6, 10, Color(1, 1, 1, 0.75), 3.0)
+	_ci.draw_circle(Vector2(84, 108), 3.0, Color(1, 1, 1, 0.8))
+	_ci.draw_set_transform_matrix(_xf)
 
 
 ## D. Lynx con su café (el humo sube despacio, haciendo eses) y el megáfono, que levanta para

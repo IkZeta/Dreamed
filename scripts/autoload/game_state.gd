@@ -42,7 +42,7 @@ const RANGED: Array[String] = ["book", "vacuum", "finger", "ball", "laptop", "yo
 
 ## Personajes del plano astral y el tipo de mejora que da cada uno.
 ## Astral plane characters and the kind of upgrade each one gives.
-const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey", "lynx"]
+const GIVERS: Array[String] = ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey", "lynx", "luna"]
 const HELPER_POWER := UpgradeData.HELPER_POWER
 
 
@@ -930,6 +930,7 @@ func giver_unlocked(g: String) -> bool:
 		"superk": return Progress.has_achieved("superk")
 		"lilkey": return Progress.has_achieved("lilkey")
 		"lynx": return Progress.has_achieved("lynx")
+		"luna": return Progress.has_achieved("luna")
 	return true
 
 
@@ -957,6 +958,15 @@ func lynx_cut() -> float:
 		if helper_power("lynx", w) == "cut":
 			total += up_value("lynx", "pct", -1, w)
 	return clampf(total / 100.0, 0.0, 0.5)
+
+
+## Luna: niveles de su mejora sumando las dos armas (la gravedad baja también afecta a Kroker)
+## Luna: her upgrade levels across both weapons (the low gravity affects Kroker too)
+func luna_levels() -> int:
+	var n := 0
+	for w in weapons():
+		n += level("luna", w)
+	return n
 
 
 ## La "toma 2" de D. Lynx, si queda: {"hp", "inv"} o vacío / D. Lynx's "take 2", if there's one left: {"hp", "inv"} or empty

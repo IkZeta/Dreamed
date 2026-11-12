@@ -272,6 +272,11 @@ func _physics_process(delta: float) -> void:
 		var spd := speed * form_speed * (0.6 if slow_t > 0.0 else 1.0)
 		# Suelo helado: cuesta arrancar y frenar / Icy floor: hard to get going and to stop
 		var grip := 2.2 if run.event == "ice" else 14.0
+		# Luna: gravedad baja; algo más rápido, pero cuesta más frenar y girar / Luna: low gravity; a bit faster, but harder to stop and turn
+		var luna := GameState.luna_levels()
+		if luna > 0:
+			spd *= 1.0 + 0.03 * luna
+			grip = minf(grip, 14.0 - 1.4 * luna)
 		_vel = _vel.lerp(input * spd + push, minf(1.0, delta * grip))
 		if _dash_t > 0.0:
 			_dash_t -= delta

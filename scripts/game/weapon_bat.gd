@@ -29,6 +29,12 @@ func attack() -> bool:
 	if lv("svinho") > 0:
 		knock = 380.0 + 60.0 * lv("svinho")
 		target.start_bounce(damage * player.damage_mult * uv("svinho", "pct") / 100.0, int(uv("svinho", "chain")) - 1)
+	# Dúo Svinho y Luna: lo que flota sale disparado como un balón y rebota en cadena
+	# Svinho & Luna duo: whatever is floating shoots off like a ball and bounces in a chain
+	if GameState.has_duo("svinho_luna") and primary and target is Enemy and (target as Enemy).float_t > 0.0:
+		knock = maxf(knock, 700.0)
+		target.start_bounce(damage * player.damage_mult * GameState.duo_value("svinho_luna", "pct") / 100.0, int(GameState.duo_value("svinho_luna", "chain")))
+		run.fx.text(target.global_position + Vector2(0, -110), tr("DUO_SVINHO_LUNA_SHOUT"), Color("c9d4ff"), 22)
 	deal(target, damage, dir * knock)
 	# ...y cada enemigo que tumba el bate cura / ...and every enemy the bat knocks out heals
 	if GameState.has_duo("stolk_doc") and target.state == Enemy.State.DYING:

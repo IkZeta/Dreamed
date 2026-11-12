@@ -21,7 +21,7 @@ const ALWAYS: Array[String] = ["nexus", "wardrobe", "museum", "training"]
 const RING: Array[String] = ["wardrobe", "magnus", "doc", "ad", "pinche", "museum", "silly", "stolk", "svinho", "charo"]
 ## Islas lejanas: de dónde sale su puente (la primera que esté; Lil Key, de todas)
 ## Far islands: where their bridge comes from (the first one present; Lil Key, from all of them)
-const FAR := {"training": ["wardrobe"], "superk": ["magnus", "wardrobe"], "lilkey": ["svinho", "stolk"], "lynx": ["doc", "ad"]}
+const FAR := {"training": ["wardrobe"], "superk": ["magnus", "wardrobe"], "lilkey": ["svinho", "stolk"], "lynx": ["doc", "ad"], "luna": ["superk", "training", "wardrobe"]}
 
 var frozen := false
 var _pos := SPAWN
@@ -251,6 +251,7 @@ func _build() -> void:
 			"superk": _build_superk()
 			"lilkey": _build_lilkey()
 			"lynx": _build_lynx()
+			"luna": _build_luna()
 	_plan_visits()
 
 ## Puente de piedras flotantes de una isla a otra / Bridge of floating stones from one island to another
@@ -1037,6 +1038,90 @@ func _build_lynx() -> void:
 			var to := Vector2(10 + sin(_t * 0.4) * 6.0, 34)
 			var side: Vector2 = (to - src).orthogonal().normalized() * 18.0
 			ci.draw_colored_polygon(PackedVector2Array([src, to + side, to - side]), Color(1.0, 0.95, 0.8, 0.08)))
+
+## La luna de Luna: un cohete de cartón con su ventanita, una bandera con la luna cosida, una antena
+## que pita con la lucecita y un tirachinas de cráter (los cráteres del suelo son agujeros de práctica)
+## Luna's moon: a cardboard rocket with its little window, a flag with a sewn-on moon, a beeping
+## antenna with its light, and the craters on the floor (practice holes)
+func _build_luna() -> void:
+	var c := _isle_pos("luna")
+	# Cohete de cartón / Cardboard rocket
+	var rk := c + Vector2(-96, -10)
+	_blocks.append({"c": rk, "r": Vector2(16, 6)})
+	_prop(rk, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(20, 4))
+		var shake := Vector2(sin(_t * 30.0) * 0.6, 0) if fmod(_t, 7.0) > 6.2 else Vector2.ZERO
+		ci.draw_set_transform(shake)
+		for side in [-1.0, 1.0]:
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(side * 9, -10), Vector2(side * 18, 0), Vector2(side * 9, -24)]), Color("c83a3a"))
+		ci.draw_rect(Rect2(-10, -66, 20, 60), Color("1a1024"))
+		ci.draw_rect(Rect2(-9, -65, 18, 58), Color("c9a27a"))
+		ci.draw_rect(Rect2(2, -65, 7, 58), Color("a8845e"))
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-10, -66), Vector2(10, -66), Vector2(0, -88)]), Color("c83a3a"))
+		ci.draw_circle(Vector2(0, -48), 5.0, Color("1a1024"))
+		ci.draw_circle(Vector2(0, -48), 4.0, Color("8fe0ff"))
+		ci.draw_line(Vector2(-7, -30), Vector2(6, -30), Color("1a1024"), 1.0)
+		ci.draw_line(Vector2(-7, -24), Vector2(4, -24), Color("1a1024"), 1.0)
+		# A ratos echa humo, como si fuera a despegar / Now and then it puffs smoke, as if about to take off
+		if fmod(_t, 7.0) > 6.2:
+			for i in 5:
+				var ph := fposmod(_t * 3.0 + i * 0.2, 1.0)
+				ci.draw_circle(Vector2(sin(i * 2.0) * 8.0 * ph, ph * 10.0), 3.0 + ph * 5.0, Color(0.95, 0.95, 1.0, 0.6 * (1.0 - ph)))
+		ci.draw_set_transform(Vector2.ZERO))
+	# Bandera con la luna cosida / Flag with the sewn-on moon
+	var fl := c + Vector2(92, -24)
+	_blocks.append({"c": fl, "r": Vector2(4, 3)})
+	_prop(fl, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(6, 2))
+		ci.draw_line(Vector2(0, 1), Vector2(0, -55), Color("1a1024"), 4.0)
+		ci.draw_line(Vector2.ZERO, Vector2(0, -54), Color("b8bccf"), 2.0)
+		var pts := PackedVector2Array()
+		for i in 7:
+			var f := i / 6.0
+			pts.append(Vector2(f * 28.0, -52.0 + sin(_t * 2.0 + f * 4.0) * 2.0 * f))
+		for i in range(6, -1, -1):
+			var f := i / 6.0
+			pts.append(Vector2(f * 28.0, -34.0 + sin(_t * 2.0 + f * 4.0) * 2.0 * f))
+		ci.draw_colored_polygon(pts, Color("3a3480"))
+		ci.draw_circle(Vector2(14, -43 + sin(_t * 2.0 + 2.0)), 5.0, Color("f6d993"))
+		ci.draw_circle(Vector2(16, -44 + sin(_t * 2.0 + 2.0)), 4.0, Color("3a3480")))
+	# Antena que pita / Beeping antenna
+	var an := c + Vector2(60, 40)
+	_blocks.append({"c": an, "r": Vector2(6, 3)})
+	_prop(an, func(ci: CanvasItem) -> void:
+		_shadow(ci, Vector2.ZERO, Vector2(12, 3))
+		# Trípode de palos de escoba y una antena parabólica hecha con un colador
+		# A tripod of broomsticks and a satellite dish made out of a colander
+		for lx: float in [-9.0, 0.0, 9.0]:
+			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -16), Color("1a1024"), 3.0)
+			ci.draw_line(Vector2(lx, 2.0 if lx == 0.0 else 0.0), Vector2(0, -16), Color("8c90a8"), 1.5)
+		ci.draw_line(Vector2(0, -14), Vector2(0, -30), Color("1a1024"), 4.0)
+		ci.draw_line(Vector2(0, -14), Vector2(0, -30), Color("b8bccf"), 2.0)
+		var turn := sin(_t * 0.5) * 0.25
+		ci.draw_set_transform(Vector2(0, -34), turn - 0.35)
+		var dish := PackedVector2Array()
+		for i in 11:
+			var a := PI * i / 10.0
+			dish.append(Vector2(cos(a) * 14.0, sin(a) * 7.0))
+		ci.draw_colored_polygon(dish, Color("1a1024"))
+		dish.clear()
+		for i in 11:
+			var a := PI * i / 10.0
+			dish.append(Vector2(cos(a) * 12.5, sin(a) * 5.8))
+		ci.draw_colored_polygon(dish, Color("e4e6f0"))
+		for hx: float in [-5.0, 0.0, 5.0]:
+			ci.draw_circle(Vector2(hx, 2.5), 1.0, Color("8c90a8"))
+		ci.draw_line(Vector2.ZERO, Vector2(0, -10), Color("8c90a8"), 1.5)
+		var on := fmod(_t, 1.2) < 0.25
+		ci.draw_circle(Vector2(0, -11), 2.5, Color("ff6a6a") if on else Color("6a2a3a"))
+		if on:
+			for k in 2:
+				ci.draw_arc(Vector2(0, -11), 6.0 + k * 5.0, -PI * 0.8, -PI * 0.2, 8, Color(1, 0.6, 0.6, 0.6), 1.0)
+		ci.draw_set_transform(Vector2.ZERO))
+	var ln := _npc_prop("luna", c + Vector2(4, -6))
+	ln.painter = func(ci: CanvasItem) -> void:
+		_draw_npc(ci, "luna", Vector2.ZERO, false)
+
 
 # --- Kroker ---
 

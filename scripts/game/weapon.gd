@@ -126,6 +126,7 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0
 	e.hit(base_damage * player.damage_mult, impulse)
 	GameState.run_dmg[id] = float(GameState.run_dmg.get(id, 0.0)) + base_damage * player.damage_mult
 	_pinche(e)
+	_luna_orbit(e)
 	# Robo de salud: probabilidad de curar 1 / Life steal: chance to heal 1
 	var ls := GameState.lifesteal_effective() * steal_k
 	if ls > 0.0 and randf() * 100.0 < ls and player.steal_ready():
@@ -215,6 +216,14 @@ func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
 	# even if slow by the end; mass counts less (square root) so it works on thugs too
 	en.heavy_t = Enemy.HEAVY_TIME
 	return dir * maxf(impulse.length(), GameState.HEAVY_KNOCK) * sqrt(maxf(1.0, en.mass))
+
+## Luna «Órbita»: a veces el golpe deja al enemigo flotando / Luna "Orbit": sometimes the hit leaves the enemy floating
+func _luna_orbit(e: Node2D) -> void:
+	if lv("luna") <= 0 or GameState.helper_power("luna", id) != "orbit" or not e is Enemy:
+		return
+	if randf() * 100.0 < uv("luna", "chance"):
+		(e as Enemy).float_up(uv("luna", "secs"))
+
 
 ## El Pinche: cada golpe sangra o quema según el arma / The Kitchen Boy: every hit bleeds or burns depending on the weapon
 func _pinche(e: Node2D) -> void:

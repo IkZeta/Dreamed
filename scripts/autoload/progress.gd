@@ -74,6 +74,8 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "act4", "check": "act4", "goal": 1},
 	{"id": "evil_ad", "flag": true, "goal": 1},
 	{"id": "lynx", "flag": true, "goal": 1},
+	# Luna: tirar 150 enemigos por los agujeros, sumando partidas / Luna: send 150 enemies down holes, across runs
+	{"id": "luna", "stat": "falls", "goal": 150},
 	{"id": "duo", "flag": true, "goal": 1},
 	{"id": "legend", "flag": true, "goal": 1},
 	# Fiebre y sueño del día / Fever and the daily dream
@@ -395,7 +397,7 @@ func unlock_everything() -> void:
 	for id in BESTIARY:
 		if not kills.has(id):
 			kills[id] = 0
-	for g in ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey", "lynx"]:
+	for g in ["svinho", "stolk", "silly", "doc", "ad", "pinche", "superk", "lilkey", "lynx", "luna"]:
 		stats["met_" + g] = 1
 	stats["charo_met"] = 1
 	stats["unlock_all"] = 1

@@ -3467,6 +3467,71 @@ def lynx():
     add("npc_lynx_arm", 44, 100, 120, 116, a, px=PX_NPC, flat=True)
 
 
+def luna():
+    """Luna, la astronauta: la niña de la clase de Kroker que quería ser astronauta. Del tamaño de
+    Kroker, con traje plateado acolchado y parches cosidos a mano (una luna y una estrella), cinturón
+    de herramientas, botas blancas y una mochila cohete hecha con dos botellas. Pelo castaño a lo
+    garçon con flequillo, pecas y una sonrisa enorme. El casco de pecera (cristal) y la antena se
+    pintan en el juego (NpcArt._luna) para que se vea a través.
+    Luna, the astronaut: the girl in Kroker's class who wanted to be an astronaut. Kroker's size,
+    in a padded silver suit with hand-sewn patches (a moon and a star), a tool belt, white boots and
+    a rocket backpack made of two bottles. Short brown hair with a fringe, freckles and a huge grin.
+    The fishbowl helmet (glass) and antenna are painted in game (NpcArt._luna) so you can see through."""
+    SV, SV1, SV2, SV3 = "#e4e6f0", "#b8bccf", "#8c90a8", "#ffffff"
+    S, S1 = "#f2c9a8", "#d4a688"
+    H, H1 = "#7a4a2e", "#5a341e"
+    R = "#e85d75"
+    b = ""
+    # Mochila cohete detrás: dos botellas con aletas / Rocket backpack behind: two bottles with fins
+    for x in (66, 120):
+        b += flat("M%g,170 C%g,160 %g,160 %g,170 L%g,232 L%g,232 Z" % (x, x + 2, x + 12, x + 14, x + 14, x), "#cfe6ff")
+        b += flat("M%g,170 C%g,162 %g,162 %g,170 L%g,232 L%g,232 Z" % (x + 8, x + 9, x + 12, x + 14, x + 14, x + 8), "#9fc0e8")
+        b += flat("M%g,232 L%g,232 L%g,240 L%g,240 Z" % (x + 2, x + 12, x + 10, x + 4), "#5a5a72")
+        b += flat("M%g,214 L%g,226 L%g,232 Z" % (x, x - 6, x), R) + flat("M%g,214 L%g,226 L%g,232 Z" % (x + 14, x + 20, x + 14), R)
+    # Piernas y botas / Legs and boots
+    for x in (84, 102):
+        b += flat("M%g,228 L%g,228 L%g,270 L%g,270 Z" % (x, x + 15, x + 15, x), SV)
+        b += flat("M%g,228 L%g,228 L%g,270 L%g,270 Z" % (x + 10, x + 15, x + 15, x + 10), SV1)
+        b += flat("M%g,246 L%g,246 L%g,250 L%g,250 Z" % (x, x + 15, x + 15, x), SV2)
+        b += flat("M%g,266 L%g,266 C%g,266 %g,276 %g,288 L%g,288 Z" % (x - 2, x + 17, x + 21, x + 22, x + 22, x - 2), SV3)
+        b += flat("M%g,283 L%g,283 L%g,288 L%g,288 Z" % (x - 2, x + 22, x + 22, x - 2), SV1)
+    # Cuerpo acolchado / Padded body
+    b += flat("M76,170 C76,164 82,160 90,160 L110,160 C118,160 124,164 124,170 L126,232 L74,232 Z", SV)
+    b += flat("M114,160 C120,162 124,166 124,172 L126,232 L114,232 C118,208 118,184 114,160 Z", SV1)
+    for y in (182, 202):
+        b += "<path d='M76,%g Q100,%g 125,%g' fill='none' stroke='%s' stroke-width='2'/>" % (y, y + 4, y, SV2)
+    # Cinturón con herramientas / Tool belt
+    b += flat("M74,216 L126,216 L126,224 L74,224 Z", "#5a5a72") + flat(ellipse_d(100, 220, 5, 4), "#f6c86a")
+    b += flat("M80,224 L88,224 L88,234 L80,234 Z", "#8c90a8") + flat("M112,224 L120,224 L118,236 L114,236 Z", R)
+    # Panel del pecho / Chest panel
+    b += flat("M90,170 L110,170 L110,188 L90,188 Z", "#3a3a52")
+    for (x, y, c) in ((94, 175, "#7fe08a"), (100, 175, R), (106, 175, "#f6c86a"), (94, 182, "#5fc8ff")):
+        b += flat(ellipse_d(x, y, 2.2, 2.2), c)
+    # Parches cosidos: una luna y una estrella / Sewn patches: a moon and a star
+    b += flat(ellipse_d(82, 200, 6.5, 6.5), "#3a3480") + flat("M80,196 C84,197 86,203 82,206 C88,205 89,197 84,195 Z", "#f6d993")
+    b += "<ellipse cx='82' cy='200' rx='7.5' ry='7.5' fill='none' stroke='%s' stroke-width='1.2' stroke-dasharray='2,2'/>" % SV2
+    b += flat(star_d(116, 196, 6, 0.45), "#ff9fc8")
+    # Brazos con guantes / Arms with gloves
+    b += flat("M74,168 L64,206 L72,210 L82,174 Z", SV) + flat("M70,206 C66,204 60,208 62,214 C64,220 72,218 73,212 Z", SV3)
+    b += flat("M126,168 L136,206 L128,210 L118,174 Z", SV1) + flat("M130,206 C134,204 140,208 138,214 C136,220 128,218 127,212 Z", SV3)
+    # Collarín del casco / Helmet collar ring
+    b += flat("M80,156 L120,156 L122,166 L78,166 Z", SV2) + flat("M80,156 L120,156 L120,159 L80,159 Z", SV)
+    # Cabeza / Head
+    b += flat(ellipse_d(100, 130, 22, 23), S) + flat("M112,112 C120,118 123,128 121,140 C119,148 114,152 108,154 C116,144 117,126 112,112 Z", S1)
+    # Pelo a lo garçon con flequillo / Short hair with a fringe
+    b += flat("M77,128 C76,110 88,104 100,104 C114,104 124,112 123,130 L118,124 C112,118 104,121 96,118 C90,121 84,124 77,128 Z", H)
+    b += flat("M110,106 C120,110 124,118 123,130 L118,124 C118,116 115,110 110,106 Z", H1)
+    b += flat("M78,126 L78,142 L83,134 Z", H) + flat("M122,126 L122,142 L117,134 Z", H1)
+    # Ojos, pecas y sonrisa / Eyes, freckles and grin
+    b += flat(ellipse_d(92, 132, 3, 3.6), "#1a1328") + flat(ellipse_d(108, 132, 3, 3.6), "#1a1328")
+    b += flat(ellipse_d(91, 131, 1, 1), "#ffffff") + flat(ellipse_d(107, 131, 1, 1), "#ffffff")
+    for (x, y) in ((86, 139), (89, 141), (111, 141), (114, 139)):
+        b += flat(ellipse_d(x, y, 0.9, 0.9), S1)
+    b += flat("M92,143 C96,149 104,149 108,143 C104,146 96,146 92,143 Z", "#8a3a4a")
+    b += flat("M94,144 C98,147 102,147 106,144 L106,145 C102,147 98,147 94,145 Z", "#ffffff")
+    add("npc_luna", 44, 96, 120, 196, b, px=PX_NPC, flat=True)
+
+
 def sinister_cat():
     """El Gato Siniestro, consejero de los sueños: un gato pequeñito y cabezón (proporciones de
     Kroker, la mitad de alto), de pelo ciruela casi negro con rayas turquesa, orejas grandes y
@@ -3677,6 +3742,7 @@ def build():
     superk()
     lilkey()
     lynx()
+    luna()
     turrets()
     pickups()
     thug()

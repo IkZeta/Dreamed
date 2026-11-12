@@ -165,6 +165,25 @@ const UPGRADE_VALUES := {
 	## D. Lynx: "Action!" (every "cd" s, "count" nearby enemies turn into actors for "secs" s and hit
 	## the others for "dmg"), "Cut! Take 2" (once per run, if you're killed you come back with "hp" %
 	## health and "inv" s of invulnerability) and "Montage" (dreams last "pct" % less)
+	## Luna: «Órbita» (cuerpo a cuerpo y aspiradora: "chance" % de dejar al enemigo flotando "secs" s;
+	## al acabar cae donde esté, también a un agujero, y flotando sale despedido más lejos) y «Pozo
+	## gravitatorio» (a distancia: cada "cd" s, un mini agujero negro de "secs" s que atrae con "pull")
+	## Luna: "Orbit" (melee and vacuum: "chance" % to leave the enemy floating for "secs" s; when it
+	## ends it drops where it is, also into a hole, and while floating it flies further) and "Gravity
+	## well" (ranged: every "cd" s, a mini black hole for "secs" s that pulls with "pull")
+	"luna": {
+		"bat": {"chance": [12, 18, 25], "secs": [1.2, 1.6, 2.0]},
+		"shield": {"chance": [15, 22, 30], "secs": [1.2, 1.6, 2.0]},
+		"teddy": {"chance": [12, 18, 25], "secs": [1.2, 1.6, 2.0]},
+		"boots": {"chance": [12, 18, 25], "secs": [1.2, 1.6, 2.0]},
+		"druid": {"chance": [10, 15, 21], "secs": [1.2, 1.6, 2.0]},
+		"vacuum": {"chance": [6, 9, 13], "secs": [1.2, 1.6, 2.0]},
+		"book": {"cd": [12.0, 9.5, 7.5], "secs": [2.0, 2.5, 3.0], "pull": [200, 260, 320]},
+		"finger": {"cd": [12.0, 9.5, 7.5], "secs": [2.0, 2.5, 3.0], "pull": [200, 260, 320]},
+		"ball": {"cd": [12.0, 9.5, 7.5], "secs": [2.0, 2.5, 3.0], "pull": [200, 260, 320]},
+		"laptop": {"cd": [12.0, 9.5, 7.5], "secs": [2.0, 2.5, 3.0], "pull": [200, 260, 320]},
+		"yoyo": {"cd": [12.0, 9.5, 7.5], "secs": [2.0, 2.5, 3.0], "pull": [200, 260, 320]},
+	},
 	"lynx": {
 		"bat": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
 		"boots": {"cd": [18.0, 15.0, 12.0], "count": [2, 3, 4], "secs": [5, 7, 9], "dmg": [6, 9, 13]},
@@ -194,6 +213,9 @@ const HELPER_POWER := {
 	# D. Lynx: "actor" (enemies that fight for you), "retake" (an extra life) and "cut" (shorter dreams)
 	"lynx": {"bat": "actor", "boots": "actor", "druid": "actor", "yoyo": "actor", "vacuum": "actor", "shield": "retake", "teddy": "retake", "ball": "retake",
 		"book": "cut", "finger": "cut", "laptop": "cut"},
+	# Luna: "orbit" (enemigos flotando) o "well" (pozo gravitatorio) / Luna: "orbit" (floating enemies) or "well" (gravity well)
+	"luna": {"bat": "orbit", "shield": "orbit", "teddy": "orbit", "boots": "orbit", "druid": "orbit", "vacuum": "orbit",
+		"book": "well", "finger": "well", "ball": "well", "laptop": "well", "yoyo": "well"},
 }
 
 
@@ -209,6 +231,7 @@ const DUOS := {
 	"doc_lilkey": {"a": "doc", "b": "lilkey", "weapon": "teddy"},
 	"ad_pinche": {"a": "ad", "b": "pinche", "weapon": "druid"},
 	"svinho_lilkey": {"a": "svinho", "b": "lilkey", "weapon": "yoyo"},
+	"svinho_luna": {"a": "svinho", "b": "luna", "weapon": "bat"},
 }
 
 
@@ -220,6 +243,7 @@ const DUO_VALUES := {
 	"ad_lynx": {"cd": 20, "secs": 3, "pct": 50, "per": 4, "max": 5},
 	"pinche_magnus": {"chance": 30, "spread": 2},
 	"svinho_lilkey": {"extra": 2, "secs": 2.0},
+	"svinho_luna": {"chain": 3, "pct": 60},
 	"svinho_superk": {"hits": 6, "dmg": 40},
 	"silly_lynx": {"secs": 1.5, "dur": 6, "max": 3},
 	"stolk_magnus": {"crit": 2, "pct": 50, "chance": 15},

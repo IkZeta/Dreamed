@@ -667,11 +667,64 @@ def lynx_theme() -> np.ndarray:
     return loop_render(build, bar_len * bars, 0.45, 2.0)
 
 
+def luna_theme() -> np.ndarray:
+    """Luna: un vals espacial en Fa mayor a 3/4, ingrávido. Pad de cuerdas que flota, arpegios de
+    glockenspiel que suben como burbujas, un bajo de piano eléctrico que casi no toca el suelo y, de
+    fondo, los pitidos de la radio de la nave. La melodía la silba un theremín (un silbido con mucho
+    vibrato) que se queda colgado en las notas largas.
+    Luna: a weightless space waltz in F major in 3/4. A string pad floating along, glockenspiel
+    arpeggios rising like bubbles, an electric-piano bass that barely touches the ground and, in the
+    background, the ship radio's beeps. The tune is whistled by a theremin (a whistle with lots of
+    vibrato) that hangs on the long notes."""
+    beat = 60.0 / 96
+    bar_len = beat * 3
+    chords = [[41, 57, 60, 64, 69], [38, 57, 62, 65, 69], [34, 58, 62, 65, 70], [36, 55, 60, 64, 67],
+              [41, 57, 60, 64, 72], [33, 57, 60, 64, 69], [34, 58, 62, 65, 69], [36, 55, 58, 64, 67]]
+    melody = [(0, 0, 72, 2), (0, 2, 74, 1), (1, 0, 76, 3), (2, 0, 74, 2), (2, 2, 72, 1), (3, 0, 67, 3),
+              (4, 0, 72, 1), (4, 1, 76, 1), (4, 2, 79, 1), (5, 0, 81, 3), (6, 0, 79, 2), (6, 2, 77, 1), (7, 0, 76, 3)]
+    bars = 16
+
+    def build(buf, off):
+        for i in range(bars):
+            ch = chords[i % 8]
+            s = off + i * bar_len
+            place(buf, saw_pad([midi(n) for n in ch[1:]], bar_len + 2.0, 0.06, 1.2, 2.0, 1400), s, 0.0, human=False)
+            place(buf, fm_ep(midi(ch[0]), beat * 2.5, 0.22, 0.3), s, -0.15)
+            for b in range(3):
+                n = ch[1 + (b + i) % 4] + 12
+                place(buf, glock(midi(n), 1.0, 0.05), s + b * beat, -0.5 + b * 0.5)
+            if i % 4 == 3:
+                for k in range(3):
+                    place(buf, pulse(midi(96 + k * 2), 0.05, 0.03, 0.5, 30.0, 6000), s + 2.0 * beat + k * 0.09, 0.6)
+        for second in (False, True):
+            base = off + (8 * bar_len if second else 0.0)
+            for bi, b, n, d in melody:
+                at = base + bi * bar_len + b * beat
+                w = whistle(midi(n + (12 if second else 0) - 12), beat * d + 0.4, 0.09, 6.5)
+                place(buf, w, at, 0.15)
+                place(buf, w * 0.25, at + beat * 0.5, -0.4)
+
+    return loop_render(build, bar_len * bars, 0.5, 2.2)
+
+
+def giver_luna():
+    """Leitmotiv de Luna: tres pitidos de radio («aquí Luna, cambio») y un arpegio de glockenspiel
+    que sube y se queda flotando / Luna's leitmotif: three radio beeps ("Luna here, over") and a
+    glockenspiel arpeggio that rises and stays floating."""
+    def f(x):
+        for k in range(3):
+            place(x, pulse(midi(93), 0.06, 0.05, 0.5, 30.0, 6000), k * 0.11, 0.3)
+        for i, n in enumerate((65, 69, 72, 77, 81)):
+            place(x, glock(midi(n), 1.6, 0.14), 0.45 + i * 0.12, -0.4 + i * 0.2)
+        place(x, saw_pad([midi(n) for n in (57, 60, 65)], 2.2, 0.08, 0.5, 1.4, 1200), 0.4, 0.0, human=False)
+    return _motif(f, 3.0)
+
+
 THEMES = {
     "music_svinho": (svinho_theme, 0.48), "music_stolk": (stolk_theme, 0.55), "music_silly": (silly_theme, 0.5),
     "music_doc": (doc_theme, 0.5), "music_ad": (ad_theme, 0.55), "music_pinche": (pinche_theme, 0.55),
     "music_charo": (charo_theme, 0.5), "music_magnus": (magnus_theme, 0.55), "music_superk": (superk_theme, 0.55),
-    "music_lilkey": (lilkey_theme, 0.55), "music_lynx": (lynx_theme, 0.5),
+    "music_lilkey": (lilkey_theme, 0.55), "music_lynx": (lynx_theme, 0.5), "music_luna": (luna_theme, 0.5),
 }
 
 
@@ -815,7 +868,7 @@ def giver_cat():
 
 GIVERS = {"giver_cat": giver_cat, "giver_svinho": giver_svinho, "giver_stolk": giver_stolk, "giver_silly": giver_silly, "giver_doc": giver_doc,
           "giver_ad": giver_ad, "giver_pinche": giver_pinche, "giver_charo": giver_charo, "giver_magnus": giver_magnus,
-          "giver_superk": giver_superk, "giver_lilkey": giver_lilkey, "giver_lynx": giver_lynx}
+          "giver_superk": giver_superk, "giver_lilkey": giver_lilkey, "giver_lynx": giver_lynx, "giver_luna": giver_luna}
 
 
 def render(only: set, save) -> None:
@@ -1584,5 +1637,22 @@ def sfx_web_eat():
 
 
 SFX.update({"web_weave": (sfx_web_weave, 0.3, 0.1), "web_eat": (sfx_web_eat, 0.15, 0.05)})
+
+
+def sfx_gravity_well():
+    """Se abre el pozo gravitatorio de Luna: un zumbido grave que baja y estrellitas que caen dentro
+    Luna's gravity well opens: a low hum sliding down and little stars falling in."""
+    d = 1.6
+    t = t_axis(d)
+    f = 140 * np.exp(-t * 0.8) + 40
+    hum = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * t / d) * 0.25
+    x = np.zeros((int(SR * (d + 0.6)), 2))
+    place(x, lp(hum, 600), 0.0, 0.0, human=False)
+    for i, n in enumerate((88, 84, 81, 77)):
+        place(x, glock(midi(n), 0.8, 0.05), 0.15 + i * 0.16, 0.4 - i * 0.25, human=False)
+    return x
+
+
+SFX.update({"gravity_well": (sfx_gravity_well, 0.35, 0.1)})
 
 OVERRIDES = set(MUSIC) | set(SFX)

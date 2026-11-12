@@ -110,7 +110,7 @@ func _refresh_hint() -> void:
 
 ## Cada isla con personaje tiene su tema; el resto del plano suena a plano astral
 ## Each island with a character has its own theme; the rest of the plane sounds astral
-const THEMED := ["svinho", "stolk", "silly", "doc", "ad", "pinche", "charo", "magnus", "superk", "lilkey", "lynx"]
+const THEMED := ["svinho", "stolk", "silly", "doc", "ad", "pinche", "charo", "magnus", "superk", "lilkey", "lynx", "luna"]
 
 
 func _show_zone(id: String) -> void:

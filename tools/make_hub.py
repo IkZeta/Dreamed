@@ -84,6 +84,7 @@ ISLES = {
     "lilkey": dict(pos=(-1090, 85), r=(165, 100), aura="#ff6a8a", seed=14, floor="stage", inset=(125, 68, 0, 4)),
     # D. Lynx, a la derecha del todo, junto a Doc y Mr. Ad: su plató / D. Lynx, far right, next to Doc and Mr. Ad: his film set
     "lynx": dict(pos=(1090, 85), r=(170, 102), aura="#e0303a", seed=15, floor="zigzag", inset=(128, 70, 0, 4)),
+    "luna": dict(pos=(20, -1040), r=(170, 102), aura="#c9d4ff", seed=16, floor="moon", inset=(130, 72, 0, 4)),
 }
 
 
@@ -460,7 +461,26 @@ def floor_zigzag(lx, ly, rng, irx, iry):
     return out
 
 
-FLOORS = {"zigzag": floor_zigzag, "grass": floor_grass, "gym": floor_gym, "dark": floor_dark, "clinic": floor_clinic, "street": floor_street,
+def floor_moon(lx, ly, rng, irx, iry):
+    """La luna de Luna: polvo gris claro con cráteres de borde iluminado (como agujeros de verdad)
+    Luna's moon: pale grey dust with craters whose rims catch the light (like real holes)"""
+    A, B = night("#c8c6d4"), night("#b6b4c4")
+    noise = np.random.default_rng(16).random(lx.shape)
+    out = np.where((noise < 0.5)[..., None], A, B)
+    out[noise < 0.03] = night("#a4a2b4")
+    out[noise > 0.985] = night("#e4e2ee")
+    for (cx, cy, r) in ((-62, -14, 18), (40, 16, 13), (78, -22, 9), (-20, 30, 8), (-96, 22, 7)):
+        d = np.sqrt((lx - cx) ** 2 + ((ly - cy) * 1.6) ** 2)
+        out[d < r] = night("#8e8ca0")
+        inner = d < r - 3
+        out[inner & (ly - cy < 0)] = night("#7a788c")
+        out[inner & (ly - cy >= 0)] = night("#9c9aae")
+        rim = (d >= r) & (d < r + 2) & (ly - cy > -2)
+        out[rim] = night("#ecebf4")
+    return out
+
+
+FLOORS = {"moon": floor_moon, "zigzag": floor_zigzag, "grass": floor_grass, "gym": floor_gym, "dark": floor_dark, "clinic": floor_clinic, "street": floor_street,
           "kitchen": floor_kitchen, "bedroom": floor_bedroom, "charo": floor_charo, "magnus": floor_magnus, "marble": floor_marble, "dojo": floor_dojo,
           "roof": floor_roof, "stage": floor_stage}
 
@@ -668,7 +688,7 @@ def make_isle(name, rx, ry, aura, seed, floor=None, inset=None, deep=1.3, flower
         img[top & (np.abs(rr - 36) < 0.8)] = GOLD_D
         for name2, isle in ISLES.items():
             # Las islas lejanas no tienen puente desde el centro / The far islands have no bridge from the centre
-            if name2 in ("nexus", "training", "superk", "lilkey", "lynx"):
+            if name2 in ("nexus", "training", "superk", "lilkey", "lynx", "luna"):
                 continue
             vx, vy = isle["pos"]
             a = math.atan2(vy, vx)
