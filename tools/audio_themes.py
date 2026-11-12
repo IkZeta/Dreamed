@@ -1561,4 +1561,28 @@ def sfx_sheep_count():
 
 SFX.update({"sheep_count": (sfx_sheep_count, 0.35, 0.1)})
 
+
+def sfx_web_weave():
+    """El Atrapasueños teje: un hilo de seda que silba suave y tres cuentas que tintinean
+    The Dreamcatcher weaves: a softly hissing silk thread and three tinkling beads."""
+    x = np.zeros((int(SR * 1.6), 2))
+    silk = A.sweep_noise(0.9, 2400, 5200, 6.0, 0.08)
+    place(x, lp(silk, 6000), 0.0, -0.3, human=False)
+    for i, n in enumerate([84, 88, 91]):
+        place(x, glock(midi(n), 0.6, 0.05), 0.3 + i * 0.18, -0.2 + i * 0.2, human=False)
+    return x
+
+
+def sfx_web_eat():
+    """Cuentas que chocan entre sí, de madera y cristal / Beads clicking together, wood and glass."""
+    x = np.zeros(int(SR * 0.4))
+    for i in range(3):
+        c = bar(RNG.uniform(1800, 2600), 0.05, 0.18, "wood", 0.9)
+        at = int(SR * i * 0.045)
+        x[at:at + len(c)] += c[: len(x) - at]
+    return lp(x, 5000)
+
+
+SFX.update({"web_weave": (sfx_web_weave, 0.3, 0.1), "web_eat": (sfx_web_eat, 0.15, 0.05)})
+
 OVERRIDES = set(MUSIC) | set(SFX)

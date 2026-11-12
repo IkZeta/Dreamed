@@ -162,6 +162,7 @@ Un pasillo **infinito** hacia los lados, al estilo de la biblioteca de *Vampire 
 | Sueño | Novedad |
 |---|---|
 | 11 | **Marionetas**: cada una sale con un brazo distinto: cuchilla (te hace sangrar), barra eléctrica (te paraliza) o arcabuz (bala potente, la marioneta sale despedida hacia atrás) |
+| 7+ | **Atrapasueños** (raro, como mucho 2; desde el Acto 2 en todos): una araña hecha de un atrapasueños de mimbre con plumas por patas. Huye de Kroker y teje telarañas en el suelo (3 como mucho, duran 26 s). Las telarañas **atrapan los trozos de estrella** que caen dentro: no se pueden coger y suben despacio hasta la araña, que se los come y crece (se ven girando dentro del aro). Si la matas, suelta todo lo comido y la mitad más; si la tiras por un agujero, se lo lleva. Las telarañas frenan a todos y el enemigo que entra lanzado por un golpe fuerte se queda pegado 1 s |
 | 12 | **Examen suspenso**: un folio volador con un cero enorme en rojo. Se esconde detrás de los demás enemigos y te lanza borrones de tinta; si te da, llevas un **cero** encima de la cabeza (con un hilo de tinta hasta él) y recibes un 25 % más de daño hasta que le pegues o lo tires por un agujero. Tiene poca vida y huye |
 | 13 | **Gólem de papel higiénico**: lento, con mucha vida y poca defensa. Si te pega, te deja **mal olor**: una de tus dos armas deja de atacar un rato |
 | 14 | Kiosco de Charo |
@@ -198,6 +199,7 @@ Cada ciudad tiene además sus **propias azoteas**: parabólicas y pirámides hol
 |---|---|
 | 16 | **Unidad Especial**: una furgo blindada que vuela. Llega con la sirena, da vueltas alrededor de Kroker y suelta **policías** por una cuerda hasta que la derribas; al caer, revienta y daña a los de alrededor. Los policías tienen poca vida, disparan ráfagas de tres con su fusil de asalto y **cada bala hace sangrar**. Su uniforme cambia con la estética de la ciudad |
 | 17 | **Antidisturbios**: salen de las alcantarillas abiertas. No te persiguen ni atacan: se quedan detrás y ponen **escudos** a los demás (dos cada vez, cinco como mucho). Un enemigo con escudo apenas recibe daño ni empujones, y el escudo solo desaparece cuando cae el antidisturbios que lo puso. Kiosco de Charo |
+| 16-20 | **Agujeros de colores**: en cada sueño de la ciudad, dos de las alcantarillas abiertas brillan de un color, con su símbolo flotando encima. Tirar a un enemigo por la **dorada** suelta 3 trozos de estrella; por la **verde**, cura 1; por la **violeta**, da 1 de Realidad Fragmentada; y por la **roja**, recarga las armas. Así importa a qué agujero apuntas, no solo cuál está más cerca |
 | 19 | Kiosco de Charo |
 | 20 | **El último sueño**: noir retrofuturista y jefe final, **Evil Ad** (ver abajo). Si lo derrotas o aguantas, Kroker se despierta de verdad y se acaba la partida |
 

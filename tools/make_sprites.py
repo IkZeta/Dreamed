@@ -3598,6 +3598,44 @@ def newcomers():
     add("weapon_yoyo", -20, -20, 40, 40, y, px=PX_KROKER, flat=True)
 
 
+def dreamcatcher():
+    """Atrapasueños: una araña hecha de un aro de mimbre con su red, cuentas de colores y plumas por
+    patas (las plumas se dibujan aparte para moverlas). Ojos de cuenta violeta en el aro.
+    Dreamcatcher: a spider made of a wicker hoop with its net, coloured beads and feathers for legs
+    (the feathers are separate so they can move). Violet bead eyes on the hoop."""
+    W0, W1, W2 = "#c99a5e", "#8f6438", "#e8c48a"
+    NET = "#efe6cf"
+    b = ""
+    b += flat(ellipse_d(0, -44, 24, 24), W1) + flat(ellipse_d(0, -44, 20, 20), "#2b2238")
+    # Red: radios y una espiral de hilo / Net: spokes and a spiral of thread
+    for k in range(8):
+        a = k * math.pi / 4
+        b += "<path d='M0,-44 L%g,%g' stroke='%s' stroke-width='1.2'/>" % (19 * math.cos(a), -44 + 19 * math.sin(a), NET)
+    pts = []
+    for i in range(30):
+        a = i * math.pi / 5
+        r = 6 + i * 0.42
+        pts.append("%.2f,%.2f" % (r * math.cos(a), -44 + r * math.sin(a)))
+    b += "<polyline points='%s' fill='none' stroke='%s' stroke-width='1.1'/>" % (" ".join(pts), NET)
+    # Aro de mimbre con su sombreado / Wicker hoop with its shading
+    b += "<ellipse cx='0' cy='-44' rx='22' ry='22' fill='none' stroke='%s' stroke-width='4.4'/>" % W0
+    b += "<path d='M-16,-60 A22,22 0 0 1 14,-61' fill='none' stroke='%s' stroke-width='1.8'/>" % W2
+    for k in range(10):
+        a = k * math.pi / 5 + 0.2
+        b += flat(ellipse_d(22 * math.cos(a), -44 + 22 * math.sin(a), 1.4, 1.4), W1)
+    # Cuentas en la red y ojos / Beads on the net and eyes
+    for x, y, c in ((-7, -40, "#5fc8ff"), (8, -50, "#ff6fb5"), (3, -36, "#ffd84a")):
+        b += flat(ellipse_d(x, y, 2.4, 2.4), c)
+    b += flat(ellipse_d(-7, -58, 3.4, 3.4), "#b48cff") + flat(ellipse_d(7, -58, 3.4, 3.4), "#b48cff")
+    b += flat(ellipse_d(-8, -59, 1.2, 1.2), "#ffffff") + flat(ellipse_d(6, -59, 1.2, 1.2), "#ffffff")
+    add("dcatch_body", -28, -72, 56, 56, b, flat=True)
+    # Pata-pluma (articulación arriba, en el origen) / Feather leg (joint at the top, at the origin)
+    f = "<path d='M0,0 L0,30' stroke='%s' stroke-width='1.6'/>" % "#8f6438"
+    f += flat("M0,6 C6,10 7,22 0,32 C-7,22 -6,10 0,6 Z", "#d8c8f0") + flat("M0,6 C3,10 4,22 0,32 Z", "#a898d8")
+    f += flat(ellipse_d(0, 3, 2.2, 2.2), "#ff6fb5")
+    add("dcatch_leg", -8, -2, 16, 38, f, flat=True)
+
+
 def build():
     for o in PAJAMAS:
         kroker_leg(o, 0)
@@ -3624,6 +3662,7 @@ def build():
     act2_enemies()
     act3_enemies()
     newcomers()
+    dreamcatcher()
     botcher()
     druid_collar()
     druid_forms()

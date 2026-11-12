@@ -421,6 +421,8 @@ func _start_fall(to: Vector2) -> void:
 		run.trinkets.on_fall(self)
 	if run.has_method("on_fall_chain"):
 		run.on_fall_chain(self, _fall_from)
+	if run.has_method("hole_bonus"):
+		run.hole_bonus(to)
 	_death_sound()
 	run.on_enemy_killed(self)
 	# Tirar enemigos por los agujeros da Realidad Fragmentada / Throwing enemies down holes gives Fragmented Reality

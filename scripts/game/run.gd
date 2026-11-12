@@ -642,6 +642,8 @@ func _pick_kind() -> String:
 				return "foox"
 			if k == "exam" and _count_alive(Exam) >= 2:
 				return "thug"
+			if k == "dreamcatcher" and _count_alive(Dreamcatcher) >= 2:
+				return "foox"
 			# Como mucho 2 Chapuzas, y solo si hay agujeros / At most 2 Botchers, and only if there are holes
 			if k == "botcher" and (_count_alive(Botcher) >= 2 or room.hole_count() == 0):
 				return "foox"
@@ -725,6 +727,7 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"botcher": e = Botcher.new()
 		"alarm": e = AlarmClock.new()
 		"exam": e = Exam.new()
+		"dreamcatcher": e = Dreamcatcher.new()
 		_: e = Foox.new()
 	# Muy de vez en cuando, en lugar del enemigo sale un Foox dorado (la suerte ayuda un poco)
 	# Every so often a golden Foox turns up instead (luck helps a little)
@@ -1034,6 +1037,34 @@ func on_fall_chain(_e: Enemy, at: Vector2) -> void:
 	# Cada caída de la cadena suena un tono más alto (escala mayor) / Each fall in the chain rings a step higher (major scale)
 	var step: int = [0, 2, 4, 7, 9, 12][mini(_fall_chain - 2, 5)]
 	Audio.play("chime", -8.0 + mini(_fall_chain, 5), 0.0, pow(2.0, step / 12.0))
+
+
+## Agujeros de colores de la ciudad: premio al tirar a un enemigo por ellos
+## The city's coloured holes: a reward for throwing an enemy down them
+func hole_bonus(at: Vector2) -> void:
+	if not room.has_method("hole_kind"):
+		return
+	var kind: String = room.hole_kind(at)
+	if kind == "":
+		return
+	var col: Color = Act4Room.HOLE_COLOURS[kind]
+	match kind:
+		"gold":
+			drop_shards(at + Vector2(0, -20), 3)
+		"green":
+			player.heal(1.0)
+		"violet":
+			gain_reality(1, at)
+		"red":
+			for w in [player.weapon, player.weapon2]:
+				if w:
+					w._timer = minf(w._timer, w.cooldown * 0.2)
+	fx.ring(at, 30.0, col, 0.5, 3.0)
+	fx.ring(at, 60.0, Color(col, 0.6), 0.7, 2.0)
+	fx.text(at + Vector2(0, -90), tr("HOLE_" + kind.to_upper()), col, 22)
+	Audio.play("chime", -10.0, 0.05, {"gold": 1.0, "green": 0.84, "violet": 1.12, "red": 1.26}[kind])
+	Progress.add_stat("colour_falls")
+	Progress.tip("colour_holes")
 
 
 func drop_shards(pos: Vector2, n: int) -> void:

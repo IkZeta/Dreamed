@@ -17,6 +17,9 @@ var _vz := 0.0
 var _t := 0.0
 var _rot := 0.0
 var _magnet := false
+## Telaraña que lo tiene atrapado (DreamWeb) / Web holding it (DreamWeb)
+var web: Node2D = null
+const WEB_CREEP := 55.0
 ## Colores de caramelo de los trozos / Candy colours for the shards
 const COLORS := [Color("ff6fb5"), Color("ffd84a"), Color("5fc8ff"), Color("7fe07a"), Color("b77bff")]
 var _col := Color.WHITE
@@ -38,6 +41,19 @@ func _physics_process(delta: float) -> void:
 		if _hop <= 0.0:
 			# Rebota un par de veces antes de quedarse quieto / Bounces a couple of times before settling
 			_vz = -_vz * 0.4 if _vz < -120.0 else 0.0
+	# Atrapado en una telaraña del Atrapasueños: no se puede coger y sube despacio hacia la araña
+	# Caught in a Dreamcatcher's web: it can't be picked up and creeps slowly towards the spider
+	if is_instance_valid(web) and not _magnet:
+		var spider: Node2D = web.get("spider")
+		if is_instance_valid(spider) and (spider as Enemy).is_targetable():
+			var goal := spider.global_position + Vector2(0, -40)
+			position += (goal - global_position).limit_length(WEB_CREEP * delta)
+			if global_position.distance_to(goal) < 16.0:
+				spider.call("eat", value)
+				queue_free()
+				return
+		queue_redraw()
+		return
 	var player: Node2D = run.player
 	var target: Vector2 = player.global_position + Vector2(0, -38)
 	var dist := global_position.distance_to(target)

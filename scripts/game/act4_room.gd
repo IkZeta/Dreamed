@@ -98,6 +98,26 @@ func _ready() -> void:
 	for s: Vector2i in spots:
 		_holes.append(Rect2(Vector2(s) * T + Vector2(12, 26), Vector2(T - 24, T - 52)))
 	_open = mini(_holes.size(), 3 + 2 * weird + (3 if final else 0))
+	# Agujeros de colores: dos de las alcantarillas abiertas dan algo extra al tirar por ellas a un
+	# enemigo (dorado: trozos; verde: cura; violeta: Realidad Fragmentada; rojo: recarga las armas)
+	# Coloured holes: two of the open manholes give something extra when you throw an enemy down them
+	# (gold: shards; green: heal; violet: Fragmented Reality; red: recharges the weapons)
+	var kinds := HOLE_KINDS.duplicate()
+	for i in range(kinds.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp: String = kinds[i]
+		kinds[i] = kinds[j]
+		kinds[j] = tmp
+	var picks: Array[int] = []
+	for i in _open:
+		picks.append(i)
+	for i in range(picks.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp := picks[i]
+		picks[i] = picks[j]
+		picks[j] = tmp
+	for k in mini(COLOUR_HOLES, picks.size()):
+		_kinds[picks[k]] = kinds[k]
 	var amb := CityAmbience.new()
 	amb.room = self
 	amb.z_index = 60
@@ -127,6 +147,20 @@ func map_world_rect() -> Rect2:
 
 func hole_count() -> int:
 	return _open
+
+
+const HOLE_KINDS: Array[String] = ["gold", "green", "violet", "red"]
+const HOLE_COLOURS := {"gold": Color("f6c86a"), "green": Color("7fe08a"), "violet": Color("b48cff"), "red": Color("ff6a6a")}
+const COLOUR_HOLES := 2
+var _kinds := {}   # índice del agujero → tipo / hole index → kind
+
+
+## Tipo del agujero cuyo centro (en el mundo) es este, o "" / Kind of the hole whose centre (in the world) is this, or ""
+func hole_kind(world_center: Vector2) -> String:
+	for i: int in _kinds:
+		if i < _open and Bedroom.rect_world(_holes[i]).get_center().distance_to(world_center) < 8.0:
+			return _kinds[i]
+	return ""
 
 
 func holes_list() -> Array[Rect2]:
@@ -885,6 +919,42 @@ func _live_holes(ci: CanvasItem) -> void:
 		# Tapa apartada / Cover pushed aside
 		ci.draw_colored_polygon(_ellipse(c + Vector2(rr.x + 22, rr.y * 0.4), Vector2(30, 12)), Color("5a5670"))
 		ci.draw_arc(c + Vector2(rr.x + 22, rr.y * 0.4), 18.0, 0.0, TAU, 16, Color("8a86a0"), 3.0)
+		if _kinds.has(i):
+			_draw_hole_kind(ci, c, rr, _kinds[i], i)
+
+
+## Un agujero de color: borde que late, luz que sube del fondo y su símbolo flotando encima
+## A coloured hole: a pulsing rim, light rising from the depths and its symbol floating above
+func _draw_hole_kind(ci: CanvasItem, c: Vector2, rr: Vector2, kind: String, i: int) -> void:
+	var col: Color = HOLE_COLOURS[kind]
+	var pulse := 0.5 + 0.5 * sin(_t * 3.0 + i)
+	# Halo grande en el suelo y luz que sale del fondo / A wide halo on the floor and light rising from the depths
+	ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - rr * 2.6, rr * 5.2), false, Color(col, 0.3 + 0.15 * pulse))
+	ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - rr * 0.9, rr * 1.8), false, Color(col, 0.7))
+	var ring := PackedVector2Array(_ellipse(c, rr + Vector2(14, 9)))
+	ring.append(ring[0])
+	ci.draw_polyline(ring, Color(col.darkened(0.5), 0.9), 14.0)
+	ci.draw_polyline(ring, Color(col, 0.75 + 0.25 * pulse), 8.0)
+	# Motas de su color que suben / Motes in its colour drifting up
+	for k in 6:
+		var ph := fposmod(_t * 0.6 + k / 6.0 + i * 0.13, 1.0)
+		var p := c + Vector2(sin(k * 2.1 + i) * rr.x * 0.7, -ph * 150.0)
+		ci.draw_rect(Rect2(p - Vector2(5, 5), Vector2(10, 10)), Color(col, (1.0 - ph) * 0.95))
+	# Símbolo / Symbol
+	var top := c + Vector2(0, -rr.y - 110.0 + sin(_t * 2.0 + i) * 10.0)
+	ci.draw_circle(top, 40.0, Color(0.05, 0.03, 0.15, 0.75))
+	ci.draw_arc(top, 40.0, 0.0, TAU, 28, col, 6.0)
+	match kind:
+		"gold":
+			DreamBackground.draw_star(ci, top, 22.0, col)
+		"green":
+			ci.draw_rect(Rect2(top - Vector2(8, 24), Vector2(16, 48)), col)
+			ci.draw_rect(Rect2(top - Vector2(24, 8), Vector2(48, 16)), col)
+		"violet":
+			ci.draw_colored_polygon(PackedVector2Array([top + Vector2(0, -26), top + Vector2(18, 0), top + Vector2(0, 26), top + Vector2(-18, 0)]), col)
+		"red":
+			ci.draw_arc(top, 20.0, -PI * 0.5, PI * 1.1, 20, col, 7.0)
+			ci.draw_colored_polygon(PackedVector2Array([top + Vector2(-4, -34), top + Vector2(14, -21), top + Vector2(-4, -8)]), col)
 
 
 # --- Cosas con altura, ordenadas con los personajes / Things with height, sorted with the characters ---
