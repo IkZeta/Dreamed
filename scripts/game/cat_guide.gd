@@ -211,6 +211,7 @@ func _process(delta: float) -> void:
 		_life -= delta
 		if _life <= 0.0 or not run.player.alive:
 			_out = 0.0
+			Audio.play("cat_vanish", -16.0, 0.05)
 	else:
 		_out += delta
 		if _out >= OUT:

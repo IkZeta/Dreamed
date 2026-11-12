@@ -294,6 +294,11 @@ func _process(delta: float) -> void:
 			var dr := druid()
 			var heavy := dr != null and dr == weapon and dr.transformed and dr.form == "bear"
 			_dust.append({"p": global_position + Vector2(-_facing * 10.0, 0), "t": 0.0, "big": heavy})
+			# Pisadas muy bajitas; el buitre no pisa / Very quiet footsteps; the vulture doesn't step
+			if heavy:
+				Audio.play("step_heavy", -16.0, 0.08)
+			elif not flying():
+				Audio.play("step", -24.0, 0.12)
 		if not run.running and absf(position.x - _last_pos.x) > 0.3:
 			_facing = signf(position.x - _last_pos.x)
 	_last_pos = position

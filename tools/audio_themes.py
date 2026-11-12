@@ -1399,4 +1399,38 @@ SFX.update({"roar": (sfx_roar, 0.3, 0.1), "flap": (sfx_flap, 0.28, 0.12)})
 SFX.update({"druid_shift": (sfx_druid_shift, 0.3, 0.1), "bear_swipe": (sfx_bear_swipe, 0.3, 0.12),
             "claw": (sfx_claw, 0.28, 0.15), "peck": (sfx_peck, 0.28, 0.12)})
 
+
+def sfx_step():
+    """Pisada de zapatilla: un roce mullido y un golpecito sordo, muy bajito
+    Slipper footstep: a soft scuff and a dull little tap, very quiet."""
+    d = 0.09
+    scuff = lp(bp(noise(d), 500, 2600), 3000) * np.exp(-t_axis(d) * 45) * 0.12
+    return mix(scuff, thump(RNG.uniform(120, 150), 0.08, 0.12, 18))
+
+
+def sfx_step_heavy():
+    """Pisada de oso: una zarpa grande y blanda contra el suelo / Bear footstep: a big soft paw on the floor."""
+    d = 0.16
+    pad = lp(bp(noise(d), 120, 900), 1000) * np.exp(-t_axis(d) * 28) * 0.18
+    return mix(pad, thump(RNG.uniform(60, 72), 0.22, 0.3, 9))
+
+
+def sfx_cat_vanish():
+    """El Gato se desvanece: tres notas de celesta en tonos enteros que bajan y un soplo con risita
+    The Cat fades out: three whole-tone celesta notes falling and a breathy giggle."""
+    x = np.zeros((int(SR * 1.3), 2))
+    for i, n in enumerate([88, 86, 84]):
+        place(x, glock(midi(n), 0.9, 0.09 - i * 0.02), i * 0.07, 0.4 - i * 0.4, human=False)
+    giggle = np.zeros(int(SR * 0.4))
+    for k in range(3):
+        g = vowel(0.06, 520 - k * 30, 480 - k * 30, 0.05)
+        at = int(SR * (0.12 + k * 0.08))
+        giggle[at:at + len(g)] += g[: len(giggle) - at]
+    place(x, lp(giggle, 2500), 0.05, 0.2, human=False)
+    return x
+
+
+SFX.update({"step": (sfx_step, 0.2, 0.05), "step_heavy": (sfx_step_heavy, 0.25, 0.05),
+            "cat_vanish": (sfx_cat_vanish, 0.4, 0.15)})
+
 OVERRIDES = set(MUSIC) | set(SFX)
