@@ -91,6 +91,9 @@ func _ready() -> void:
 		# Se guarda al empezar cada sueño (para "Continuar") / Saved at the start of every dream (for "Continue")
 		GameState.save_run()
 		Audio.play_music(["", "music_dream1", "music_living", "music_school", "music_city"][act], 2.5)
+		# Los sueños más hondos de cada acto suenan algo deformados (el jefe, limpio)
+		# Each act's deeper dreams sound a little warped (the boss, clean)
+		Audio.dream_warp(0 if _wave.get("boss", false) else mini((depth - 1) % 5, 3))
 	# Llegar al salón por primera vez desbloquea a Mr. Ad / Reaching the living room for the first time unlocks Mr. Ad
 	# El Acto 2 también desbloquea la pistola de dedos; el Acto 3, el oso de peluche y El Pinche
 	# Act 2 also unlocks the finger gun; Act 3, the teddy bear and the Kitchen Boy

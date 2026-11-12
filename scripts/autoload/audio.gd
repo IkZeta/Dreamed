@@ -106,6 +106,7 @@ var _fade_tw: Tween
 
 func play_music(song: String, fade := 1.5, volume_db := -6.0) -> void:
 	muffle(false, 0.6)
+	dream_warp(0)
 	if song == _music_name:
 		# La misma canción: solo vuelve a su volumen si se había bajado / Same song: just back to its volume if it was lowered
 		if _music[_music_idx].volume_db < volume_db - 0.5:
@@ -189,6 +190,26 @@ func muffle(on: bool, time := 0.35) -> void:
 	_muffle_tw = create_tween()
 	_muffle_tw.tween_method(func(hz: float) -> void: lp.cutoff_hz = hz, lp.cutoff_hz, 700.0 if on else 20000.0, time) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT if on else Tween.EASE_IN)
+
+
+## Cuanto más hondo en el acto, más se deforma la música: 0 = limpia; 1 = un coro leve; 2 = más coro
+## y un phaser lento; 3 = el sueño ya se tambalea. / The deeper into the act, the more warped the
+## music: 0 = clean; 1 = a light chorus; 2 = more chorus and a slow phaser; 3 = the dream is reeling.
+func dream_warp(level: int) -> void:
+	var mi := AudioServer.get_bus_index("Music")
+	if mi == -1 or AudioServer.get_bus_effect_count(mi) < 3:
+		return
+	var ch := AudioServer.get_bus_effect(mi, 1) as AudioEffectChorus
+	var ph := AudioServer.get_bus_effect(mi, 2) as AudioEffectPhaser
+	AudioServer.set_bus_effect_enabled(mi, 1, level >= 1)
+	AudioServer.set_bus_effect_enabled(mi, 2, level >= 2)
+	if ch:
+		ch.wet = [0.0, 0.18, 0.28, 0.38][clampi(level, 0, 3)]
+		ch.dry = 1.0 - ch.wet * 0.5
+	if ph:
+		ph.depth = [0.0, 0.0, 0.35, 0.6][clampi(level, 0, 3)]
+		ph.rate_hz = 0.12 + 0.06 * level
+		ph.feedback = 0.4
 
 
 func _looped(sound: String) -> AudioStream:

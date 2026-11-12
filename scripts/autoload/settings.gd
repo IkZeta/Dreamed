@@ -358,3 +358,13 @@ func _ensure_buses() -> void:
 		var lp := AudioEffectLowPassFilter.new()
 		lp.cutoff_hz = 20000.0
 		AudioServer.add_bus_effect(mi, lp)
+		# Coro y phaser para «deformar» la música en los sueños más profundos de cada acto (apagados al principio)
+		# Chorus and phaser to "warp" the music in each act's deeper dreams (off to begin with)
+		var ch := AudioEffectChorus.new()
+		ch.wet = 0.0
+		AudioServer.add_bus_effect(mi, ch)
+		AudioServer.set_bus_effect_enabled(mi, 1, false)
+		var ph := AudioEffectPhaser.new()
+		ph.depth = 0.0
+		AudioServer.add_bus_effect(mi, ph)
+		AudioServer.set_bus_effect_enabled(mi, 2, false)
