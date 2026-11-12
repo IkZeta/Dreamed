@@ -1118,6 +1118,7 @@ func on_player_died() -> void:
 	Audio.play("lose", -2.0)
 	shake(18.0)
 	fx.dissipate(player.position + Vector2(0, -40), UITheme.BONE)
+	fx.text(player.position + Vector2(0, -150), "Zzz…", UITheme.MIST, 30)
 	get_tree().create_timer(0.9, false).timeout.connect(_cinematics.wake_scene.bind(false))
 
 

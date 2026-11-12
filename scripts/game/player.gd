@@ -36,6 +36,7 @@ const RELOAD_TIME := 1.5
 const HURT := Vector2(0, -30)
 const HURT_R := 20.0
 var armed := true            # lleva el arma en la mano / holds the weapon
+var _dead_t := 0.0
 var hurt_lean := 0.0         # retroceso al recibir daño / recoil when hit
 var hop := 0.0               # altura de un salto en píxeles / jump height in pixels
 var fedora := false         # sombrero de detective del último sueño / the last dream's detective hat
@@ -248,13 +249,19 @@ func _physics_process(delta: float) -> void:
 	attack_anim = maxf(0.0, attack_anim - delta * 4.0)
 	cast_anim = maxf(0.0, cast_anim - delta * 3.0)
 	reload_anim = maxf(0.0, reload_anim - delta / RELOAD_TIME)
-	hurt_lean = move_toward(hurt_lean, 0.0, delta * 1.5)
+	# Al caer rendido se va hacia atrás, como quien se queda dormido de pie, y se desvanece en estrellas
+	# When he falls he tips backwards, like someone dozing off standing up, and fades into stars
+	if not alive:
+		_dead_t += delta
+		hurt_lean = move_toward(hurt_lean, -0.9, delta * 2.2)
+	else:
+		hurt_lean = move_toward(hurt_lean, 0.0, delta * 1.5)
 	_land = move_toward(_land, 0.0, delta * 4.0)
 	stealth_t = maxf(0.0, stealth_t - delta)
 	_hover = move_toward(_hover, 1.0 if form_hover and alive else 0.0, delta * 3.0)
 	_turn = maxf(0.0, _turn - delta * 6.0)
 	# En sigilo se vuelve casi una sombra / In stealth he turns almost into a shadow
-	modulate = Color(0.75, 0.68, 1.0, 0.55) if stealth_t > 0.0 and alive else Color(1, 1, 1, 1.0 if alive else 0.35)
+	modulate = Color(0.75, 0.68, 1.0, 0.55) if stealth_t > 0.0 and alive else Color(1, 1, 1, 1.0 if alive else clampf(1.0 - (_dead_t - 0.35) / 0.55, 0.0, 1.0))
 	if alive and run.running:
 		var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		root_t = maxf(0.0, root_t - delta)
