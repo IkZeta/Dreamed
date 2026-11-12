@@ -1543,4 +1543,22 @@ def sfx_heartbeat():
 
 SFX.update({"heartbeat": (sfx_heartbeat, 0.1, 0.05)})
 
+
+def sfx_sheep_count():
+    """Antes de la estampida: una nana de caja de música que cuenta ovejas (una, dos, tres...) y
+    acelera hasta atropellarse / Before the stampede: a music-box lullaby counting sheep (one, two,
+    three...) that speeds up until it trips over itself."""
+    x = np.zeros((int(SR * 2.4), 2))
+    notes = [72, 76, 79, 76, 72, 76, 79, 84, 79, 84, 88, 91]
+    at = 0.0
+    gap = 0.2
+    for i, n in enumerate(notes):
+        place(x, glock(midi(n), 0.9, 0.09 + 0.004 * i), at, -0.5 + i * 0.09, human=False)
+        at += gap
+        gap *= 0.86
+    return x
+
+
+SFX.update({"sheep_count": (sfx_sheep_count, 0.35, 0.1)})
+
 OVERRIDES = set(MUSIC) | set(SFX)

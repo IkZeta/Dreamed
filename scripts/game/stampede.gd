@@ -42,6 +42,7 @@ func _ready() -> void:
 			"z": 0.0, "ph": randf() * TAU, "hit": [], "spd": SPEED * randf_range(0.9, 1.1),
 		})
 	Audio.play("stampede", -6.0)
+	Audio.play("sheep_count", -10.0)
 	run.fx.text(Vector2((v.position.x + 160.0) if _dir > 0.0 else (v.end.x - 160.0), _y - 140.0), tr("STAMPEDE"), Color("f4f1ea"), 30)
 	Progress.tip("sheep")
 
