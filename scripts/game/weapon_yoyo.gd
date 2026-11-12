@@ -20,6 +20,8 @@ const DAMAGE := 9.0
 const KNOCKBACK := 130.0
 const COOLDOWN := 0.65
 const YANK_EVERY := 3
+## Hasta dónde busca un agujero detrás de Kroker / How far behind Kroker it looks for a hole
+const YANK_HOLE := 340.0
 const SPEED := 1100.0
 const BOUNCE_RANGE := 200.0
 const PINK := Color("e85d75")
@@ -47,13 +49,12 @@ func attack() -> bool:
 	var target := nearest(RANGE * range_mult())
 	if target == null:
 		return false
-	_throws += 1
 	var y := YoyoShot.new()
 	y.weapon = self
 	y.target = target
 	y.damage = DAMAGE * (1.0 + uv("stolk", "pct") / 100.0)
 	y.bounces = int(uv("svinho", "extra"))
-	y.yank = _throws % YANK_EVERY == 0
+	y.yank = _throws >= YANK_EVERY - 1
 	y.position = hand_pos()
 	run.world.add_child(y)
 	_shot = y
@@ -73,15 +74,31 @@ func hand_pos() -> Vector2:
 func yank(e: Enemy) -> void:
 	if e.is_boss() or not e.can_fall():
 		return
-	var to := player.global_position - e.global_position
-	var d := to.length()
-	if d < 1.0:
-		return
-	# Lo justo para pasar ~140 px más allá de Kroker frenando a 500 px/s² (como el golpe fuerte)
-	# Just enough to end up ~140 px past Kroker, braking at 500 px/s² (like the heavy hit)
-	var v := sqrt(2.0 * 500.0 * (d + 140.0))
-	e.knock = to / d * v / sqrt(maxf(1.0, e.mass))
-	e.heavy_t = 0.9
+	_throws = 0
+	var from := e.global_position
+	var me := player.global_position
+	var dir := (me - from).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2(player._facing, 0.0)
+	# Pegado a Kroker: lo voltea alrededor, hacia el agujero más cercano que haya
+	# Right next to Kroker: swings it round, towards the nearest hole there is
+	var close := from.distance_to(me) < 90.0
+	# Si hay un agujero detrás de Kroker (en la misma dirección, no muy lejos), apunta ahí y llega
+	# justo; si no, pasa de largo ~160 px / If there's a hole behind Kroker (same direction, not too
+	# far), it aims there and gets just far enough; otherwise it flies ~160 px past him
+	var goal := me + dir * 160.0
+	var best := YANK_HOLE
+	for c in _holes_near(me):
+		var to_c := c - me
+		var dist := to_c.length()
+		if dist < best and dist > 1.0 and (close or to_c.normalized().dot(dir) > 0.55):
+			best = dist
+			goal = c + to_c.normalized() * 30.0
+	var path := goal - from
+	# Frena a ~850 px/s² mientras dura el golpe fuerte / Brakes at ~850 px/s² while the heavy hit lasts
+	var v := sqrt(2.0 * 850.0 * path.length())
+	e.knock = path.normalized() * v
+	e.heavy_t = 1.0
 	e.stun_t = maxf(e.stun_t, 0.7)   # pasa a tu lado sin morderte / flies past without biting you
 	run.fx.text(e.global_position + Vector2(0, -e.aim_height * 2.0 - 30), tr("YOYO_YANK"), PINK, 22)
 	Audio.play("swing", -4.0, 0.1)
@@ -105,7 +122,27 @@ func yank(e: Enemy) -> void:
 			run.fx.bolt(PackedVector2Array([e.aim_point(), o.aim_point()]), PINK)
 
 
+## Centros de los agujeros libres cerca de Kroker (los del suelo y los Bostezos)
+## Centres of the free holes near Kroker (floor ones and Yawns)
+func _holes_near(at: Vector2) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	var list: Array = run.room.holes_list()
+	for i in run.room.hole_count():
+		var rc := Bedroom.rect_world(list[i])
+		if not run.hole_covered(rc) and rc.get_center().distance_to(at) < YANK_HOLE:
+			out.append(rc.get_center())
+	if is_instance_valid(run.yawns):
+		for c in run.yawns.open_centers():
+			if c.distance_to(at) < YANK_HOLE:
+				out.append(c)
+	return out
+
+
 func on_yoyo_hit(e: Enemy) -> void:
+	# Cuenta los golpes que llegan (los que fallan o dan a un jefe no gastan el tirón)
+	# Counts the hits that land (misses or hits on a boss don't spend the yank)
+	if _throws < YANK_EVERY - 1:
+		_throws += 1
 	if lv("silly") > 0 and randf() * 100.0 < uv("silly", "chance"):
 		e.glitch(uv("silly", "secs"))
 
@@ -113,7 +150,7 @@ func on_yoyo_hit(e: Enemy) -> void:
 func charge_bars() -> Array:
 	# Con el yoyó fuera, el anillo espera; el rosa cuenta para el tirón
 	# With the yo-yo out, the ring waits; the pink one counts towards the yank
-	var yank_k := float(_throws % YANK_EVERY) / YANK_EVERY
+	var yank_k := float(_throws) / (YANK_EVERY - 1)
 	if is_instance_valid(_shot):
 		return [[0.0, UITheme.BONE], [yank_k, PINK]]
 	return [super.charge_bars()[0], [yank_k, PINK]]
