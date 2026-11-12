@@ -312,6 +312,9 @@ func _move(delta: float) -> void:
 		if rush_t > 0.0:
 			want = rush_dir * maxf(speed, 95.0) * 2.2
 		vel = want * (0.5 if slow_t > 0.0 else 1.0) * fluff_speed_mult()
+		# El Despertador ha sonado: todos van más deprisa / The Alarm Clock went off: everyone's faster
+		if run.haste_t > 0.0 and not is_boss():
+			vel *= run.haste_mult
 	# Se separa de los demás enemigos / Keeps apart from other enemies
 	var here := global_position
 	for n: Node in run.foes():
@@ -839,6 +842,12 @@ func _draw() -> void:
 		for i in 3:
 			var y := randf_range(-aim_height * 2.5, 6)
 			draw_rect(Rect2(randf_range(-40, 10), y, randf_range(20, 50), 3), Color([GLITCH_A, GLITCH_B, Color.WHITE][i], 0.5 * a))
+	# Despiertos por el Despertador: rayitas de prisa detrás / Woken by the Alarm Clock: little hurry lines behind
+	if run and state == State.ALIVE and not is_boss() and float(run.get("haste_t")) > 0.0:
+		for i in 3:
+			var y := -aim_height * (0.6 + i * 0.6) + bob
+			var x0 := -_facing * (radius + 4.0 + fposmod(_t * 90.0 + i * 13.0, 14.0))
+			draw_line(Vector2(x0, y), Vector2(x0 - _facing * 12.0, y), Color("ff8a96", 0.7 * a), 2.0)
 	_draw_statuses(bob, a)
 	if actor_t > 0.0 and state == State.ALIVE:
 		_draw_actor_mark(a)

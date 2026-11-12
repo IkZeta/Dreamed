@@ -42,7 +42,9 @@ var fedora := false         # sombrero de detective del último sueño / the las
 var pose_lean := 0.0        # inclinación de pose (apoyado en la pared) / posing lean (leaning on the wall)
 var shield_charges := 0      # golpes que para la almohada recogida / hits the picked-up pillow blocks
 var slow_t := 0.0            # frenado por un charco / slowed by a puddle
-var push := Vector2.ZERO     # empuje del suelo inclinado / push from a tilted floor
+var push := Vector2.ZERO
+## Empujón que se va frenando (la estampida de ovejas) / A shove that slows down (the sheep stampede)
+var _shove := Vector2.ZERO     # empuje del suelo inclinado / push from a tilted floor
 var bleed_t := 0.0           # sangrado de los cuchillos del Chef / bleeding from the Chef's knives
 var _bleed_tick := 0.0
 var shock_t := 0.0           # descarga de la Marioneta: chispas mientras está paralizado / Puppet zap: sparks while paralysed
@@ -270,7 +272,8 @@ func _physics_process(delta: float) -> void:
 				_vel = _dash_vel.normalized() * spd
 				# Un poco de invulnerabilidad al acabar (parpadea) / A little invulnerability when it ends (he blinks)
 				_invuln = maxf(_invuln, DASH_INVULN)
-		position = run.clamp_to_arena(position + _vel * delta, 24.0, form_hover)
+		position = run.clamp_to_arena(position + (_vel + _shove) * delta, 24.0, form_hover)
+		_shove = _shove.move_toward(Vector2.ZERO, 2400.0 * delta)
 		if absf(_vel.x) > 10.0:
 			if signf(_vel.x) != _facing:
 				_turn = 1.0
@@ -351,6 +354,38 @@ func set_facing(f: float) -> void:
 	_facing = f
 
 
+func shove(v: Vector2) -> void:
+	_shove += v
+	hurt_lean = -0.18
+
+
+## El Examen suspenso que le ha puesto un cero (mientras viva y no le peguen) / The Failed Exam that gave him a zero (while it lives and isn't hit)
+var exam_mark: Node2D = null
+
+
+func marked() -> bool:
+	return is_instance_valid(exam_mark) and (exam_mark as Enemy).is_targetable()
+
+
+## Un cero rojo encima de la cabeza y un hilo de tinta hasta el examen que se lo ha puesto
+## A red zero above his head and an ink thread to the exam that gave it to him
+func _draw_exam_mark() -> void:
+	if not marked():
+		return
+	var top := Vector2(0, -132 + sin(_t * 4.0) * 3.0)
+	var red := Color("e0303a")
+	var to := exam_mark.global_position + Vector2(0, -60) - global_position
+	var n := 14
+	for i in n:
+		if i % 2 == 0:
+			draw_line(top.lerp(to, float(i) / n), top.lerp(to, float(i + 1) / n), Color(red, 0.45), 2.0)
+	draw_circle(top, 15.0, Color(1, 0.98, 0.94, 0.9))
+	draw_arc(top, 15.0, 0, TAU, 20, red, 2.0)
+	draw_set_transform(top, 0.0, Vector2(0.75, 1.0))
+	draw_arc(Vector2.ZERO, 8.0, 0, TAU, 16, red, 3.0)
+	draw_set_transform(Vector2.ZERO)
+
+
 func take_damage(amount: float, source: Node2D = null) -> void:
 	if not alive or _invuln > 0.0 or not run.running or _dash_t > 0.0:
 		return
@@ -388,6 +423,9 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 			GameState.last_hit = str(who)
 	var def := (armor + form_armor) * (Enemy.BLEED_DEFENSE if bleed_t > 0.0 else 1.0)
 	var dmg := maxf(maxf(1.0, amount * 0.5), amount - def)
+	# Marcado por el Examen suspenso: duele más / Marked by the Failed Exam: it hurts more
+	if marked():
+		dmg *= Exam.MARK_MULT
 	hp = maxf(0.0, hp - dmg)
 	_invuln = HIT_INVULN
 	_flash = 1.0
@@ -551,6 +589,7 @@ func weapon_stunk(w: Weapon) -> bool:
 func _draw() -> void:
 	# Parpadea mientras es invulnerable / Blinks while invulnerable
 	_draw_dust()
+	_draw_exam_mark()
 	var visible_now := _invuln <= 0.0 or fmod(_t, 0.12) < 0.07 or not alive
 	if not visible_now:
 		return

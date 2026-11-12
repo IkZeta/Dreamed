@@ -331,7 +331,7 @@ def weapon_icons(ms):
     The weapons drawn large for the second-weapon screen: the same drawing as in Kroker's hand,
     but at a higher resolution (so they don't come out crudely blocky when enlarged)."""
     scales = {"weapon_bat": 0.48, "weapon_pillow": 0.6, "weapon_book": 0.6, "weapon_tank": 0.6, "weapon_nozzle": 0.6,
-              "weapon_teddy": 0.84, "weapon_ball": 0.81, "weapon_laptop": 0.8, "weapon_boot_r": 0.96, "weapon_boot_l": 0.96}
+              "weapon_teddy": 0.84, "weapon_ball": 0.81, "weapon_laptop": 0.8, "weapon_boot_r": 0.96, "weapon_boot_l": 0.96, "weapon_yoyo": 0.81}
     for name, px in scales.items():
         sp = dict(ms.SPRITES[name])
         ms.add("wicon_" + name[len("weapon_"):], sp["x"], sp["y"], sp["w"], sp["h"], sp["body"], xf=sp["xf"], px=px,

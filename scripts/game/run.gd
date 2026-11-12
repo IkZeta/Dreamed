@@ -243,6 +243,8 @@ func _ready() -> void:
 		return
 	GameState.seed_dream(depth)
 	_events.roll_event(depth)
+	# Estampida de ovejas: desde el Acto 2, en algunos sueños sin jefe / Sheep stampede: from Act 2, in some dreams without a boss
+	_stampede_wait = randf_range(STAMPEDE_AT.x, STAMPEDE_AT.y) if depth >= 6 and not _wave.get("boss", false) and randf() < STAMPEDE_CHANCE else -1.0
 	if depth == 1:
 		_cinematics.play_wake_up(depth)
 	elif depth == GameState.FINAL_DREAM:
@@ -467,6 +469,13 @@ func _physics_process(delta: float) -> void:
 		return
 	GameState.run_time += delta
 	_fall_chain_t = maxf(0.0, _fall_chain_t - delta)
+	haste_t = maxf(0.0, haste_t - delta)
+	if _stampede_wait > 0.0:
+		_stampede_wait -= delta
+		if _stampede_wait <= 0.0:
+			var st := Stampede.new()
+			st.run = self
+			world.add_child(st)
 	_burst_budget = minf(4.0, _burst_budget + delta * 3.0)
 	hud.set_run_clock(GameState.run_time)
 	_events.update_event(delta)
@@ -625,6 +634,11 @@ func _pick_kind() -> String:
 				return "thug"
 			if k == "puppet" and _count_alive(Puppet) >= 3:
 				return "foox"
+			# Como mucho 2 Despertadores y 2 Exámenes / At most 2 Alarm Clocks and 2 Exams
+			if k == "alarm" and _count_alive(AlarmClock) >= 2:
+				return "foox"
+			if k == "exam" and _count_alive(Exam) >= 2:
+				return "thug"
 			# Como mucho 2 Chapuzas, y solo si hay agujeros / At most 2 Botchers, and only if there are holes
 			if k == "botcher" and (_count_alive(Botcher) >= 2 or room.hole_count() == 0):
 				return "foox"
@@ -706,6 +720,8 @@ func _spawn_enemy(kind: String, pos: Vector2) -> void:
 		"van": e = Van.new()
 		"riot": e = Riot.new()
 		"botcher": e = Botcher.new()
+		"alarm": e = AlarmClock.new()
+		"exam": e = Exam.new()
 		_: e = Foox.new()
 	# Muy de vez en cuando, en lugar del enemigo sale un Foox dorado (la suerte ayuda un poco)
 	# Every so often a golden Foox turns up instead (luck helps a little)
@@ -884,6 +900,34 @@ func _pixel_burst(e: Enemy) -> void:
 		if o is Enemy and o != e and (o as Enemy).is_targetable() and (o as Enemy).global_position.distance_to(e.global_position) < GameState.PIXEL_BURST_RADIUS:
 			(o as Enemy).glitch(0.0, 1.2, 1.5, 1.25)
 			(o as Enemy).hit(GameState.PIXEL_BURST_DMG * player.damage_mult, ((o as Enemy).global_position - e.global_position).normalized() * 180.0)
+
+
+## El Despertador: todos los enemigos (no los jefes) van "mult" veces más rápido "secs" s
+## The Alarm Clock: every enemy (not bosses) moves "mult" times faster for "secs" s
+var haste_t := 0.0
+var haste_mult := 1.0
+const STAMPEDE_CHANCE := 0.35
+const STAMPEDE_AT := Vector2(9.0, 24.0)
+var _stampede_wait := -1.0
+
+
+func enemy_haste(secs: float, mult: float) -> void:
+	haste_t = maxf(haste_t, secs)
+	haste_mult = mult
+	for n: Node in enemies.get_children():
+		var e := n as Enemy
+		if e and e.is_targetable() and not e.is_boss():
+			fx.ring(e.aim_point(), 16.0, Color("e0505e"), 0.3, 2.0)
+
+
+## El Despertador cayó por un agujero: a todos les entra sueño (van a la mitad) y se acaba la prisa
+## The Alarm Clock fell down a hole: everyone gets drowsy (half speed) and the hurry ends
+func enemy_lull(secs: float) -> void:
+	haste_t = 0.0
+	for n: Node in enemies.get_children():
+		var e := n as Enemy
+		if e and e.is_targetable() and not e.is_boss():
+			e.slow_t = maxf(e.slow_t, secs)
 
 
 func on_enemy_killed(e: Node) -> void:

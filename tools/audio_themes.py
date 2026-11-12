@@ -1433,4 +1433,79 @@ def sfx_cat_vanish():
 SFX.update({"step": (sfx_step, 0.2, 0.05), "step_heavy": (sfx_step_heavy, 0.25, 0.05),
             "cat_vanish": (sfx_cat_vanish, 0.4, 0.15)})
 
+
+def sfx_alarm_tick():
+    """Tic-tac de despertador: dos clics de madera, el segundo un pelín más grave
+    An alarm clock's tick-tock: two wooden clicks, the second a touch lower."""
+    x = np.zeros(int(SR * 0.4))
+    for i, f in enumerate((2400, 1900)):
+        c = bar(f, 0.06, 0.25, "wood", 0.9)
+        at = int(SR * i * 0.18)
+        x[at:at + len(c)] += c[: len(x) - at]
+    return lp(x, 4000)
+
+
+def sfx_alarm_ring():
+    """El despertador suena: un martillito que golpea dos campanas muy deprisa (redondo, sin chirriar)
+    The alarm rings: a little hammer striking two bells very fast (round, not shrill)."""
+    d = 1.3
+    x = np.zeros(int(SR * (d + 0.8)))
+    k = 0
+    tt = 0.0
+    while tt < d:
+        f = midi(88) if k % 2 == 0 else midi(91)
+        b = glock(f, 0.5, 0.11 * (1.0 - 0.35 * tt / d))
+        at = int(SR * tt)
+        x[at:at + len(b)] += b[: len(x) - at]
+        tt += 0.045
+        k += 1
+    return lp(x, 5200)
+
+
+def sfx_exam_stamp():
+    """El examen te marca: golpe de sello de goma y un roce de papel / The exam marks you: a rubber stamp thunk and a paper rustle."""
+    return mix(thump(150, 0.18, 0.45, 16), lp(bp(noise(0.25), 1500, 6000), 6000) * np.exp(-t_axis(0.25) * 14) * 0.12,
+               np.pad(bar(midi(57), 0.3, 0.16, "wood", 0.4), (int(SR * 0.02), 0)))
+
+
+def sfx_sheep_baa():
+    """Un «beee» de oveja soñolienta / A sleepy sheep's "baa"."""
+    d = 0.55
+    t = t_axis(d)
+    v = vowel(d, 340, 300, 0.4) * (1.0 + 0.35 * np.sin(2 * np.pi * 9.0 * t))
+    return lp(v, 3000)
+
+
+def sfx_stampede():
+    """La estampida se acerca: un retumbar de pezuñas blandas que crece / The stampede approaches: a growing rumble of soft hooves."""
+    d = 2.2
+    x = np.zeros(int(SR * d))
+    tt = 0.0
+    while tt < d - 0.2:
+        h = thump(RNG.uniform(70, 110), 0.12, 0.12 + 0.25 * tt / d, 20)
+        at = int(SR * tt)
+        x[at:at + len(h)] += h[: len(x) - at]
+        tt += RNG.uniform(0.05, 0.11)
+    rumble = lp(noise(d), 180) * np.linspace(0.1, 0.5, int(SR * d))
+    return lp(x + rumble, 1200)
+
+
+def sfx_yoyo_throw():
+    """El yoyó sale zumbando por la cuerda / The yo-yo whirs out along its string."""
+    d = 0.3
+    t = t_axis(d)
+    whirr = np.sin(2 * np.pi * np.cumsum(260 + 520 * t / d) / SR) * (0.5 + 0.5 * np.sin(2 * np.pi * 38 * t))
+    return lp(whirr * np.exp(-t * 4) * 0.22 + A.sweep_noise(d, 600, 2200, 3.0, 0.12), 3500)
+
+
+def sfx_yoyo_catch():
+    """El yoyó vuelve a la mano: un clac de plástico suave / The yo-yo snaps back into the hand: a soft plastic clack."""
+    return mix(bar(1500, 0.08, 0.3, "wood", 0.8), thump(200, 0.08, 0.2, 25))
+
+
+SFX.update({"alarm_tick": (sfx_alarm_tick, 0.15, 0.05), "alarm_ring": (sfx_alarm_ring, 0.3, 0.1),
+            "exam_stamp": (sfx_exam_stamp, 0.2, 0.05), "sheep_baa": (sfx_sheep_baa, 0.25, 0.1),
+            "stampede": (sfx_stampede, 0.3, 0.1), "yoyo_throw": (sfx_yoyo_throw, 0.15, 0.05),
+            "yoyo_catch": (sfx_yoyo_catch, 0.15, 0.05)})
+
 OVERRIDES = set(MUSIC) | set(SFX)

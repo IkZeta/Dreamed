@@ -281,6 +281,7 @@ PAJAMAS = {
     "laptop": {"base": "#2b2f45", "pattern": "#5ff2a0", "piping": "#5ff2a0", "slippers": "#4a4f72", "print": "dots"},
     "boots": {"base": "#2f5450", "pattern": "#d8a040", "piping": "#e8c070", "slippers": "#3a2a22", "print": "plaid"},
     "druid": {"base": "#3e5f3e", "pattern": "#b8d870", "piping": "#e8d8a0", "slippers": "#5a3a22", "print": "leaves"},
+    "yoyo": {"base": "#e8a8c0", "pattern": "#7a3a6a", "piping": "#fbf3dc", "slippers": "#7a3a6a", "print": "dots"},
 }
 
 
@@ -3513,6 +3514,79 @@ def act2_npcs():
 
 
 # --- Render ---------------------------------------------------------------------
+def newcomers():
+    """Despertador, examen suspenso, ovejas de la estampida y el yoyó, en pixel art plano.
+    Alarm clock, failed exam, stampede sheep and the yo-yo, in flat pixel art."""
+    # --- Despertador: caja roja redonda, esfera crema, dos campanas doradas y el martillito
+    # (las agujas se dibujan en el juego, giran como locas antes de sonar). Los pies van aparte.
+    # --- Alarm clock: round red case, cream dial, two golden bells and the little hammer (the
+    # hands are drawn in game and spin wildly before it rings). The feet are separate.
+    R0, R1, R2 = "#e0505e", "#b0364a", "#ff8a96"
+    G0, G1 = "#f6c86a", "#c9962e"
+    a = ""
+    for sx in (-1, 1):
+        a += flat("M%g,-52 L%g,-60" % (sx * 8, sx * 13) + " L%g,-58 L%g,-50 Z" % (sx * 15, sx * 10), "#2b2945")
+        a += flat("M%g,-56 C%g,-72 %g,-72 %g,-56 Z" % (sx * 6, sx * 8, sx * 26, sx * 26), G0)
+        a += flat("M%g,-56 C%g,-66 %g,-70 %g,-56 Z" % (sx * 18, sx * 20, sx * 26, sx * 26), G1)
+        a += flat(ellipse_d(sx * 16, -70, 2.4, 2.4), G1)
+    a += flat("M-1.5,-66 L1.5,-66 L1.5,-54 L-1.5,-54 Z", "#2b2945") + flat(ellipse_d(0, -67, 3.4, 3.4), "#5a5a72")
+    a += flat(ellipse_d(0, -32, 24, 24), R0) + flat("M8,-54 C22,-48 28,-30 18,-14 C14,-10 8,-8 4,-8 C18,-22 18,-42 8,-54 Z", R1)
+    a += flat("M-16,-46 C-12,-52 -6,-54 0,-55 L-1,-52 C-6,-51 -11,-48 -14,-44 Z", R2)
+    a += flat(ellipse_d(0, -32, 17, 17), "#fbf3dc") + flat("M6,-47 C14,-42 18,-32 14,-22 C12,-19 9,-17 6,-16 C14,-24 14,-38 6,-47 Z", "#e6dcc0")
+    for k in range(12):
+        ang = k * math.pi / 6
+        r = 13.5
+        sz = 1.6 if k % 3 == 0 else 1.0
+        a += flat(ellipse_d(r * math.sin(ang), -32 - r * math.cos(ang), sz, sz), "#2b2945")
+    add("alarm_body", -30, -76, 60, 72, a, flat=True)
+    f = flat(ellipse_d(0, 2, 7, 4), "#2b2945") + flat("M-2,-8 L2,-8 L2,0 L-2,0 Z", "#5a5a72")
+    add("alarm_foot", -9, -10, 18, 16, f, flat=True)
+
+    # --- Examen suspenso: un folio con renglones azules, la esquina doblada y un 0 enorme en rojo
+    # con cejas fruncidas (está enfadado contigo). / Failed exam: a sheet with blue lines, a
+    # dog-eared corner and a huge red 0 with frowning brows (it's cross with you).
+    PA, PA1, LN, RED = "#fbfaf2", "#ddd8c6", "#8fb0e8", "#e0303a"
+    e = flat("M-20,-26 L12,-26 L20,-18 L20,26 L-20,26 Z", PA) + flat("M12,-26 L20,-18 L12,-18 Z", PA1)
+    e += flat("M14,-18 L20,-18 L20,26 L14,26 Z", "#efeadb")
+    for y in (-17, -9):
+        e += flat("M-16,%g L14,%g L14,%g L-16,%g Z" % (y, y, y + 2.6, y + 2.6), LN)
+    e += flat("M-16,-23 L-4,-23 L-4,-21 L-16,-21 Z", "#2b2945")
+    e += "<ellipse cx='0' cy='10' rx='9' ry='11' fill='none' stroke='%s' stroke-width='3.6'/>" % RED
+    e += "<path d='M-12,-3 L-3,0 M12,-3 L3,0' stroke='%s' stroke-width='2.6'/>" % RED
+    e += flat(ellipse_d(-4, 8, 1.6, 2.2), "#2b2945") + flat(ellipse_d(4, 8, 1.6, 2.2), "#2b2945")
+    e += "<path d='M-17,22 L-12,17 M-17,17 L-12,22' stroke='%s' stroke-width='2'/>" % RED
+    add("exam_body", -24, -30, 48, 60, e, flat=True)
+
+    # --- Oveja de la estampida: lana como una nube, cara negra con ojos de sueño, patas aparte
+    # --- Stampede sheep: wool like a cloud, a black face with sleepy eyes, legs separate
+    W0, W1, W2 = "#f4f1ea", "#d6d0e0", "#ffffff"
+    FC, FC1 = "#3a3550", "#24203a"
+    o = ""
+    puffs = ((-26, -36, 13), (-12, -44, 15), (6, -44, 15), (20, -36, 13), (-20, -26, 12), (0, -26, 14), (18, -26, 11))
+    for x, y, r in puffs:
+        o += flat(ellipse_d(x, y, r, r * 0.9), W1)
+    for x, y, r in puffs:
+        o += flat(ellipse_d(x - 2, y - 2, r - 2.5, (r - 2.5) * 0.9), W0)
+    for x, y in ((-14, -50), (4, -51), (-24, -40)):
+        o += flat(ellipse_d(x, y, 3.4, 2.4), W2)
+    add("sheep_body", -42, -62, 78, 54, o, flat=True)
+    h = flat(ellipse_d(10, -4, 10, 12), FC) + flat("M14,-14 C20,-8 20,4 14,8 C18,0 18,-8 14,-14 Z", FC1)
+    h += flat("M0,-12 C-6,-16 -10,-12 -8,-8 C-6,-6 -2,-8 0,-10 Z", FC) + flat("M18,-14 C24,-18 28,-12 24,-8 C22,-6 20,-8 18,-10 Z", FC)
+    h += flat(ellipse_d(4, -16, 7, 4), W0) + flat(ellipse_d(12, -17, 6, 4), W0)
+    h += "<path d='M4,-3 Q7,-1 10,-3 M12,-3 Q15,-1 18,-3' fill='none' stroke='%s' stroke-width='1.8'/>" % W2
+    h += flat(ellipse_d(11, 4, 2.6, 1.6), "#e8a0b0")
+    add("sheep_head", -8, -24, 36, 36, h, flat=True)
+    l = flat("M-3,0 L3,0 L3,16 L-3,16 Z", FC) + flat("M-4,14 L4,14 L4,18 L-4,18 Z", FC1)
+    add("sheep_leg", -6, -2, 12, 22, l, flat=True)
+
+    # --- Yoyó: dos mitades rojas con una estrella de sueño en el centro (visto de frente)
+    # --- Yo-yo: two red halves with a dream star in the middle (seen face-on)
+    Y0, Y1, Y2 = "#e85d75", "#b83a56", "#ffb0bf"
+    y = flat(ellipse_d(0, 0, 18, 18), Y1) + flat(ellipse_d(-1.5, -1.5, 15.5, 15.5), Y0)
+    y += flat(ellipse_d(0, 0, 9, 9), "#fbf3dc") + flat(star_d(0, 0, 8.5, 0.5), "#f6c86a")
+    y += flat(ellipse_d(-8, -9, 4, 2.6), Y2)
+    add("weapon_yoyo", -20, -20, 40, 40, y, px=PX_KROKER, flat=True)
+
 
 def build():
     for o in PAJAMAS:
@@ -3539,6 +3613,7 @@ def build():
     act2_npcs()
     act2_enemies()
     act3_enemies()
+    newcomers()
     botcher()
     druid_collar()
     druid_forms()
