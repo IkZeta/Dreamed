@@ -322,7 +322,7 @@ func _move(delta: float) -> void:
 			vel += gap.normalized() * (gap.length() - want) * 6.0
 	position += vel * delta
 	# Empujado hacia un agujero: se cae y desaparece / Shoved into a hole: it falls in and is gone
-	var sucked_in := vacuumed and hp <= max_hp * 0.5
+	var sucked_in := vacuumed and hp <= max_hp * 0.35
 	heavy_t = maxf(0.0, heavy_t - delta)
 	if can_fall() and (knock.length() > 200.0 or bounce_t > 0.0 or heavy_t > 0.0 or sucked_in):
 		var to: Vector2 = run.hole_at(position, radius, knock + vel if not sucked_in else external_pull * 2.0)

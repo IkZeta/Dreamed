@@ -136,7 +136,7 @@ const BASE_LEVEL_STATS := {
 	"bat": {"regen": 3.0},
 	"shield": {"regen": 2.0, "parry": 8.0},
 	"book": {"luck": -10.0, "lifesteal": 6.0},
-	"vacuum": {"lifesteal": 5.0},
+	"vacuum": {"lifesteal": 3.0},
 	"finger": {"luck": 10.0, "lifesteal": 5.0},
 	"teddy": {"regen": 3.0},
 	"ball": {"luck": -10.0, "parry": 6.0},

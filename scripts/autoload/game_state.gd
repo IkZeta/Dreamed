@@ -1068,7 +1068,7 @@ const OFFER_MULT := 0.5
 ## todas las armas tienen una forma de usar los agujeros (la almohada y la aspiradora ya la tienen).
 ## Heavy hit: every N hits, one shoves hard enough to throw enemies down holes. This way every weapon
 ## has a way to use the holes (the pillow and the vacuum already have one).
-const HEAVY_EVERY := {"bat": 3, "book": 4, "finger": 5, "teddy": 3, "laptop": 5, "ball": 3, "boots": 3, "druid": 3}
+const HEAVY_EVERY := {"bat": 3, "book": 5, "finger": 5, "teddy": 3, "laptop": 5, "ball": 3, "boots": 3, "druid": 3}
 const HEAVY_KNOCK := 520.0
 ## Caídas en cadena: tirar a varios seguidos (con menos de este hueco) da trozos de estrella extra
 ## Fall chains: throwing several in a row (with less than this gap) gives extra star shards

@@ -17,7 +17,7 @@ extends Weapon
 const RANGE := 320.0
 const CONE := 0.42        # medio ángulo en radianes (~24°) / half angle in radians
 const PULL := 170.0       # px/s hacia Kroker / toward Kroker
-const DPS := 13.0
+const DPS := 11.0
 ## Cada cuánto muerde el chupón. Empieza lento y la velocidad de ataque lo acorta poco a poco
 ## (la mitad de lo que sube: +20 % de velocidad de ataque = un 10 % más rápido), nunca por debajo
 ## de 0,25 s. Cada mordisco hace el daño de ese rato, así que con 0 de velocidad de ataque son

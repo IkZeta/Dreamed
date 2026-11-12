@@ -133,7 +133,7 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0
 ## sueños se lo da a todas (220, +80 por cada una más) y al libro le suma 100.
 ## Reach of the heavy hit towards holes: the book reaches 320 by itself; the dream compass gives
 ## it to every weapon (220, +80 for each extra) and adds 100 to the book.
-const VOID_BOOK := 320.0
+const VOID_BOOK := 240.0
 const VOID_COMPASS := 220.0
 func void_reach() -> float:
 	var n := Trinkets.count("compass")
