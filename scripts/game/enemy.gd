@@ -424,7 +424,10 @@ func _start_fall(to: Vector2) -> void:
 	state = State.DYING
 	_fade = 1.0
 	knock = Vector2.ZERO
-	run.fx.text(global_position + Vector2(0, -aim_height - 40), tr("ENEMY_FELL"), UITheme.GOLD, 20)
+	run.fx.text(global_position + Vector2(0, -aim_height - 40), tr("ENEMY_FELL"), UITheme.GOLD, 20, true)
+	run.fx.vortex(to)
+	run.fx.flash(to, 50.0, Color("b48cff", 0.8), 0.25)
+	run.punch(0.03)
 	Audio.play("hole_fall", -7.0, 0.08)
 	# Que se note: un instante parado y una sacudida, más fuerte cuanto más pesa
 	# Make it land: a frozen instant and a shake, stronger the heavier it is
@@ -781,7 +784,10 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	_hit_squash = 1.0
 	Audio.play("hit", -13.0, 0.1)
 	if Settings.damage_numbers:
-		run.fx.text(global_position + Vector2(0, -aim_height - 34), str(roundi(amount)), GLITCH_A if vuln_t > 0.0 else UITheme.BONE)
+		# Los golpes gordos salen más grandes y dorados / Big hits come out larger and golden
+		var heavy_num := amount >= max_hp * 0.35 and amount >= 8.0
+		run.fx.text(global_position + Vector2(0, -aim_height - 34), str(roundi(amount)),
+			GLITCH_A if vuln_t > 0.0 else (UITheme.GOLD if heavy_num else UITheme.BONE), 28, heavy_num)
 	if hp <= 0.0:
 		die(true)
 
@@ -806,6 +812,8 @@ func die(counted: bool) -> void:
 	_fade = 1.0
 	run.fx.dissipate(aim_point(), Color("dfe3f0"))
 	if counted:
+		var big := elite or (max_hp >= 60.0 and not is_boss())
+		run.fx.burst(aim_point(), FX.DEATH_COLORS.get(bestiary_id, Color("dfe3f0")), big)
 		_death_sound()
 		# Los grandes caen con peso / The big ones go down with weight
 		if elite or (max_hp >= 60.0 and not is_boss()):

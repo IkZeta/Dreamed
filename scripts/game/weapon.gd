@@ -133,6 +133,10 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0
 		impulse *= GRUDGE_KNOCK
 	impulse = _heavy(e, impulse)
 	e.hit(base_damage * player.damage_mult, impulse)
+	# Chispas del color del arma / Sparks in the weapon's colour
+	if e is Enemy:
+		var dir := impulse if impulse.length() > 1.0 else e.global_position - player.global_position
+		run.fx.spark((e as Enemy).aim_point(), dir, spark_color(), 3 if impulse.length() < 400.0 else 6, 1.0 if impulse.length() < 400.0 else 1.5)
 	GameState.run_dmg[id] = float(GameState.run_dmg.get(id, 0.0)) + base_damage * player.damage_mult
 	_pinche(e)
 	_luna_orbit(e)
@@ -140,6 +144,14 @@ func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0
 	var ls := GameState.lifesteal_effective() * steal_k
 	if ls > 0.0 and randf() * 100.0 < ls and player.steal_ready():
 		player.heal_sustain(1.0)
+
+
+## Color de las chispas de cada arma / Each weapon's spark colour
+const SPARK := {"bat": Color("ffd98a"), "shield": Color("c9b8ff"), "book": Color("9fe8ff"), "vacuum": Color("8ff0c8"),
+	"finger": Color("ff9fc8"), "teddy": Color("ffc0d8"), "ball": Color("f4f1ea"), "laptop": Color("5ff2ff"),
+	"boots": Color("ffb06a"), "druid": Color("9be38a"), "yoyo": Color("e85d75")}
+func spark_color() -> Color:
+	return SPARK.get(id, UITheme.BONE)
 
 
 ## Alcance del golpe fuerte hacia los agujeros: el libro llega a 320 por sí solo; la brújula de
@@ -225,10 +237,12 @@ func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
 	if to_hole != Vector2.ZERO:
 		dir = to_hole
 	var en := e as Enemy
-	player.run.fx.ring(en.aim_point(), 30.0, UITheme.BONE, 0.3, 3.0)
-	player.run.fx.text(en.global_position + Vector2(0, -en.aim_height * 2.0 - 30), tr("HEAVY_HIT"), UITheme.BONE, 22)
+	player.run.fx.shock(en.aim_point(), 22.0, spark_color(), 0.32, 9.0)
+	player.run.fx.flash(en.aim_point(), 40.0, Color(spark_color(), 0.9))
+	player.run.fx.text(en.global_position + Vector2(0, -en.aim_height * 2.0 - 30), tr("HEAVY_HIT"), UITheme.BONE, 22, true)
 	Audio.play("hit", -4.0, 0.05)
 	player.run.shake(2.5)
+	player.run.punch(0.035)
 	# Sale disparado: frena despacio y puede caer aunque vaya lento al final; la masa cuenta menos
 	# (raíz) para que también se pueda con los matones / Sent flying: slows down gently and can fall
 	# even if slow by the end; mass counts less (square root) so it works on thugs too

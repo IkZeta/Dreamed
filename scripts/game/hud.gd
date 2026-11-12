@@ -34,6 +34,7 @@ var _hp_box: VBoxContainer
 
 ## Fila de estados alterados bajo la vida (run le pasa el jugador) / Status row under the health bar (run hands it the player)
 var status: StatusRow
+var _combo: HudCombo
 
 
 func _ready() -> void:
@@ -43,6 +44,15 @@ func _ready() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Racha de muertes, a la derecha bajo el reloj / Kill streak, on the right under the clock
+	_combo = HudCombo.new()
+	root.add_child(_combo)
+	_combo.anchor_left = 1.0
+	_combo.anchor_right = 1.0
+	_combo.offset_left = -300
+	_combo.offset_right = -44
+	_combo.offset_top = 200
+	_combo.offset_bottom = 340
 	# Con poca vida, los bordes de la pantalla laten en rojo con el corazón de Kroker
 	# With low health, the screen's edges pulse red with Kroker's heartbeat
 	_low = TextureRect.new()
@@ -434,6 +444,18 @@ func banner(key: String, sub_key := "") -> void:
 func set_god() -> void:
 	_god.text = "GOD_HUD_INVULN" if GameState.god_invuln else "GOD_HUD_VULN"
 	_god.add_theme_color_override("font_color", UITheme.GOLD if GameState.god_invuln else UITheme.EMBER)
+
+
+func set_combo(n: int, k: float) -> void:
+	_combo.set_combo(n, k)
+
+
+func end_combo() -> void:
+	_combo.end_combo()
+
+
+func combo_milestone(_n: int, idx: int) -> void:
+	_combo.milestone(idx)
 
 
 func set_xp() -> void:

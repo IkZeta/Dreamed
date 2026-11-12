@@ -61,11 +61,15 @@ func _physics_process(delta: float) -> void:
 		_magnet = true
 		_hop = 0.0
 	if _magnet:
+		# Deja una estela de brillitos al volar hacia Kroker / Leaves a trail of sparkles flying to Kroker
+		if randf() < delta * 14.0:
+			run.fx.twinkle(global_position + Vector2(randf_range(-4, 4), randf_range(-4, 4)), _col)
 		var want := (target - global_position).normalized() * (420.0 + _t * 200.0)
 		_vel = _vel.lerp(want, minf(1.0, delta * 9.0))
 		position += _vel * delta
 		if global_position.distance_to(target) < 30.0:
 			run.collect_shards(value)
+			run.fx.twinkle(global_position, _col)
 			Progress.tip("shard")
 			queue_free()
 			return

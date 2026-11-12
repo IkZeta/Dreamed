@@ -713,6 +713,7 @@ func _draw() -> void:
 		_draw_shield_bubble()
 		_draw_grudge()
 		return
+	_draw_speed_lines()
 	# Un saltito al girar / A little hop while spinning
 	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
 	# Levitando: flota un palmo y se mece / Hovering: floats a hand's breadth up and sways
@@ -746,6 +747,24 @@ func _draw() -> void:
 	_draw_states()
 	_draw_plasters(sx, sy, hop + lift)
 	_draw_grudge()
+
+
+## Líneas de velocidad detrás de Kroker cuando corre mucho (o en el acelerón de las botas)
+## Speed lines behind Kroker when he runs very fast (or in the boots' dash)
+func _draw_speed_lines() -> void:
+	var v := _vel.length()
+	var k := clampf((v - 330.0) / 200.0, 0.0, 1.0)
+	if _dash_t > 0.0:
+		k = 1.0
+	if k <= 0.0 or not alive:
+		return
+	var back := -_vel.normalized()
+	var side := back.orthogonal()
+	for i in 5:
+		var ph := fposmod(_t * 6.0 + i * 0.37, 1.0)
+		var off := side * (sin(i * 2.7) * 26.0) + Vector2(0, -20.0 - i * 9.0)
+		var a := back * (20.0 + ph * 50.0) + off
+		draw_line(a, a + back * (18.0 + 26.0 * k), Color(1, 1, 1, 0.45 * k * (1.0 - ph)), 2.0)
 
 
 ## Tiritas de Doc pegadas por el cuerpo de Kroker, una por punto (como mucho 6 a la vista)

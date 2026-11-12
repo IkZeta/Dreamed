@@ -130,6 +130,12 @@ func _ready() -> void:
 		holder.material = nm
 		_noir_mat = nm
 		_noir_holder = holder
+	else:
+		# Pulso de pantalla (aberración y fogonazo) / Screen pulse (aberration and flash)
+		_pulse_mat = ShaderMaterial.new()
+		_pulse_mat.shader = PULSE_SHADER
+		holder.material = _pulse_mat
+	_holder = holder
 	var vp := SubViewport.new()
 	vp.snap_2d_transforms_to_pixel = true
 	vp.snap_2d_vertices_to_pixel = true
@@ -398,6 +404,66 @@ var _cam_free := false   # la cámara se sale de los límites del mapa (cinemát
 var _noir_mat: ShaderMaterial = null
 var _noir_holder: Control = null
 
+# --- Jugo visual: golpe de cámara, pulso de pantalla y racha / Visual juice: camera punch, screen pulse and streak ---
+const PULSE_SHADER := preload("res://assets/shaders/dream_pulse.gdshader")
+var _pulse_mat: ShaderMaterial = null
+var _holder: Control = null
+var _punch := 0.0
+var _pulse := 0.0
+var _aberr := 0.0
+## Racha: muertes seguidas sin dejar pasar más de COMBO_GAP s / Streak: kills in a row with no more than COMBO_GAP s between
+const COMBO_GAP := 2.2
+const COMBO_MILESTONES := [10, 25, 50, 100, 200]
+var _combo := 0
+var _combo_t := 0.0
+
+
+## Un golpecito de zoom (la pantalla se acerca un pelín y vuelve) / A little zoom punch (the screen nudges closer and back)
+func punch(amount: float) -> void:
+	if Settings.screen_shake:
+		_punch = maxf(_punch, amount)
+
+
+## Pulso de pantalla: fogonazo de color desde los bordes y aberración cromática
+## Screen pulse: a colour flash from the edges and chromatic aberration
+func pulse(color: Color, amount := 0.3, aberration := 0.004) -> void:
+	if _pulse_mat == null:
+		return
+	if Settings.reduce_flashes:
+		amount *= 0.35
+	if amount >= _pulse:
+		_pulse_mat.set_shader_parameter("flash_col", color)
+		_pulse = amount
+	if Settings.screen_shake:
+		_aberr = maxf(_aberr, aberration)
+
+
+func _process(delta: float) -> void:
+	var real := delta / maxf(Engine.time_scale, 0.01)
+	_punch = move_toward(_punch, 0.0, real * 0.25)
+	_pulse = move_toward(_pulse, 0.0, real * 1.4)
+	_aberr = move_toward(_aberr, 0.0, real * 0.02)
+	if is_instance_valid(_holder):
+		_holder.pivot_offset = _holder.size * 0.5
+		_holder.scale = Vector2.ONE * (1.0 + _punch)
+	if _pulse_mat:
+		_pulse_mat.set_shader_parameter("flash", _pulse)
+		_pulse_mat.set_shader_parameter("aberr", _aberr)
+
+
+## La racha sube con cada muerte; en ciertos números lo celebra / The streak grows with each kill; at certain numbers it celebrates
+func _streak() -> void:
+	_combo = _combo + 1 if _combo_t > 0.0 else 1
+	_combo_t = COMBO_GAP
+	Progress.best_stat("streak", _combo)
+	hud.set_combo(_combo, 1.0)
+	if _combo in COMBO_MILESTONES:
+		var idx: int = COMBO_MILESTONES.find(_combo)
+		hud.combo_milestone(_combo, idx)
+		pulse(HudCombo.tier_color(_combo), 0.22 + idx * 0.05, 0.004 + idx * 0.001)
+		Audio.play("chime", -6.0, 0.0, pow(2.0, (idx * 2) / 12.0))
+		fx.burst(player.global_position + Vector2(0, -70), HudCombo.tier_color(_combo), true)
+
 
 ## La imagen se descuadra un momento (Evil Ad en delirio) / The picture glitches for a moment (Evil Ad delirious)
 func noir_glitch(secs := 0.3, power := 1.0) -> void:
@@ -469,6 +535,11 @@ func _walk_time(a: Vector2, b: Vector2) -> float:
 func _physics_process(delta: float) -> void:
 	_follow_camera(delta)
 	_shake = maxf(0.0, _shake - delta * 30.0)
+	if _combo_t > 0.0 and running:
+		_combo_t -= delta
+		hud.set_combo(_combo, _combo_t / COMBO_GAP)
+		if _combo_t <= 0.0:
+			hud.end_combo()
 	_camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake * Settings.shake_amount
 	if not running:
 		player.push = Vector2.ZERO
@@ -946,6 +1017,10 @@ func enemy_lull(secs: float) -> void:
 func on_enemy_killed(e: Node) -> void:
 	if e is Enemy:
 		_pixel_burst(e as Enemy)
+		if not (e as Enemy).is_boss():
+			_streak()
+		if e.get("elite"):
+			pulse(Color("f6d993"), 0.25, 0.005)
 	_kills += 1
 	GameState.run_kills += 1
 	Progress.kill(e.get("bestiary_id"))
@@ -1040,7 +1115,9 @@ func on_fall_chain(_e: Enemy, at: Vector2) -> void:
 	if _fall_chain < 2:
 		return
 	drop_shards(at, mini(_fall_chain, GameState.FALL_CHAIN_MAX))
-	fx.text(at + Vector2(0, -120), tr("FALL_CHAIN") % _fall_chain, UITheme.GOLD, 24 + mini(_fall_chain, 6) * 2)
+	fx.text(at + Vector2(0, -120), tr("FALL_CHAIN") % _fall_chain, UITheme.GOLD, 24 + mini(_fall_chain, 6) * 2, true)
+	pulse(Color("b48cff"), 0.15 + 0.04 * mini(_fall_chain, 6), 0.003 + 0.001 * mini(_fall_chain, 5))
+	punch(0.02 + 0.006 * mini(_fall_chain, 5))
 	# Cada caída de la cadena suena un tono más alto (escala mayor) / Each fall in the chain rings a step higher (major scale)
 	var step: int = [0, 2, 4, 7, 9, 12][mini(_fall_chain - 2, 5)]
 	Audio.play("chime", -8.0 + mini(_fall_chain, 5), 0.0, pow(2.0, step / 12.0))
@@ -1100,8 +1177,10 @@ func collect_shards(n: int) -> void:
 	if ups > 0:
 		GameState.pending_ups += ups
 		trinkets.on_level_up()
-		fx.ring(player.global_position + Vector2(0, -60), 40.0, UITheme.GOLD, 0.7, 2.6)
+		fx.pillar(player.global_position, UITheme.GOLD)
 		fx.dissipate(player.global_position + Vector2(0, -60), UITheme.GOLD)
+		pulse(UITheme.GOLD, 0.3, 0.003)
+		punch(0.03)
 		# Las mejoras se eligen al acabar el sueño, para no cortar la pelea: aquí solo se avisa
 		# Upgrades are chosen when the dream ends, so the fight isn't cut: here it's only announced
 		fx.text(player.global_position + Vector2(0, -150), tr("LEVELUP_LATER") % GameState.plevel, UITheme.GOLD, 26)
@@ -1144,6 +1223,7 @@ func on_player_hit(_dmg: float) -> void:
 	Audio.play("hurt", -2.0, 0.08)
 	hud.set_hp(player.hp, player.max_hp)
 	shake(10.0)
+	pulse(Color("ff3a5a"), 0.4, 0.008)
 
 
 func on_player_died() -> void:
@@ -1221,7 +1301,15 @@ func _on_wave_cleared() -> void:
 	# El último sueño: la ciudad se queda en silencio / The last dream: the city falls silent
 	if _wave.get("final", false):
 		hud.banner("ACT4_CLEAR_TITLE", "FINAL_SUB")
+	# Se acaba el sueño: una onda sale de Kroker y todos los enemigos estallan en confeti
+	# The dream ends: a wave comes out of Kroker and every enemy bursts into confetti
+	fx.shock(player.global_position + Vector2(0, -40), 40.0, Color("f7f2ff"), 0.7, 14.0)
+	fx.flash(player.global_position + Vector2(0, -40), 120.0, Color("f7f2ff", 0.8), 0.4)
+	pulse(Color("f7f2ff"), 0.35, 0.006)
+	punch(0.04)
 	for e: Node in enemies.get_children():
+		if e is Enemy and (e as Enemy).state == Enemy.State.ALIVE:
+			fx.burst((e as Enemy).aim_point(), FX.DEATH_COLORS.get(e.get("bestiary_id"), Color("dfe3f0")))
 		e.die(false)
 	# Los trozos que quedan vuelan hacia Kroker / Leftover shards fly to Kroker
 	for s in get_tree().get_nodes_in_group("shards"):
