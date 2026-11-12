@@ -99,7 +99,7 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	var mod := Sprites.flash_color(_flash * 0.6, a) * tint
 	draw_colored_polygon(_ellipse(Vector2(0, 0), Vector2(24, 7)), Color(0.05, 0.02, 0.15, 0.4 * a))
 	for x in [-8.0, 8.0]:
-		Sprites.draw(self, "sling_leg", mod, Vector2(x, sin(_t * 6.0 + x) * 1.5))
+		Sprites.draw(self, "sling_leg", mod, Vector2(x, -maxf(0.0, sin(_step_ph * 0.9 + (PI if x > 0.0 else 0.0))) * 3.0))
 	Sprites.draw(self, "sling_body", mod)
 	Sprites.draw(self, "sling_head", mod)
 	# Ojos que brillan bajo la visera / Eyes glowing under the brim

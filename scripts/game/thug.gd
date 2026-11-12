@@ -26,14 +26,16 @@ func _death_sound() -> void:
 
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
-	var stomp := absf(sin(_t * 4.0 + _phase))
-	draw_set_transform(offset + Vector2(0, -stomp * 3.0), sin(_t * 4.0 + _phase) * 0.04, Vector2(_facing, 1.0))
+	# El paso sigue lo que anda de verdad (quieto o aturdido no pisa) / The step follows how far it really walks (standing or stunned, it doesn't stomp)
+	var ph := _step_ph * 0.6 + _phase
+	var stomp := absf(sin(ph))
+	draw_set_transform(offset + Vector2(0, -stomp * 3.0), sin(ph) * 0.04, Vector2(_facing, 1.0))
 	var mod := Sprites.flash_color(_flash * 0.6, a) * tint
 	# Sombra / Shadow
 	draw_colored_polygon(_ellipse(Vector2(0, 0), Vector2(36, 9)), Color(0.05, 0.02, 0.15, 0.4 * a))
 	# Vaqueros anchos y zapatillas, pisando fuerte / Baggy jeans and trainers, stomping
 	for x in [-14.0, 14.0]:
-		var lift := maxf(0.0, sin(_t * 4.0 + _phase + (PI if x > 0.0 else 0.0))) * 4.0
+		var lift := maxf(0.0, sin(ph + (PI if x > 0.0 else 0.0))) * 4.0
 		Sprites.draw(self, "thug_leg", mod, Vector2(x, -lift))
 	Sprites.draw(self, "thug_body", mod)
 	# Puños apretados saliendo de las mangas / Clenched fists poking out of the sleeves

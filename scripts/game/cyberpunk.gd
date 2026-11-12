@@ -214,7 +214,7 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	if _dashing > 0.0:
 		for i in 3:
 			Sprites.draw(self, "cyber_body", Color(NEON, 0.25 * a), Vector2(-(i + 1) * 14.0, 0))
-	var step := sin(_t * 9.0) * 3.0 if _dashing <= 0.0 else 0.0
+	var step := sin(_step_ph * 1.1) * 3.0 if _dashing <= 0.0 else 0.0
 	Sprites.draw(self, "cyber_leg", mod, Vector2(-7, step))
 	Sprites.draw(self, "cyber_leg", mod, Vector2(7, -step))
 	Sprites.draw(self, "cyber_body", mod)
