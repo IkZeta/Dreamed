@@ -1124,7 +1124,11 @@ func _process(delta: float) -> void:
 	if absf(dir.x) > 0.1:
 		_facing = signf(dir.x)
 	_moving = move_toward(_moving, clampf(moved / 100.0, 0.0, 1.0), delta * 8.0)
+	var step_before := int(_walk / PI)
 	_walk += moved * delta * 0.09
+	# Pisadas suaves sobre la piedra del plano astral / Soft footsteps on the astral plane's stone
+	if int(_walk / PI) != step_before and _moving > 0.5:
+		Audio.play("step", -22.0, 0.12, 0.92)
 	_cam = _cam.lerp(_pos + Vector2(0, -24), minf(1.0, delta * 4.0))
 	_kroker.position = _pos
 	if is_instance_valid(_ball):
