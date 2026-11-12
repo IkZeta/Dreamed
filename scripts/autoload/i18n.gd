@@ -1137,7 +1137,7 @@ const STRINGS := {
 	"CHAR_YOYO_WEAPON": {"es": "Yoyó", "en": "Yo-yo"},
 	"CHAR_YOYO_BONUS": {"es": "Algo más rápido · +2 de vida · +10 de alcance · +5 de suerte", "en": "A bit faster · +2 health · +10 range · +5 luck"},
 	"CHAR_YOYO_OUTFIT": {"es": "Pijama de lunares", "en": "Polka-dot pajamas"},
-	"CHAR_YOYO_DESC": {"es": "Lanza el yoyó al enemigo más cercano y vuelve por la cuerda. Cada 3 lanzamientos se engancha y, al recoger, arrastra al enemigo hacia ti con tanta fuerza que pasa de largo: perfecto para tirarlo por el agujero que tienes detrás.", "en": "Throws the yo-yo at the nearest enemy and it comes back along the string. Every 3 throws it hooks on and, as it reels in, drags the enemy towards you so hard it flies right past: perfect for sending it down the hole behind you."},
+	"CHAR_YOYO_DESC": {"es": "Lanza el yoyó al enemigo más cercano y vuelve por la cuerda, rozando a los que se cruza. Cada 3 lanzamientos se engancha y, al recoger, arrastra al enemigo hacia ti con tanta fuerza que pasa de largo: perfecto para tirarlo por el agujero que tienes detrás.", "en": "Throws the yo-yo at the nearest enemy and it comes back along the string, grazing whoever it crosses. Every 3 throws it hooks on and, as it reels in, drags the enemy towards you so hard it flies right past: perfect for sending it down the hole behind you."},
 	"WEAPON_SHORT_YOYO": {"es": "Yoyó", "en": "Yo-yo"},
 	"YOYO_YANK": {"es": "¡Tirón!", "en": "Yank!"},
 	"UP_SVINHO_YOYO_NAME": {"es": "Vuelta al mundo", "en": "Around the world"},

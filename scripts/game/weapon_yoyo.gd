@@ -24,6 +24,7 @@ const YANK_EVERY := 3
 const YANK_HOLE := 340.0
 const SPEED := 1100.0
 const BOUNCE_RANGE := 200.0
+const GRAZE := 0.6
 const PINK := Color("e85d75")
 
 var _shot: Node2D
@@ -185,6 +186,7 @@ class YoyoShot extends Node2D:
 		var goal: Vector2 = weapon.hand_pos() if _returning else (target as Enemy).aim_point()
 		var dir := (goal - global_position).normalized()
 		global_position += dir * WeaponYoyo.SPEED * (1.15 if _returning else 1.0) * delta
+		_graze()
 		if _returning:
 			if global_position.distance_to(goal) < 22.0 or _life <= 0.0:
 				# La recarga empieza al volver a la mano / The cooldown starts when it's back in the hand
@@ -213,6 +215,21 @@ class YoyoShot extends Node2D:
 			else:
 				_returning = true
 		queue_redraw()
+
+	## Al pasar roza a los que se cruzan (ida y vuelta) con el 60 % del daño, una vez a cada uno
+	## On its way it grazes whoever it crosses (out and back) for 60% of the damage, once each
+	var _grazed: Array = []
+
+	func _graze() -> void:
+		for n: Node in weapon.run.foes():
+			if n == target or _grazed.has(n) or _hit.has(n) or not is_instance_valid(n):
+				continue
+			var e := n as Enemy
+			if e == null or not e.is_targetable() or e.aim_point().distance_to(global_position) > e.radius + 14.0:
+				continue
+			_grazed.append(e)
+			weapon.deal(e, damage * WeaponYoyo.GRAZE, Vector2.ZERO)
+			weapon.run.fx.ring(e.aim_point(), 12.0, WeaponYoyo.PINK, 0.2, 1.5)
 
 	func _draw() -> void:
 		# Cuerda hasta la mano de Kroker / String back to Kroker's hand
