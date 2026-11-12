@@ -985,7 +985,7 @@ func on_fall_chain(_e: Enemy, at: Vector2) -> void:
 	drop_shards(at, mini(_fall_chain, GameState.FALL_CHAIN_MAX))
 	fx.text(at + Vector2(0, -120), tr("FALL_CHAIN") % _fall_chain, UITheme.GOLD, 24 + mini(_fall_chain, 6) * 2)
 	# Cada caída de la cadena suena un tono más alto (escala mayor) / Each fall in the chain rings a step higher (major scale)
-	var step: int = [0, 4, 7, 12, 16, 19][mini(_fall_chain - 2, 5)]
+	var step: int = [0, 2, 4, 7, 9, 12][mini(_fall_chain - 2, 5)]
 	Audio.play("chime", -8.0 + mini(_fall_chain, 5), 0.0, pow(2.0, step / 12.0))
 
 
