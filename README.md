@@ -238,6 +238,8 @@ Desde el sueño 2, más de la mitad de los sueños (55 %) traen un evento al aza
 
 **Estampida de ovejas** (desde el Acto 2, aparte del evento; en un 35 % de los sueños sin jefe): las ovejas que Kroker contaba para dormirse cruzan la pantalla en manada por donde está él. Primero retumba y se levanta polvo con flechas en el lado por el que llegan; luego pasan a toda prisa. No hacen daño: solo empujan, a Kroker y a los enemigos, que, si hay un agujero cerca, se caen. Ellas saltan los agujeros.
 
+![Estampida de ovejas en el salón, con Tic-Tac al lado de Kroker en pijama de yoyó](docs/screenshots/estampida.jpg)
+
 **Timbre del colegio** (Acto 3, aparte del evento): suena en todos los sueños del pasillo, la primera vez a los 6-12 s y luego otra vez cada 14-22 s después de cada recreo. Mientras dura el recreo sale un montón de enemigos de las puertas: aparecen enseguida y salen corriendo hacia el pasillo en abanico durante un segundo, de lado y alejándose de Kroker, así que no se amontonan en la puerta ni se le echan encima.
 
 Además, muy de vez en cuando aparece un **Foox dorado**: no hace daño y huye. Si lo pillas antes de que se esfume, te llueven estrellas.
