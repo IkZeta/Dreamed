@@ -265,6 +265,7 @@ func _panther() -> bool:
 	deal(target, CAT_DMG * _mult() * mult, dir * (160.0 if pounce else 60.0))
 	if ambush:
 		_ambush = false
+		Progress.add_stat("druid_ambush")
 		if target is Enemy and (target as Enemy).state != Enemy.State.DYING:
 			(target as Enemy).bleed(AMBUSH_BLEED.x, AMBUSH_BLEED.y)
 		run.fx.text(_body(target) + Vector2(0, -46), tr("DRUID_AMBUSH"), COLORS["panther"].lightened(0.3), 20)
@@ -374,6 +375,7 @@ func try_guard(source: Node2D) -> bool:
 		return false
 	_guard_t = GUARD_TIME
 	_guard_fx = 1.0
+	Progress.add_stat("druid_guard")
 	run.fx.ring(player.global_position + Vector2(0, -40), 44.0, COLORS["bear"], 0.4, 3.0)
 	run.fx.text(player.global_position + Vector2(0, -175), tr("DRUID_GUARD"), COLORS["bear"].lightened(0.3), 18)
 	Audio.play("pillow", -6.0, 0.08)
@@ -446,6 +448,7 @@ func _update_snatch(delta: float) -> void:
 			if k >= 1.0:
 				_carry.global_position = _carry_to
 				_carry._start_fall(_carry_hole)
+				Progress.add_stat("druid_snatch")
 				_end_snatch()
 
 

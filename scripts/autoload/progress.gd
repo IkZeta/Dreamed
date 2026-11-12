@@ -82,6 +82,9 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	# Holes: break Botcher turrets and throw enemies down Yawns
 	{"id": "turrets", "stat": "turrets", "goal": 15},
 	{"id": "yawn", "stat": "yawn_falls", "goal": 10},
+	{"id": "snatch", "stat": "druid_snatch", "goal": 25},
+	{"id": "ambush", "stat": "druid_ambush", "goal": 40},
+	{"id": "fur", "stat": "druid_guard", "goal": 30},
 ]
 ## Amistad que desbloquea la pelota (Svinho) y el portátil (Silly) / Friendship that unlocks the ball (Svinho) and the laptop (Silly)
 const BALL_FRIEND := 4
