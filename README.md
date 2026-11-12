@@ -316,7 +316,7 @@ Los enemigos sueltan **trozos de estrella**; cuanto más duro es el enemigo, má
 
 **Animación de movimiento:** Kroker se inclina hacia delante al andar, levanta la pierna que adelanta, se aplasta un poco al apoyar cada pie, la cabeza rebota con un pelín de retraso y levanta polvillo a cada pisada (más con el oso; nada si levita). Todos los enemigos que andan se inclinan hacia donde van (y hacia atrás si los empujan), rebotan a cada paso y se estrechan un instante al darse la vuelta.
 
-Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud, suerte y parry. La aspiradora no tiene cadencia: hace daño a mordiscos (11 por segundo), uno cada 0,5 s, y la velocidad de ataque los acerca solo la mitad de lo que sube (+20 % = un 10 % más seguidos; como mucho, uno cada 0,25 s).
+Las estadísticas son ataque, defensa, velocidad, velocidad de ataque, alcance, recuperación de salud, robo de salud, suerte y parry. La aspiradora no tiene cadencia: hace daño a mordiscos (12 por segundo al más cercano; a los demás del cono, un 30 % menos cada uno, como poco una cuarta parte), uno cada 0,5 s, y la velocidad de ataque los acerca solo la mitad de lo que sube (+20 % = un 10 % más seguidos; como mucho, uno cada 0,25 s).
 
 - **Defensa, recuperación y robo de salud rinden menos cuanto más tienes**, para que juntarlas no te haga inmortal:
   - La defensa resta daño a cada golpe, pero nunca más de la mitad; por encima de 6, cada punto vale la mitad.
