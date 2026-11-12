@@ -24,7 +24,7 @@ const YANK_EVERY := 3
 const YANK_HOLE := 340.0
 const SPEED := 1100.0
 const BOUNCE_RANGE := 200.0
-const GRAZE := 0.35
+const GRAZE := 0.45
 const PINK := Color("e85d75")
 
 var _shot: Node2D
