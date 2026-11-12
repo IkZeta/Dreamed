@@ -98,6 +98,7 @@ func _act(delta: float) -> void:
 	for k in mini(2, best.size()):
 		var en: Enemy = best[k][1]
 		en.shield_by = self
+		Progress.tip("riot")
 		_given.append(en)
 		run.fx.ring(en.global_position + Vector2(0, -40), 40.0, Color("8fd8ff"), 0.4, 1.6)
 	if not best.is_empty():

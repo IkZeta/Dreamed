@@ -521,6 +521,7 @@ func root(seconds: float) -> void:
 
 
 func shock(seconds: float) -> void:
+	Progress.tip("shock")
 	shock_t = maxf(shock_t, seconds)
 
 
@@ -529,6 +530,7 @@ func shock(seconds: float) -> void:
 func stink(seconds: float) -> void:
 	if weapon2 == null:
 		return
+	Progress.tip("stench")
 	if stench_t <= 0.0 or stench_weapon == null:
 		stench_weapon = weapon if randf() < 0.5 else weapon2
 		run.fx.text(global_position + Vector2(0, -150), tr("STENCH_LOST"), Color("9fd86a"), 22)
