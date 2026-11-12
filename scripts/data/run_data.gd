@@ -111,6 +111,12 @@ const CHARACTERS := [
 		"bonus": "CHAR_DRUID_BONUS", "outfit": "CHAR_DRUID_OUTFIT", "desc": "CHAR_DRUID_DESC",
 		"stats": {"STAT_ATTACK": 4, "STAT_DEFENSE": 3, "STAT_SPEED": 3, "STAT_RANGE": 2},
 	},
+	# Se desbloquea al tirar 5 enemigos seguidos por los agujeros / Unlocked by sending 5 enemies down the holes in a row
+	{
+		"id": "yoyo", "name": "CHAR_YOYO_NAME", "tag": "CHAR_YOYO_TAG", "weapon": "CHAR_YOYO_WEAPON",
+		"bonus": "CHAR_YOYO_BONUS", "outfit": "CHAR_YOYO_OUTFIT", "desc": "CHAR_YOYO_DESC",
+		"stats": {"STAT_ATTACK": 3, "STAT_DEFENSE": 2, "STAT_SPEED": 4, "STAT_RANGE": 3},
+	},
 ]
 
 
@@ -125,6 +131,7 @@ const WEAPON_BONUS := {
 	"laptop": {"max_hp": 5.0},       # +5 de vida máxima / +5 max health
 	"boots": {"speed": 30.0, "armor": 1.0},  # algo más rápido y un poco de defensa / a bit faster and a little defence
 	"druid": {"max_hp": 1.0},        # +1 de vida máxima (lo demás lo dan las formas) / +1 max health (the forms give the rest)
+	"yoyo": {"speed": 30.0, "max_hp": 2.0},  # algo más rápido / a bit faster
 }
 
 
@@ -143,6 +150,7 @@ const BASE_LEVEL_STATS := {
 	"laptop": {"attack_speed": -15.0, "luck": 5.0},   # torretas muy de tarde en tarde / turrets very rarely
 	"boots": {"regen": 2.0},
 	"druid": {"regen": 2.0, "luck": 5.0},
+	"yoyo": {"range": 10.0, "luck": 5.0},
 }
 
 

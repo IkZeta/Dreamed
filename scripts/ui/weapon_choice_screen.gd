@@ -161,4 +161,10 @@ class WeaponIcon extends Control:
 			"druid":
 				draw_set_transform(c.round(), sin(_t * 1.3) * 0.08, Vector2.ONE * 1.25)
 				Sprites.draw(self, "weapon_collar")
+			"yoyo":
+				# Sube y baja por la cuerda / Goes up and down its string
+				var yy := c + Vector2(0, -20.0 + 34.0 * (0.5 + 0.5 * sin(_t * 2.6)))
+				draw_line(c + Vector2(0, -90), yy, Color(0.98, 0.95, 0.9), 2.0)
+				draw_set_transform(yy.round(), 0.0, Vector2(s, s) * 1.35)
+				Sprites.draw(self, "wicon_yoyo")
 		draw_set_transform(Vector2.ZERO)

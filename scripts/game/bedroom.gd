@@ -63,11 +63,13 @@ const PICKUP := {
 	"laptop": Vector2(1676, 424),
 	"boots": Vector2(842, 402),
 	"druid": Vector2(380, 566),
+	"yoyo": Vector2(1222, 478),
 }
 ## Armas que esperan en el suelo (en su sitio en el lienzo) / Weapons waiting on the floor (their spot on the canvas)
 const BALL_AT := Vector2(1062, 460)
 const LAPTOP_AT := Vector2(1612, 292)
 const BOOTS_AT := Vector2(892, 360)
+const YOYO_AT := Vector2(1262, 462)
 const DRUID_AT := Vector2(410, 548)     # en la alfombrita, junto al conejo / on the little rug, by the bunny
 ## Los sprites de las armas están a la escala de Kroker / The weapon sprites are at Kroker's scale
 const ART_K := Player.ART_SCALE / S
@@ -665,6 +667,19 @@ func _draw_props() -> void:
 		Sprites.draw(self, "weapon_collar")
 		draw_set_transform(Vector2.ZERO)
 	# El balón de fútbol en el haz de luna / The football in the moonbeam
+	# El yoyó en el suelo con la cuerda enredada; da una vueltecita solo de vez en cuando
+	# The yo-yo on the floor with its string tangled; now and then it spins a little by itself
+	if GameState.weapon_unlocked("yoyo") and not (outfit == "yoyo" and weapon_taken):
+		_floor_shadow(YOYO_AT + Vector2(0, 16), Vector2(20, 5))
+		var curl := PackedVector2Array()
+		for i in 14:
+			var f := i / 13.0
+			curl.append(YOYO_AT + Vector2(-8.0 - f * 46.0, 12.0) + Vector2(cos(f * 9.0), sin(f * 9.0) * 0.4) * 9.0 * (1.0 - f * 0.5))
+		draw_polyline(curl, Color(0.98, 0.95, 0.9, 0.8), 2.0)
+		var wob := maxf(0.0, sin(_t * 0.7)) ** 8
+		draw_set_transform(YOYO_AT, 0.0, Vector2(1.0 - 0.4 * absf(sin(_t * 12.0)) * wob, 1.0) * ART_K * 1.6)
+		Sprites.draw(self, "weapon_yoyo")
+		draw_set_transform(Vector2.ZERO)
 	if GameState.weapon_unlocked("ball") and not (outfit == "ball" and weapon_taken):
 		_floor_shadow(BALL_AT + Vector2(2, 20), Vector2(26, 7))
 		draw_set_transform(BALL_AT, 0.4, Vector2.ONE * ART_K * 1.6)

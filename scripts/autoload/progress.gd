@@ -62,6 +62,8 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 	{"id": "boots", "check": "doc4", "goal": 4, "drawing": "boots"},
 	# El collar de druida: llegar a nivel 20 en una partida / The druid collar: reach level 20 in a run
 	{"id": "druid", "stat": "best_level", "goal": 20},
+	# El yoyó: tirar 5 enemigos seguidos por los agujeros / The yo-yo: send 5 enemies down the holes in a row
+	{"id": "yoyo", "stat": "fall_chain", "goal": 5},
 	# SuperK: tumbar los tres muebles a la vez en pesadilla (no vale aguantar hasta el final)
 	# SuperK: knock out all three pieces at once on nightmare (holding out till the end doesn't count)
 	{"id": "superk", "flag": true, "goal": 1, "drawing": "superk"},

@@ -27,6 +27,7 @@ const PAJAMAS := {
 	"laptop": {"base": Color("2b2f45"), "pattern": Color("5ff2a0"), "piping": Color("5ff2a0"), "slippers": Color("4a4f72"), "print": "dots"},
 	"boots": {"base": Color("2f5450"), "pattern": Color("d8a040"), "piping": Color("e8c070"), "slippers": Color("3a2a22"), "print": "plaid"},
 	"druid": {"base": Color("3e5f3e"), "pattern": Color("b8d870"), "piping": Color("e8d8a0"), "slippers": Color("5a3a22"), "print": "leaves"},
+	"yoyo": {"base": Color("e8a8c0"), "pattern": Color("7a3a6a"), "piping": Color("fbf3dc"), "slippers": Color("7a3a6a"), "print": "dots"},
 }
 
 ## Color de acento del arma / Weapon accent color
@@ -42,6 +43,7 @@ const ACCENT := {
 	"laptop": Color("5ff2a0"),
 	"boots": Color("e0b860"),
 	"druid": Color("b8d870"),
+	"yoyo": Color("ffb0bf"),
 }
 
 static var _ci: CanvasItem
@@ -51,6 +53,8 @@ static var _local := Transform2D.IDENTITY
 ## sopla el humo (1 → 0) / Finger-gun intro: raises it by his face, twirls the finger, "reloads"
 ## and blows the smoke away (1 → 0)
 static var _reload := 0.0
+## El yoyó está fuera, en la cuerda (no se dibuja en la mano) / The yo-yo is out on its string (not drawn in the hand)
+static var yoyo_out := false
 
 
 ## Opciones de pose / Pose options:
@@ -290,6 +294,7 @@ static func _arm_pose(w: String, base: float, a: float, swing: float) -> float:
 		"shield", "teddy": return base - 1.25 * a
 		"ball": return base - 0.8 * a
 		"boots": return base - 0.7 - 0.2 * a        # el mando, hacia delante / the remote, held forward
+		"yoyo": return base - 0.3 - 0.9 * a         # lanza hacia delante / throws forwards
 		# Apunta con el dedo hacia delante y da un respingo al disparar / Points forward and kicks up when firing
 		"finger": return lerpf(-1.3 + swing * 0.15 - 0.35 * a, -2.6, _reload_pose())
 	return base
@@ -322,6 +327,7 @@ static func _weapon(ci: CanvasItem, w: String, t: float, hand: Vector2, arm: flo
 		"laptop": _laptop(t, a, hand, mod)
 		"boots": _remote(t, a, hand, mod)
 		"druid": _druid_hand(t, a, hand)
+		"yoyo": _yoyo(t, a, hand, mod)
 
 
 ## Dibuja solo un arma, como si la llevara en la mano "hand" del lienzo de Kroker (para el druida
@@ -528,6 +534,20 @@ static func _ball(t: float, attack: float, hand: Vector2, mod: Color) -> void:
 	var y := absf(sin(t * 3.0)) * -5.0
 	_use(Transform2D(t * 0.6 + attack, hand + Vector2(16 + attack * 14.0, 10 + y)))
 	Sprites.draw(_ci, _sp("weapon_ball"), mod)
+	_use(Transform2D.IDENTITY)
+
+
+## El yoyó cuelga de la mano y sube y baja solo (el «dormilón»); cuando está fuera, solo la cuerda
+## The yo-yo hangs from the hand, bobbing up and down by itself (the "sleeper"); when it's out, just the string
+static func _yoyo(t: float, attack: float, hand: Vector2, mod: Color) -> void:
+	if yoyo_out:
+		return
+	var drop := 18.0 + 10.0 * (0.5 + 0.5 * sin(t * 3.4)) - attack * 14.0
+	var at := hand + Vector2(4, drop)
+	_use(Transform2D.IDENTITY)
+	_ci.draw_line(hand + Vector2(2, 2), at, Color(0.98, 0.95, 0.9, mod.a * 0.9), 1.5)
+	_use(Transform2D(0.0, Vector2(0.6 + 0.4 * absf(cos(t * 9.0)), 1.0), 0.0, at))
+	Sprites.draw(_ci, _sp("weapon_yoyo"), mod)
 	_use(Transform2D.IDENTITY)
 
 

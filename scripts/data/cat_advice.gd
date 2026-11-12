@@ -19,7 +19,7 @@ static func _ok(id: String) -> bool:
 	match id:
 		"kiosk": return Progress.met("charo")
 		"friends": return GameState.GIVERS.any(func(g: String) -> bool: return Progress.met(g))
-		"wardrobe": return ["finger", "teddy", "ball", "laptop", "boots", "druid"].any(func(w: String) -> bool: return GameState.weapon_unlocked(w))
+		"wardrobe": return ["finger", "teddy", "ball", "laptop", "boots", "druid", "yoyo"].any(func(w: String) -> bool: return GameState.weapon_unlocked(w))
 		"second": return Progress.has_seen("boss_chef")
 		"nightmare": return Progress.any_cleared()
 		"fever": return GameState.pacts_unlocked()
