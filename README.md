@@ -42,7 +42,7 @@ El mando vibra al recibir golpes; se puede desactivar en *Ajustes → Accesibili
 
 Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza con cuatro y los demás se desbloquean jugando. Están en el armario del plano astral: al acercarte a un soporte sale la carta de ese pijama, con su ficha de valoraciones y todas sus bonificaciones de serie (si no caben, la ficha se desplaza: con la rueda o, con mando, sola y con el stick derecho). Los bloqueados se ven en silueta, con cómo se consiguen.
 
-![El armario del plano astral con la carta de un pijama](docs/screenshots/seleccion.jpg)
+![El armario del plano astral: la tiendecita de pijamas](docs/screenshots/seleccion.jpg)
 
 | Pijama | Arma | Cómo ataca | De serie | Cómo se desbloquea |
 |---|---|---|---|---|
@@ -83,6 +83,8 @@ Cada pijama tiene un **post-it** con los actos que has superado con él (Actos I
   - **Pantera (pícara):** arañazos rápidos con un 20 % de crítico y +25 % de velocidad. Al aparecer, Kroker entra 1,5 s en **sigilo** (se vuelve una sombra): los enemigos que no son jefes le pierden la pista, husmean sin rumbo y ni le tocan ni disparan; se rompe si le dan. El primer zarpazo es una **emboscada** (×3 y sangrado), y cada baja prepara otra (como mucho una vez cada 5 s). Si no hay nadie a mano, la pantera lanza una **zarpa de sombra** contra uno que esté hasta a 280 px (sin moverte del sitio).
   - **Buitre (vuelo):** picotea **cuerpo a cuerpo** al enemigo de al lado con menos vida y **remata** a los que bajan del 12 % (no a los jefes), curando un poco. Kroker **levita**: pasa por encima de muebles y escombros, los charcos no le frenan y los sismos y los cristales del suelo no le hacen daño. Cada 10 s hace **rapiña**: agarra a un enemigo ligero (no élite ni jefe) cerca de un agujero y lo suelta encima.
 - **Mejoras:** Svinho (Manada: el golpe salta a otros), Stolk (+daño en todas las formas), Silly (al cambiar de forma congela a los de alrededor), Doc (vida máxima a cambio de daño), Mr. Ad (+ataque por cada 10 de Realidad Fragmentada) y el Pinche (los golpes hacen sangrar).
+
+![Kroker convertido en pantera con el collar de druida](docs/screenshots/druida.jpg)
 - En la habitación, el collar espera en la alfombrita del conejo.
 
 ---
@@ -129,6 +131,8 @@ Con menos de la mitad de vida se enfada: ataca más a menudo y lanza más cosas.
 El resto del salón:
 
 - **Gato Siniestro** (*Sinister Cat*): un gato pequeñito y cabezón (la mitad de alto que Kroker), de pelo ciruela casi negro con rayas turquesa, ojos verde lima de rendija, una sonrisa enorme de oreja a oreja y la cola enroscada en forma de interrogación. Está sentado en el borde de la fuente del plano astral desde el principio y es el **consejero**: cada vez que hablas con él te da un consejo. Primero, los que aún no te ha contado, en orden de tutorial (la fuente, moverse, los agujeros, el golpe fuerte, los niveles, los dones, las palabras resaltadas, el museo, el álbum, el tatami...), y solo cuando ya tienen sentido (la pesadilla, la fiebre, la segunda arma o los dúos esperan a que los desbloquees). Cuando tiene algo nuevo que contar le sale un «!» encima. Después de cada partida, antes del consejo, comenta cómo te fue. De vez en cuando se desvanece y solo quedan flotando los ojos y la sonrisa. Durante los sueños, cuando hay un consejo de la primera vez, **aparece en persona** al lado de Kroker (primero la sonrisa, luego el resto) y te lo cuenta en un **bocadillo que le sale de la boca** (hacia el lado contrario a Kroker, para no taparle), escrito letra a letra mientras mueve la sonrisa; le sigue mientras habla y se desvanece al acabar. Fuera de los sueños, el consejo sale en un cartel con su cara. No tiene amistad ni propinas: aconseja a todos por igual.
+
+  ![El Gato Siniestro dando un consejo en pleno sueño](docs/screenshots/gato.jpg)
 - **Kioskera Charo** (*Karen* en inglés): la primera vez que llegas, te da la bienvenida y te explica dónde estás. De vez en cuando abre su kiosco para venderte cosas a cambio de **Realidad Fragmentada**. Una vez la conoces, también aparece tras el sueño 3 del Acto 1.
 - **Realidad Fragmentada:** la moneda de Charo. Sale de lo que más guerra da y de lo que se cae y no vuelve... Una vez conoces a Charo, también se gana en el Acto 1 de las partidas siguientes. Tirar enemigos por los agujeros solo la da a veces (casi nunca durante un jefe).
 - **El kiosco** tiene 35 artículos y mejora con cada acto: en el Acto 1 vende cosas flojas y baratas (4–6 ◆); desde el Acto 2 todo es bastante más caro: en el 2 cosas medias (10–17 ◆), en el 3 cosas buenas (23–36 ◆), como la tarta de cumpleaños (+5 de vida máxima), el pack de pilas (dos niveles) o el periódico del domingo (dos mejoras suben de nivel), y en el 4, la Metrópolis (sueños 17 y 19), lo mejor y lo más caro (35–54 ◆): bebida energética, gato de la suerte, botiquín, cómic de SuperK y enciclopedia. Cambiar el mostrador cuesta 1 ◆ en el Acto 1, 3 en el 2, 5 en el 3 y 7 en el 4 (y 1 más cada vez). Se puede pagar por **cambiar el mostrador**; los artículos ya comprados se quedan.
