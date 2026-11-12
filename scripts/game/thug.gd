@@ -21,6 +21,17 @@ func _init() -> void:
 	aim_height = 48.0
 
 
+## Pisotones sordos al andar, si está cerca (los matones pesan) / Dull stomps as it walks, if close (thugs are heavy)
+var _foot := 0.0
+
+
+func _act(_delta: float) -> void:
+	var s := sin(_step_ph * 0.6 + _phase)
+	if signf(s) != signf(_foot) and global_position.distance_squared_to(run.player.global_position) < 600.0 * 600.0:
+		Audio.play("step_heavy", -20.0, 0.12, 0.9)
+	_foot = s
+
+
 func _death_sound() -> void:
 	Audio.play("hurt", -8.0, 0.1)
 

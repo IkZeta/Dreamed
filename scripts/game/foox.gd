@@ -31,6 +31,17 @@ func _ready() -> void:
 		_glow.fill_to = Vector2(0.5, 0.0)
 
 
+## A veces da un gañido fantasma al acercarse a Kroker / Sometimes gives a ghostly yip when closing in on Kroker
+var _yipped := false
+
+
+func _act(_delta: float) -> void:
+	if not _yipped and global_position.distance_squared_to(run.player.global_position) < 140.0 * 140.0:
+		_yipped = true
+		if randf() < 0.4:
+			Audio.play("foox_yip", -16.0, 0.15)
+
+
 ## Serpentea un poco, como si flotara / Weaves slightly, as if floating
 func _desired_velocity() -> Vector2:
 	var dir: Vector2 = (run.player.global_position - global_position).normalized()

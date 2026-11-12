@@ -34,6 +34,18 @@ func _desired_velocity() -> Vector2:
 const BITE_BLEED := 2.0
 
 
+## Zumbido al pasar cerca de Kroker (uno cada poco para todos, que salen a montones)
+## A buzz when passing near Kroker (one every so often for all of them, since they come in swarms)
+static var _buzz_at := -10.0
+
+
+func _act(_delta: float) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _buzz_at > 2.6 and global_position.distance_squared_to(run.player.global_position) < 150.0 * 150.0:
+		_buzz_at = now
+		Audio.play("mosquito_buzz", -14.0, 0.1)
+
+
 func _touch_player() -> void:
 	var before: float = run.player.hp
 	super()

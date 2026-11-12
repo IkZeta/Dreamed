@@ -1508,4 +1508,26 @@ SFX.update({"alarm_tick": (sfx_alarm_tick, 0.15, 0.05), "alarm_ring": (sfx_alarm
             "stampede": (sfx_stampede, 0.3, 0.1), "yoyo_throw": (sfx_yoyo_throw, 0.15, 0.05),
             "yoyo_catch": (sfx_yoyo_catch, 0.15, 0.05)})
 
+
+def sfx_mosquito_buzz():
+    """Un mosquito pasa junto a la oreja: zumbido fino que sube y baja de volumen (suave, sin pitar)
+    A mosquito passes by your ear: a thin whine swelling and fading (soft, not piercing)."""
+    d = 0.9
+    t = t_axis(d)
+    f = 520 + 40 * np.sin(2 * np.pi * 7.0 * t) + 60 * t
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    x = sum(np.sin(k * ph) / k for k in range(1, 6))
+    env = np.sin(np.pi * t / d) ** 2
+    return lp(x * env * (0.7 + 0.3 * np.sin(2 * np.pi * 31 * t)), 2600) * 0.12
+
+
+def sfx_foox_yip():
+    """Un Foox da un gañido fantasma: una vocal aguda que sube y se apaga con eco / A Foox gives a ghostly yip: a high vowel rising and fading."""
+    d = 0.32
+    v = vowel(d, 700, 980, 0.3)
+    return lp(v, 4000)
+
+
+SFX.update({"mosquito_buzz": (sfx_mosquito_buzz, 0.2, 0.05), "foox_yip": (sfx_foox_yip, 0.45, 0.2)})
+
 OVERRIDES = set(MUSIC) | set(SFX)
