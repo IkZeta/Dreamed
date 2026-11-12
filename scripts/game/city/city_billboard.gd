@@ -20,7 +20,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	queue_redraw()
+	# Solo se vuelve a dibujar a la vista / Only redrawn when on screen
+	var cam := get_viewport().get_camera_2d()
+	if cam == null or global_position.distance_squared_to(cam.get_screen_center_position()) < 1500.0 * 1500.0:
+		queue_redraw()
 
 ## Dónde está el panel en el mundo / Where the panel is in the world
 func panel_world() -> Vector2:

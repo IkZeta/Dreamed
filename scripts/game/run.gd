@@ -640,6 +640,22 @@ func _pick_kind() -> String:
 	return "foox"
 
 
+## Los enemigos de este fotograma, sin crear un array nuevo cada vez que alguien los recorre
+## (la separación entre enemigos lo hace cada enemigo en cada paso de física)
+## This frame's enemies, without creating a new array every time someone walks through them
+## (enemy separation does it for every enemy on every physics step)
+var _foes: Array[Node] = []
+var _foes_frame := -1
+
+
+func foes() -> Array[Node]:
+	var f := Engine.get_physics_frames()
+	if f != _foes_frame:
+		_foes_frame = f
+		_foes = enemies.get_children()
+	return _foes
+
+
 func count_alive(type: Variant) -> int:
 	return _count_alive(type)
 

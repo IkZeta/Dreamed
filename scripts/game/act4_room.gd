@@ -325,13 +325,28 @@ func add_rubble(r: Rect2) -> void:
 	_rubble_t.append(RUBBLE_LIFE)
 
 
+var _win := Rect2i()
+var _redraw_t := 0.0
+
+
 func _process(delta: float) -> void:
 	for i in range(_rubble_t.size() - 1, -1, -1):
 		_rubble_t[i] -= delta
 		if _rubble_t[i] <= 0.0:
 			_rubble_t.remove_at(i)
 			rubble.remove_at(i)
-	super._process(delta)
+	# El suelo de la ciudad tiene cientos de baldosas: solo se vuelve a dibujar cuando cambian las
+	# que se ven o, para el agua y las farolas, 30 veces por segundo (no en cada fotograma)
+	# The city floor has hundreds of tiles: it's only redrawn when the visible ones change or, for
+	# the water and the lamps, 30 times a second (not every frame)
+	_t += delta
+	_redraw_t -= delta
+	var view := _view_canvas().grow(T)
+	var win := Rect2i(floori(view.position.x / T), floori(view.position.y / T), floori(view.end.x / T), floori(view.end.y / T))
+	if win != _win or _redraw_t <= 0.0:
+		_win = win
+		_redraw_t = 1.0 / 30.0
+		queue_redraw()
 
 
 ## Lo que queda de un escombro (0..1) / What's left of a rubble pile (0..1)

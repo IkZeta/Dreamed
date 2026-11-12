@@ -15,11 +15,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	# Solo se mece si está a la vista / Only sways when on screen
-	var cam := get_viewport().get_camera_2d()
-	if cam == null or global_position.distance_squared_to(cam.get_screen_center_position()) < 1300.0 * 1300.0:
-		queue_redraw()
+	# Se mece girando el nodo: no hace falta volver a dibujar el sprite (ahorra mucho con cientos de árboles)
+	# Sways by rotating the node: no need to redraw the sprite (saves a lot with hundreds of trees)
+	rotation = sin(_t * 1.3) * 0.02
 
 func _draw() -> void:
-	draw_set_transform(Vector2.ZERO, sin(_t * 1.3) * 0.02 if sway else 0.0, Vector2.ONE)
 	Sprites.draw(self, sprite)

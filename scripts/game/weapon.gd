@@ -92,8 +92,11 @@ func nearest(max_range: float, from := Vector2.INF, exclude: Array = []) -> Node
 		from = origin()
 	var best: Node2D = null
 	var best_d := max_range
-	for e: Node2D in run.enemies.get_children():
-		if not e.is_targetable() or exclude.has(e):
+	for n: Node in run.foes():
+		if not is_instance_valid(n):
+			continue
+		var e := n as Enemy
+		if e == null or not e.is_targetable() or exclude.has(e):
 			continue
 		var d := from.distance_to(_body(e))
 		# Los jefes tienen prioridad si están a una distancia parecida (si no, las armas se

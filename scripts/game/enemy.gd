@@ -300,13 +300,16 @@ func _move(delta: float) -> void:
 			want = rush_dir * maxf(speed, 95.0) * 2.2
 		vel = want * (0.5 if slow_t > 0.0 else 1.0) * fluff_speed_mult()
 	# Se separa de los demás enemigos / Keeps apart from other enemies
-	for other: Node2D in run.enemies.get_children():
-		if other == self:
+	var here := global_position
+	for n: Node in run.foes():
+		if n == self or not is_instance_valid(n):
 			continue
-		var d := global_position - other.global_position
-		var dist := d.length()
-		var min_d := radius + float(other.get("radius"))
-		if dist > 0.01 and dist < min_d:
+		var other := n as Enemy
+		var d := here - other.global_position
+		var min_d := radius + other.radius
+		var d2 := d.length_squared()
+		if d2 > 0.0001 and d2 < min_d * min_d:
+			var dist := sqrt(d2)
 			vel += d / dist * (min_d - dist) * 6.0
 	# Rodeando un edificio de la ciudad / Going round a city building
 	if _detour_t > 0.0:
