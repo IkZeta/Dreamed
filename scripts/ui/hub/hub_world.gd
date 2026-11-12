@@ -28,6 +28,7 @@ var _pos := SPAWN
 var _cam := SPAWN
 var _t := 0.0
 var _walk := 0.0
+var _still := 0.0
 var _moving := 0.0
 var _facing := 1.0
 var _zone := ""
@@ -1126,6 +1127,9 @@ func _process(delta: float) -> void:
 	_moving = move_toward(_moving, clampf(moved / 100.0, 0.0, 1.0), delta * 8.0)
 	var step_before := int(_walk / PI)
 	_walk += moved * delta * 0.09
+	# Con el yoyó, si se queda quieto, hace la vuelta al mundo / With the yo-yo, standing still he does around the world
+	_still = _still + delta if _moving < 0.1 else 0.0
+	KrokerArt.yoyo_idle = move_toward(KrokerArt.yoyo_idle, 1.0 if _still > 1.5 else 0.0, delta * 3.0)
 	# Pisadas suaves sobre la piedra del plano astral / Soft footsteps on the astral plane's stone
 	if int(_walk / PI) != step_before and _moving > 0.5:
 		Audio.play("step", -22.0, 0.12, 0.92)
@@ -1257,3 +1261,7 @@ class Motes extends Node2D:
 
 
 # --- El mundo / The world -------------------------------------------------------
+
+
+func _exit_tree() -> void:
+	KrokerArt.yoyo_idle = 0.0
