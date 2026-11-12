@@ -43,6 +43,26 @@ func _ready() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Con poca vida, los bordes de la pantalla laten en rojo con el corazón de Kroker
+	# With low health, the screen's edges pulse red with Kroker's heartbeat
+	_low = TextureRect.new()
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.6, 1.0])
+	g.colors = PackedColorArray([Color(0.6, 0.05, 0.2, 0.0), Color(0.6, 0.05, 0.2, 0.0), Color(0.62, 0.03, 0.2, 0.9)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.0, 0.5)
+	gt.width = 256
+	gt.height = 144
+	_low.texture = gt
+	_low.stretch_mode = TextureRect.STRETCH_SCALE
+	_low.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_low.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_low.modulate.a = 0.0
+	root.add_child(_low)
+	_low.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	# Vida (arriba a la izquierda) / Health (top left)
 	# Fondo suave detrás, para que se lea encima del escenario (en el pasillo pisa la pared)
@@ -317,7 +337,32 @@ func set_boss_hp(hp: float, max_hp: float) -> void:
 		_boss_bar.value = hp
 
 
+var _low: TextureRect
+var _hp_k := 1.0
+var _beat := 0.0
+const LOW_HP := 0.3
+
+
+func _process(delta: float) -> void:
+	if _low == null:
+		return
+	if _hp_k > LOW_HP or _hp_k <= 0.0 or get_tree().paused:
+		_low.modulate.a = move_toward(_low.modulate.a, 0.0, delta * 2.0)
+		_beat = 0.0
+		return
+	# Late más deprisa cuanta menos vida queda / Beats faster the less health is left
+	var period := lerpf(0.6, 1.0, _hp_k / LOW_HP)
+	_beat += delta
+	if _beat >= period:
+		_beat = 0.0
+		Audio.play("heartbeat", -10.0, 0.0)
+	var k := _beat / period
+	var pulse := maxf(0.0, 1.0 - k * 4.0) + 0.6 * maxf(0.0, 1.0 - absf(k - 0.28) * 6.0)
+	_low.modulate.a = (0.55 + 0.45 * minf(1.0, pulse)) * (1.0 - _hp_k / LOW_HP * 0.4)
+
+
 func set_hp(hp: float, max_hp: float) -> void:
+	_hp_k = hp / maxf(max_hp, 1.0)
 	_hp_bar.max_value = max_hp
 	_hp_bar.value = hp
 	_hp_text.text = "%d / %d" % [ceili(hp), roundi(max_hp)]

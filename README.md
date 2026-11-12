@@ -356,7 +356,7 @@ Tirar enemigos por los agujeros los elimina aunque tengan vida (a los jefes no).
 
 ### La vida y los estados
 
-La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. Debajo de la vida, un indicador muestra los estados alterados que tienes en cada momento (sangrado, paralizado, mal olor, hackeado...). La hitbox de Kroker es solo el cuerpo: la cabeza no cuenta.
+La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. Debajo de la vida, un indicador muestra los estados alterados que tienes en cada momento (sangrado, paralizado, mal olor, hackeado...). La hitbox de Kroker es solo el cuerpo: la cabeza no cuenta. Con menos de un 30 % de vida se oye su corazón (más deprisa cuanto menos queda) y los bordes de la pantalla laten en rojo a la vez.
 
 ---
 

@@ -1530,4 +1530,17 @@ def sfx_foox_yip():
 
 SFX.update({"mosquito_buzz": (sfx_mosquito_buzz, 0.2, 0.05), "foox_yip": (sfx_foox_yip, 0.45, 0.2)})
 
+
+def sfx_heartbeat():
+    """Latido con poca vida: «pum-pum» grave y blando, de fieltro / Low-health heartbeat: a soft, low felt "lub-dub"."""
+    x = np.zeros(int(SR * 0.6))
+    for at, f, a in ((0.0, 58, 0.55), (0.17, 52, 0.4)):
+        h = thump(f, 0.25, a, 11)
+        i = int(SR * at)
+        x[i:i + len(h)] += h[: len(x) - i]
+    return lp(x, 400)
+
+
+SFX.update({"heartbeat": (sfx_heartbeat, 0.1, 0.05)})
+
 OVERRIDES = set(MUSIC) | set(SFX)
