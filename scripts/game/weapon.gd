@@ -92,7 +92,9 @@ func nearest(max_range: float, from := Vector2.INF, exclude: Array = []) -> Node
 		from = origin()
 	var best: Node2D = null
 	var best_d := max_range
-	for n: Node in run.foes():
+	# Sin tipo en el bucle: un ataque diferido puede encontrarse a alguien ya liberado
+	# Untyped loop: a delayed attack may run into someone already freed
+	for n in run.foes():
 		if not is_instance_valid(n):
 			continue
 		var e := n as Enemy
