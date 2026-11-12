@@ -55,7 +55,8 @@ Siempre es Kroker, pero vestido distinto, y cada pijama trae su arma. Se empieza
 | **El Crack** | Pelota | La chuta al enemigo más cercano (poco alcance); rebota de uno a otro y vuelve. Mientras está en el aire no puede chutar otra | +15 % de daño, +20 % de velocidad, +4 de vida máxima, +6 de parry, −2 de defensa y −10 de suerte. Empieza con la mejora de Svinho a nivel 3 | Amistad 4 con Svinho |
 | **El Ingeniero** | Portátil | Pone torretas que disparan solas y no desaparecen (ver abajo); las 2 primeras de cada sueño las monta deprisa | +5 de vida máxima, +5 de suerte y −15 % de velocidad de ataque | Amistad 4 con Silly |
 | **El del 47** | Botas steampunk | Patadas propulsadas por los motores de las botas, en combo (ver abajo). Kroker las maneja con un mando pequeño en la mano | +10 % de velocidad, +1 de defensa y 2 de regeneración | Amistad 4 con Doc |
-| **El del bosque** | Collar de druida | Cuerpo a cuerpo. Cada 8 s el espíritu del collar cambia de forma: oso, pantera o buitre (ver abajo). Pijama verde de hojas | +4 de vida máxima, 2 de regeneración y +5 de suerte | Llegar a nivel 20 en una partida (en WoW, el druida aprende la forma felina al 20) |
+| **El del bosque** | Collar de druida | Cuerpo a cuerpo. Cada 8 s el espíritu del collar cambia de forma: oso, pantera o buitre (ver abajo). Pijama verde de hojas | +1 de vida máxima, 2 de regeneración y +5 de suerte | Llegar a nivel 20 en una partida (en WoW, el druida aprende la forma felina al 20) |
+| **El Malabarista** | Yoyó | Alcance medio. Lo lanza al enemigo más cercano y vuelve por la cuerda. Cada 3 lanzamientos (anillo rosa) se engancha y, al recoger, arrastra al enemigo hacia Kroker con tanta fuerza que le pasa de largo: perfecto para tirarlo por el agujero que tiene detrás. A los jefes solo les hace daño. Pijama rosa de lunares | Algo más rápido, +2 de vida máxima, +10 de alcance y +5 de suerte | Tirar 5 enemigos seguidos por los agujeros |
 
 Cada pijama tiene un **post-it** con los actos que has superado con él (Actos I, II y III; estrella en normal, luna en pesadilla), al estilo de *The Binding of Isaac*. Superar un acto en pesadilla también marca el normal. Todo lo que tiene tiempo de recarga muestra un anillo de carga en la propia arma, como la stamina de *Zelda*.
 
@@ -118,6 +119,7 @@ Tras vencer al jefe, el sueño se hunde un poco más y Kroker cae en el salón d
 | 6 | **Nidos y mosquitos**: el nido no se mueve, pero suelta mosquitos mientras no lo rompas. Los mosquitos son diminutos y frágiles, pero muy rápidos y salen a montones |
 | 7 | **Chapuzas**: un topo ingeniero steampunk (gafas de latón, delantal de cuero, llave inglesa y mochila de vapor) que corre al agujero más cercano, lo tapa con tablones y monta encima una **torreta de vapor** que te dispara pernos con aviso. Mientras la torreta aguante, por ese agujero no cae nadie; al romperla, los tablones se hunden. Él no pega, huye y a los 7 s va a montar otra (máx. 2 suyas y 3 en total). No se le puede tirar por los agujeros: hay que matarlo a golpes. Como mucho 2 a la vez; desde el sueño 8 sale de vez en cuando en todos los actos |
 | 8 | **Cyberpunk** (raro, como mucho 2 a la vez): se lanza a base de dashes que marca antes en el suelo y, si se te queda cerca, te **hackea**: te baja una estadística al azar hasta que lo derrotas |
+| 9 | **Tic-Tac**, un despertador con patas: corre hacia ti a saltitos haciendo tic-tac, cada vez más deprisa. No muerde, pero si le dejas sonar (se le acaba la cuerda o te toca) despierta a todos: los enemigos van un 30 % más rápido 5 s. Si lo rompes antes, nada. Si lo tiras por un agujero, suena desde abajo, amortiguado, y adormece a todos (van a la mitad 3 s). Desde aquí sale de vez en cuando en todos los actos |
 | 10 | **Jefe: El Chef**, un Kroker adulto cocinero que sale de la tele |
 
 **El Chef** tiene tres ataques, todos avisados antes:
@@ -149,7 +151,7 @@ El resto del salón:
 
 ### Segunda arma
 
-Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate, almohada, oso, botas o collar de druida), eliges una a distancia (libro, aspiradora, pistola de dedos, pelota o portátil), y al revés. Solo salen las que ya tengas desbloqueadas. Kroker lleva la segunda arma en la mano libre, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
+Al vencer a El Chef eliges una **segunda arma**, siempre del otro tipo: si tu pijama lleva un arma cuerpo a cuerpo (bate, almohada, oso, botas o collar de druida), eliges una a distancia (libro, aspiradora, pistola de dedos, pelota, portátil o yoyó), y al revés. Solo salen las que ya tengas desbloqueadas. Kroker lleva la segunda arma en la mano libre, ataca sola y tiene **sus propias mejoras**. En el plano astral, cada don tiene una pestaña por arma para decidir a cuál va.
 
 ### Acto 3: el pasillo del colegio (sueños 11–15)
 
@@ -160,6 +162,7 @@ Un pasillo **infinito** hacia los lados, al estilo de la biblioteca de *Vampire 
 | Sueño | Novedad |
 |---|---|
 | 11 | **Marionetas**: cada una sale con un brazo distinto: cuchilla (te hace sangrar), barra eléctrica (te paraliza) o arcabuz (bala potente, la marioneta sale despedida hacia atrás) |
+| 12 | **Examen suspenso**: un folio volador con un cero enorme en rojo. Se esconde detrás de los demás enemigos y te lanza borrones de tinta; si te da, llevas un **cero** encima de la cabeza (con un hilo de tinta hasta él) y recibes un 25 % más de daño hasta que le pegues o lo tires por un agujero. Tiene poca vida y huye |
 | 13 | **Gólem de papel higiénico**: lento, con mucha vida y poca defensa. Si te pega, te deja **mal olor**: una de tus dos armas deja de atacar un rato |
 | 14 | Kiosco de Charo |
 | 15 | **Jefe: el Ovni** |
@@ -233,6 +236,8 @@ Desde el sueño 2, más de la mitad de los sueños (55 %) traen un evento al aza
 - **Sonámbulos:** los enemigos van medio dormidos, muy lentos y con zetas en la cabeza, pero salen muchos más.
 - **Bostezos:** el sueño bosteza y cada pocos segundos se abre un agujero pasajero junto a un enemigo, por el lado contrario a Kroker (como mucho 2 a la vez). Se abre como una boca, dura 5 s y se cierra solo. Al abrirse aspira un poco (1 s): acerca a los enemigos de alrededor, sin dañarlos, y se ven motas de polvo entrando; mientras está bien abierto, todo lo que empujes dentro cae.
 
+**Estampida de ovejas** (desde el Acto 2, aparte del evento; en un 35 % de los sueños sin jefe): las ovejas que Kroker contaba para dormirse cruzan la pantalla en manada por donde está él. Primero retumba y se levanta polvo con flechas en el lado por el que llegan; luego pasan a toda prisa. No hacen daño: solo empujan, a Kroker y a los enemigos, que, si hay un agujero cerca, se caen. Ellas saltan los agujeros.
+
 **Timbre del colegio** (Acto 3, aparte del evento): suena en todos los sueños del pasillo, la primera vez a los 6-12 s y luego otra vez cada 14-22 s después de cada recreo. Mientras dura el recreo sale un montón de enemigos de las puertas: aparecen enseguida y salen corriendo hacia el pasillo en abanico durante un segundo, de lado y alejándose de Kroker, así que no se amontonan en la puerta ni se le echan encima.
 
 Además, muy de vez en cuando aparece un **Foox dorado**: no hace daño y huye. Si lo pillas antes de que se esfume, te llueven estrellas.
@@ -278,7 +283,7 @@ Cuando un personaje llega a **amistad 3**, a veces deja su isla y va a ver a otr
 
 ### Mejoras dúo
 
-Hay diez mejoras dúo, una por arma; cada personaje sale en dos parejas distintas, y cada dúo va con un arma concreta. Solo cuenta el **arma principal** (la segunda, la que se consigue al final del Acto 2, no). Una mejora dúo se desbloquea para siempre al tener **amistad 3 con los dos** personajes, y sale en el plano astral (casi seguro, ocupando un hueco) cuando, en esa partida, las mejoras de los dos con esa arma están **al máximo** (nivel 3). Magnus no da mejoras de arma: para él cuenta haber ganado 2 tratos en la partida. En el menú de personajes se ve con quién hace dúo cada uno.
+Hay once mejoras dúo, una por arma; cada personaje sale en dos o tres parejas distintas, y cada dúo va con un arma concreta. Solo cuenta el **arma principal** (la segunda, la que se consigue al final del Acto 2, no). Una mejora dúo se desbloquea para siempre al tener **amistad 3 con los dos** personajes, y sale en el plano astral (casi seguro, ocupando un hueco) cuando, en esa partida, las mejoras de los dos con esa arma están **al máximo** (nivel 3). Magnus no da mejoras de arma: para él cuenta haber ganado 2 tratos en la partida. En el menú de personajes se ve con quién hace dúo cada uno.
 
 | Dúo | Arma | Mejora |
 |---|---|---|
@@ -289,6 +294,7 @@ Hay diez mejoras dúo, una por arma; cada personaje sale en dos parejas distinta
 | Mr. Ad y El Pinche | Collar de druida | **Cadena alimentaria**: el buitre remata a los que sangran con un 15 % más de vida, y cada remate tiene un 35 % de soltar 1 de Realidad Fragmentada |
 | El Pinche y Magnus | Libro | **Franquicia**: los enemigos que mueren quemados tienen un 30 % de soltar 1 de Realidad Fragmentada y pasan el fuego a los 2 de al lado |
 | Svinho y SuperK | Pelota | **Chilena de héroe**: cada 6 toques de la pelota, SuperK baja volando y remata de chilena al enemigo más fuerte (40 de daño) |
+| Svinho y Lil Key | Yoyó | **Freestyle**: cada tirón del yoyó arrastra también a los 2 enemigos de al lado, que se quedan bailando 2 s |
 | Silly y D. Lynx | Aspiradora | **Doble digital**: lo que aspiras 1,5 s seguidos sale escaneado como un doble que actúa para ti 6 s (hasta 3 a la vez; los jefes no) |
 | Stolk y Magnus | Dedo | **Cobro con intereses**: críticos mucho más frecuentes y con +50 % de daño; cada crítico tiene un 15 % de cobrar 1 de Realidad Fragmentada |
 | Doc y Lil Key | Oso de peluche | **Musicoterapia**: cuando Lil Key pone a bailar, cada enemigo que baila te cura 0,3 por segundo (hasta 1,5) y se le pega pelusa |
@@ -342,7 +348,7 @@ A veces un enemigo suelta un objeto, y la suerte hace que pase más a menudo:
 
 Tirar enemigos por los agujeros los elimina aunque tengan vida (a los jefes no). Todas las armas pueden hacerlo:
 
-- **Golpe fuerte:** cada pocos golpes, uno lanza al enemigo lejos y deja que caiga aunque llegue despacio; la masa cuenta menos, así que también vale con los matones. Unos puntitos bajo los pies de Kroker cuentan cuánto falta (dorados: el siguiente es fuerte). Bate, peluche, mando, botas y collar de druida: cada 3 golpes; pistola de dedos, portátil y libro: cada 5. La almohada empuja ya de por sí y la aspiradora tira a los que tiene por debajo del 35 % de vida.
+- **Golpe fuerte:** cada pocos golpes, uno lanza al enemigo lejos y deja que caiga aunque llegue despacio; la masa cuenta menos, así que también vale con los matones. Unos puntitos bajo los pies de Kroker cuentan cuánto falta (dorados: el siguiente es fuerte). Bate, peluche, mando, botas y collar de druida: cada 3 golpes; pistola de dedos, portátil y libro: cada 5. La almohada empuja ya de por sí y la aspiradora tira a los que tiene por debajo del 35 % de vida. El yoyó no tiene golpe fuerte: su tirón (cada 3 lanzamientos) hace lo mismo hacia el otro lado, arrastrando al enemigo más allá de Kroker.
 - **Tutorial integrado:** la primera vez que hay un agujero (Sueño 2), y si nunca has tirado a nadie, salen unos Foox entre Kroker y el agujero, y el agujero brilla con un anillo, una flecha y el cartel *¡Empújalos al agujero!* hasta la primera caída (o 25 s). Sin pausas ni ventanas.
 - **Caídas en cadena:** si tiras a otro por un agujero antes de 3 s, la cadena sube y suelta tantos trozos de estrella extra como la cadena (hasta 5). Solo da experiencia, no daño.
 
@@ -372,7 +378,7 @@ La vida no se rellena entre sueños: solo recuperas un 5 % de la vida máxima. D
   - **el museo**, que sustituye al bestiario: una galería de mármol en rombos con un pasillo de alfombra granate y cordones de terciopelo desde la entrada; las pesadillas a los dos lados del pasillo y los jefes en pedestales grandes sobre la tarima del fondo, entre dos columnas. Una estatua por cada enemigo que has visto, con su ficha al mirarla; los que aún no has visto están tapados con una sábana y una etiqueta con «?». Bajo el cartel de la entrada, «Museo de las pesadillas», hay un caballete con el cartel de la exposición; a los lados, bancos de terciopelo, y junto a las columnas, macetas con plantas de sueño. Sobre cada jefe cae un haz de luz suave.
 - **Desbloquear todo:** botón del menú principal (hay que pulsarlo dos veces) que desbloquea logros, pijamas, personajes, bestiario y la dificultad pesadilla.
 - **Museo:** las estatuas son de piedra tallada de verdad: cada una se pinta una vez, quieta y a triple tamaño, en su propia textura, y al reducirla se esculpe: el relieve sale de la forma (luz arriba a la izquierda, sombra en los huecos y abajo), el color del enemigo solo deja el detalle (ojos, bocas, pliegues), todo pasa a cinco tonos de piedra gris lila con contorno oscuro, y sin auras ni sombras. Los jefes tienen un hueco más grande y Evil Ad se apoya en su pedestal. El élite y el Foox dorado no tienen estatua (son variantes); la Marioneta sale sin hilos, la furgoneta posada y sin luces, y el Gólem sin sus tiras de papel y cada ficha está escrita con la voz de Kroker.
-- **Logros:** hay 41 (entre ellos, romper 15 torretas del Chapuzas, tirar a 10 enemigos por los Bostezos, los tres de las formas del druida (25 rapiñas, 40 emboscadas y 30 golpes parados con el pelaje), vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, el collar de druida, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
+- **Logros:** hay 42 (entre ellos, romper 15 torretas del Chapuzas, tirar a 10 enemigos por los Bostezos, los tres de las formas del druida (25 rapiñas, 40 emboscadas y 30 golpes parados con el pelaje), vencer a El Chef, comprar en el kiosco, sacrificar en la chimenea, ahorrar 100 de Realidad Fragmentada y desbloquear la pelota, el portátil, las botas, el collar de druida, el yoyó, a Magnus, a SuperK, a Lil Key y a D. Lynx, conseguir una mejora dúo y una legendaria). Algunos pegan un dibujo infantil nuevo en la pared de la habitación.
 - **Accesibilidad:**
   - intensidad de la sacudida de pantalla (a 0 también quita las micro-pausas);
   - avisos para daltónicos;
