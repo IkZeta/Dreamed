@@ -67,6 +67,9 @@ func topple() -> void:
 	Audio.play("rumble", -6.0)
 
 
+var _redraw_t := 0.0
+
+
 func _physics_process(delta: float) -> void:
 	_clock += delta
 	match state:
@@ -91,8 +94,18 @@ func _physics_process(delta: float) -> void:
 		var p: Vector2 = (run.player.global_position - Bedroom.OFFSET) / Bedroom.S
 		var f := _foot()
 		behind = absf(p.x - f.x) < 80.0 and p.y < f.y - 10.0 and p.y > f.y - 470.0
-	_see = move_toward(_see, 0.4 if behind else 1.0, delta * 4.0)
-	queue_redraw()
+	var see := move_toward(_see, 0.4 if behind else 1.0, delta * 4.0)
+	# Solo se vuelve a dibujar si se ve y algo cambia (cascotes, aviso, transparencia), o de vez en
+	# cuando para el desgaste / Only redrawn when on screen and something changes (debris, warning,
+	# see-through), or now and then for the wear
+	_redraw_t -= delta
+	var busy := not _debris.is_empty() or state == State.WARNING or see != _see
+	_see = see
+	if busy or _redraw_t <= 0.0:
+		_redraw_t = 0.25
+		var cam := get_viewport().get_camera_2d()
+		if cam == null or global_position.distance_squared_to(cam.get_screen_center_position()) < 1700.0 * 1700.0:
+			queue_redraw()
 
 
 func _land() -> void:
