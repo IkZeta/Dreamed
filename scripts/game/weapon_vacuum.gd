@@ -72,12 +72,22 @@ func _physics_process(delta: float) -> void:
 	var do_tick := _tick <= 0.0
 	if do_tick:
 		_tick = tick_time()
+	# Los del cono, del más cercano al más lejano: atrae a todos, pero el daño se reparte (el primero
+	# entero, cada uno de los siguientes un 30 % menos, como poco una cuarta parte)
+	# Those in the cone, nearest first: it pulls them all, but the damage is shared (the first in
+	# full, each one after 30% less, at least a quarter)
+	var inside: Array = []
 	for e: Node2D in run.enemies.get_children():
 		if not e.is_targetable() or e.bounce_t > 0.0:
 			continue
 		var to_e := _body(e) - _nozzle_base()
 		if to_e.length() > RANGE * _boost * range_mult() or absf(_dir.angle_to(to_e)) > CONE:
 			continue
+		inside.append(e)
+	inside.sort_custom(func(a: Node2D, b: Node2D) -> bool: return _body(a).distance_squared_to(_nozzle_base()) < _body(b).distance_squared_to(_nozzle_base()))
+	var share := 1.0
+	for e: Node2D in inside:
+		var to_e := _body(e) - _nozzle_base()
 		if lv("svinho") > 0 and to_e.length() < 90.0 and _spit_cd <= 0.0:
 			_spit(e)
 			continue
@@ -86,7 +96,8 @@ func _physics_process(delta: float) -> void:
 		if GameState.has_duo("silly_lynx") and primary:
 			_digitize(e, delta)
 		if do_tick:
-			deal(e, DPS * TICK * _boost, Vector2.ZERO, 0.6)
+			deal(e, DPS * TICK * _boost * share, Vector2.ZERO, 0.6)
+			share = maxf(0.25, share * 0.7)
 			if lv("silly") > 0:
 				e.glitch(0.0, 0.0, uv("silly", "secs"), 1.0 + uv("silly", "pct") / 100.0)
 	queue_redraw()
