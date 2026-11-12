@@ -24,6 +24,7 @@ var trinkets: Trinkets
 var _bosses := RunBosses.new(self)
 var _events := RunEvents.new(self)
 var _cinematics := RunCinematics.new(self)
+var _kiosk := RunKiosk.new(self)
 var room: Bedroom
 ## Mundo de la partida, dibujado a 960 x 540 y ampliado x2 sin suavizar (pixel art).
 ## The run's world, drawn at 960 x 540 and scaled up x2 without smoothing (pixel art).
@@ -286,78 +287,6 @@ func _begin(depth: int) -> void:
 		_bosses.spawn_boss()
 	elif HoleTutorial.wanted(self):
 		HoleTutorial.start(self)
-
-
-# --- Kioskera Charo / Kiosk lady Charo -------------------------------------------------
-
-func _spawn_charo(kiosk: bool) -> CharoNpc:
-	var charo := CharoNpc.new()
-	charo.run = self
-	charo.with_kiosk = kiosk
-	charo.position = Bedroom.to_world(LivingRoom.KIOSK_POINT if kiosk else LivingRoom.CHARO_POINT)
-	if room.follows_camera():
-		# En el pasillo pone el kiosco cerca de Kroker / In the hallway she sets up near Kroker
-		charo.position.x = player.position.x + (-300.0 if player.position.x > _camera.position.x - 200.0 else 300.0)
-	_actors.add_child(charo)
-	player.set_facing(signf(charo.position.x - player.position.x))
-	return charo
-
-
-## Bienvenida al Acto 2: quién es, dónde está Kroker y qué es la Realidad Fragmentada
-## Welcome to Act 2: who she is, where Kroker is and what Fragmented Reality is
-func _charo_welcome(then: Callable) -> void:
-	var charo := _spawn_charo(false)
-	get_tree().create_timer(0.9, false).timeout.connect(func() -> void:
-		Audio.leitmotif("charo")
-		var lines: Array[String] = []
-		for i in 8:
-			lines.append("CHARO_WELCOME_%d" % (i + 1))
-		_modal = _dialogue(lines, charo)
-		_modal.finished.connect(func() -> void:
-			_modal = null
-			Progress.stats["charo_met"] = 1
-			Progress.save_progress()
-			charo.leave()
-			get_tree().create_timer(0.7, false).timeout.connect(then)))
-
-
-func _dialogue(lines: Array[String], charo: CharoNpc) -> CharoDialogue:
-	var d := CharoDialogue.new()
-	add_child(d)
-	d.build(lines)
-	charo.talk(99.0)
-	d.finished.connect(func() -> void: charo.talk(0.0))
-	return d
-
-
-## Al acabar algunos sueños, Charo abre su kiosco / At the end of some dreams Charo opens her kiosk
-func _charo_shop(then: Callable) -> void:
-	var charo := _spawn_charo(true)
-	get_tree().create_timer(1.0, false).timeout.connect(func() -> void:
-		charo.talk(1.0)
-		var shop := CharoShop.new()
-		_modal = shop
-		add_child(shop)
-		shop.build()
-		shop.bought.connect(_on_ware)
-		shop.closed.connect(func() -> void:
-			_modal = null
-			GameState.saved_hp = player.hp
-			charo.leave()
-			get_tree().create_timer(0.7, false).timeout.connect(_resolve_level_ups.bind(then))))
-
-
-func _on_ware(id: String) -> void:
-	Progress.add_stat("bought")
-	var before := player.max_hp
-	player.refresh_stats()
-	if player.max_hp > before:
-		player.hp += player.max_hp - before
-	if KioskRules.ware_heal(id) > 0.0:
-		player.heal(player.max_hp * KioskRules.ware_heal(id))
-	hud.set_hp(player.hp, player.max_hp)
-	hud.set_reality()
-	hud.set_xp()
 
 
 ## ¿Es un sueño con jefe? / Is this a boss dream?
@@ -1232,7 +1161,7 @@ func _after_dream() -> void:
 	if GameState.pact("no_kiosk"):
 		next.call()
 	elif _wave.get("shop", false) or (_wave.get("shop_met", false) and Progress.stats.has("charo_met")):
-		_charo_shop(next)
+		_kiosk.shop(next)
 	else:
 		next.call()
 

@@ -33,7 +33,7 @@ func drop_in(depth: int) -> void:
 	# La primera vez que llega al salón, Charo le da la bienvenida
 	# The first time he reaches the living room, Charo welcomes him
 	if depth == GameState.ACT2_START and not Progress.stats.has("charo_met"):
-		tw.tween_callback(run._charo_welcome.bind(run._begin.bind(depth)))
+		tw.tween_callback(run._kiosk.welcome.bind(run._begin.bind(depth)))
 	else:
 		tw.tween_callback(run._begin.bind(depth))
 

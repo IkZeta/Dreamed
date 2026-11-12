@@ -85,7 +85,7 @@ func _draw() -> void:
 				var r := float(it["r"])
 				for j in 4:
 					var rr := r - j * 5.0
-					draw_arc(it["pos"], rr, a - sp, a + sp, 24, Color(col, k * (0.8 - j * 0.18)), float(it["w"]) - j, true)
+					draw_arc(it["pos"], rr, a - sp, a + sp, 24, Color(col, k * (0.8 - j * 0.18)), maxf(1.0, float(it["w"]) - j), true)
 			"ring":
 				var r := float(it["r"]) * lerpf(float(it["grow"]), 1.0, k)
 				draw_arc(it["pos"], r, 0, TAU, 48, Color(col, k * 0.8), 2.0, true)
