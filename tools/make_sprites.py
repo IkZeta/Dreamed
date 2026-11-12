@@ -705,6 +705,8 @@ def sling():
     # Sombra de la visera sobre los ojos / Brim shadow over the eyes
     h += flat("M-12,-100 L13,-100 L13,-95 C6,-94 -6,-94 -12,-95 Z", S1)
     h += "<path d='M-2,-88 L4,-88' stroke='%s' stroke-width='2'/>" % S1
+    # Tirita en la mejilla (siempre se está peleando) / Band-aid on his cheek (always picking fights)
+    h += flat("M-10,-93 L-3,-95 L-2,-91 L-9,-89 Z", "#f2d2a8") + flat(ellipse_d(-6, -92, 1.2, 1.2), "#c9957e")
     # Gorra / Cap
     h += flat("M-15,-101 C-15,-115 -6,-120 2,-120 C12,-120 17,-113 16,-101 Z", C2)
     h += flat("M6,-119 C13,-116 17,-110 16,-101 L9,-101 C11,-108 10,-114 6,-119 Z", C1)
@@ -713,6 +715,12 @@ def sling():
     h += "<path d='M-15,-101 L16,-101' stroke='%s' stroke-width='2.4'/>" % C1
     h += flat("M0.5,-122 L3.5,-122 L3.5,-119 L0.5,-119 Z", C3)
     add("sling_head", -24, -126, 58, 46, h, flat=True)
+    # Tirachinas: horquilla de rama con cinta aislante (la goma se dibuja en el juego; mango en el origen)
+    # Slingshot: a branch fork wrapped in electrical tape (the band is drawn in game; handle at the origin)
+    fk = flat("M-3.5,0 L3.5,0 L3.5,-14 L-3.5,-14 Z", "#8a5a3a") + flat("M1,0 L3.5,0 L3.5,-14 L1,-14 Z", "#6a4026")
+    fk += flat("M-4,-9 L4,-9 L4,-2 L-4,-2 Z", "#2b2945")
+    fk += flat("M-3.5,-14 L3.5,-14 L-4,-30 L-10,-27 Z", "#8a5a3a") + flat("M-3.5,-14 L3.5,-14 L12,-29 L6,-32 Z", "#a8744c")
+    add("sling_fork", -14, -36, 30, 38, fk, flat=True)
 
     # --- Camiseta y brazos / T-shirt and arms ---
     b = ""
@@ -726,6 +734,8 @@ def sling():
     b += flat("M-18,-47 C-6,-44 6,-44 18,-47 L18,-44 C6,-41 -6,-41 -18,-44 Z", T1)
     b += flat("M-5,-89 L5,-89 L4,-85 L-4,-85 Z", S1)
     b += "<path d='M-6,-88 C-3,-84 3,-84 6,-88' fill='none' stroke='%s' stroke-width='2.2'/>" % T1
+    # Estampado: una estrella blanca medio borrada de tanto lavarla / Print: a white star half faded from washing
+    b += flat(star_d(-1, -66, 9, 0.5), "#c8d2f0")
     # Mangas cortas / Short sleeves
     b += flat("M-14,-87 L-25,-81 L-25,-68 L-15,-66 Z", T2) + flat("M-22,-80 L-25,-80 L-25,-69 L-22,-69 Z", T3)
     b += flat("M14,-87 L25,-81 L26,-70 L16,-68 Z", T1)

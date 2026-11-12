@@ -15,6 +15,7 @@ const SKIN := Color("f0c8a8")
 const EYES := Color("ffcf7a")
 
 var _shot_t := 1.5
+var _recoil := 0.0   # retroceso del tirachinas al soltar / slingshot kick on release
 var _aiming := 0.0   # 0..1 mientras tensa la goma / while drawing the band
 var _aim_dir := Vector2.ZERO   # dirección fijada al empezar a apuntar / direction locked when aiming starts
 const SHOT_SPEED := 540.0
@@ -48,6 +49,7 @@ func _desired_velocity() -> Vector2:
 
 
 func _act(delta: float) -> void:
+	_recoil = maxf(0.0, _recoil - delta * 4.0)
 	if _aiming <= 0.0:
 		_facing = signf(run.player.global_position.x - global_position.x) if absf(run.player.global_position.x - global_position.x) > 4.0 else _facing
 	_shot_t -= delta * (0.5 if slow_t > 0.0 else 1.0)
@@ -92,6 +94,7 @@ func _fire() -> void:
 	shot.damage = SHOT_DAMAGE * atk_mult()
 	run.world.add_child(shot)
 	Audio.play("shoot", -8.0, 0.1)
+	_recoil = 1.0
 
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
@@ -101,19 +104,32 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	for x in [-8.0, 8.0]:
 		Sprites.draw(self, "sling_leg", mod, Vector2(x, -maxf(0.0, sin(_step_ph * 0.9 + (PI if x > 0.0 else 0.0))) * 3.0))
 	Sprites.draw(self, "sling_body", mod)
-	Sprites.draw(self, "sling_head", mod)
+	Sprites.draw(self, "sling_head", mod, Vector2(-3.0 * _recoil, sin(_t * 2.4 + _phase) * 0.8))
 	# Ojos que brillan bajo la visera / Eyes glowing under the brim
 	draw_rect(Rect2(1, -99, 2, 2), Color(EYES, a))
 	draw_rect(Rect2(7, -99, 2, 2), Color(EYES, a))
-	# Tirachinas: la goma se tensa antes de disparar / Slingshot: the band stretches before firing
-	# La mano del brazo doblado (ya va en el sprite) / The bent arm's hand (already in the sprite)
+	# Mientras no apunta, lanza una piedra al aire con la mano libre y la recoge
+	# While not aiming, he tosses a stone up with his free hand and catches it
+	if _aiming <= 0.0 and state == State.ALIVE and not statue:
+		var up := absf(sin(_t * 3.2 + _phase))
+		draw_circle(Vector2(-19.5, -52.0 - up * 26.0), 3.2, Color("8a8aa0", a) * tint)
+		draw_circle(Vector2(-20.5, -53.0 - up * 26.0), 1.4, Color("cfcfe0", a) * tint)
+	# Tirachinas: horquilla en la mano doblada; se levanta al apuntar y la goma se tensa
+	# Slingshot: the fork in the bent arm's hand; it rises while aiming and the band stretches
 	var hand := Vector2(28.5, -58)
-	draw_line(hand, hand + Vector2(4, -16), Color("8a5a3a") * tint, 3.0)
-	draw_line(hand, hand + Vector2(12, -12), Color("8a5a3a") * tint, 3.0)
-	var pull := Vector2(-14, 4) * _aiming
-	draw_polyline(PackedVector2Array([hand + Vector2(4, -16), hand + Vector2(4, -10) + pull, hand + Vector2(12, -12)]), Color("e0cfa8") * tint, 2.0)
+	var tilt := -0.25 - 0.35 * _aiming + 0.5 * _recoil
+	var xf := Transform2D(tilt, hand)
+	draw_set_transform_matrix(Transform2D(0.0, Vector2(_facing, 1.0), 0.0, offset) * xf)
+	Sprites.draw(self, "sling_fork", mod)
+	var tip_a := Vector2(-7, -29)
+	var tip_b := Vector2(9, -31)
+	var pull := Vector2(-16, 6) * _aiming
+	var pocket := (tip_a + tip_b) * 0.5 + Vector2(-2, 6) + pull
+	draw_polyline(PackedVector2Array([tip_a, pocket, tip_b]), Color("e0cfa8", a) * tint, 2.0)
 	if _aiming > 0.0:
-		draw_circle(hand + Vector2(4, -10) + pull, 4.0, Color("cfc6e8", a))
+		draw_circle(pocket, 3.6, Color("8a8aa0", a))
+	draw_set_transform(offset, 0.0, Vector2(_facing, 1.0))
+	if _aiming > 0.0:
 		draw_arc(hand + Vector2(4, -10), 16.0 * (1.0 - _aiming) + 6.0, 0, TAU, 16, Color(EYES, 0.6 * _aiming * a), 2.0)
 
 

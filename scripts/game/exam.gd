@@ -16,6 +16,8 @@ const AIM_TIME := 0.7
 const INK_SPEED := 520.0
 const KEEP := 360.0
 const RED := Color("e0303a")
+## Un folio enorme, como en las pesadillas de antes de un examen / An oversized sheet, like in pre-exam nightmares
+const SIZE := 1.4
 
 var _mark_cd := 2.5
 var _aim := 0.0
@@ -136,7 +138,7 @@ func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	var aiming := _aim > 0.0
 	var wave := 0.0 if aiming else sin(_t * 4.0 + _phase) * 0.18
 	var jitter := Vector2(randf_range(-1.5, 1.5), 0) if aiming else Vector2.ZERO
-	draw_set_transform_matrix(Transform2D(sin(_t * 1.7 + _phase) * 0.12, Vector2(_facing * (1.0 - absf(wave) * 0.6), 1.0), wave, offset + Vector2(0, lift) + jitter))
+	draw_set_transform_matrix(Transform2D(sin(_t * 1.7 + _phase) * 0.12, Vector2(_facing * (1.0 - absf(wave) * 0.6), 1.0) * SIZE, wave, offset + Vector2(0, lift) + jitter))
 	Sprites.draw(self, "exam_body", mod)
 	draw_set_transform(Vector2.ZERO)
 	if aiming:
