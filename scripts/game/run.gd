@@ -671,7 +671,11 @@ var _foes_frame := -1
 
 
 func foes() -> Array[Node]:
-	var f := Engine.get_physics_frames()
+	# Con la física y el cuadro: lo borrado con queue_free desaparece al final del cuadro, así que un
+	# ataque que llega fuera de la física (un temporizador) no ve enemigos ya liberados
+	# Physics and process frame: queue_free'd nodes go at the end of the frame, so an attack arriving
+	# outside physics (a timer) never sees enemies that were already freed
+	var f := Engine.get_physics_frames() * 1000003 + Engine.get_process_frames()
 	if f != _foes_frame:
 		_foes_frame = f
 		_foes = enemies.get_children()

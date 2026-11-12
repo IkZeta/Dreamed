@@ -72,7 +72,9 @@ func _act(delta: float) -> void:
 
 
 func _weave() -> void:
-	_webs = _webs.filter(func(w: DreamWeb) -> bool: return is_instance_valid(w))
+	for i in range(_webs.size() - 1, -1, -1):
+		if not is_instance_valid(_webs[i]):
+			_webs.remove_at(i)
 	if _webs.size() >= MAX_WEBS:
 		_webs[0].dissolve()
 		_webs.remove_at(0)
