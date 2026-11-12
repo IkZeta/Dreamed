@@ -17,6 +17,14 @@ const STRINGS := {
 	"MENU_RESET_SURE": {"es": "¿Borrar todo el progreso?", "en": "Delete all progress?"},
 	"MENU_RESET_LAST": {"es": "Pulsa otra vez: no se puede deshacer", "en": "Press again: this can't be undone"},
 	"MENU_VERSION": {"es": "Versión", "en": "Version"},
+	"MENU_TAGLINE": {"es": "Un sueño dentro de otro sueño", "en": "A dream within a dream"},
+	"MENU_ACT_1": {"es": "Acto 1 · La habitación", "en": "Act 1 · The bedroom"},
+	"MENU_ACT_2": {"es": "Acto 2 · El salón", "en": "Act 2 · The living room"},
+	"MENU_ACT_3": {"es": "Acto 3 · El colegio", "en": "Act 3 · The school"},
+	"MENU_ACT_4": {"es": "Acto 4 · La metrópolis", "en": "Act 4 · The metropolis"},
+	"MENU_STAT_DEPTH": {"es": "Sueño más hondo", "en": "Deepest dream"},
+	"MENU_STAT_FRIENDS": {"es": "Amigos", "en": "Friends"},
+	"MENU_STAT_KILLS": {"es": "Pesadillas vencidas", "en": "Nightmares beaten"},
 
 	# --- Ajustes / Settings ---
 	"SETTINGS_TITLE": {"es": "Ajustes", "en": "Settings"},
