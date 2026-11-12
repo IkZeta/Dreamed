@@ -55,6 +55,8 @@ static var _local := Transform2D.IDENTITY
 static var _reload := 0.0
 ## El yoyó está fuera, en la cuerda (no se dibuja en la mano) / The yo-yo is out on its string (not drawn in the hand)
 static var yoyo_out := false
+## 0..1: cuánto está haciendo el truco de la vuelta al mundo / 0..1: how much he's doing the around-the-world trick
+static var yoyo_idle := 0.0
 
 
 ## Opciones de pose / Pose options:
@@ -544,6 +546,12 @@ static func _yoyo(t: float, attack: float, hand: Vector2, mod: Color) -> void:
 		return
 	var drop := 18.0 + 10.0 * (0.5 + 0.5 * sin(t * 3.4)) - attack * 14.0
 	var at := hand + Vector2(4, drop)
+	# Sin enemigos a tiro y quieto, hace «la vuelta al mundo»: el yoyó gira alrededor de la mano
+	# With no enemies in reach and standing still, he does "around the world": the yo-yo circles the hand
+	if yoyo_idle > 0.0:
+		var ang := t * 7.0
+		var loop := hand + Vector2(sin(ang) * 26.0, -cos(ang) * 26.0 + 4.0)
+		at = at.lerp(loop, yoyo_idle)
 	_use(Transform2D.IDENTITY)
 	_ci.draw_line(hand + Vector2(2, 2), at, Color(0.98, 0.95, 0.9, mod.a * 0.9), 1.5)
 	_use(Transform2D(0.0, Vector2(0.6 + 0.4 * absf(cos(t * 9.0)), 1.0), 0.0, at))

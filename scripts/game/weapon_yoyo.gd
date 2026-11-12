@@ -29,6 +29,7 @@ const PINK := Color("e85d75")
 
 var _shot: Node2D
 var _throws := 0
+var _idle_t := 0.0
 
 
 func _init() -> void:
@@ -42,6 +43,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	super._physics_process(delta)
 	KrokerArt.yoyo_out = is_instance_valid(_shot)
+	# Si lleva un rato sin lanzar y Kroker está quieto, hace trucos / If it hasn't thrown for a while and Kroker is still, it does tricks
+	_idle_t = 0.0 if is_instance_valid(_shot) or player._moving > 0.2 else _idle_t + delta
+	if primary:
+		KrokerArt.yoyo_idle = move_toward(KrokerArt.yoyo_idle, 1.0 if _idle_t > 1.2 else 0.0, delta * 3.0)
 
 
 func attack() -> bool:
@@ -159,6 +164,7 @@ func charge_bars() -> Array:
 
 func _exit_tree() -> void:
 	KrokerArt.yoyo_out = false
+	KrokerArt.yoyo_idle = 0.0
 
 
 class YoyoShot extends Node2D:
