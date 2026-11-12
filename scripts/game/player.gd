@@ -208,7 +208,7 @@ var _sustain := GameState.SUSTAIN_BUFFER
 
 
 func heal_sustain(amount: float) -> void:
-	if hp >= max_hp:
+	if hp >= max_hp and plasters >= GameState.doc_plasters():
 		return
 	var a := minf(amount, _sustain)
 	if a <= 0.01:
@@ -218,8 +218,21 @@ func heal_sustain(amount: float) -> void:
 
 
 func heal(amount: float) -> void:
-	if not alive or hp >= max_hp:
+	if not alive:
 		return
+	# Tiritas de Doc: lo que sobra se guarda / Doc's plasters: what's left over is kept
+	var extra := hp + amount - max_hp
+	if extra > 0.0:
+		var cap := GameState.doc_plasters()
+		if cap > plasters:
+			var before := floori(plasters)
+			plasters = minf(cap, plasters + extra)
+			if floori(plasters) > before:
+				run.fx.text(global_position + Vector2(0, -110), tr("DOC_PLASTER"), Color("ffe3a3"), 18)
+				Audio.play("plaster", -10.0, 0.1)
+				Progress.tip("doc_plaster")
+		if hp >= max_hp:
+			return
 	hp = minf(max_hp, hp + amount)
 	run.hud.set_hp(hp, max_hp)
 	# Sin llenar la pantalla de números / Without flooding the screen with numbers
@@ -240,6 +253,10 @@ func _physics_process(delta: float) -> void:
 			heal_sustain(_regen_acc)
 			_regen_acc = 0.0
 	_invuln = maxf(0.0, _invuln - delta)
+	if grudge != null:
+		_grudge_t -= delta
+		if _grudge_t <= 0.0 or not is_instance_valid(grudge):
+			grudge = null
 	shock_t = maxf(0.0, shock_t - delta)
 	if stench_t > 0.0:
 		stench_t = maxf(0.0, stench_t - delta)
@@ -391,6 +408,17 @@ func shove(v: Vector2) -> void:
 ## El Examen suspenso que le ha puesto un cero (mientras viva y no le peguen) / The Failed Exam that gave him a zero (while it lives and isn't hit)
 var exam_mark: Node2D = null
 
+## --- Stolk y Doc / Stolk and Doc -----------------------------------------------------------
+## Revancha: el último enemigo que le ha hecho daño, fichado un rato / Payback: the last enemy that hurt him, marked for a while
+var grudge = null
+var _grudge_t := 0.0
+const GRUDGE_TIME := 8.0
+## Tiritas de Doc: puntos de daño que paran antes de la vida / Doc's plasters: damage points soaked before health
+var plasters := 0.0
+## Segunda opinión: una por sueño / Second opinion: one per dream
+var _rescued := false
+const RESCUE_BELOW := 0.3
+
 
 func marked() -> bool:
 	return is_instance_valid(exam_mark) and (exam_mark as Enemy).is_targetable()
@@ -455,7 +483,38 @@ func take_damage(amount: float, source: Node2D = null) -> void:
 	# Marcado por el Examen suspenso: duele más / Marked by the Failed Exam: it hurts more
 	if marked():
 		dmg *= Exam.MARK_MULT
+	# Revancha de Stolk: quien le pega queda fichado / Stolk's Payback: whoever hits him gets marked
+	if source is Enemy and GameState.has_stolk():
+		if grudge != source:
+			run.fx.text(source.global_position + Vector2(0, -(source as Enemy).aim_height * 2.0 - 40), tr("STOLK_GRUDGE"), Color("ff6a6a"), 22)
+			Audio.play("knuckles", -8.0, 0.1)
+			Progress.tip("stolk_grudge")
+		grudge = source
+		_grudge_t = GRUDGE_TIME
+	# Tiritas de Doc: paran lo que pueden / Doc's plasters: soak what they can
+	if plasters >= 1.0:
+		var soak := minf(floorf(plasters), dmg)
+		plasters -= soak
+		dmg -= soak
+		run.fx.ring(global_position + Vector2(0, -50), 26.0, Color("ffe3a3"), 0.35, 2.0)
+		if dmg <= 0.0:
+			_invuln = HIT_INVULN
+			run.fx.text(global_position + Vector2(0, -88), tr("DOC_PLASTER_SOAK"), Color("ffe3a3"), 20)
+			Audio.play("pillow", -10.0, 0.1, 1.3)
+			return
 	hp = maxf(0.0, hp - dmg)
+	# Segunda opinión de Doc: una vez por sueño, si se queda muy tocado / Doc's second opinion: once per dream, if badly hurt
+	if not _rescued and hp > 0.0 and hp < max_hp * RESCUE_BELOW and GameState.doc_rescue() > 0.0:
+		_rescued = true
+		var cure := GameState.doc_rescue()
+		get_tree().create_timer(0.35, false).timeout.connect(func() -> void:
+			if alive:
+				hp = minf(max_hp, hp + cure)
+				run.hud.set_hp(hp, max_hp)
+				run.fx.text(global_position + Vector2(0, -130), tr("DOC_RESCUE"), Color("ffe3a3"), 24)
+				run.fx.ring(global_position + Vector2(0, -40), 60.0, Color("9be38a"), 0.6, 3.0)
+				Audio.play("chime", -6.0, 0.0, 1.1)
+				Progress.tip("doc_rescue"))
 	_invuln = HIT_INVULN
 	_flash = 1.0
 	Settings.rumble(0.5, 0.7, 0.2)
@@ -652,6 +711,7 @@ func _draw() -> void:
 			_draw_heavy_pips(dr, Vector2(0, 14))
 		_draw_hearth_ring()
 		_draw_shield_bubble()
+		_draw_grudge()
 		return
 	# Un saltito al girar / A little hop while spinning
 	var lift := sin(boots.spin * PI) * 12.0 if boots and boots.spin > 0.0 else 0.0
@@ -684,6 +744,50 @@ func _draw() -> void:
 	_draw_hearth_ring()
 	_draw_shield_bubble()
 	_draw_states()
+	_draw_plasters(sx, sy, hop + lift)
+	_draw_grudge()
+
+
+## Tiritas de Doc pegadas por el cuerpo de Kroker, una por punto (como mucho 6 a la vista)
+## Doc's plasters stuck around Kroker's body, one per point (6 visible at most)
+const PLASTER_AT := [Vector2(116, 152), Vector2(70, 214), Vector2(92, 258), Vector2(88, 118), Vector2(130, 206), Vector2(110, 262)]
+const PLASTER_ROT := [0.5, -0.4, 0.2, -0.6, 0.7, -0.2]
+func _draw_plasters(sx: float, sy: float, up: float) -> void:
+	var n := mini(floori(plasters), PLASTER_AT.size())
+	for i in n:
+		var k: Vector2 = PLASTER_AT[i]
+		var p := Vector2((k.x - 100.0) * absf(sx) * _facing, (k.y - 288.0) * sy - up)
+		draw_set_transform(p, PLASTER_ROT[i] * _facing, Vector2.ONE)
+		draw_rect(Rect2(-7, -3, 14, 6), Color("6a4a3a"))
+		draw_rect(Rect2(-6, -2, 12, 4), Color("f2cfa0"))
+		draw_rect(Rect2(-2, -2, 4, 4), Color("e0b088"))
+		draw_set_transform(Vector2.ZERO)
+
+
+## El fichado por la Revancha de Stolk: una vena de enfado roja encima y un anillo a sus pies
+## The one marked by Stolk's Payback: a red anger vein above it and a ring at its feet
+func _draw_grudge() -> void:
+	if not is_instance_valid(grudge) or not (grudge as Enemy).is_targetable():
+		return
+	var e := grudge as Enemy
+	var at := e.global_position - global_position
+	var red := Color("ff4a5a")
+	draw_set_transform(at, 0.0, Vector2(1.0, 0.4))
+	for i in 4:
+		var a := _t * 2.0 + i * TAU / 4.0
+		draw_arc(Vector2.ZERO, e.radius + 14.0, a, a + 0.9, 8, Color(red, 0.75), 4.0)
+	draw_set_transform(Vector2.ZERO)
+	var top := at + e.head_top() + Vector2(0, -16.0 + sin(_t * 6.0) * 2.0)
+	var pulse := 1.0 + 0.15 * absf(sin(_t * 5.0))
+	draw_set_transform(top, 0.0, Vector2(pulse, pulse))
+	# La vena de enfado de los tebeos: cuatro arcos que se curvan hacia el centro
+	# The comic-book anger vein: four arcs curving in towards the middle
+	for pass_i in 2:
+		for i in 4:
+			var c := Vector2(1.0 if i % 2 == 0 else -1.0, 1.0 if i < 2 else -1.0) * 9.0
+			var ang := (-c).angle()
+			draw_arc(c, 7.0, ang - 0.95, ang + 0.95, 8, Color("140e26") if pass_i == 0 else red, 6.0 if pass_i == 0 else 3.0)
+	draw_set_transform(Vector2.ZERO)
 
 
 ## Estela del giro de las botas: un arco a la altura de los pies que sigue a la bota
@@ -773,7 +877,7 @@ func _draw_shield_bubble() -> void:
 ## Una fila de puntitos: se van llenando y el último avisa de que el siguiente golpe es fuerte
 ## A row of dots: they fill up and the last one warns that the next hit is heavy
 func _draw_heavy_pips(w: Weapon, at: Vector2) -> void:
-	var every: int = GameState.HEAVY_EVERY.get(w.id, 0)
+	var every := w.heavy_every()
 	if every <= 0:
 		return
 	var n := every - 1

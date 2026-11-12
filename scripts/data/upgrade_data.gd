@@ -44,36 +44,44 @@ const UPGRADE_VALUES := {
 		# El yoyó rebota en "extra" enemigos más con "pct" % del daño / The yo-yo bounces off "extra" more enemies with "pct" % of the damage
 		"yoyo": {"extra": [1, 2, 3], "pct": [60, 70, 80]},
 	},
+	## Stolk, además de lo de cada arma: «Abusón» (+"bully" % de daño a los indefensos) y «Revancha»
+	## (el que le hace daño a Kroker queda fichado: las armas van a por él con +"grudge" % y lo empujan más)
+	## Stolk, besides each weapon's bonus: "Bully" (+"bully" % damage to the defenceless) and "Payback"
+	## (whoever hurts Kroker gets marked: the weapons go for it with +"grudge" % and shove it harder)
 	"stolk": {
-		"bat": {"pct": [30, 60, 100]},                    # +daño / +damage
-		"shield": {"pct": [60, 120, 200], "push": [25, 50, 80]},
-		"book": {"pct": [15, 28, 40]},                    # −recarga / −cooldown
-		"vacuum": {"pct": [25, 50, 80]},                  # +alcance, fuerza y daño / +reach, pull and damage
-		"finger": {"pct": [30, 60, 100]},                 # +daño / +damage
-		"teddy": {"pct": [30, 60, 100], "fluff": [1, 1, 2]},  # +daño y pelusa extra / +damage and extra fluff
-		"ball": {"pct": [30, 60, 100]},                   # +daño / +damage
+		"bat": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [30, 60, 100]},                    # +daño / +damage
+		"shield": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [60, 120, 200], "push": [25, 50, 80]},
+		"book": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [15, 28, 40]},                    # −recarga / −cooldown
+		"vacuum": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [25, 50, 80]},                  # +alcance, fuerza y daño / +reach, pull and damage
+		"finger": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [30, 60, 100]},                 # +daño / +damage
+		"teddy": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [30, 60, 100], "fluff": [1, 1, 2]},  # +daño y pelusa extra / +damage and extra fluff
+		"ball": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [30, 60, 100]},                   # +daño / +damage
 		# Muñeco de boxeo: puñetazos de "dmg" y atrae con fuerza "pull" / Boxing dummy: "dmg" punches, "pull" strength
-		"laptop": {"dmg": [6, 9, 13], "pull": [60, 90, 130]},
-		"boots": {"pct": [30, 60, 100]},                  # +daño de patadas y dash / +kick and dash damage
-		"druid": {"pct": [30, 60, 100]},                  # +daño de todas las formas / +damage in every form
-		"yoyo": {"pct": [30, 60, 100]},                   # +daño / +damage
+		"laptop": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "dmg": [6, 9, 13], "pull": [60, 90, 130]},
+		"boots": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [30, 60, 100]},                  # +daño de patadas y dash / +kick and dash damage
+		"druid": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [30, 60, 100]},                  # +daño de todas las formas / +damage in every form
+		"yoyo": {"bully": [15, 25, 40], "grudge": [30, 50, 75], "pct": [30, 60, 100]},                   # +daño / +damage
 	},
 	## Doc: más vida máxima a cambio de empeorar otra estadística del arma
 	## Doc: more max health in exchange for weakening another weapon stat
+	## Doc, además: «Tiritas» (lo que se cura de más se guarda en tiritas que paran ese daño, hasta
+	## "plaster") y «Segunda opinión» (una vez por sueño, si un golpe le deja con menos del 30 %, cura "rescue")
+	## Doc, also: "Plasters" (overhealing is kept as plasters that soak that much damage, up to "plaster")
+	## and "Second opinion" (once per dream, if a hit leaves him under 30%, heals "rescue")
 	"doc": {
-		"bat": {"hp": [10, 18, 28], "pct": [8, 12, 16]},       # −daño / −damage
-		"shield": {"hp": [10, 18, 28], "pct": [10, 15, 20]},   # −empuje / −shove
-		"book": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
-		"vacuum": {"hp": [10, 18, 28], "pct": [6, 9, 12]},     # −velocidad / −speed
-		"finger": {"hp": [10, 18, 28], "pct": [8, 12, 16]},    # +recarga / +cooldown
-		"teddy": {"hp": [10, 18, 28], "pct": [15, 25, 35]},    # −duración de la pelusa / −fluff duration
-		"ball": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
+		"bat": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16]},       # −daño / −damage
+		"shield": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [10, 15, 20]},   # −empuje / −shove
+		"book": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
+		"vacuum": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [6, 9, 12]},     # −velocidad / −speed
+		"finger": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16]},    # +recarga / +cooldown
+		"teddy": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [15, 25, 35]},    # −duración de la pelusa / −fluff duration
+		"ball": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
 		# +recarga y −daño, pero una torreta curativa que cura "heal" cada 4 s
 		# +cooldown and −damage, but a healing turret that heals "heal" every 4 s
-		"laptop": {"hp": [10, 18, 28], "pct": [8, 12, 16], "dmg": [10, 15, 20], "heal": [0.6, 0.9, 1.2]},
-		"boots": {"hp": [10, 18, 28], "pct": [8, 12, 16]},     # +recarga de las patadas / +kick cooldown
-		"druid": {"hp": [10, 18, 28], "pct": [8, 12, 16]},     # −daño / −damage
-		"yoyo": {"hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
+		"laptop": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16], "dmg": [10, 15, 20], "heal": [0.6, 0.9, 1.2]},
+		"boots": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16]},     # +recarga de las patadas / +kick cooldown
+		"druid": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16]},     # −daño / −damage
+		"yoyo": {"plaster": [2, 3, 5], "rescue": [4, 6, 9], "hp": [10, 18, 28], "pct": [8, 12, 16]},      # +recarga / +cooldown
 	},
 	## Mr. Ad: "extra" = % de ganar 1 más de Realidad Fragmentada; "per10" = estadística por cada 10 ahorradas
 	## Mr. Ad: "extra" = % chance of 1 extra Fragmented Reality; "per10" = stat per 10 saved

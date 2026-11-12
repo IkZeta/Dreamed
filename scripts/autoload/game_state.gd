@@ -960,6 +960,30 @@ func lynx_cut() -> float:
 	return clampf(total / 100.0, 0.0, 0.5)
 
 
+## Doc «Tiritas»: cuántas puede llevar Kroker (sumando las dos armas) / Doc "Plasters": how many Kroker can carry (both weapons)
+func doc_plasters() -> float:
+	var total := 0.0
+	for w in weapons():
+		total += up_value("doc", "plaster", -1, w)
+	return total
+
+
+## Doc «Segunda opinión»: lo que cura (la mejor de las dos armas) / Doc "Second opinion": how much it heals (the better weapon)
+func doc_rescue() -> float:
+	var best := 0.0
+	for w in weapons():
+		best = maxf(best, up_value("doc", "rescue", -1, w))
+	return best
+
+
+## ¿Tiene alguna mejora de Stolk? (para la Revancha) / Any Stolk upgrade? (for Payback)
+func has_stolk() -> bool:
+	for w in weapons():
+		if level("stolk", w) > 0:
+			return true
+	return false
+
+
 ## Luna: niveles de su mejora sumando las dos armas (la gravedad baja también afecta a Kroker)
 ## Luna: her upgrade levels across both weapons (the low gravity affects Kroker too)
 func luna_levels() -> int:
@@ -986,7 +1010,7 @@ func lynx_retake() -> Dictionary:
 ## --- Friendship: each level improves that character's gifts by 6% (30% at the most) ---------
 const FRIEND_BONUS := 0.06
 ## Claves que son número de cosas (no se tocan) / Keys that are a count of things (left alone)
-const COUNT_KEYS: Array[String] = ["chain", "hits", "fluff", "count", "cash", "turrets"]
+const COUNT_KEYS: Array[String] = ["chain", "hits", "fluff", "count", "cash", "turrets", "plaster"]
 
 
 func friend_mult(giver: String) -> float:
@@ -1052,7 +1076,11 @@ func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
 	for key: String in UPGRADE_VALUES[giver][weapon]:
 		var v := up_value(giver, key, lvl, weapon)
 		vals[key] = str(int(v)) if is_equal_approx(v, roundf(v)) else str(snappedf(v, 0.1))
-	return tr(upgrade_key(giver, weapon, "DESC")).format(vals)
+	var text := tr(upgrade_key(giver, weapon, "DESC")).format(vals)
+	# Stolk y Doc tienen además dos efectos con cualquier arma / Stolk and Doc also have two effects with any weapon
+	if giver in ["stolk", "doc"]:
+		text += "\n" + tr("UP_%s_COMMON" % giver.to_upper()).format(vals)
+	return text
 
 
 const WARES := ShopData.WARES

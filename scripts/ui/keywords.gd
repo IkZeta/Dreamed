@@ -33,6 +33,10 @@ const PATTERNS := {
 	"regen": {"es": "regeneración|recuperación de salud", "en": "regeneration|regen"},
 	"lifesteal": {"es": "robo de (?:salud|vida)", "en": "lifesteal|life steal"},
 	"reality": {"es": "Realidad Fragmentada", "en": "Fragmented Reality"},
+	"bully": {"es": "abusón|indefens\\w*", "en": "bully|defen[cs]eless"},
+	"grudge": {"es": "revancha|fichad[oa]s?", "en": "payback|on (?:the|his|your) list"},
+	"plaster": {"es": "tiritas", "en": "plasters"},
+	"rescue": {"es": "segunda opinión", "en": "second opinion"},
 }
 
 static var _regex := {}

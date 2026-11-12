@@ -90,6 +90,10 @@ func origin() -> Vector2:
 func nearest(max_range: float, from := Vector2.INF, exclude: Array = []) -> Node2D:
 	if from == Vector2.INF:
 		from = origin()
+	# Revancha de Stolk: el fichado va primero si está a tiro / Stolk's Payback: the marked one goes first if in range
+	var g = player.grudge
+	if lv("stolk") > 0 and is_instance_valid(g) and g.is_targetable() and not exclude.has(g) and from.distance_to(_body(g)) <= max_range:
+		return g
 	var best: Node2D = null
 	var best_d := max_range
 	# Sin tipo en el bucle: un ataque diferido puede encontrarse a alguien ya liberado
@@ -124,6 +128,9 @@ func _body(e: Node2D) -> Vector2:
 
 
 func deal(e: Node2D, base_damage: float, impulse := Vector2.ZERO, steal_k := 1.0) -> void:
+	base_damage = _stolk(e, base_damage)
+	if e == player.grudge and lv("stolk") > 0:
+		impulse *= GRUDGE_KNOCK
 	impulse = _heavy(e, impulse)
 	e.hit(base_damage * player.damage_mult, impulse)
 	GameState.run_dmg[id] = float(GameState.run_dmg.get(id, 0.0)) + base_damage * player.damage_mult
@@ -192,10 +199,19 @@ func _jagged_line(a: Vector2, b: Vector2) -> PackedVector2Array:
 var heavy_count := 0
 
 
+## Cada cuántos golpes llega el fuerte (0 = nunca). Stolk desde el nivel 2 lo adelanta uno.
+## How many hits until the heavy one (0 = never). Stolk from level 2 brings it one sooner.
+func heavy_every() -> int:
+	var every: int = GameState.HEAVY_EVERY.get(id, 0)
+	if every > 0 and lv("stolk") >= 2:
+		every = maxi(2, every - 1)
+	return every
+
+
 ## Cada N golpes, uno fuerte que empuja de verdad (GameState.HEAVY_EVERY)
 ## Every N hits, a heavy one that really shoves (GameState.HEAVY_EVERY)
 func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
-	var every: int = GameState.HEAVY_EVERY.get(id, 0)
+	var every := heavy_every()
 	if every <= 0 or not e is Enemy or not (e as Enemy).is_targetable():
 		return impulse
 	heavy_count += 1
@@ -218,6 +234,21 @@ func _heavy(e: Node2D, impulse: Vector2) -> Vector2:
 	# even if slow by the end; mass counts less (square root) so it works on thugs too
 	en.heavy_t = Enemy.HEAVY_TIME
 	return dir * maxf(impulse.length(), GameState.HEAVY_KNOCK) * sqrt(maxf(1.0, en.mass))
+
+## Stolk: «Abusón» (más daño a los indefensos) y «Revancha» (más al fichado)
+## Stolk: "Bully" (more damage to the defenceless) and "Payback" (more to the marked one)
+const GRUDGE_KNOCK := 1.6
+func _stolk(e: Node2D, dmg: float) -> float:
+	if lv("stolk") <= 0 or not e is Enemy:
+		return dmg
+	var en := e as Enemy
+	var mult := 1.0
+	if en.defenceless():
+		mult += uv("stolk", "bully") / 100.0
+	if en == player.grudge:
+		mult += uv("stolk", "grudge") / 100.0
+	return dmg * mult
+
 
 ## Luna «Órbita»: a veces el golpe deja al enemigo flotando / Luna "Orbit": sometimes the hit leaves the enemy floating
 func _luna_orbit(e: Node2D) -> void:

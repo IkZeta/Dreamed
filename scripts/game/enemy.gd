@@ -536,6 +536,14 @@ func fluff_speed_mult() -> float:
 	return k
 
 
+## Indefenso (para el Abusón de Stolk): aturdido, congelado, glitcheado, frenado, flotando, bailando,
+## pegado o volando por un golpe fuerte / Defenceless (for Stolk's Bully): stunned, frozen, glitched,
+## slowed, floating, dancing, stuck or flying from a heavy hit
+func defenceless() -> bool:
+	return stun_t > 0.0 or glitch_t > 0.0 or slow_t > 0.0 or float_t > 0.0 or dance_t > 0.0 or heavy_t > 0.0 \
+		or is_stuck() or fluffs.size() >= 2
+
+
 func is_stuck() -> bool:
 	return clump.size() >= 2
 

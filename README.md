@@ -267,9 +267,9 @@ Entre un sueño y otro aparecen dos de estos personajes (tres desde el nivel 3 d
 | Personaje | Quién es | Tipo de mejora |
 |---|---|---|
 | **Svinho** | Futbolista brasileño | Rebotes: golpes que encadenan enemigos y una almohada que se lanza |
-| **Stolk** | El matón del colegio | Mucho más poder a cambio de vida máxima |
+| **Stolk** | El matón del colegio | Mucho más poder a cambio de vida máxima (5 por nivel). Con cualquier arma, además: **Abusón** (+15/25/40 % de daño a los enemigos indefensos: aturdidos, congelados, glitcheados, frenados, flotando, bailando, pegados o volando por un golpe fuerte), **Revancha** (el que le hace daño a Kroker queda fichado 8 s con una vena de enfado encima; las armas de Stolk van a por él primero con +30/50/75 % de daño y lo empujan un 60 % más) y, desde el nivel 2, el golpe fuerte llega un golpe antes |
 | **Silly** | Una hacker | Glitches: congelar, ralentizar o dejar vulnerables a los enemigos |
-| **Doc** | Un doctor | Más vida máxima a cambio de empeorar otra estadística |
+| **Doc** | Un doctor | Más vida máxima a cambio de empeorar otra estadística. Con cualquier arma, además: **Tiritas** (lo que Kroker se cura con la vida llena se guarda en tiritas que se ven pegadas en él y paran 1 de daño cada una, hasta 2/3/5 sumando las dos armas) y **Segunda opinión** (una vez por sueño, si un golpe le deja por debajo del 30 % de vida, Doc le cura 4/6/9) |
 | **Mr. Ad** | Un humanoide cubierto de anuncios de chocolatinas y comida basura | Más Realidad Fragmentada y una estadística que sube cuanta más tengas ahorrada. Se desbloquea al llegar por primera vez al Acto 2 (con un logro) y desde entonces puede salir desde el principio |
 | **El Pinche** | El aprendiz de El Chef, con gorro de papel, cuchillo y soplete | Sangrado (daño residual fuerte) o quemadura (daño residual flojo, pero el enemigo hace menos daño y recibe más), según el arma. Se desbloquea al llegar por primera vez al Acto 3 |
 | **Magnus** | Un magnate de los negocios detrás de su escritorio | **Inversiones**: le pagas Realidad Fragmentada y te sube varias estadísticas al momento, con un objetivo para el siguiente sueño (derrotar enemigos, tirarlos por agujeros, derrotar élites o no recibir muchos golpes). Si lo cumples, te las quedas y te devuelve más dinero; si no, te las quita y se queda el dinero. Se desbloquea al superar el Acto 3 |

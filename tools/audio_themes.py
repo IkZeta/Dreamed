@@ -1655,4 +1655,32 @@ def sfx_gravity_well():
 
 SFX.update({"gravity_well": (sfx_gravity_well, 0.35, 0.1)})
 
+
+def sfx_plaster():
+    """Doc pega una tirita: el papel que se despega (un «fsst» corto) y una palmadita blanda
+    Doc sticks on a plaster: the backing peeling off (a short "fsst") and a soft pat."""
+    d = 0.32
+    n = int(SR * d)
+    t = np.arange(n) / SR
+    rip = bp(noise(d), 2500, 7000) * np.exp(-((t - 0.07) / 0.05) ** 2) * 0.5
+    x = np.zeros(int(SR * 0.45))
+    x[:n] += rip
+    pat = thump(260, 0.12, 0.5, 14.0)
+    at = int(SR * 0.17)
+    x[at:at + len(pat)] += pat[: len(x) - at]
+    return lp(x, 7000)
+
+
+def sfx_knuckles():
+    """Stolk te ficha: crujido de nudillos, tres chasquidos secos / Stolk marks someone: knuckles cracking, three dry clicks."""
+    x = np.zeros(int(SR * 0.35))
+    for i in range(3):
+        c = bar(RNG.uniform(900, 1300), 0.03, 0.08, "wood", 0.8)
+        at = int(SR * (i * 0.06 + RNG.uniform(0.0, 0.015)))
+        x[at:at + len(c)] += c[: len(x) - at]
+    return lp(x, 4000)
+
+
+SFX.update({"plaster": (sfx_plaster, 0.3, 0.05), "knuckles": (sfx_knuckles, 0.3, 0.05)})
+
 OVERRIDES = set(MUSIC) | set(SFX)
