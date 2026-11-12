@@ -996,10 +996,20 @@ func drop_shards(pos: Vector2, n: int) -> void:
 		world.add_child(s)
 
 
+var _shard_streak := 0
+var _shard_last := -10.0
+
+
 func collect_shards(n: int) -> void:
 	var ups := GameState.add_xp(n)
 	hud.set_xp()
-	Audio.play("pickup", -17.0, 0.2)
+	# Recoger varios seguidos sube la escala pentatónica (como las monedas en racha)
+	# Picking several in a row climbs the pentatonic scale (like coins in a streak)
+	var now := Time.get_ticks_msec() / 1000.0
+	_shard_streak = _shard_streak + 1 if now - _shard_last < 0.7 else 0
+	_shard_last = now
+	var step: int = [0, 2, 4, 7, 9, 12][mini(_shard_streak, 5)]
+	Audio.play("pickup", -17.0, 0.0, pow(2.0, step / 12.0))
 	if ups > 0:
 		GameState.pending_ups += ups
 		trinkets.on_level_up()

@@ -51,7 +51,7 @@ func _stream(sound: String) -> AudioStream:
 
 ## Reproduce un efecto. pitch_jitter varía el tono al azar para que no suene repetitivo.
 ## Plays an effect. pitch_jitter randomly varies the pitch so it doesn't sound repetitive.
-func play(sound: String, volume_db := 0.0, pitch_jitter := 0.0) -> void:
+func play(sound: String, volume_db := 0.0, pitch_jitter := 0.0, pitch := 1.0) -> void:
 	var now := _now()
 	if now - float(_last_played.get(sound, -1.0)) < MIN_GAP:
 		return
@@ -60,7 +60,7 @@ func play(sound: String, volume_db := 0.0, pitch_jitter := 0.0) -> void:
 	_next = (_next + 1) % POOL_SIZE
 	p.stream = _stream(sound)
 	p.volume_db = volume_db
-	p.pitch_scale = 1.0 + randf_range(-pitch_jitter, pitch_jitter)
+	p.pitch_scale = pitch * (1.0 + randf_range(-pitch_jitter, pitch_jitter))
 	p.play()
 
 
