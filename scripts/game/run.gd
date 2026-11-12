@@ -420,6 +420,7 @@ const COMBO_GAP := 2.2
 const COMBO_MILESTONES := [10, 25, 50, 100, 200]
 var _combo := 0
 var _combo_t := 0.0
+var _pop_at := -1000
 
 
 ## Un golpecito de zoom (la pantalla se acerca un pelín y vuelve) / A little zoom punch (the screen nudges closer and back)
@@ -463,7 +464,11 @@ func _streak() -> void:
 	hud.set_combo(_combo, 1.0)
 	# Burbuja que estalla, un pelín más aguda cuanto más larga es la racha (hasta una quinta)
 	# A popping bubble, a touch higher the longer the streak (up to a fifth)
-	Audio.play("dream_pop", -17.0, 0.04, pow(2.0, (minf(_combo, 24.0) / 24.0 * 7.0) / 12.0))
+	# Como mucho una cada 0,1 s, para que una barrida no suene a metralleta / At most one every 0.1 s, so a sweep doesn't sound like a machine gun
+	var now := Time.get_ticks_msec()
+	if now - _pop_at >= 100:
+		_pop_at = now
+		Audio.play("dream_pop", -17.0, 0.04, pow(2.0, (minf(_combo, 24.0) / 24.0 * 7.0) / 12.0))
 	if _combo in COMBO_MILESTONES:
 		var idx: int = COMBO_MILESTONES.find(_combo)
 		hud.combo_milestone(_combo, idx)

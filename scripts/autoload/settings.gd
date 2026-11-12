@@ -351,6 +351,24 @@ func _ensure_buses() -> void:
 			var idx := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(idx, bus)
 			AudioServer.set_bus_send(idx, "Master")
+	# Los efectos pasan por un compresor suave: cuando se juntan muchos (una racha larga, una
+	# cadena de caídas) no se amontonan en un golpe estridente. Y en el máster, un limitador.
+	# Sound effects go through a gentle compressor: when many stack up (a long streak, a chain of
+	# falls) they don't pile into a harsh blast. And on the master, a limiter.
+	var si := AudioServer.get_bus_index("SFX")
+	if si != -1 and AudioServer.get_bus_effect_count(si) == 0:
+		var comp := AudioEffectCompressor.new()
+		comp.threshold = -14.0
+		comp.ratio = 3.0
+		comp.attack_us = 4000.0
+		comp.release_ms = 160.0
+		comp.gain = 1.5
+		AudioServer.add_bus_effect(si, comp)
+	var ma := AudioServer.get_bus_index("Master")
+	if AudioServer.get_bus_effect_count(ma) == 0:
+		var lim := AudioEffectHardLimiter.new()
+		lim.ceiling_db = -0.8
+		AudioServer.add_bus_effect(ma, lim)
 	# Filtro de la música para apagarla («bajo el agua») en pausa y en las pantallas de elegir
 	# Music filter to muffle it ("underwater") while paused and on choice screens
 	var mi := AudioServer.get_bus_index("Music")

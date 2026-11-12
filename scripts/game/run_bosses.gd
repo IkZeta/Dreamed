@@ -103,9 +103,30 @@ func boss_time_up() -> void:
 ## Reward for beating the boss before the time runs out: a bonus level
 func boss_bonus() -> void:
 	GameState.pending_ups += 1
-	run.fx.text(run.player.global_position + Vector2(0, -130), tr("BOSS_BONUS_LEVEL"), UITheme.GOLD, 30)
-	run.fx.ring(run.player.global_position + Vector2(0, -60), 50.0, UITheme.GOLD, 0.8, 3.0)
+	run.fx.text(run.player.global_position + Vector2(0, -130), tr("BOSS_BONUS_LEVEL"), UITheme.GOLD, 30, true)
+	run.fx.pillar(run.player.global_position, UITheme.GOLD)
 	Audio.play("chime", -2.0)
+	_fireworks()
+
+
+## Fuegos artificiales de sueño por la pantalla al ganar a un jefe: estallidos de confeti de
+## colores, uno tras otro, con su ondita y un «pop» suave
+## Dream fireworks across the screen on beating a boss: bursts of coloured confetti, one after
+## another, each with its little wave and a soft "pop"
+func _fireworks() -> void:
+	var v: Rect2 = run.view_rect()
+	var cols := [Color("f6d993"), Color("ff9fc8"), Color("9fe8ff"), Color("b48cff"), Color("9be38a")]
+	run.pulse(UITheme.GOLD, 0.35, 0.006)
+	run.punch(0.04)
+	for i in 9:
+		run.get_tree().create_timer(0.15 + i * 0.22, false).timeout.connect(func() -> void:
+			if not is_instance_valid(run):
+				return
+			var p := Vector2(randf_range(v.position.x + v.size.x * 0.15, v.end.x - v.size.x * 0.15), randf_range(v.position.y + v.size.y * 0.15, v.position.y + v.size.y * 0.6))
+			var c: Color = cols[i % cols.size()]
+			run.fx.burst(p, c, true)
+			run.fx.burst(p, Color.WHITE, false)
+			Audio.play("dream_pop", -12.0, 0.1, 0.8 + 0.06 * i))
 
 
 ## Jefe del Acto 3: el Ovni baja dando tumbos por el pasillo / Act 3 boss: the UFO lurches down the hallway

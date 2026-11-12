@@ -86,8 +86,7 @@ func _draw() -> void:
 	var w := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var at := Vector2(c.x - w * 0.5, tip.y - 66.0)
 	draw_rect(Rect2(at + Vector2(-14, -fs - 4), Vector2(w + 28, fs + 18)), Color(UITheme.VOID, 0.8 * a))
-	draw_string_outline(f, at, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 6, Color(UITheme.INK, a))
-	draw_string(f, at, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(UITheme.GOLD, a))
+	UITheme.ink_text(self, f, at.round(), txt, fs, Color(UITheme.GOLD, a), 2.0)
 
 
 func _ellipse(c: Vector2, rx: float, ry: float, col: Color, w: float) -> void:

@@ -185,16 +185,24 @@ func noir_intro(depth: int) -> void:
 		if n is CityBillboard:
 			var bb := n as CityBillboard
 			swarm.add_piece(bb.panel_world(), "board", bb.ad, randf_range(0.0, 1.6))
-			run.get_tree().create_timer(randf_range(0.0, 1.6), false).timeout.connect(bb.take)
+			run.get_tree().create_timer(randf_range(0.0, 1.6), false).timeout.connect(func() -> void:
+				if is_instance_valid(bb):
+					bb.take())
 		elif n is CityBuilding and (n as CityBuilding).kind != "house":
 			var bl := n as CityBuilding
 			swarm.add_piece(bl.screen_world(), "tv", 0, randf_range(0.2, 1.8))
-			run.get_tree().create_timer(randf_range(0.2, 1.8), false).timeout.connect(func() -> void: bl.screen_taken = true)
+			run.get_tree().create_timer(randf_range(0.2, 1.8), false).timeout.connect(func() -> void:
+				if is_instance_valid(bl):
+					bl.screen_taken = true)
 	run.world.add_child(swarm)
 	Audio.play("glitch", -2.0)
 	Audio.play("boss_wake", -4.0)
 	for i in 5:
 		run.get_tree().create_timer(0.7 + i * 0.8, false).timeout.connect(func() -> void:
+			# Si se ha salido de la partida a mitad de la escena, no queda nada que sacudir
+			# If the run was left mid-scene, there's nothing left to shake
+			if not is_instance_valid(run) or not run.is_inside_tree():
+				return
 			run.shake(4.0 + i * 2.0)
 			Audio.play("glitch", -10.0, 0.2))
 	await swarm.formed

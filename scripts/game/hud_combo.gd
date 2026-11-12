@@ -80,17 +80,15 @@ func _draw() -> void:
 	var w := big.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var p := Vector2(right - w, 60.0 + 10.0 * _pop * 0.3)
 	var wob := Vector2(0, sin(_t * 8.0) * 2.0 * minf(1.0, _n / 50.0))
-	draw_string_outline(big, p + wob + Vector2(3, 4), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 10, Color(INK, 0.6 * a))
-	draw_string_outline(big, p + wob, s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 8, Color(INK, a))
-	draw_string(big, p + wob, s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(col, a))
+	draw_string(big, (p + wob + Vector2(4, 5)).round(), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(INK, 0.6 * a))
+	UITheme.ink_text(self, big, (p + wob).round(), s, fs, Color(col, a), 3.0)
 	# Brillo que cruza con cada muerte / A shine crossing with each kill
 	if _pop > 0.0:
 		draw_texture_rect(DreamBackground.soft_texture(), Rect2(p + Vector2(-20, -fs * 0.9), Vector2(w + 40, fs * 1.2)), false, Color(col, 0.25 * _pop * a))
 	var lab := tr("STREAK")
 	var lfs := UITheme.pixel_size(15)
 	var lw := caps.get_string_size(lab, HORIZONTAL_ALIGNMENT_LEFT, -1, lfs).x
-	draw_string_outline(caps, Vector2(right - lw, 90), lab, HORIZONTAL_ALIGNMENT_LEFT, -1, lfs, 5, Color(INK, a))
-	draw_string(caps, Vector2(right - lw, 90), lab, HORIZONTAL_ALIGNMENT_LEFT, -1, lfs, Color(UITheme.ASH, a))
+	UITheme.ink_text(self, caps, Vector2(right - lw, 90).round(), lab, lfs, Color(UITheme.ASH, a), 2.0)
 	# Barrita que se vacía / Draining bar
 	var bw := 150.0
 	draw_rect(Rect2(right - bw - 2, 98, bw + 4, 8), Color(INK, 0.8 * a))
@@ -101,5 +99,4 @@ func _draw() -> void:
 		var tfs := int(UITheme.pixel_size(24) * (1.0 + 0.2 * maxf(0.0, _tag_t - 1.2) * 2.5))
 		var tw := caps.get_string_size(_tag, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
 		var tp := Vector2(right - tw, 136)
-		draw_string_outline(caps, tp, _tag, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs, 7, Color(INK, k))
-		draw_string(caps, tp, _tag, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs, Color(col, k))
+		UITheme.ink_text(self, caps, tp.round(), _tag, tfs, Color(col, k), 3.0)

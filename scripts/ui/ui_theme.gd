@@ -211,6 +211,17 @@ static func label(key: String, font_size := 26, color := BONE, role := "body") -
 
 ## La fuente pixel art solo se ve nítida en múltiplos de su tamaño (12). Nada por debajo de x2.
 ## The pixel font is only crisp at multiples of its size (12). Nothing below x2.
+## Texto con contorno para la fuente de píxeles (que es de mapa de bits y no admite el contorno de
+## Godot): pinta el texto en tinta en ocho direcciones y encima el de color.
+## Outlined text for the pixel font (a bitmap font that doesn't support Godot's outline): draws
+## the text in ink in eight directions and the coloured one on top.
+static func ink_text(ci: CanvasItem, f: Font, pos: Vector2, text: String, size: int, color: Color, px := 2.0, ink := Color("140e26")) -> void:
+	var a := Color(ink, ink.a * color.a)
+	for o: Vector2 in [Vector2(-1, -1), Vector2(0, -1), Vector2(1, -1), Vector2(-1, 0), Vector2(1, 0), Vector2(-1, 1), Vector2(0, 1), Vector2(1, 1)]:
+		ci.draw_string(f, pos + o * px, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, a)
+	ci.draw_string(f, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+
+
 static func pixel_size(font_size: int) -> int:
 	# Texto grande (accesibilidad): un 25 % más / Big text (accessibility): 25% more
 	var f := font_size * (1.25 if Settings.big_text else 1.0)

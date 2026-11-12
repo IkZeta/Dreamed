@@ -290,8 +290,7 @@ func _draw_kroker(s: float) -> void:
 		var p := head + Vector2(22.0 + k * 40.0 + sin(k * 7.0) * 6.0, -k * 70.0) * s
 		var fs := int((10.0 + k * 10.0) * s * (1.3 if zz["big"] else 1.0))
 		var a := sin(k * PI) * (1.0 - dive)
-		draw_string_outline(font, p, "z", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 3, Color(UITheme.INK, 0.5 * a))
-		draw_string(font, p, "z", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(UITheme.GOLD, a))
+		UITheme.ink_text(self, font, p.round(), "z", fs, Color(UITheme.GOLD, a), 1.0, Color(UITheme.INK, 0.5))
 
 
 ## Ovejas de las que se cuentan: dan un salto lento en el aire / Counting sheep: they take a slow leap in the air

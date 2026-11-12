@@ -85,9 +85,9 @@ func spark(pos: Vector2, dir: Vector2, color := UITheme.BONE, n := 4, power := 1
 	dir = dir.normalized()
 	for i in n:
 		var a := dir.angle() + randf_range(-0.9, 0.9)
-		_items.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * randf_range(260, 520) * power,
-			"color": color if i % 2 == 0 else Color.WHITE, "life": 0.18, "max": 0.18, "len": randf_range(10, 18) * power})
-	_items.append({"kind": "flash", "pos": pos, "r": 18.0 * power, "color": Color(1, 1, 1, 0.9), "life": 0.09, "max": 0.09})
+		_items.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * randf_range(320, 640) * power,
+			"color": color if i % 2 == 0 else Color.WHITE, "life": 0.2, "max": 0.2, "len": randf_range(18, 30) * power})
+	_items.append({"kind": "flash", "pos": pos, "r": 24.0 * power, "color": Color(color.lerp(Color.WHITE, 0.5), 0.9), "life": 0.1, "max": 0.1})
 
 
 ## Destello suave y redondo (sin bordes) / A soft round flash (no edges)
@@ -183,6 +183,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var font := UITheme.font("caps")
+	var digits := UITheme.font("display")
 	var soft := DreamBackground.soft_texture()
 	for it in _items:
 		var k := float(it["life"]) / float(it["max"])  # 1 → 0
@@ -195,10 +196,12 @@ func _draw() -> void:
 				var sz := maxi(8, int(float(it["size"]) * pop * (1.25 if it["big"] else 1.0)))
 				var c := Color(col, minf(1.0, k * 2.5))
 				var s := String(it["text"])
-				var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+				# Las cifras con la fuente gorda del reloj; las palabras con la de siempre
+				# Figures in the clock's chunky font; words in the usual one
+				var f: Font = digits if it["num"] else font
+				var w := f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 				var p := Vector2(it["pos"]) - Vector2(w / 2.0, 0)
-				draw_string_outline(font, p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, 6 if it["big"] else 5, Color(INK, c.a * 0.9))
-				draw_string(font, p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, c)
+				UITheme.ink_text(self, f, p.round(), s, sz, c, 2.0)
 			"bolt":
 				# Grueso para que se vea en pixel art / Thick so it shows in pixel art
 				draw_polyline(it["points"], Color(col, 0.3 * k), 16.0)
@@ -225,7 +228,7 @@ func _draw() -> void:
 				var p: Vector2 = it["pos"]
 				var v: Vector2 = it["vel"]
 				var tail := v.normalized() * float(it["len"]) * k
-				draw_line(p - tail, p, Color(col, k), 3.0 * k + 1.0)
+				draw_line(p - tail, p, Color(col, k), 4.0 * k + 2.0)
 			"flash":
 				var r := float(it["r"]) * (1.4 - 0.4 * k)
 				draw_texture_rect(soft, Rect2(Vector2(it["pos"]) - Vector2(r, r) * 1.6, Vector2(r, r) * 3.2), false, Color(col, col.a * k))

@@ -1176,8 +1176,7 @@ func _build_luna_rocket(at: Vector2) -> void:
 			var f := fposmod(count, 1.0)
 			var font := UITheme.font("display")
 			var sz := int(22.0 + 8.0 * (1.0 - f))
-			ci.draw_string_outline(font, Vector2(-7, -128 - f * 6.0), num, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, 5, INK)
-			ci.draw_string(font, Vector2(-7, -128 - f * 6.0), num, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, Color("fff6c0")))
+			UITheme.ink_text(ci, font, Vector2(-7, -128 - f * 6.0), num, sz, Color("fff6c0"), 1.0, INK))
 
 
 ## La cúpula donde duerme Luna: medio balón de playa forrado de papel de plata, con un ojo de buey
