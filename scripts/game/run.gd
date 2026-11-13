@@ -1408,6 +1408,7 @@ func _flash_to_astral() -> void:
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(flash)
 	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	SceneFade.preload_scene("res://scenes/astral_plane.tscn")
 	var glow := DreamGlow.new()
 	glow.position = player.global_position + Vector2(0, -70)
 	world.add_child(glow)
@@ -1421,7 +1422,7 @@ func _flash_to_astral() -> void:
 	tw.parallel().tween_property(player, "modulate:a", 0.0, 0.3)
 	tw.tween_property(glow, "radius", 40.0, 0.25)
 	tw.tween_property(flash, "modulate:a", 1.0, 0.25).set_trans(Tween.TRANS_SINE)
-	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_plane.tscn"))
+	tw.tween_callback(GameState.change_scene.bind("res://scenes/astral_plane.tscn", flash.color))
 
 
 ## El jefe ha caído: fin del Acto 1 / The boss has fallen: end of Act 1

@@ -1185,6 +1185,10 @@ func stats_for(id: String) -> Dictionary:
 	return s
 
 
-func change_scene(path: String) -> void:
+## Cambia de escena tapando la pantalla con "color" mientras se carga (SceneFade): nada de pantallas
+## grises. "color" es el del fogonazo o fundido con el que llega quien cambia de escena.
+## Changes scene covering the screen with "color" while it loads (SceneFade): no grey screens.
+## "color" is that of the flash or fade the caller arrives with.
+func change_scene(path: String, color := Color("0d0a1c")) -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file(path)
+	SceneFade.go(path, color)

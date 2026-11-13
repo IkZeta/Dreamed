@@ -545,8 +545,9 @@ func _leave() -> void:
 	add_child(flash)
 	flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	var tw := create_tween()
+	SceneFade.preload_scene(RUN_SCENE)
 	tw.tween_property(flash, "modulate:a", 1.0, 0.45)
-	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
+	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE, flash.color))
 
 
 # --- Piezas visuales / Visual pieces ------------------------------------------

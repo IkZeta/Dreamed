@@ -211,9 +211,18 @@ func _draw() -> void:
 	_draw_sheep(s)
 	_draw_kroker(s)
 	_draw_props(s, top, true)
-	# Al zambullirse, un fogonazo suave / When diving in, a soft flash
-	if dive > 0.5:
-		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.97, 0.9, (dive - 0.5) * 1.6))
+	# Al zambullirse, una luz cálida que nace donde cae Kroker y se abre hasta llenar la pantalla
+	# (así no hay un velo gris a medias) / When diving in, a warm light born where Kroker falls that
+	# opens until it fills the screen (so there's no half-way grey veil)
+	if dive > 0.25:
+		var k := (dive - 0.25) / 0.75
+		var c := Vector2(size.x * 0.5, size.y * (0.4 + 0.25 * dive * dive))
+		var r := lerpf(40.0, size.length() * 1.3, k * k) * s
+		var warm := Color(1.0, 0.94, 0.78)
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(r, r), Vector2(r, r) * 2.0), false, Color(warm, minf(1.0, k * 1.6)))
+		draw_circle(c, r * 0.35, Color(1.0, 0.97, 0.9, minf(1.0, k * 1.3)))
+		if dive > 0.8:
+			draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.97, 0.9, (dive - 0.8) * 5.0))
 
 
 func _draw_stars(s: float) -> void:

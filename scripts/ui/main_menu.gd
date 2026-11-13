@@ -396,13 +396,15 @@ func _on_settings() -> void:
 ## On starting, Kroker sinks into the dream: everything rushes past and ends in a flash
 func _dive(scene: String) -> void:
 	set_process_input(false)
+	# Se empieza a cargar ya, mientras Kroker se hunde / Loading starts now, while Kroker sinks
+	SceneFade.preload_scene(scene)
 	mouse_filter = MOUSE_FILTER_STOP
 	_ui.mouse_filter = MOUSE_FILTER_STOP
 	Audio.play("astral", -8.0)
 	create_tween().tween_property(_ui, "modulate:a", 0.0, 0.3)
 	var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	tw.tween_property(_fall, "dive", 1.0, 1.0)
-	tw.tween_callback(GameState.change_scene.bind(scene))
+	tw.tween_property(_fall, "dive", 1.0, 0.8)
+	tw.tween_callback(GameState.change_scene.bind(scene, Color(1.0, 0.97, 0.9)))
 
 
 ## Salir cierra el juego tras un fundido corto. / Quit closes the game after a short fade.

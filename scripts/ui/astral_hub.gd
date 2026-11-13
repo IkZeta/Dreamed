@@ -99,8 +99,7 @@ func _ready() -> void:
 	add_child(_card_slot)
 	if not Progress.any_cleared():
 		GameState.difficulty = "normal"
-	modulate.a = 0.0
-	create_tween().tween_property(self, "modulate:a", 1.0, 0.5)
+	# El fundido de entrada lo hace SceneFade (sin pasar por gris) / The fade-in is done by SceneFade (no grey in between)
 
 
 func _refresh_hint() -> void:
@@ -593,6 +592,7 @@ func _start_daily() -> void:
 	GameState.start_daily()
 	Audio.play("astral", -4.0)
 	var tw := create_tween()
+	SceneFade.preload_scene(RUN_SCENE)
 	tw.tween_property(self, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
 
@@ -602,6 +602,7 @@ func _start_dream() -> void:
 	GameState.start_run()
 	Audio.play("astral", -4.0)
 	var tw := create_tween()
+	SceneFade.preload_scene(RUN_SCENE)
 	tw.tween_property(self, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(GameState.change_scene.bind(RUN_SCENE))
 
