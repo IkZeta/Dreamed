@@ -1367,7 +1367,9 @@ func _build_luna_earth(at: Vector2) -> void:
 				if v.distance_to(c) > r - 1.0:
 					v = c + (v - c).normalized() * (r - 1.0)
 				blob.append(v)
-			ci.draw_colored_polygon(blob, Color("5fbf6a"))
+			# Pegado al borde puede quedar degenerado / Clamped to the rim it can end up degenerate
+			if not Geometry2D.triangulate_polygon(blob).is_empty():
+				ci.draw_colored_polygon(blob, Color("5fbf6a"))
 		# Nubes / Clouds
 		for q in 3:
 			var lon2 := fposmod(_t * 0.07 + q * 0.37, 1.0) * 2.0 - 1.0

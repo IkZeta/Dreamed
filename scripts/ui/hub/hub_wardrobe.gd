@@ -17,34 +17,32 @@ func build() -> void:
 	# Alfombra de pasillo de tienda, de la entrada al armario / Boutique runner rug, from the entrance to the wardrobe
 	hub._prop(c + Vector2(0, -120), func(ci: CanvasItem) -> void:
 		_draw_wardrobe_rug(ci, Vector2(0, 120)))
-	# El armario, abierto, con un resplandor y perchas que flotan encima
-	# The wardrobe, open, with a glow and hangers floating above it
+	# El armario, abierto, con un resplandor suave detrás / The wardrobe, open, with a soft glow behind it
 	hub._prop(c + Vector2(0, -41), func(ci: CanvasItem) -> void:
-		ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-90, -130), Vector2(180, 130)), false, Color("c9b8ff", 0.18 + 0.05 * sin(hub._t * 1.5)))
-		for k in 4:
-			var ph := hub._t * 0.6 + k * 1.7
-			var hp := Vector2(-48 + k * 32 + sin(ph) * 5.0, -104 + sin(ph * 1.3) * 4.0)
-			_hanger(ci, hp, sin(ph * 0.8) * 0.25, Color(1, 1, 1, 0.55)))
+		ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-80, -110), Vector2(160, 110)), false, Color("c9b8ff", 0.14 + 0.04 * sin(hub._t * 1.5))))
 	hub._piece(c + Vector2(0, -40), "hub_wardrobe", Vector2(64, 10), Vector2(0, -6))
 	# Biombo para cambiarse, con un pijama colgado / Folding screen for changing, with pajamas thrown over it
-	var scr := c + Vector2(-104, -52)
+	var scr := c + Vector2(-141, -14)
 	hub._blocks.append({"c": scr, "r": Vector2(26, 5)})
 	hub._prop(scr, _draw_changing_screen)
 	# Espejo de cuerpo entero que refleja a Kroker con el pijama que lleve
 	# Full-length mirror reflecting Kroker in whatever pajamas he's wearing
-	var mir := c + Vector2(104, -50)
+	var mir := c + Vector2(142, -12)
 	hub._blocks.append({"c": mir, "r": Vector2(10, 4)})
 	hub._prop(mir, func(ci: CanvasItem) -> void: _draw_mirror(ci, mir))
-	# Los pijamas en dos filas en uve, a los lados del pasillo, con sus zapatillas y un foco cada uno
-	# The pajamas in two V-shaped rows either side of the aisle, each with its slippers and a spotlight
+	# Los pijamas en dos bloques, a los lados del pasillo, sobre el suelo de madera: tres columnas y dos
+	# filas al tresbolillo por lado (caben todos sin salirse de la isla), con sus zapatillas y un foco
+	# The pajamas in two blocks either side of the aisle, on the wooden floor: three columns and two
+	# staggered rows per side (they all fit without spilling off the island), each with its slippers and a spotlight
 	var n := hub.PAJAMAS.size()
 	var half := int(ceil(n / 2.0))
 	for i in n:
 		var o := hub.PAJAMAS[i]
 		var side := -1.0 if i < half else 1.0
 		var k := i if i < half else i - half
-		var ax := 46.0 + k * 27.0
-		var at := c + Vector2(side * ax, 8.0 + (ax - 46.0) * 0.14)
+		var col := k % 3
+		var row := k / 3
+		var at := c + Vector2(side * (34.0 + col * 25.0 + (10.0 if row == 0 else 0.0)), -16.0 + row * 38.0)
 		hub._blocks.append({"c": at, "r": Vector2(7, 3)})
 		hub._spots.append({"kind": "pajama", "id": o, "pos": at, "height": 70.0})
 		hub._prop(at, func(ci: CanvasItem) -> void: _draw_pajama_stand(ci, o, side))
