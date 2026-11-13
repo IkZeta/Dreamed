@@ -432,11 +432,12 @@ Teclas durante la partida:
 
 Hay tres exportaciones de demo (Windows, Linux y macOS) en `export_presets.cfg`. La demo se activa con la etiqueta de característica `demo` (o, para probarla en el editor, con *Ajustes del proyecto → dreamed/demo*). En la demo:
 
-- no salen el Modo Dios ni los botones de desbloquear bestiario y personajes;
-- **sí** está el botón «Desbloquear todo» del menú principal;
+- no sale ninguna opción de depuración: ni el botón del Modo Dios en el panel de empezar a soñar, ni sus teclas (F, N, K, L y Select en el mando), ni su indicador en el HUD;
+- de las herramientas de prueba solo quedan, abajo a la izquierda del menú principal, **«Desbloquear todo»** y **«Borrar partida»**;
+- junto a la versión pone «DEMO»;
 - el guardado va en archivos aparte (`*_demo.cfg`), para no mezclarse con el de las pruebas.
 
-Para hacer una demo nueva basta con volver a exportar con esos presets.
+Para hacer una demo nueva basta con volver a exportar con esos presets (con `--export-release`). Salen en `build/demo/`: `Dreamed_Demo.exe` (Windows, con el .pck dentro), `Dreamed_Demo.x86_64` (Linux) y `Dreamed_Demo_macOS.zip` (macOS universal, firmado ad hoc: la primera vez hay que abrirlo con clic derecho → *Abrir*). La última se hizo con la versión 1.6 el 13 de noviembre de 2026.
 
 ---
 
