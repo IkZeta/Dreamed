@@ -59,7 +59,7 @@ func _act(delta: float) -> void:
 		# Cada vez hace tic-tac más deprisa / It tick-tocks faster and faster
 		_tick = lerpf(0.9, 0.25, 1.0 - fuse / FUSE)
 		if global_position.distance_squared_to(run.player.global_position) < 1100.0 * 1100.0:
-			Audio.play("alarm_tick", -16.0, 0.05, 1.0 + 0.3 * (1.0 - fuse / FUSE))
+			Audio.play_at("alarm_tick", global_position, -16.0, 0.05, 1.0 + 0.3 * (1.0 - fuse / FUSE))
 	if fuse <= 0.0:
 		_ring()
 
@@ -101,7 +101,7 @@ func _ring_below(at: Vector2) -> void:
 
 
 func _death_sound() -> void:
-	Audio.play("hit", -10.0, 0.15)
+	Audio.play_at("hit", global_position, -10.0, 0.15)
 	Audio.play("yoyo_catch", -14.0, 0.2, 1.4)
 
 

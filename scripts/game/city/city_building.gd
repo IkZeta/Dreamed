@@ -19,6 +19,8 @@ var screen_taken := false   # su pantalla se la ha llevado Evil Ad / Evil Ad has
 var burning := false        # ha estallado: ventanas rotas, fuego y humo / it blew up: broken windows, fire and smoke
 var _burn_t := 0.0
 var _t := 0.0
+var _redraw_t := 0.0
+const REDRAW_HZ := 12.0
 
 ## Estalla (cinemática del último sueño) / It blows up (last dream's cutscene)
 func explode() -> void:
@@ -36,6 +38,7 @@ func explode() -> void:
 
 func _ready() -> void:
 	scale = Vector2(Bedroom.S, Bedroom.S)
+	_redraw_t = fposmod(seed * 0.013, 1.0 / REDRAW_HZ)
 	# Cada ciudad construye a su manera: en la brutalista no hay tejados a dos aguas, en la
 	# synthwave las casas son tiendas con neón... / Each city builds its own way: no pitched roofs
 	# in the brutalist one, houses are neon shops in the synthwave one...
@@ -58,10 +61,18 @@ func _process(delta: float) -> void:
 	modulate.a = move_toward(modulate.a, 0.45 if behind else 1.0, delta * 4.0)
 	if burning:
 		_burn_t += delta
-	# Solo se vuelve a dibujar lo que se mueve y además está a la vista (ahorra mucho en la ciudad)
-	# Only what moves and is on screen gets redrawn (saves a lot in the city)
-	if (kind in ["tower", "shop"] or burning or style in ANIMATED) and _on_screen():
-		queue_redraw()
+	# Solo se vuelve a dibujar lo que se mueve y además está a la vista, y no en cada fotograma: el
+	# neón y los brillos se ven igual a 12 por segundo (20 si arde) y cada edificio va a su turno
+	# Only what moves and is on screen gets redrawn, and not every frame: neon and glints look the
+	# same at 12 a second (20 while burning) and each building takes its own turn
+	if kind in ["tower", "shop"] or burning or style in ANIMATED:
+		_redraw_t -= delta
+		if _redraw_t <= 0.0:
+			_redraw_t += 1.0 / (20.0 if burning else REDRAW_HZ)
+			if _redraw_t < 0.0:
+				_redraw_t = fposmod(seed * 0.013, 1.0 / REDRAW_HZ)
+			if _on_screen():
+				queue_redraw()
 
 
 ## Estéticas con cosas que se mueven en las fachadas (neón, brillos, focos...)

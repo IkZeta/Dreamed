@@ -103,7 +103,7 @@ func _act(delta: float) -> void:
 		run.fx.ring(en.global_position + Vector2(0, -40), 40.0, Color("8fd8ff"), 0.4, 1.6)
 	if not best.is_empty():
 		_beam = 1.0
-		Audio.play("pillow", -8.0, 0.1)
+		Audio.play_at("pillow", global_position, -8.0, 0.1)
 
 
 func _death_sound() -> void:

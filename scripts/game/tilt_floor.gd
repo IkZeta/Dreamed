@@ -6,7 +6,7 @@ extends Node2D
 ## floor, so you can see which way the tilt is pulling.
 
 const MAX_TILT := 75.0
-const ARROW_GAP := 150.0
+const ARROW_GAP := 220.0
 const MOTES := 70
 const COL := Color("d9c8ff")
 
@@ -57,18 +57,18 @@ func _draw() -> void:
 	var reach := area.size.length() * 0.5
 	# Corrientes de flechas en filas perpendiculares a la pendiente
 	# Streams of arrows in rows across the slope
-	var rows := int(reach * 2.0 / 190.0)
+	var rows := int(reach * 2.0 / 280.0)
 	for r in range(-rows / 2, rows / 2 + 1):
 		var stagger := ARROW_GAP * 0.5 if r % 2 != 0 else 0.0
 		var n := int(reach * 2.0 / ARROW_GAP) + 2
 		for i in n:
 			var along := -reach + i * ARROW_GAP + _scroll + stagger
-			var p := c + side * (r * 190.0) + dir * along
+			var p := c + side * (r * 280.0) + dir * along
 			if not area.grow(-20).has_point(p):
 				continue
 			# Se desvanecen en los bordes / They fade near the edges
 			var edge := minf(minf(p.x - area.position.x, area.end.x - p.x), minf(p.y - area.position.y, area.end.y - p.y))
-			var a := k * 0.32 * clampf(edge / 90.0, 0.0, 1.0)
+			var a := k * 0.16 * clampf(edge / 90.0, 0.0, 1.0)
 			_chevron(p, dir, side, 22.0 + 8.0 * k, Color(COL, a))
 	# Polvo que resbala / Sliding dust
 	for m in _motes:

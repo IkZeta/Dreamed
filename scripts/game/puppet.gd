@@ -114,7 +114,7 @@ func _strike() -> void:
 				player.start_bleed(BLADE_BLEED)
 	else:
 		run.fx.ring(hit_at, 30.0, SPARK, 0.35, 2.4)
-		Audio.play("zap", -4.0, 0.1)
+		Audio.play_at("zap", global_position, -4.0, 0.1)
 		if close:
 			var before := player.hp
 			player.take_damage(ROD_DAMAGE * GameState.enemy_dmg_mult() * atk_mult(), self)
@@ -150,7 +150,7 @@ func _fire() -> void:
 	shot.damage = GUN_DAMAGE * atk_mult()
 	shot.radius = 10.0
 	run.world.add_child(shot)
-	Audio.play("shoot", -3.0, 0.05)
+	Audio.play_at("shoot", global_position, -3.0, 0.05)
 	run.shake(4.0)
 	run.fx.ring(_muzzle(), 18.0, UITheme.GOLD, 0.3, 2.2)
 	run.fx.dissipate(_muzzle(), Color("cfc6e8"))

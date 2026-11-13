@@ -93,7 +93,7 @@ func _fire() -> void:
 	_aim_dir = Vector2.ZERO
 	shot.damage = SHOT_DAMAGE * atk_mult()
 	run.world.add_child(shot)
-	Audio.play("shoot", -8.0, 0.1)
+	Audio.play_at("shoot", global_position, -8.0, 0.1)
 	_recoil = 1.0
 
 

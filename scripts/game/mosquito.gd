@@ -54,7 +54,7 @@ func _touch_player() -> void:
 
 
 func _death_sound() -> void:
-	Audio.play("hit", -16.0, 0.2)
+	Audio.play_at("hit", global_position, -16.0, 0.2)
 
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:

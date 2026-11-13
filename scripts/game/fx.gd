@@ -10,7 +10,10 @@ extends Node2D
 ## and a little glow.
 
 ## Como mucho tantas partículas a la vez (los textos siempre entran) / At most this many particles at once (texts always get in)
-const MAX_ITEMS := 900
+const MAX_ITEMS := 600
+## Cifras pequeñas de daño por fotograma: en una pelea llena, las demás sobran
+## Small damage numbers per frame: in a packed fight the rest are just clutter
+const NUMBERS_PER_FRAME := 3
 ## Color de los destellos de cada enemigo al morir / Each enemy's flash colour on death
 const DEATH_COLORS := {
 	"foox": Color("9fe8ff"), "golden_foox": Color("ffe36a"), "thug": Color("ff9fb0"), "sling": Color("ffb88a"),
@@ -23,6 +26,7 @@ const INK := Color("140e26")
 
 var _items: Array[Dictionary] = []
 var _sparks_this_frame := 0
+var _numbers_this_frame := 0
 
 
 func _ready() -> void:
@@ -42,6 +46,10 @@ func text(pos: Vector2, value: String, color := UITheme.BONE, size := 22, big :=
 	# The world is shown at half size (pixel art): texts are a bit bigger to stay readable
 	size = int(size * 1.35)
 	var numeric := value.is_valid_float()
+	if numeric and not big:
+		_numbers_this_frame += 1
+		if _numbers_this_frame > NUMBERS_PER_FRAME or not _room():
+			return
 	var life := 0.95 if big else 0.8
 	_items.append({"kind": "text", "pos": pos, "text": value, "color": color, "size": size,
 		"life": life, "max": life, "big": big, "num": numeric,
@@ -152,6 +160,7 @@ func clear() -> void:
 
 func _process(delta: float) -> void:
 	_sparks_this_frame = 0
+	_numbers_this_frame = 0
 	for i in range(_items.size() - 1, -1, -1):
 		var it := _items[i]
 		it["life"] = float(it["life"]) - delta

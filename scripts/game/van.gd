@@ -95,7 +95,7 @@ func _act(delta: float) -> void:
 	p.set("_drop", 1.0)
 	run.enemies.add_child(p)
 	_own.append(p)
-	Audio.play("throw", -10.0, 0.1)
+	Audio.play_at("throw", at, -10.0, 0.1)
 
 
 func die(counted: bool) -> void:

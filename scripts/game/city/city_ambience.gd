@@ -8,10 +8,14 @@ extends Node2D
 var room: Act4Room
 var _t := 0.0
 var _p: Array[Vector4] = []   # x, y, fase, tamaño / x, y, phase, size
-const N := 70
+## Pocas y tenues: es ambiente, no tiene que competir con los enemigos
+## Few and faint: it's ambience, it mustn't compete with the enemies
+const N := 38
+const FAINT := 0.6
 const BOX := Vector2(2900, 1700)
 
 func _ready() -> void:
+	self_modulate.a = FAINT
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	for i in N:
@@ -29,7 +33,7 @@ func _draw() -> void:
 		# Relámpago de vez en cuando / Lightning now and then
 		var fl := fmod(_t, 9.0)
 		if fl < 0.08 or (fl > 0.16 and fl < 0.22):
-			draw_rect(view.grow(40), Color(1, 1, 1, 0.22))
+			draw_rect(view.grow(40), Color(1, 1, 1, 0.0 if Settings.reduce_flashes else 0.08))
 	if room.style == "dieselpunk" or room.style == "noir":
 		# La sombra de un zepelín que cruza despacio la ciudad / A zeppelin's shadow slowly crossing the city
 		var zx := fposmod(_t * 60.0, Act4Room.MAP_SIZE.x + 1600.0) - 800.0

@@ -60,7 +60,7 @@ func _act(delta: float) -> void:
 	run.enemies.add_child(m)
 	_out.append(m)
 	_pulse = 1.0
-	Audio.play("spawn", -22.0, 0.2)
+	Audio.play_at("spawn", global_position, -22.0, 0.2)
 
 
 func _death_sound() -> void:

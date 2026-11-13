@@ -58,7 +58,7 @@ func _act(delta: float) -> void:
 	var s := sin(_t * 1.6 + _phase)
 	if signf(s) != signf(_foot) and _windup <= 0.0 and stun_t <= 0.0 \
 			and global_position.distance_squared_to(run.player.global_position) < 900.0 * 900.0:
-		Audio.play("step_heavy", -15.0, 0.1, 0.8)
+		Audio.play_at("step_heavy", global_position, -15.0, 0.1, 0.8)
 	_foot = s
 	_swing = maxf(0.0, _swing - delta * 2.0)
 	var to_player: Vector2 = run.player.global_position - global_position
@@ -79,7 +79,7 @@ func _act(delta: float) -> void:
 func _slam() -> void:
 	_slam_cd = SLAM_EVERY + randf_range(-0.3, 0.4)
 	_swing = 1.0
-	Audio.play("stomp", -4.0, 0.05)
+	Audio.play_at("stomp", global_position, -4.0, 0.05)
 	run.shake(5.0)
 	var at := global_position + Vector2(_facing * 70.0, -10)
 	run.fx.ring(at, 40.0, PAPER, 0.4, 2.2)

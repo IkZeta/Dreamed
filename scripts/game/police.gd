@@ -16,6 +16,12 @@ const BURST_GAP := 0.12
 const SHOT_SPEED := 620.0
 const SHOT_DAMAGE := 1.5
 const SHOT_BLEED := 1.5
+## Como mucho tantos apuntando a la vez, y solo si se les ve: con la furgo soltando policías, la
+## pantalla se llenaba de miras rojas y ráfagas / At most this many aiming at once, and only when on
+## screen: with the van dropping officers, the screen filled with red sights and bursts
+const MAX_SHOOTERS := 3
+const SEEN_R := Vector2(1000, 600)
+static var _shooters := {}
 
 var style := "brutalist"
 var _shot_t := 1.6
@@ -74,10 +80,14 @@ func _act(delta: float) -> void:
 			_fire()
 			if _burst_left == 0:
 				_aim_dir = Vector2.ZERO
+				_shooters.erase(get_instance_id())
 		return
 	if _aiming <= 0.0 and absf(run.player.global_position.x - global_position.x) > 4.0:
 		_facing = signf(run.player.global_position.x - global_position.x)
 	_shot_t -= delta * (0.5 if slow_t > 0.0 else 1.0)
+	if _shot_t <= AIM_TIME and _aim_dir == Vector2.ZERO and not _may_shoot():
+		_shot_t = AIM_TIME + randf_range(0.3, 0.9)
+		return
 	if _shot_t <= AIM_TIME:
 		if _aim_dir == Vector2.ZERO:
 			_aim_dir = (run.player.global_position + Player.HURT - _shot_from()).normalized()
@@ -88,6 +98,27 @@ func _act(delta: float) -> void:
 		_aiming = 0.0
 		_burst_left = BURST
 		_burst_t = 0.0
+
+
+## ¿Puede ponerse a apuntar? Cuenta los que ya lo hacen y si está a la vista
+## May it start aiming? Counts those already doing it and whether it's on screen
+func _may_shoot() -> bool:
+	var cam := get_viewport().get_camera_2d()
+	if cam:
+		var off := (global_position - cam.get_screen_center_position()).abs()
+		if off.x > SEEN_R.x or off.y > SEEN_R.y:
+			return false
+	for id: int in _shooters.keys():
+		if not is_instance_id_valid(id):
+			_shooters.erase(id)
+	if _shooters.size() >= MAX_SHOOTERS:
+		return false
+	_shooters[get_instance_id()] = true
+	return true
+
+
+func _exit_tree() -> void:
+	_shooters.erase(get_instance_id())
 
 
 func _shot_from() -> Vector2:
@@ -105,11 +136,12 @@ func _fire() -> void:
 	shot.damage = SHOT_DAMAGE * atk_mult()
 	shot.bleed = SHOT_BLEED
 	run.world.add_child(shot)
-	Audio.play("burst", -12.0, 0.15)
+	Audio.play_at("burst", global_position, -12.0, 0.15)
 
 
 func _death_sound() -> void:
-	Audio.play("hit", -8.0, 0.1)
+	_shooters.erase(get_instance_id())
+	Audio.play_at("hit", global_position, -8.0, 0.1)
 
 
 func _draw() -> void:

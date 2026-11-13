@@ -83,6 +83,11 @@ const POND := Rect2(Vector2(4, 21) * T, Vector2(6, 4) * T)
 func _ready() -> void:
 	super._ready()
 	_build_static()
+	# El suelo un pelín más apagado que los personajes, para que se lean bien encima de una ciudad
+	# tan cargada (solo el dibujo propio: agujeros, fuente y ambiente van aparte)
+	# The ground a touch dimmer than the characters, so they read well over such a busy city (own
+	# drawing only: holes, fountain and ambience are separate)
+	self_modulate = Color(0.86, 0.86, 0.9)
 	_live = Node2D.new()
 	add_child(_live)
 	_live.draw.connect(_draw_live)
@@ -395,9 +400,6 @@ func _process(delta: float) -> void:
 	if _redraw_t <= 0.0:
 		_redraw_t = 1.0 / 30.0
 		_live.queue_redraw()
-		# Los reflejos del asfalto mojado (noir) también se mueven / Wet-asphalt reflections (noir) move too
-		if _road("wet"):
-			_win = Rect2i()
 	if win != _win:
 		_win = win
 		queue_redraw()
@@ -690,7 +692,9 @@ func _draw_road_marks(view: Rect2) -> void:
 			var q := Vector2(h0.x + fposmod(i * 731.0, h1.x - h0.x), h0.y + 30.0 + fposmod(i * 197.0, hw - 60.0))
 			if q.x > core0.x and q.x < core1.x:
 				continue
-			var a := 0.2 + 0.15 * sin(_t * 1.5 + i)
+			# Fijos: animarlos obligaba a redibujar todo el suelo 30 veces por segundo
+			# Still: animating them forced the whole floor to redraw 30 times a second
+			var a := 0.2 + 0.15 * sin(i * 1.7)
 			draw_rect(Rect2(q, Vector2(4, 40)), Color("e0303a", a) if i % 4 == 0 else Color(1, 0.94, 0.8, a))
 
 
@@ -725,9 +729,9 @@ func _draw_plaza_rings() -> void:
 	var acc := look("accent")
 	for i in 12:
 		var a := TAU * i / 12.0
-		draw_line(c + Vector2.from_angle(a) * 260.0, c + Vector2.from_angle(a) * 560.0, Color(acc, 0.22), 10.0)
+		draw_line(c + Vector2.from_angle(a) * 260.0, c + Vector2.from_angle(a) * 560.0, Color(acc, 0.12), 10.0)
 	for rr in [300.0, 430.0, 560.0]:
-		draw_arc(c, rr, 0.0, TAU, 64, Color(acc, 0.35), 12.0)
+		draw_arc(c, rr, 0.0, TAU, 64, Color(acc, 0.2), 12.0)
 		draw_arc(c, rr - 9.0, 0.0, TAU, 64, Color(0, 0, 0, 0.12), 3.0)
 
 

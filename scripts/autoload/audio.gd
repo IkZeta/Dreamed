@@ -9,6 +9,19 @@ const POOL_SIZE := 12
 ## Tiempo mínimo entre dos reproducciones del mismo sonido / Minimum gap between two plays of the same sound
 const MIN_GAP := 0.06
 
+## Separación mínima propia de los sonidos que más se repiten / Own minimum gap for the sounds that repeat most
+const GAPS := {"hit": 0.08, "step_heavy": 0.35, "burst": 0.14, "alarm_tick": 0.25, "spawn": 0.15, "sheep_baa": 0.3,
+	"stomp": 0.12, "shoot": 0.1, "zap": 0.08, "glitch": 0.12, "pickup": 0.07, "heavy_whomp": 0.12}
+## Ventana y umbrales del límite de sonidos a la vez / Window and thresholds of the simultaneous-sound limit
+const BUSY_WINDOW := 0.3
+const BUSY_SOFT := 5
+const BUSY_HARD := 9
+## Más allá de esto un sonido con posición no se oye; desde NEAR va bajando
+## Beyond this a positioned sound isn't heard; from NEAR it fades down
+const HEAR_NEAR := 650.0
+const HEAR_FAR := 1300.0
+
+var _recent: Array[float] = []
 var _pool: Array[AudioStreamPlayer] = []
 var _next := 0
 var _cache := {}
@@ -53,8 +66,18 @@ func _stream(sound: String) -> AudioStream:
 ## Plays an effect. pitch_jitter randomly varies the pitch so it doesn't sound repetitive.
 func play(sound: String, volume_db := 0.0, pitch_jitter := 0.0, pitch := 1.0) -> void:
 	var now := _now()
-	if now - float(_last_played.get(sound, -1.0)) < MIN_GAP:
+	if now - float(_last_played.get(sound, -1.0)) < float(GAPS.get(sound, MIN_GAP)):
 		return
+	# Si ya suenan muchos a la vez, los flojos se callan y el resto baja un poco: así una pelea
+	# llena no se convierte en ruido / If lots are already playing, quiet ones are dropped and the
+	# rest dip a little: so a packed fight doesn't turn into noise
+	while not _recent.is_empty() and now - _recent[0] > BUSY_WINDOW:
+		_recent.pop_front()
+	var busy := _recent.size()
+	if (busy >= BUSY_SOFT and volume_db < -9.0) or (busy >= BUSY_HARD and volume_db < -3.0):
+		return
+	volume_db -= clampf(float(busy - 3), 0.0, 6.0)
+	_recent.append(now)
 	_last_played[sound] = now
 	var p := _pool[_next]
 	_next = (_next + 1) % POOL_SIZE
@@ -62,6 +85,20 @@ func play(sound: String, volume_db := 0.0, pitch_jitter := 0.0, pitch := 1.0) ->
 	p.volume_db = volume_db
 	p.pitch_scale = pitch * (1.0 + randf_range(-pitch_jitter, pitch_jitter))
 	p.play()
+
+
+## Como play(), pero desde un punto del mundo: lo que pasa lejos de la cámara se oye menos o nada
+## (en la ciudad, abierta, hay enemigos por todas partes)
+## Like play(), but from a point in the world: what happens far from the camera is quieter or
+## silent (the open city has enemies everywhere)
+func play_at(sound: String, at: Vector2, volume_db := 0.0, pitch_jitter := 0.0, pitch := 1.0) -> void:
+	var cam := get_viewport().get_camera_2d()
+	if cam:
+		var d := at.distance_to(cam.get_screen_center_position())
+		if d > HEAR_FAR:
+			return
+		volume_db -= clampf((d - HEAR_NEAR) / (HEAR_FAR - HEAR_NEAR), 0.0, 1.0) * 14.0
+	play(sound, volume_db, pitch_jitter, pitch)
 
 
 ## Enciende o apaga un sonido en bucle (por ejemplo, la aspiradora).

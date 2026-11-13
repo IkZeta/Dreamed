@@ -802,7 +802,7 @@ func spawn_enemy_soon(kind: String, pos: Vector2, delay: float) -> void:
 func _spawn_enemy(kind: String, pos: Vector2) -> void:
 	if not running:
 		return
-	Audio.play("spawn", -13.0, 0.08)
+	Audio.play_at("spawn", pos, -13.0, 0.08)
 	var e: Enemy
 	match kind:
 		"thug": e = Thug.new()
