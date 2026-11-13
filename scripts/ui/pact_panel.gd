@@ -67,11 +67,11 @@ func _ready() -> void:
 
 func _pact_row(id: String) -> Control:
 	var b := CheckButton.new()
-	b.button_pressed = id in GameState.pact_pick()
+	b.button_pressed = id in FeverDaily.pact_pick()
 	b.custom_minimum_size = Vector2(0, 58)
 	b.mouse_entered.connect(b.grab_focus)
 	b.toggled.connect(func(_on: bool) -> void:
-		GameState.toggle_pact(id)
+		FeverDaily.toggle_pact(id)
 		Audio.play("ui_click", -8.0)
 		_refresh())
 	var h := HBoxContainer.new()
@@ -101,14 +101,14 @@ func _pact_row(id: String) -> Control:
 
 
 func _refresh() -> void:
-	var pick := GameState.pact_pick()
+	var pick := FeverDaily.pact_pick()
 	var f := 0
 	for id: String in pick:
 		f += int(GameState.PACTS.get(id, 0))
-	_temp.text = GameState.fever_temp(f)
+	_temp.text = FeverDaily.fever_temp(f)
 	var best := Progress.best_fever(GameState.selected_character)
 	_bonus.text = tr("PACT_BONUS") % [roundi(GameState.FEVER_SHARDS * 100.0 * f), 5 * f] \
-		+ "\n" + tr("PACT_BEST") % [tr("WEAPON_SHORT_" + GameState.selected_character.to_upper()), GameState.fever_temp(best) if best > 0 else "—"]
+		+ "\n" + tr("PACT_BEST") % [tr("WEAPON_SHORT_" + GameState.selected_character.to_upper()), FeverDaily.fever_temp(best) if best > 0 else "—"]
 
 
 func _close() -> void:

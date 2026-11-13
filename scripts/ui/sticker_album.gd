@@ -150,7 +150,7 @@ func _show(kind: String, id: String) -> void:
 		var desc := ""
 		match kind:
 			"combo": desc = tr("COMBO_%s_DESC" % id.to_upper())
-			"duo": desc = GameState.duo_desc(id)
+			"duo": desc = UpgradeText.duo_desc(id)
 			_: desc = tr("STICKER_LEGEND_DESC").format({"who": tr("GIVER_%s_NAME" % id.to_upper())})
 		Keywords.set_text(_desc, desc)
 		return

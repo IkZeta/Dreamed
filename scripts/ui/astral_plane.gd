@@ -182,7 +182,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 		lvl_label.text = tr("UP_LEGEND") if legend else tr("UP_LEVEL") % (lvl + 1)
 		lvl_label.add_theme_color_override("font_color", UITheme.GOLD if legend else UITheme.ASH)
 		up_name.add_theme_color_override("font_color", Color("ffd36a") if legend else UITheme.GOLD)
-		Keywords.set_text(desc, GameState.upgrade_desc(giver, w, lvl + 1))
+		Keywords.set_text(desc, UpgradeText.upgrade_desc(giver, w, lvl + 1))
 	if weapons.size() > 1:
 		var tabs := HBoxContainer.new()
 		tabs.add_theme_constant_override("separation", 8)
@@ -287,7 +287,7 @@ func _duo_card(v: VBoxContainer, fig: GiverFigure) -> void:
 	v.add_child(up_row)
 	var desc := Keywords.label("", 19, Color(UITheme.BONE, 0.85), "light")
 	desc.custom_minimum_size.y = 84
-	Keywords.set_text(desc, GameState.duo_desc(_duo))
+	Keywords.set_text(desc, UpgradeText.duo_desc(_duo))
 	v.add_child(desc)
 	var b := Button.new()
 	b.text = "ASTRAL_ACCEPT"

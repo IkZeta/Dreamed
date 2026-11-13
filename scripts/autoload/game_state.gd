@@ -198,8 +198,8 @@ func start_run() -> void:
 			upgrades2 = god_upgrades2.duplicate()
 		elif dream_depth >= ACT3_START and not other_weapons().is_empty():
 			second_weapon = other_weapons()[0]
-	if not god_mode and pacts_unlocked():
-		pacts = pact_pick().duplicate()
+	if not god_mode and FeverDaily.pacts_unlocked():
+		pacts = FeverDaily.pact_pick().duplicate()
 	gift_ball()
 
 
@@ -237,74 +237,6 @@ func fever() -> int:
 	for id: String in pacts:
 		f += int(PACTS.get(id, 0))
 	return f
-
-
-## Temperatura de Kroker con la fiebre puesta / Kroker's temperature with the fever on
-func fever_temp(f := -1) -> String:
-	return "%.1f °C" % (36.6 + 0.4 * float(fever() if f < 0 else f))
-
-
-## Pactos elegidos en la fuente (se recuerdan entre partidas) / Pacts picked at the fountain (remembered between runs)
-func pact_pick() -> Array:
-	return Progress.stats.get("pact_pick", [])
-
-
-func toggle_pact(id: String) -> void:
-	var pick: Array = pact_pick().duplicate()
-	if id in pick:
-		pick.erase(id)
-	else:
-		pick.append(id)
-	Progress.stats["pact_pick"] = pick
-	Progress.save_progress()
-
-
-## Los pactos se desbloquean al superar el Acto 1 / Pacts unlock after clearing Act 1
-func pacts_unlocked() -> bool:
-	return Progress.any_cleared()
-
-
-## --- Sueño del día: misma semilla, pijama y pactos para todos ese día ---------------------
-## --- Daily dream: same seed, pajama and pacts for everyone that day -------------------------
-func today() -> String:
-	return Time.get_date_string_from_system()
-
-
-## Pijama y pactos del sueño de hoy (salen de la fecha) / Today's dream pajama and pacts (from the date)
-func daily_setup(date := "") -> Dictionary:
-	if date == "":
-		date = today()
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash("dreamed-" + date)
-	var pool: Array[String] = []
-	for w: String in MELEE + RANGED:
-		if weapon_unlocked(w):
-			pool.append(w)
-	var weapon: String = pool[rng.randi() % pool.size()] if not pool.is_empty() else "bat"
-	var options: Array = PACT_ORDER.duplicate()
-	options.erase("solo")
-	var picked: Array = []
-	for i in 2 + rng.randi() % 2:
-		var id: String = options[rng.randi() % options.size()]
-		options.erase(id)
-		picked.append(id)
-	return {"date": date, "weapon": weapon, "pacts": picked}
-
-
-## Semilla de cada sueño en el sueño del día / Each dream's seed in the daily dream
-func seed_dream(depth: int) -> void:
-	if daily != "":
-		seed(hash("dreamed-" + daily) + depth * 7919)
-
-
-func start_daily() -> void:
-	var d := daily_setup()
-	god_mode = false
-	difficulty = "normal"
-	selected_character = d["weapon"]
-	start_run()
-	daily = d["date"]
-	pacts = d["pacts"].duplicate()
 
 
 ## La pelota empieza con la mejora de Svinho a nivel 3 (sea primera o segunda arma)
@@ -843,14 +775,6 @@ func add_duo(id: String) -> void:
 			new_stickers.append(["duo", id])
 
 
-func duo_desc(id: String) -> String:
-	var vals := {}
-	for k: String in DUO_VALUES[id]:
-		var v := float(DUO_VALUES[id][k])
-		vals[k] = str(int(v)) if is_equal_approx(v, roundf(v)) else str(v)
-	return tr("DUO_%s_DESC" % id.to_upper()).format(vals)
-
-
 const RANGED_W := UpgradeData.RANGED_W
 const COMBOS := UpgradeData.COMBOS
 ## Estallido de píxeles: daño y radio / Pixel burst: damage and radius
@@ -1070,19 +994,6 @@ func _legend_value(giver: String, key: String, values: Array) -> float:
 	return snappedf(v4, 0.1)
 
 
-## Descripción traducida con los números del nivel indicado / Translated description with that level's numbers
-func upgrade_desc(giver: String, weapon: String, lvl: int) -> String:
-	var vals := {}
-	for key: String in UPGRADE_VALUES[giver][weapon]:
-		var v := up_value(giver, key, lvl, weapon)
-		vals[key] = str(int(v)) if is_equal_approx(v, roundf(v)) else str(snappedf(v, 0.1))
-	var text := tr(upgrade_key(giver, weapon, "DESC")).format(vals)
-	# Stolk y Doc tienen además dos efectos con cualquier arma / Stolk and Doc also have two effects with any weapon
-	if giver in ["stolk", "doc"]:
-		text += "\n" + tr("UP_%s_COMMON" % giver.to_upper()).format(vals)
-	return text
-
-
 const WARES := ShopData.WARES
 ## Vida máxima que da cada tarta / Max health each cake gives
 const CAKE_HP := 5.0
@@ -1100,8 +1011,6 @@ var tipped := {}
 const OFFER_MULT := 0.5
 
 
-## Todo lo que el pijama cambia de serie, para enseñarlo en su carta: [{"text", "good"}, ...]
-## Everything the pajama changes out of the box, to show on its card: [{"text", "good"}, ...]
 ## Golpe fuerte: cada N golpes, uno empuja lo bastante para tirar enemigos por los agujeros. Así
 ## todas las armas tienen una forma de usar los agujeros (la almohada y la aspiradora ya la tienen).
 ## Heavy hit: every N hits, one shoves hard enough to throw enemies down holes. This way every weapon
@@ -1112,41 +1021,6 @@ const HEAVY_KNOCK := 520.0
 ## Fall chains: throwing several in a row (with less than this gap) gives extra star shards
 const FALL_CHAIN_GAP := 3.0
 const FALL_CHAIN_MAX := 5
-
-
-func pajama_perks(id: String) -> Array:
-	var out := []
-	var bonus: Dictionary = WEAPON_BONUS.get(id, {})
-	var base: Dictionary = BASE_LEVEL_STATS.get(id, {})
-	var vals := []   # [clave de texto, valor] / [text key, value]
-	if bonus.has("damage_mult"):
-		vals.append(["STATV_ATTACK", roundf(float(bonus["damage_mult"]) * 100.0)])
-	if bonus.has("max_hp"):
-		vals.append(["STATV_MAX_HP", float(bonus["max_hp"])])
-	if bonus.has("armor"):
-		vals.append(["STATV_DEFENSE", float(bonus["armor"])])
-	if bonus.has("speed"):
-		vals.append(["STATV_SPEED", roundf(float(bonus["speed"]) / float(BASE_STATS["speed"]) * 100.0)])
-	for st: String in STATS:
-		if base.has(st):
-			vals.append(["CHIPV_" + st.to_upper() if st in ["regen", "lifesteal"] else "STATV_" + st.to_upper(), float(base[st])])
-	# La almohada tiene el tope de parry más alto / The pillow has the highest parry cap
-	if id == "shield":
-		vals.append(["CHIPV_PARRY_MAX", PARRY_MAX_SHIELD])
-	if HEAVY_EVERY.has(id):
-		vals.append(["CHIPV_HEAVY", float(HEAVY_EVERY[id])])
-	for pair: Array in vals:
-		var v: float = pair[1]
-		if pair[0] == "CHIPV_HEAVY":
-			out.append({"text": tr(pair[0]).format({"n": int(v)}), "good": true})
-			continue
-		if pair[0] == "CHIPV_PARRY_MAX":
-			out.append({"text": tr(pair[0]).format({"v": int(v)}), "good": true})
-			continue
-		var num := str(int(absf(v))) if is_equal_approx(v, roundf(v)) else str(snappedf(absf(v), 0.1))
-		var text := tr(pair[0]).replace("+{v}", ("+" if v > 0.0 else "−") + num)
-		out.append({"text": text, "good": v > 0.0})
-	return out
 
 
 func get_character(id: String) -> Dictionary:

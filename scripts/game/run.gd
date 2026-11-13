@@ -25,6 +25,7 @@ var _bosses := RunBosses.new(self)
 var _events := RunEvents.new(self)
 var _cinematics := RunCinematics.new(self)
 var _kiosk := RunKiosk.new(self)
+var _spawner := RunSpawner.new(self)
 var room: Bedroom
 ## Mundo de la partida, dibujado a 960 x 540 y ampliado x2 sin suavizar (pixel art).
 ## The run's world, drawn at 960 x 540 and scaled up x2 without smoothing (pixel art).
@@ -40,7 +41,6 @@ var _kills := 0
 var _camera: Camera2D
 var _shake := 0.0
 var _overlay: DreamOverlay
-var _spawned_new := 0
 var boss: Enemy
 var bosses: Array[Enemy] = []
 var _boss_total := 0.0
@@ -50,10 +50,7 @@ var _level_screen: LevelUpScreen
 var event := ""
 var _tilt := Vector2.ZERO
 var _tilt_t := 0.0
-## Foox dorado: ya no es un evento, es un enemigo muy raro (como mucho uno por sueño)
-## Golden Foox: no longer an event, just a very rare enemy (at most one per dream)
-const GOLDEN_CHANCE := 0.005
-var _golden_done := false
+## (El Foox dorado, muy raro, lo saca RunSpawner / The very rare golden Foox comes from RunSpawner)
 ## Timbre del colegio (Acto 3): espera hasta que suena y luego sale gente de las puertas un rato
 ## School bell (Act 3): waits until it rings, then people pour out of the doors for a while
 const BELL_TIME := 10.0
@@ -253,7 +250,7 @@ func _ready() -> void:
 	if GameState.training:
 		_begin_training()
 		return
-	GameState.seed_dream(depth)
+	FeverDaily.seed_dream(depth)
 	_events.roll_event(depth)
 	# Estampida de ovejas: desde el Acto 2, en algunos sueños sin jefe / Sheep stampede: from Act 2, in some dreams without a boss
 	_stampede_wait = randf_range(STAMPEDE_AT.x, STAMPEDE_AT.y) if depth >= 6 and not _wave.get("boss", false) and randf() < STAMPEDE_CHANCE else -1.0
@@ -681,70 +678,9 @@ func _god_key(key: Key) -> bool:
 
 # --- Oleada / Wave ----------------------------------------------------------
 
+## Sale un grupo de enemigos (lo decide RunSpawner) / A group of enemies comes out (RunSpawner decides)
 func _spawn_group() -> void:
-	var alive := 0
-	for e in enemies.get_children():
-		# Los mosquitos de los nidos no cuentan / Nest mosquitoes don't count
-		if not e.is_boss() and not e is Mosquito and not e is BotcherTurret:
-			alive += 1
-	var group: Array = _wave["group"]
-	var count := mini(randi_range(group[0], group[1]), int(_wave["max_alive"]) - alive)
-	for i in count:
-		var pos := _spawn_point()
-		var kind := _pick_kind()
-		fx.telegraph(pos + Vector2(0, -16), 0.8)
-		get_tree().create_timer(0.8, false).timeout.connect(_spawn_enemy.bind(kind, pos))
-
-
-## Elige qué enemigo sale según los pesos del sueño; el enemigo nuevo sale seguro al principio.
-## Picks which enemy appears by the dream's weights; the new enemy is guaranteed early on.
-func _pick_kind() -> String:
-	var new_kind: String = _wave.get("new", "")
-	if new_kind != "" and _spawned_new < 2:
-		_spawned_new += 1
-		if new_kind in ["cyber", "van", "riot"] and _spawned_new > 1:
-			pass   # solo sale uno seguro / only one is guaranteed
-		elif new_kind != "nest" or _count_alive(Nest) < 3:
-			return new_kind
-	var mix: Dictionary = _wave["mix"]
-	var total := 0.0
-	for k: String in mix:
-		total += float(mix[k])
-	var roll := randf() * total
-	for k: String in mix:
-		roll -= float(mix[k])
-		if roll <= 0.0:
-			# Como mucho 3 nidos a la vez / At most 3 nests at a time
-			if k == "nest" and _count_alive(Nest) >= 3:
-				return "foox"
-			# Como mucho 2 Cyberpunks a la vez: muchos son un caos / At most 2 Cyberpunks at once: many is chaos
-			if k == "cyber" and _count_alive(Cyberpunk) >= 2:
-				return "foox"
-			# Como mucho 2 Gólems y 3 Marionetas / At most 2 Golems and 3 Puppets
-			if k == "golem" and _count_alive(Golem) >= 2:
-				return "thug"
-			if k == "puppet" and _count_alive(Puppet) >= 3:
-				return "foox"
-			# Como mucho 2 Despertadores y 2 Exámenes / At most 2 Alarm Clocks and 2 Exams
-			if k == "alarm" and _count_alive(AlarmClock) >= 2:
-				return "foox"
-			if k == "exam" and _count_alive(Exam) >= 2:
-				return "thug"
-			if k == "dreamcatcher" and _count_alive(Dreamcatcher) >= 2:
-				return "foox"
-			# Como mucho 2 Chapuzas, y solo si hay agujeros / At most 2 Botchers, and only if there are holes
-			if k == "botcher" and (_count_alive(Botcher) >= 2 or room.hole_count() == 0):
-				return "foox"
-			# Acto 4: pocas furgos y antidisturbios a la vez / Act 4: few vans and riot officers at once
-			var fin := bool(_wave.get("final", false))
-			if k == "van" and _count_alive(Van) >= (2 if fin else 1):
-				return "police"
-			if k == "riot" and _count_alive(Riot) >= (3 if fin else 2):
-				return "police"
-			if k == "police" and _count_alive(Police) >= 10:
-				return "thug"
-			return k
-	return "foox"
+	_spawner.spawn_group()
 
 
 ## Los enemigos de este fotograma, sin crear un array nuevo cada vez que alguien los recorre
@@ -780,73 +716,16 @@ func _count_alive(type: Variant) -> int:
 
 
 func _spawn_point() -> Vector2:
-	var area := arena_rect().grow(-30)
-	# En el pasillo infinito salen alrededor de lo que se ve / In the endless hallway they spawn around the view
-	if room.open_map():
-		area = view_rect().grow(220.0).intersection(area)
-	elif room.follows_camera():
-		var v := view_rect()
-		area = Rect2(Vector2(v.position.x - 200.0, area.position.y), Vector2(v.size.x + 400.0, area.size.y))
-	for attempt in 30:
-		var p := Vector2(randf_range(area.position.x, area.end.x), randf_range(area.position.y, area.end.y))
-		if p.distance_to(player.position) > 360.0 and not _blocked(p, 40.0) and not _near_boss(p):
-			return p
-	return Vector2(area.end.x - 40, area.end.y - 40)
+	return _spawner.spawn_point()
 
 
 ## Aviso en el suelo y el enemigo aparece poco después / Floor warning, then the enemy appears shortly after
 func spawn_enemy_soon(kind: String, pos: Vector2, delay: float) -> void:
-	get_tree().create_timer(delay, false).timeout.connect(_spawn_enemy.bind(kind, pos))
+	_spawner.spawn_soon(kind, pos, delay)
 
 
 func _spawn_enemy(kind: String, pos: Vector2) -> void:
-	if not running:
-		return
-	Audio.play_at("spawn", pos, -13.0, 0.08)
-	var e: Enemy
-	match kind:
-		"thug": e = Thug.new()
-		"sling": e = SlingThug.new()
-		"skeleton": e = Skeleton.new()
-		"nest": e = Nest.new()
-		"mosquito": e = Mosquito.new()
-		"cyber": e = Cyberpunk.new()
-		"puppet": e = Puppet.new()
-		"golem": e = Golem.new()
-		"police": e = Police.new()
-		"van": e = Van.new()
-		"riot": e = Riot.new()
-		"botcher": e = Botcher.new()
-		"alarm": e = AlarmClock.new()
-		"exam": e = Exam.new()
-		"dreamcatcher": e = Dreamcatcher.new()
-		_: e = Foox.new()
-	# Muy de vez en cuando, en lugar del enemigo sale un Foox dorado (la suerte ayuda un poco)
-	# Every so often a golden Foox turns up instead (luck helps a little)
-	if not _golden_done and GameState.dream_depth >= 2 and not _wave.get("boss", false) \
-			and randf() < GOLDEN_CHANCE * (1.0 + maxf(0.0, GameState.stat("luck")) / 50.0):
-		_golden_done = true
-		e.free()
-		e = GoldenFoox.new()
-		Audio.play("chime", -2.0)
-		fx.ring(pos + Vector2(0, -20), 30.0, UITheme.GOLD, 0.8, 2.6)
-	e.setup(self, 1.0, FRENZY_SPEED if event == "frenzy" else (SLEEPY_SPEED if event == "sleepy" else 1.0))
-	e.position = pos
-	# Los antidisturbios salen de una alcantarilla abierta / Riot officers climb out of an open manhole
-	if e is Riot and room is Act4Room and room.hole_count() > 0:
-		var best := Vector2.INF
-		var list: Array[Rect2] = room.holes_list()
-		for i in room.hole_count():
-			var c := Bedroom.rect_world(list[i]).get_center()
-			if view_rect().grow(150.0).has_point(c) and c.distance_to(player.position) > 300.0 and (best == Vector2.INF or c.distance_to(pos) < best.distance_to(pos)):
-				best = c
-		if best != Vector2.INF:
-			e.position = best + Vector2(0, 50)
-			(e as Riot).rise = 1.0
-	# Élites desde el Sueño 2 / Elites from Dream 2
-	if GameState.dream_depth >= 2 and not e is GoldenFoox and not e is Van and not e is Riot and randf() < (0.12 if GameState.difficulty == "nightmare" else 0.07):
-		e.elite = true
-	enemies.add_child(e)
+	_spawner.spawn(kind, pos)
 
 
 ## Rectángulo de la zona de juego en pantalla / Play area rectangle on screen
@@ -1502,7 +1381,7 @@ func _open_settings() -> void:
 func _restart() -> void:
 	Audio.muffle(false)
 	if GameState.daily != "":
-		GameState.start_daily()
+		FeverDaily.start_daily()
 	else:
 		GameState.start_run()
 	GameState.change_scene("res://scenes/run.tscn")

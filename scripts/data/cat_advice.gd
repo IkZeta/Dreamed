@@ -22,7 +22,7 @@ static func _ok(id: String) -> bool:
 		"wardrobe": return ["finger", "teddy", "ball", "laptop", "boots", "druid", "yoyo"].any(func(w: String) -> bool: return GameState.weapon_unlocked(w))
 		"second": return Progress.has_seen("boss_chef")
 		"nightmare": return Progress.any_cleared()
-		"fever": return GameState.pacts_unlocked()
+		"fever": return FeverDaily.pacts_unlocked()
 		"duos": return GameState.GIVERS.any(func(g: String) -> bool: return Progress.friend_level(g) >= 2)
 		"death": return int(Progress.stats.get("dreams", 0)) > 0
 		"magnus": return Progress.met("magnus")

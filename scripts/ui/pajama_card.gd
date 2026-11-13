@@ -173,7 +173,7 @@ static func _profile(data: Dictionary) -> Control:
 	v.add_child(flow)
 	var ranged := id in GameState.RANGED
 	flow.add_child(_chip(_t("SELECT_RANGED" if ranged else "SELECT_MELEE"), Color(accent, 1.0), true))
-	for perk: Dictionary in GameState.pajama_perks(id):
+	for perk: Dictionary in UpgradeText.pajama_perks(id):
 		flow.add_child(_chip(perk["text"], UITheme.MIST if perk["good"] else UITheme.EMBER, false))
 	return panel
 

@@ -498,7 +498,7 @@ func _open_start() -> void:
 		v.add_child(_diff_btn)
 		buttons.append(_diff_btn)
 	# Fiebre (pactos) y sueño del día: tras superar el Acto 1 / Fever (pacts) and daily dream: after clearing Act 1
-	if GameState.pacts_unlocked():
+	if FeverDaily.pacts_unlocked():
 		_pact_btn = Button.new()
 		_pact_btn.custom_minimum_size = Vector2(0, 60)
 		_pact_btn.pressed.connect(func() -> void:
@@ -509,7 +509,7 @@ func _open_start() -> void:
 			add_child(panel))
 		v.add_child(_pact_btn)
 		buttons.append(_pact_btn)
-		var d := GameState.daily_setup()
+		var d := FeverDaily.daily_setup()
 		var daily := Button.new()
 		daily.custom_minimum_size = Vector2(0, 60)
 		daily.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
@@ -559,10 +559,10 @@ func _open_start() -> void:
 func _update_start_buttons() -> void:
 	if is_instance_valid(_pact_btn):
 		var f := 0
-		for id: String in GameState.pact_pick():
+		for id: String in FeverDaily.pact_pick():
 			f += int(GameState.PACTS.get(id, 0))
 		_pact_btn.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
-		_pact_btn.text = tr("PACT_BUTTON") % GameState.fever_temp(f) if f > 0 else tr("PACT_BUTTON_OFF")
+		_pact_btn.text = tr("PACT_BUTTON") % FeverDaily.fever_temp(f) if f > 0 else tr("PACT_BUTTON_OFF")
 		_pact_btn.add_theme_color_override("font_color", UITheme.EMBER if f > 0 else UITheme.ASH)
 	if is_instance_valid(_diff_btn):
 		_diff_btn.text = "DIFF_BUTTON_" + GameState.difficulty.to_upper()
@@ -589,7 +589,7 @@ func _input(event: InputEvent) -> void:
 ## Sueño del día: pijama, pactos y semilla de hoy / Daily dream: today's pajama, pacts and seed
 func _start_daily() -> void:
 	_leaving = true
-	GameState.start_daily()
+	FeverDaily.start_daily()
 	Audio.play("astral", -4.0)
 	var tw := create_tween()
 	SceneFade.preload_scene(RUN_SCENE)

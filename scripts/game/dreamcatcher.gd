@@ -85,7 +85,7 @@ func _weave() -> void:
 	w.position = global_position
 	# En la ciudad teje de farola a farola, cruzando la calle / In the city it weaves lamp to lamp, across the street
 	if run.room is Act4Room:
-		var pair: Array = (run.room as Act4Room).lamp_pair(global_position)
+		var pair: Array = CityProps.lamp_pair(run.room as Act4Room, global_position)
 		if not pair.is_empty():
 			w.position = pair[0]
 			w.seg = pair[1] - pair[0]

@@ -31,7 +31,7 @@ func _build() -> void:
 	if GameState.fever() > 0:
 		var fl := UITheme.label("", 18, UITheme.EMBER, "caps")
 		fl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		fl.text = tr("RESULTS_FEVER") % [GameState.fever_temp(), roundi(GameState.FEVER_SHARDS * 100.0 * GameState.fever())]
+		fl.text = tr("RESULTS_FEVER") % [FeverDaily.fever_temp(), roundi(GameState.FEVER_SHARDS * 100.0 * GameState.fever())]
 		v.add_child(fl)
 
 	# Daño por arma / Damage per weapon
