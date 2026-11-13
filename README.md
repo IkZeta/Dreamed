@@ -438,7 +438,14 @@ Hay tres exportaciones de demo (Windows, Linux y macOS) en `export_presets.cfg`.
 - junto a la versión pone «DEMO»;
 - el guardado va en archivos aparte (`*_demo.cfg`), para no mezclarse con el de las pruebas.
 
-Para hacer una demo nueva basta con volver a exportar con esos presets (con `--export-release`). Salen en `build/demo/`: `Dreamed_Demo.exe` (Windows, con el .pck dentro), `Dreamed_Demo.x86_64` (Linux) y `Dreamed_Demo_macOS.zip` (macOS universal, firmado ad hoc: la primera vez hay que abrirlo con clic derecho → *Abrir*). La última se hizo con la versión 1.6 el 13 de noviembre de 2026.
+**Cómo exportar la demo desde Godot:**
+
+1. Si es la primera vez: *Editor → Gestionar plantillas de exportación → Descargar e instalar* (las de la 4.7.2).
+2. *Proyecto → Exportar…* y elige **Demo (Windows)**, **Demo (Linux)** o **Demo (macOS)**. Ya llevan la etiqueta `demo`, el icono de Mr. Ad, el nombre «Dreamed Demo», la versión y los filtros para dejar fuera `tools/`, `docs/` y `build/`.
+3. *Exportar proyecto…* y **desmarca «Exportar con depuración»**, para que use la plantilla de publicación sin consola ni depurador.
+4. Sale en `build/demo/`: `Dreamed_Demo.exe` (Windows, con el .pck dentro), `Dreamed_Demo.x86_64` (Linux) y `Dreamed_Demo_macOS.zip` (macOS universal, firmado ad hoc: la primera vez hay que abrirlo con clic derecho → *Abrir*).
+
+Desde la terminal es lo mismo: `godot --headless --export-release "Demo (Windows)"`.
 
 ---
 
