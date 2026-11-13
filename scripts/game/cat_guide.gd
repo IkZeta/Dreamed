@@ -250,8 +250,6 @@ func _draw() -> void:
 		face = clampf(1.0 - (_out - OUT * 0.5) / (OUT * 0.5), 0.0, 1.0)
 	var s := Player.ART_SCALE
 	var hop := sin(_hop * PI) * 10.0
-	if body > 0.0:
-		draw_colored_polygon(_oval(Vector2(0, 0), Vector2(22, 6)), Color(0.05, 0.02, 0.15, 0.3 * body))
 	var flip := -_side   # mira hacia Kroker / looks towards Kroker
 	NpcArt.draw(self, Transform2D(0.0, Vector2(s * flip, s), 0.0, Vector2(-100.0 * s * flip, -288.0 * s - hop)), "cat", _t,
 		{"body": body, "face": face, "talk": _out < 0.0 and _label != null and _label.visible_characters < _label.get_total_character_count()})

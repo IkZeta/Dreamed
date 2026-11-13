@@ -448,7 +448,10 @@ static func _lynx(t: float, opts := {}) -> void:
 
 const CAT_AURA := Color("4fd6c0")
 const CAT_EYE := Color("d4f25a")
-const CAT_TAIL_PIVOT := Vector2(128, 276)
+const CAT_TAIL_PIVOT := Vector2(162, 228)
+## Dónde tiene la cabeza (tumbado, a la izquierda): los ojos y la sonrisa se mueven con ella
+## Where his head is (lounging, on the left): the eyes and grin move with it
+const CAT_FACE := Vector2(-40, 0)
 const CAT_FADE_EVERY := 11.0
 const CAT_INK := Color("1e1226")
 
@@ -476,21 +479,33 @@ static func _cat(t: float, opts := {}) -> void:
 	var fa: float = opts.get("face", 1.0)
 	var talk: bool = opts.get("talk", false)
 	var col := Color(1, 1, 1, a)
+	# Flota tumbado en el aire: sube y baja despacio y se balancea como en una hamaca
+	# He lounges floating in mid-air: rising and sinking slowly, rocking as if in a hammock
+	var float_y := 34.0 + sin(t * 1.1) * 6.0
+	var rock := sin(t * 0.8) * 0.04
+	if a > 0.0:
+		var sh := PackedVector2Array()
+		for i in 18:
+			var ang := TAU * i / 18.0
+			sh.append(Vector2(98 + cos(ang) * (62.0 - float_y * 0.4), 288 + sin(ang) * 6.0))
+		_ci.draw_colored_polygon(sh, Color(0, 0, 0, 0.14 * a))
+	var body := _xf * Transform2D(rock, Vector2(98, 236 - float_y)) * Transform2D(0.0, Vector2(-98, -236))
+	_ci.draw_set_transform_matrix(body)
 	if a > 0.0:
 		# Cola en interrogación que se menea / Question-mark tail that swishes
-		var swish := sin(t * 1.3) * 0.1 + sin(t * 3.1) * 0.03
-		_ci.draw_set_transform_matrix(_xf * Transform2D(swish, CAT_TAIL_PIVOT) * Transform2D(0.0, -CAT_TAIL_PIVOT))
+		var swish := sin(t * 1.3) * 0.12 + sin(t * 3.1) * 0.03
+		_ci.draw_set_transform_matrix(body * Transform2D(swish, CAT_TAIL_PIVOT) * Transform2D(0.0, -CAT_TAIL_PIVOT))
 		Sprites.draw(_ci, "npc_cat_tail", col)
-		_ci.draw_set_transform_matrix(_xf)
+		_ci.draw_set_transform_matrix(body)
 		Sprites.draw(_ci, "npc_cat", col)
 	# Sin cuerpo, la sonrisa flota y brilla un poco / Bodiless, the grin floats and glows a little
 	var lift := (1.0 - a) * (5.0 + sin(t * 2.0) * 2.0)
 	if a < 1.0 and fa > 0.0:
-		_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(56, 166 - lift, 88, 64), false, Color(CAT_AURA, 0.3 * (1.0 - a) * fa))
-	if fa <= 0.0:
-		return
-	_cat_eyes(t, Vector2(0, -lift), fa)
-	_cat_grin(t, Vector2(0, -lift), fa, talk)
+		_ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(56, 166 - lift) + CAT_FACE, Vector2(88, 64)), false, Color(CAT_AURA, 0.3 * (1.0 - a) * fa))
+	if fa > 0.0:
+		_cat_eyes(t, Vector2(0, -lift) + CAT_FACE, fa)
+		_cat_grin(t, Vector2(0, -lift) + CAT_FACE, fa, talk)
+	_ci.draw_set_transform_matrix(_xf)
 
 
 static func _cat_eyes(t: float, off: Vector2, fa: float) -> void:

@@ -8,7 +8,7 @@ extends Control
 ## Dónde está la cara de cada uno en su dibujo (lienzo de 200 de ancho) / Where each face is in their drawing (200-wide canvas)
 const FACE := {"svinho": Vector2(100, 62), "stolk": Vector2(100, 60), "silly": Vector2(100, 70), "doc": Vector2(100, 66),
 	"ad": Vector2(100, 64), "pinche": Vector2(100, 60), "magnus": Vector2(100, 72), "superk": Vector2(100, 58),
-	"lilkey": Vector2(100, 62), "lynx": Vector2(100, 58), "luna": Vector2(100, 50), "charo": Vector2(100, 74), "cat": Vector2(100, 196)}
+	"lilkey": Vector2(100, 62), "lynx": Vector2(100, 58), "luna": Vector2(100, 50), "charo": Vector2(100, 74), "cat": Vector2(60, 162)}
 const ZOOM := 2.3
 var who := "svinho"
 var aura := Color.WHITE
