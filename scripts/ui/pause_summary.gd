@@ -61,6 +61,22 @@ func _build(player: Player) -> void:
 		val.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		grid.add_child(val)
 
+	# Lo de abajo (compras, mejoras y combos) se desplaza si no cabe en pantalla; las estadísticas se quedan fijas
+	# Everything below (purchases, upgrades and combos) scrolls if it doesn't fit on screen; the stats stay put
+	var top_v := v
+	var scroll := FitScroll.new()
+	scroll.outer = self
+	top_v.add_child(scroll)
+	v = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(v)
+	var hint := UITheme.label("PAD_SCROLL_HINT", 14, Color(UITheme.ASH, 0.75), "caps")
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hint.visible = false
+	top_v.add_child(hint)
+	scroll.hint = hint
+
 	# Lo comprado en el kiosco de Charo, con cuántos de cada / What was bought at Charo's kiosk, with how many of each
 	if not s.bought.is_empty():
 		var gap_b := Control.new()

@@ -44,9 +44,14 @@ func _ready() -> void:
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(sub)
 
+	# Las dos columnas se desplazan si no caben (con muchos personajes de mejoras no caben)
+	# The two columns scroll if they don't fit (with many upgrade givers they don't)
+	var scroll := FitScroll.new()
+	scroll.outer = panel
+	col.add_child(scroll)
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 56)
-	col.add_child(cols)
+	scroll.add_child(cols)
 	var left := VBoxContainer.new()
 	left.add_theme_constant_override("separation", 8)
 	left.custom_minimum_size.x = 620

@@ -17,6 +17,8 @@ signal overflow_changed(overflows: bool)
 
 ## Baja sola aunque no se use el mando (la carta del armario) / Scrolls by itself even without a gamepad (the wardrobe card)
 var always := false
+## Si baja sola cuando no se toca el stick (si no, solo con el stick) / Whether it scrolls by itself when the stick is idle (otherwise stick only)
+var auto := true
 var active := false:
 	set(v):
 		if v != active:
@@ -76,10 +78,18 @@ func _process(delta: float) -> void:
 	if not active or not over or not (Settings.using_pad or always):
 		return
 	var stick := right_stick()
+	if not auto:
+		# Solo el stick: respeta la rueda y el foco, que también la mueven
+		# Stick only: respects the wheel and focus, which move it too
+		if stick == 0.0:
+			_pos = float(_scroll.scroll_vertical)
+			return
+		if absf(_pos - _scroll.scroll_vertical) > 1.5:
+			_pos = float(_scroll.scroll_vertical)
 	if stick != 0.0:
 		_manual = true
 		_pos = clampf(_pos + stick * STICK_SPEED * delta, 0.0, top)
-	elif not _manual:
+	elif not _manual and auto:
 		# Baja sola, espera abajo y vuelve arriba / Scrolls down by itself, waits at the bottom and goes back up
 		if _wait > 0.0:
 			_wait -= delta

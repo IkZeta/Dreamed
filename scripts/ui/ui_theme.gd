@@ -150,6 +150,18 @@ static func build() -> Theme:
 	t.set_icon("grabber", "HSlider", _star_icon(26, BONE))
 	t.set_icon("grabber_highlight", "HSlider", _star_icon(30, GOLD))
 
+	# Barras de desplazamiento: finas, con el tirador dorado / Scroll bars: thin, with a gold grabber
+	var track := box(Color(LINE, 0.18), Color.TRANSPARENT, 0, 4, 0.0)
+	track.content_margin_left = 4
+	track.content_margin_right = 4
+	t.set_stylebox("scroll", "VScrollBar", track)
+	t.set_stylebox("scroll_focus", "VScrollBar", track)
+	for st: Array in [["grabber", 0.55], ["grabber_highlight", 0.85], ["grabber_pressed", 1.0]]:
+		var g := box(Color(GOLD, st[1]), Color.TRANSPARENT, 0, 4, 0.0)
+		g.content_margin_left = 4
+		g.content_margin_right = 4
+		t.set_stylebox(st[0], "VScrollBar", g)
+
 	# Desplegables / Dropdowns
 	t.set_stylebox("panel", "PopupMenu", box(Color(VOID, 0.97), Color(LINE, 0.5), 1, 10, 8))
 	t.set_stylebox("hover", "PopupMenu", box(SLATE, Color.TRANSPARENT, 0, 8, 8))
