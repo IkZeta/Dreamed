@@ -57,6 +57,11 @@ var _piece := 999999          # trozo en el que está la cámara / piece the cam
 var _holes: Array[Rect2] = []
 var _doors: Array[Rect2] = []
 var _props: Array[Rect2] = []
+var _sig: Array = []
+var _crack_segs := PackedVector2Array()
+var _live: Node2D
+var _live_t := 0.0
+var _locker_t := 0.0
 
 
 ## Taquilla abierta con las gafas de sol de Lil Key (a veces, hasta que se cogen por primera vez)
@@ -118,6 +123,13 @@ func _draw_open_locker() -> void:
 		DreamBackground.draw_star(self, g + Vector2(-26 + i * 26, -20 - ph * 20.0), 3.0 * (1.0 - ph), Color(1, 1, 1, 1.0 - ph))
 
 
+func _ready() -> void:
+	super._ready()
+	_live = Node2D.new()
+	_live.draw.connect(_draw_live)
+	add_child(_live)
+
+
 func walkable() -> Rect2:
 	return WALK
 
@@ -149,7 +161,28 @@ func _process(delta: float) -> void:
 			craters.remove_at(i)
 			closed = true
 	_refresh_lists(closed)
-	super._process(delta)
+	_t += delta
+	# El pasillo es casi todo quieto: solo se vuelve a dibujar cuando cambia algo (trozo, agujeros,
+	# quemaduras, puertas, taquilla...); lo que se mueve va en una capa aparte a 20 por segundo.
+	# Antes se redibujaban los tres trozos enteros en cada fotograma.
+	# The hallway is nearly all still: it's only redrawn when something changes (piece, holes,
+	# scorches, doors, locker...); what moves goes on a separate layer at 20 a second. The three
+	# whole pieces used to be redrawn every frame.
+	var sig := [piece_of(_cam_x()), weird, craters.size(), craters[-1].position if not craters.is_empty() else Vector2.ZERO,
+		scorches.size(), snappedf(bell_open, 0.02), locker_x, shades_near, _holes.size(), _doors.size()]
+	if sig != _sig:
+		_sig = sig
+		queue_redraw()
+	elif locker_x != INF and absf(locker_x - _cam_x()) < PERIOD:
+		# La taquilla abierta brilla y sus gafas se mecen / The open locker glows and its glasses sway
+		_locker_t -= delta
+		if _locker_t <= 0.0:
+			_locker_t = 1.0 / 15.0
+			queue_redraw()
+	_live_t -= delta
+	if _live_t <= 0.0:
+		_live_t = 1.0 / 20.0
+		_live.queue_redraw()
 
 
 ## Recalcula agujeros, puertas y obstáculos de los trozos cercanos cuando la cámara cambia de trozo
@@ -268,14 +301,92 @@ func _draw() -> void:
 		var base: Vector2 = pr[1]
 		draw_colored_polygon(_ellipse(base + Vector2(i * PERIOD, 0), Vector2(30, 9)), Color(0, 0, 0, 0.3))
 		Sprites.draw(self, pr[0], DUSK, base + Vector2(i * PERIOD, 0))
-	# Lo que se repite en cada trozo: grietas, estrellas y cosas que flotan
-	# What repeats in each piece: cracks, stars and floating things
-	for i: int in pieces:
-		draw_set_transform(Vector2(i * PERIOD, 0))
-		_draw_corruption()
-		_draw_dream_stars()
-	draw_set_transform(Vector2.ZERO)
+	# Las grietas de cada trozo (su luz, los copos y las estrellas van en la capa animada)
+	# Each piece's cracks (their light, the flakes and the stars go on the animated layer)
+	# Todas de una vez, como segmentos sueltos: con una línea suavizada por grieta eran cientos de
+	# órdenes de dibujo / All at once, as loose segments: one antialiased line per crack meant
+	# hundreds of draw calls
+	if weird > 0:
+		if _crack_segs.is_empty():
+			for line in _cracks:
+				for j in line.size() - 1:
+					_crack_segs.append(line[j])
+					_crack_segs.append(line[j + 1])
+		for i: int in pieces:
+			draw_set_transform(Vector2(i * PERIOD, 0))
+			draw_multiline(_crack_segs, Color(0.03, 0.02, 0.1, 0.85), 3.0)
+			draw_multiline(_crack_segs, Color("8d7ff0", 0.25), 1.0)
+		draw_set_transform(Vector2.ZERO)
 	_draw_edges(k)
+
+
+## Lo que se mueve, en su capa (hija: por encima del suelo y por debajo de los personajes)
+## What moves, on its own layer (a child: above the floor and below the characters)
+func _draw_live() -> void:
+	var ci := _live
+	var k := piece_of(_cam_x())
+	# Agrupado por tipo (primero todo lo que lleva textura, luego lo liso) para que el motor lo
+	# junte en pocas órdenes de dibujo / Grouped by kind (textured first, then flat) so the engine
+	# batches it into few draw calls
+	if weird > 0:
+		for i in range(k - 1, k + 2):
+			var off := Vector2(i * PERIOD, 0)
+			for j in range(0, _cracks.size(), 4):
+				var line: PackedVector2Array = _cracks[j]
+				if line.size() > 3:
+					var mid := line[line.size() / 2] + off
+					ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(mid - Vector2(18, 18), Vector2(36, 36)), false, Color("8d7ff0", 0.18 + 0.08 * sin(_t * 2.0 + j)))
+		for i in range(k - 1, k + 2):
+			var off := Vector2(i * PERIOD, 0)
+			for f in _flakes:
+				var fp := Vector2(f["p"]) + off + Vector2(sin(_t * 0.5 + float(f["ph"])) * 10.0, -fposmod(_t * float(f["v"]) + float(f["ph"]) * 20.0, 120.0))
+				var sz := float(f["s"])
+				var rot := float(f["r"]) + _t * 0.4
+				ci.draw_colored_polygon(PackedVector2Array([fp + Vector2.from_angle(rot) * sz, fp + Vector2.from_angle(rot + 2.1) * sz * 0.7,
+					fp + Vector2.from_angle(rot + 3.9) * sz * 0.9]), Color("2c3681", 0.8))
+	# Estrellas que flotan, como DreamBackground.draw_star pero por pasadas: halos, destellos y centros
+	# Floating stars, like DreamBackground.draw_star but in passes: halos, glints and cores
+	var stars: Array = []
+	for i in range(k - 1, k + 2):
+		var off := Vector2(i * PERIOD, 0)
+		for f in _floaters:
+			var ph := float(f["ph"])
+			stars.append([Vector2(f["p"]) + off + Vector2(sin(_t * 0.4 + ph) * 18.0, cos(_t * 0.3 + ph) * 12.0),
+				float(f["r"]) * 0.5, Color(UITheme.GOLD, 0.35 + 0.35 * sin(_t * 1.3 + ph))])
+	var soft := DreamBackground.soft_texture()
+	for st: Array in stars:
+		var r: float = st[1]
+		ci.draw_texture_rect(soft, Rect2(Vector2(st[0]) - Vector2(r, r) * 4.0, Vector2(r, r) * 8.0), false, Color(st[2], Color(st[2]).a * 0.35))
+	for st: Array in stars:
+		var r: float = st[1]
+		var p: Vector2 = st[0]
+		var cl := Color(st[2], Color(st[2]).a * 0.5)
+		ci.draw_multiline(PackedVector2Array([p - Vector2(r * 4.0, 0), p + Vector2(r * 4.0, 0), p - Vector2(0, r * 4.0), p + Vector2(0, r * 4.0)]), cl, 1.0)
+	for st: Array in stars:
+		ci.draw_circle(st[0], st[1], st[2])
+	# Estrellitas dentro de los agujeros / Little stars inside the holes
+	var list := holes_list()
+	for i in hole_count():
+		var h := list[i]
+		var c := h.get_center()
+		var rr := h.size / 2.0
+		var seed := float(i) + floorf(h.position.x / PERIOD) * 3.0
+		for kk in 7:
+			var sp := c + Vector2(sin(kk * 2.3 + seed) * rr.x * 0.6, cos(kk * 1.7 + seed) * rr.y * 0.5)
+			ci.draw_circle(sp, 1.4, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
+	var wl := wall_holes_list()
+	for i in wall_hole_count():
+		var h := wl[i]
+		for kk in 9:
+			var sp := h.position + Vector2(fposmod(kk * 37.0 + i * 13.0, h.size.x), fposmod(kk * 53.0 + i * 29.0, h.size.y))
+			ci.draw_circle(sp, 1.5, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
+	# Chispas en las quemaduras del Ovni / Sparks on the UFO's scorch marks
+	var lo := (k - 2) * PERIOD
+	var hi := (k + 2) * PERIOD
+	for i in scorches.size():
+		var sc := scorches[i]
+		if sc.x >= lo and sc.x <= hi and fmod(_t * 3.0 + i, 2.0) < 0.15:
+			ci.draw_circle(sc + Vector2(randf_range(-20, 20), randf_range(-10, 10)), 4.0, Color("ffd27a"))
 
 
 ## Dónde van los dibujos en cada tipo de pared (0 taquillas y corcho, 1 baños y fuente, 2 ventanales y vitrina)
@@ -349,8 +460,6 @@ func _draw_scorches(k: int) -> void:
 		for kk in 5:
 			var a := TAU * kk / 5.0 + i
 			draw_line(c, c + Vector2(cos(a) * 60.0, sin(a) * 36.0), Color(0.05, 0.03, 0.02, 0.6), 4.0)
-		if fmod(_t * 3.0 + i, 2.0) < 0.15:
-			draw_circle(c + Vector2(randf_range(-20, 20), randf_range(-10, 10)), 4.0, Color("ffd27a"))
 
 
 ## Dibuja un trozo un pelín más ancho para que no se vean costuras entre trozos
@@ -393,9 +502,6 @@ func _draw_holes() -> void:
 		draw_colored_polygon(rim, Color("8f8872"))
 		draw_colored_polygon(inner, Color("07061a"))
 		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - rr * 0.8, rr * 1.6), false, Color("5b4bc4", 0.35))
-		for kk in 7:
-			var sp := c + Vector2(sin(kk * 2.3 + seed) * rr.x * 0.6, cos(kk * 1.7 + seed) * rr.y * 0.5)
-			draw_circle(sp, 1.4, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
 		# Trozos de baldosa / Bits of tile
 		for kk in 6:
 			var a := TAU * kk / 6.0 + seed
@@ -410,9 +516,6 @@ func _draw_wall_holes() -> void:
 		var h := list[i]
 		draw_rect(h, Color("07061a"))
 		draw_texture_rect(DreamBackground.soft_texture(), h.grow(-10), false, Color("5b4bc4", 0.4))
-		for kk in 9:
-			var sp := h.position + Vector2(fposmod(kk * 37.0 + i * 13.0, h.size.x), fposmod(kk * 53.0 + i * 29.0, h.size.y))
-			draw_circle(sp, 1.5, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
 		# Astillas de la puerta colgando de las bisagras / Door splinters hanging from the hinges
 		draw_colored_polygon(PackedVector2Array([h.position, h.position + Vector2(26, 0), h.position + Vector2(10, 90), h.position + Vector2(0, 120)]), Color("8a5a3e"))
 		draw_colored_polygon(PackedVector2Array([Vector2(h.position.x, h.end.y - 70), Vector2(h.position.x + 18, h.end.y - 40), Vector2(h.position.x, h.end.y)]), Color("6a4430"))
