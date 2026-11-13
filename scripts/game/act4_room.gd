@@ -368,6 +368,7 @@ func add_rubble(r: Rect2) -> void:
 
 
 var _win := Rect2i()
+var _lamps: Array[Vector2] = []
 var _cull: Array[Node2D] = []
 var _cull_t := 0.0
 const CULL_R := 1500.0
@@ -709,6 +710,63 @@ func _line(a: Vector2, b: Vector2, col: Color, w: float, glow: bool) -> void:
 	if glow:
 		draw_line(a, b, Color(col, 0.18), w * 3.0)
 	draw_line(a, b, col, w)
+
+
+## Los extremos de la telaraña larga del Atrapasueños: la farola más cercana a él (a menos de
+## 800 px) y un punto al otro lado de la calle (otra farola o el bordillo), pasando por asfalto y
+## sin un edificio en medio. Vacío si no hay.
+## The ends of the Dreamcatcher's long web: the lamp post nearest to it (within 800 px) and a spot
+## across the street (another lamp or the far kerb), over asphalt and with no building in between.
+## Empty if there are none.
+func lamp_pair(near: Vector2) -> Array:
+	# Todo en coordenadas del plano; se pasa al mundo al final / All in map coordinates; converted to the world at the end
+	if _lamps.is_empty():
+		for r in CityLayout.ROWS:
+			for c in CityLayout.COLS:
+				if CityLayout.MAP[r][c] == "l":
+					_lamps.append((Vector2(c, r) + Vector2(0.5, 0.9)) * T)
+	var here := (near - Bedroom.OFFSET) / Bedroom.S
+	var reach := 800.0 / Bedroom.S
+	var a := Vector2.INF
+	for p: Vector2 in _lamps:
+		if p.distance_to(here) < reach and (a == Vector2.INF or p.distance_to(here) < a.distance_to(here)):
+			a = p
+	if a == Vector2.INF:
+		return []
+	# Que cruce la calle: otra farola o, si no hay, el bordillo de enfrente; y que pase por asfalto
+	# It must cross the street: another lamp or, failing that, the far kerb; and go over asphalt
+	var cands: Array = []
+	for p: Vector2 in _lamps:
+		if p.distance_to(a) > T * 1.8 and p.distance_to(a) < T * 5.8:
+			cands.append(p)
+	for off: Vector2 in [Vector2(0, 4), Vector2(0, -4), Vector2(0, 5), Vector2(0, -5), Vector2(4, 0), Vector2(-4, 0)]:
+		cands.append(a + off * T)
+	var opts: Array = []
+	for b: Vector2 in cands:
+		if walkable().has_point(b) and not _wall_between(a, b) and _road_samples(a, b) >= 3:
+			opts.append(b)
+	if opts.is_empty():
+		return []
+	return [Bedroom.to_world(a), Bedroom.to_world(opts.pick_random())]
+
+
+## a y b en coordenadas del plano / a and b in map coordinates
+func _wall_between(a: Vector2, b: Vector2) -> bool:
+	for i in 9:
+		var q := Bedroom.to_world(a.lerp(b, (i + 1) / 10.0))
+		for r in blockers_near(q):
+			if Bedroom.rect_world(r).has_point(q):
+				return true
+	return false
+
+
+func _road_samples(a: Vector2, b: Vector2) -> int:
+	var n := 0
+	for i in 9:
+		var q := a.lerp(b, (i + 1) / 10.0)
+		if is_road(floori(q.x / T), floori(q.y / T)):
+			n += 1
+	return n
 
 
 ## Charcos de luz bajo las farolas (ciudades de noche) / Pools of light under the lamps (night cities)

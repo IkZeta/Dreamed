@@ -7,6 +7,7 @@ extends Enemy
 ##  - Al matarla suelta todo lo que se ha comido, y la mitad más. Si la tiras por un agujero, se
 ##    los lleva con ella: pierdes los trozos, pero te quitas el problema al momento.
 ##  - Las telarañas frenan a todos los que pasan, y el enemigo que entra lanzado se queda pegado.
+##  - En la ciudad teje entre farolas, en telarañas largas que cruzan la calle.
 ## Dreamcatcher (from Act 2, rare; at most 2): a spider made of a wicker hoop with its net, beads
 ## and feathers for legs. It flees from Kroker and weaves webs on the floor (at most 3).
 ##  - Webs catch the star shards that land in them: they can't be picked up and creep towards the
@@ -82,6 +83,12 @@ func _weave() -> void:
 	w.run = run
 	w.spider = self
 	w.position = global_position
+	# En la ciudad teje de farola a farola, cruzando la calle / In the city it weaves lamp to lamp, across the street
+	if run.room is Act4Room:
+		var pair: Array = (run.room as Act4Room).lamp_pair(global_position)
+		if not pair.is_empty():
+			w.position = pair[0]
+			w.seg = pair[1] - pair[0]
 	run.world.add_child(w)
 	run.world.move_child(w, run.room.get_index() + 1)
 	_webs.append(w)

@@ -26,6 +26,8 @@ const AWAY := 260.0              # lejos de Kroker / away from Kroker
 const INHALE := Vector2(0.3, 1.5)  # de cuándo a cuándo aspira (s) / from when to when it breathes in (s)
 const INHALE_R := 200.0
 const INHALE_PULL := 130.0
+## Telarañas a esta distancia de la boca se las traga / Webs this close to the mouth get swallowed
+const SWALLOW_R := 110.0
 
 var run: Run
 var _holes: Array = []           # {c, t, seed}
@@ -102,6 +104,10 @@ func _open() -> void:
 		return
 	_holes.append({"c": p, "t": 0.0, "seed": randf() * 10.0})
 	Progress.tip("yawn")
+	# Se traga las telarañas del Atrapasueños que tenga cerca / Swallows any Dreamcatcher webs nearby
+	for w: Node in get_tree().get_nodes_in_group("dream_webs"):
+		if (w as DreamWeb).covers(p, SWALLOW_R):
+			(w as DreamWeb).swallow(p)
 	Audio.play("yawn", -10.0, 0.15)
 	run.fx.ring(p, 40.0, Color("8d7ff0", 0.7), 0.5, 2.0)
 
