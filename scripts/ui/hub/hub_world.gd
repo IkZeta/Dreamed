@@ -1040,9 +1040,9 @@ func _build_lynx() -> void:
 			ci.draw_colored_polygon(PackedVector2Array([src, to + side, to - side]), Color(1.0, 0.95, 0.8, 0.08)))
 
 ## La luna de Luna: un cohete de cartón con su ventanita, una bandera con la luna cosida, una antena
-## que pita con la lucecita y un tirachinas de cráter (los cráteres del suelo son agujeros de práctica)
+## que pita con la lucecita y un marciano hinchable para practicar a tirarlo por los cráteres
 ## Luna's moon: a cardboard rocket with its little window, a flag with a sewn-on moon, a beeping
-## antenna with its light, and the craters on the floor (practice holes)
+## antenna with its light, and an inflatable Martian to practise pushing into the craters
 const INK := Color("1a1024")
 const LUNA_PAD := Vector2(-88, -2)
 const LUNA_CRATER := Vector2(-52, 50)
@@ -1050,6 +1050,7 @@ const LUNA_CRATER := Vector2(-52, 50)
 ## The rocket's countdown: every LUNA_LAUNCH s, "3, 2, 1..." and it almost takes off
 const LUNA_LAUNCH := 16.0
 var _rover: Prop
+var _luna_dummy: HubLunaDummy
 
 ## La base lunar de Luna / Luna's moon base
 func _build_luna() -> void:
@@ -1062,6 +1063,8 @@ func _build_luna() -> void:
 	_build_luna_earth(c + Vector2(-20, -80))
 	# Rover de juguete dando vueltas al cráter / A toy rover circling the crater
 	_rover = _prop(c + LUNA_CRATER, func(ci: CanvasItem) -> void: _paint_rover(ci))
+	# Práctica: el marciano hinchable que se empuja a los cráteres / Practice: the inflatable Martian you push into craters
+	_luna_dummy = HubLunaDummy.new(self, c)
 	# Piedrecitas que flotan por la gravedad baja / Pebbles floating in the low gravity
 	_prop(c + Vector2(0, -70), func(ci: CanvasItem) -> void:
 		for i in 12:
@@ -1401,6 +1404,8 @@ func _build_luna_earth(at: Vector2) -> void:
 ## Rover de juguete: coche teledirigido con antena y faro, dando vueltas al cráter grande
 ## A toy rover: a radio-controlled car with an antenna and a headlight, circling the big crater
 func _tick_luna() -> void:
+	if _luna_dummy:
+		_luna_dummy.tick(get_process_delta_time())
 	var a := _t * 0.45
 	var c := _isle_pos("luna") + LUNA_CRATER
 	_rover.position = c + Vector2(cos(a) * 37.0, sin(a) * 20.0)
