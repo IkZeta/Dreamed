@@ -26,6 +26,7 @@ var vibration := true         # vibración del mando / gamepad rumble
 var reduce_flashes := false   # destellos y parpadeos más suaves / softer flashes and flickers
 var big_text := false         # texto más grande / bigger text
 var tips := true              # consejos la primera vez que pasa algo / tips the first time something happens
+var show_perf := false        # contador de rendimiento en pantalla (F3) / on-screen performance counter (F3)
 
 
 ## --- Teclado y ratón o mando / Keyboard & mouse or gamepad ------------------------------
@@ -109,6 +110,7 @@ func reset_defaults(apply := true) -> void:
 	reduce_flashes = false
 	big_text = false
 	tips = true
+	show_perf = false
 	if apply:
 		apply_all()
 
@@ -194,6 +196,7 @@ func save_settings() -> void:
 	cfg.set_value("access", "reduce_flashes", reduce_flashes)
 	cfg.set_value("access", "big_text", big_text)
 	cfg.set_value("access", "tips", tips)
+	cfg.set_value("display", "show_perf", show_perf)
 	cfg.save(PATH)
 
 
@@ -217,6 +220,7 @@ func load_settings() -> void:
 	reduce_flashes = bool(cfg.get_value("access", "reduce_flashes", reduce_flashes))
 	big_text = bool(cfg.get_value("access", "big_text", big_text))
 	tips = bool(cfg.get_value("access", "tips", tips))
+	show_perf = bool(cfg.get_value("display", "show_perf", show_perf))
 
 
 ## Cuánto se ven los destellos (1 = normal) / How strong flashes look (1 = normal)

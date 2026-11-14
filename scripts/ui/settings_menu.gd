@@ -207,7 +207,12 @@ func _build_display() -> Control:
 	page.add_child(_row("DISPLAY_MODE", mode))
 	page.add_child(_row("DISPLAY_RESOLUTION", resolution))
 	page.add_child(_row("DISPLAY_VSYNC", vsync))
+	var perf := CheckButton.new()
+	perf.button_pressed = Settings.show_perf
+	perf.toggled.connect(func(on: bool) -> void: Settings.show_perf = on)
+
 	page.add_child(_row("DISPLAY_FPS", fps))
+	page.add_child(_row("DISPLAY_PERF", perf))
 	return page
 
 

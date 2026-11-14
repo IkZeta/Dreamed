@@ -98,7 +98,9 @@ func attack() -> bool:
 	run.world.add_child(shot)
 	swung(true)
 	Audio.play("laser", -9.0 if kind != "crit" else -6.0, 0.12)
-	run.fx.ring(from, 8.0, COLORS[kind], 0.18, 2.4)
+	# Fogonazo en la punta del dedo y chispas hacia delante / A muzzle flash at the fingertip and sparks forwards
+	run.fx.flash(from + dir * 6.0, 16.0 if kind != "crit" else 24.0, Color(COLORS[kind], 0.9), 0.14)
+	run.fx.spark(from, dir, COLORS[kind], 3, 0.7)
 	return true
 
 

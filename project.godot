@@ -18,6 +18,7 @@ GameState="*res://scripts/autoload/game_state.gd"
 Progress="*res://scripts/autoload/progress.gd"
 Audio="*res://scripts/autoload/audio.gd"
 SceneFade="*res://scripts/autoload/scene_fade.gd"
+PerfOverlay="*res://scripts/autoload/perf_overlay.gd"
 
 [display]
 

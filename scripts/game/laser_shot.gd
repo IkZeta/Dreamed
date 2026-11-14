@@ -107,9 +107,13 @@ func _fade() -> void:
 func _draw() -> void:
 	var col: Color = WeaponFinger.COLORS[kind]
 	var k := 1.0 if _dead <= 0.0 else _dead / 0.12
-	var tail := -dir * LENGTH
-	var w := 7.0 if kind == "crit" else 5.0
-	draw_line(tail, Vector2.ZERO, Color(col, 0.3 * k), w * 2.2)
-	draw_line(tail, Vector2.ZERO, Color(col, 0.9 * k), w)
-	draw_line(tail * 0.8, Vector2.ZERO, Color(1, 1, 1, 0.85 * k), w * 0.4)
-	draw_circle(Vector2.ZERO, w * 0.8, Color(1, 1, 1, 0.8 * k))
+	# Un «piu»: cabeza redonda y brillante con una cola que se afina, contorno de tinta y halo
+	# A "pew": a round, bright head with a tapering tail, an ink outline and a halo
+	var w := 8.0 if kind == "crit" else 6.0
+	var tail := -dir * LENGTH * (2.2 if kind == "crit" else 1.8)
+	var nrm := dir.orthogonal()
+	draw_texture_rect(DreamBackground.soft_texture(), Rect2(-Vector2(w, w) * 3.0, Vector2(w, w) * 6.0), false, Color(col, 0.55 * k))
+	draw_colored_polygon(PackedVector2Array([nrm * (w + 2.0), tail * 1.05, -nrm * (w + 2.0), dir * (w + 2.0)]), Color(Color("140e26"), 0.6 * k))
+	draw_colored_polygon(PackedVector2Array([nrm * w, tail, -nrm * w, dir * w]), Color(col, 0.95 * k))
+	draw_colored_polygon(PackedVector2Array([nrm * w * 0.45, tail * 0.7, -nrm * w * 0.45, dir * w * 0.6]), Color(1, 1, 1, 0.9 * k))
+	draw_circle(Vector2.ZERO, w * 0.75, Color(1, 1, 1, 0.9 * k))
