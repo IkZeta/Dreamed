@@ -645,6 +645,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_god_key(KEY_F)
 		get_viewport().set_input_as_handled()
 		return
+	# Antes de empezar: aceptar o interactuar acelera el despertar o la llegada
+	# Before it starts: accept or interact speeds up the wake-up or the arrival
+	if not running and (event.is_action_pressed("ui_accept") or event.is_action_pressed("interact")) and _cinematics.hurry():
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("pause") and running and _overlay == null and _level_screen == null and _modal == null:
 		get_viewport().set_input_as_handled()
 		_open_pause()

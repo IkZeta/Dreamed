@@ -596,6 +596,7 @@ const STRINGS := {
 	# Plano astral (lobby) / Astral plane (lobby)
 	"MENU_ASTRAL": {"es": "Plano astral", "en": "Astral plane"},
 	"HUB_TITLE": {"es": "Plano astral", "en": "Astral plane"},
+	"INTRO_SKIP": {"es": "{accept} para saltar", "en": "{accept} to skip"},
 	"HUB_CONTROLS": {"es": "{move} para moverte · {interact} para interactuar · {back} para volver", "en": "{move} to move · {interact} to interact · {back} to go back"},
 	"HUB_TALK": {"es": "{interact} Hablar", "en": "{interact} Talk"},
 	"HUB_LOOK": {"es": "{interact} Mirar", "en": "{interact} Look"},

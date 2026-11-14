@@ -15,6 +15,42 @@ func _init(r: Run) -> void:
 ## In later dreams Kroker arrives in one of three ways (purely cosmetic): he falls from the sky
 ## and faceplants on the floor, climbs out of one of the holes in the floor, or appears in a
 ## glow, like when he left but in reverse.
+## La llegada o el despertar en curso; con aceptar o interactuar se acelera (Run._unhandled_input)
+## The arrival or wake-up in progress; accept or interact speeds it up (Run._unhandled_input)
+var intro_tw: Tween
+var _skip_hint: Label
+const SKIP_SPEED := 8.0
+
+
+## Acelera la llegada si la hay; devuelve si lo ha hecho / Speeds up the arrival if there is one; returns whether it did
+func hurry() -> bool:
+	if intro_tw == null or not intro_tw.is_valid() or not intro_tw.is_running() or run.running:
+		return false
+	intro_tw.set_speed_scale(SKIP_SPEED)
+	if is_instance_valid(_skip_hint):
+		_skip_hint.queue_free()
+	return true
+
+
+## Aviso discreto de que se puede saltar, a partir de la segunda partida
+## A discreet note that it can be skipped, from the second run on
+func _offer_skip() -> void:
+	if int(Progress.stats.get("dreams", 0)) <= 0:
+		return
+	var layer := CanvasLayer.new()
+	layer.layer = 20
+	run.add_child(layer)
+	_skip_hint = UITheme.label(Settings.controls_text(run.tr("INTRO_SKIP")), 16, Color(UITheme.ASH, 0.7), "caps")
+	_skip_hint.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_skip_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_skip_hint.offset_top = -70
+	_skip_hint.offset_bottom = -40
+	_skip_hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_skip_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	layer.add_child(_skip_hint)
+	intro_tw.finished.connect(layer.queue_free)
+
+
 func drop_in(depth: int) -> void:
 	var start := Bedroom.to_world(run.room.start_point())
 	run.player.position = start
@@ -29,6 +65,7 @@ func drop_in(depth: int) -> void:
 		"hole": tw = arrive_hole()
 		"glow": tw = arrive_glow(start)
 		_: tw = arrive_faceplant(start)
+	intro_tw = tw
 	tw.tween_interval(0.4)
 	# La primera vez que llega al salón, Charo le da la bienvenida
 	# The first time he reaches the living room, Charo welcomes him
@@ -255,6 +292,8 @@ func play_wake_up(depth: int) -> void:
 	var start := Bedroom.to_world(Bedroom.START_POINT)
 	var pickup := Bedroom.to_world(Bedroom.PICKUP.get(outfit, Bedroom.START_POINT))
 	var tw := run.create_tween()
+	intro_tw = tw
+	_offer_skip()
 	tw.tween_interval(1.5)
 	tw.tween_property(run.room, "stir", 1.0, 0.9)
 	tw.tween_callback(func() -> void:
