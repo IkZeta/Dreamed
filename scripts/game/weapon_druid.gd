@@ -244,6 +244,8 @@ func _bear() -> bool:
 	_bounce(target, BEAR_DMG)
 	_strike(target, dir, 1.0)
 	run.fx.swing(origin() + dir * 20.0, 84.0, dir.angle(), 1.4, COLORS["bear"], 7.0)
+	# Y las tres garras del oso marcadas donde pega / And the bear's three claws marked where it lands
+	run.fx.claw(origin() + dir * 78.0, dir.angle(), 44.0, COLORS["bear"])
 	Audio.play("bear_swipe", -6.0, 0.08)
 	return true
 

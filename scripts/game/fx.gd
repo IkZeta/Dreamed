@@ -26,6 +26,7 @@ const INK := Color("140e26")
 
 var _items: Array[Dictionary] = []
 var _sparks_this_frame := 0
+var _swing_flip := 1.0
 var _numbers_this_frame := 0
 
 
@@ -60,9 +61,14 @@ func bolt(points: PackedVector2Array, color := UITheme.GOLD) -> void:
 	_items.append({"kind": "bolt", "points": points, "color": color, "life": 0.3, "max": 0.3})
 
 
+## Tajo: una media luna que barre de un lado a otro y se afina en las puntas (ver _draw_swing).
+## Cada tajo barre hacia el lado contrario que el anterior, como un combo.
+## Slash: a crescent sweeping from one side to the other and tapering at the tips (see _draw_swing).
+## Each slash sweeps the opposite way to the last one, like a combo.
 func swing(center: Vector2, radius: float, angle: float, spread: float, color := UITheme.BONE, width := 6.0) -> void:
+	_swing_flip = -_swing_flip
 	_items.append({"kind": "swing", "pos": center, "r": radius, "a": angle, "s": spread,
-		"color": color, "w": width, "life": 0.18, "max": 0.18})
+		"color": color, "w": width, "flip": _swing_flip, "life": 0.24, "max": 0.24})
 
 
 func ring(center: Vector2, radius: float, color := UITheme.MIST, life := 0.5, grow := 1.6) -> void:
@@ -264,17 +270,9 @@ func _draw() -> void:
 			"feather":
 				_draw_feather(Vector2(it["pos"]), float(it["rot"]), Color(col, minf(1.0, k * 2.0)))
 			"bolt":
-				# Grueso para que se vea en pixel art / Thick so it shows in pixel art
-				draw_polyline(it["points"], Color(col, 0.3 * k), 16.0)
-				draw_polyline(it["points"], Color(col, k), 6.0)
-				draw_polyline(it["points"], Color(1, 1, 1, k), 2.5)
+				_draw_bolt(it["points"], k, col)
 			"swing":
-				var a := float(it["a"])
-				var sp := float(it["s"])
-				var r := float(it["r"])
-				for j in 4:
-					var rr := r - j * 5.0
-					draw_arc(it["pos"], rr, a - sp, a + sp, 24, Color(col, k * (0.8 - j * 0.18)), maxf(1.0, float(it["w"]) - j), true)
+				_draw_swing(it, k, col)
 			"ring":
 				var r := float(it["r"]) * lerpf(float(it["grow"]), 1.0, k)
 				draw_arc(it["pos"], r, 0, TAU, 48, Color(col, k * 0.8), 2.0, true)
@@ -329,6 +327,105 @@ func _draw() -> void:
 
 
 ## Estrella de cuatro puntas (la de todo el juego) / Four-point star (the game-wide one)
+## Tajo en media luna: la cabeza barre el arco en la primera mitad y la cola la alcanza después.
+## Es gordo cerca de la cabeza y acaba en punta por los dos lados; lleva contorno de tinta, el
+## color del arma y un filo blanco por fuera. Se dibuja a trozos (cuadriláteros) para que nunca
+## salga un polígono imposible.
+## Crescent slash: the head sweeps the arc in the first half and the tail catches up afterwards.
+## It's fat near the head and pointed at both ends; it has an ink outline, the weapon's colour and
+## a white edge on the outside. It's drawn in pieces (quads) so it never makes an impossible polygon.
+func _draw_swing(it: Dictionary, k: float, col: Color) -> void:
+	var c := Vector2(it["pos"])
+	var r := float(it["r"])
+	var a := float(it["a"])
+	var sp := minf(float(it["s"]), PI)
+	var flip := float(it.get("flip", 1.0))
+	var age := 1.0 - k
+	var head := 1.0 - pow(1.0 - minf(1.0, age / 0.45), 2.0)
+	var tail := clampf((age - 0.3) / 0.7, 0.0, 1.0) * 0.9
+	var a0 := a - sp * flip
+	var a1 := a + sp * flip
+	var from := lerpf(a0, a1, tail)
+	var to := lerpf(a0, a1, head)
+	var thick := float(it["w"]) * 2.4 + r * 0.16
+	var fade := minf(1.0, k * 2.6)
+	var n := clampi(int(absf(to - from) / 0.1), 4, 40)
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	var core := PackedVector2Array()
+	for i in n + 1:
+		var u := float(i) / n
+		var ang := lerpf(from, to, u)
+		var th := thick * sin(PI * pow(u, 1.8))
+		var d := Vector2.from_angle(ang)
+		outer.append(c + d * (r + th * 0.35))
+		inner.append(c + d * (r - th * 0.65))
+		core.append(c + d * (r + th * 0.02))
+	for pass_i in 3:
+		for i in n:
+			var o0 := outer[i]
+			var o1 := outer[i + 1]
+			var i0 := inner[i] if pass_i < 2 else core[i]
+			var i1 := inner[i + 1] if pass_i < 2 else core[i + 1]
+			if pass_i == 0:
+				# Contorno de tinta: un poco más ancho / Ink outline: a little wider
+				o0 += (o0 - c).normalized() * 2.0
+				o1 += (o1 - c).normalized() * 2.0
+				i0 -= (i0 - c).normalized() * 2.0
+				i1 -= (i1 - c).normalized() * 2.0
+			if o0.distance_squared_to(i0) < 0.5 and o1.distance_squared_to(i1) < 0.5:
+				continue
+			var quad := PackedVector2Array([o0, o1, i1, i0]) if o1.distance_squared_to(i1) > 0.05 else PackedVector2Array([o0, o1, i0])
+			if o0.distance_squared_to(i0) < 0.05:
+				quad = PackedVector2Array([o0, o1, i1])
+			var qc: Color = [Color(INK, 0.55 * fade), Color(col, 0.9 * fade), Color(1, 1, 1, 0.85 * fade)][pass_i]
+			draw_colored_polygon(quad, qc)
+
+
+## Rayo: resplandor ancho, cuerpo de color y alma blanca. Si es un tramo recto (un enlace entre
+## dos puntos) se dibuja como un haz que se afina, con un nudo de luz en cada extremo; si es
+## quebrado (un rayo de verdad) le salen dos ramitas y estalla al llegar.
+## Bolt: a wide glow, a coloured body and a white core. A straight stretch (a link between two
+## points) is drawn as a tapering beam with a knot of light at each end; a jagged one (real
+## lightning) grows two little forks and bursts where it lands.
+func _draw_bolt(points: PackedVector2Array, k: float, col: Color) -> void:
+	if points.size() < 2:
+		return
+	var soft := DreamBackground.soft_texture()
+	var last := points[points.size() - 1]
+	if points.size() == 2:
+		var a := points[0]
+		var nrm := (last - a).normalized().orthogonal()
+		for layer: Array in [[11.0, 4.0, Color(col, 0.3 * k)], [6.0, 2.0, Color(col, k)], [2.5, 1.0, Color(1, 1, 1, k)]]:
+			var w0: float = layer[0] * (0.4 + 0.6 * k)
+			var w1: float = layer[1]
+			draw_colored_polygon(PackedVector2Array([a + nrm * w0, last + nrm * w1, last - nrm * w1, a - nrm * w0]), layer[2])
+		for q: Vector2 in [a, last]:
+			draw_texture_rect(soft, Rect2(q - Vector2(16, 16), Vector2(32, 32)), false, Color(col, 0.8 * k))
+			draw_circle(q, 3.5 * k + 1.0, Color(1, 1, 1, k))
+		return
+	draw_polyline(points, Color(col, 0.28 * k), 22.0)
+	draw_polyline(points, Color(col, k), 8.0)
+	# Ramitas: salen de dos codos, hacia fuera / Forks: out of two elbows, pointing away
+	for idx: int in [points.size() / 3, points.size() * 2 / 3]:
+		if idx <= 0 or idx >= points.size() - 1:
+			continue
+		var p := points[idx]
+		var along := (points[idx + 1] - points[idx - 1]).normalized()
+		var side := 1.0 if int(p.x + p.y) % 2 == 0 else -1.0
+		var q1 := p + (along * 0.6 + along.orthogonal() * side).normalized() * 26.0
+		var q2 := q1 + (along + along.orthogonal() * side * 0.3).normalized() * 18.0
+		draw_polyline(PackedVector2Array([p, q1, q2]), Color(col, 0.9 * k), 4.0)
+		draw_polyline(PackedVector2Array([p, q1, q2]), Color(1, 1, 1, k), 1.5)
+	draw_polyline(points, Color(1, 1, 1, k), 3.0)
+	# Estallido donde cae / Burst where it lands
+	var e := 1.0 - k
+	draw_texture_rect(soft, Rect2(last - Vector2(46, 46), Vector2(92, 92)), false, Color(col, 0.7 * k))
+	for j in 6:
+		var d := Vector2.from_angle(j * TAU / 6.0 + 0.4)
+		draw_line(last + d * (6.0 + 22.0 * e), last + d * (16.0 + 34.0 * e), Color(1, 1, 1, k), 3.0 * k + 1.0)
+
+
 ## Garras: arcos que se afinan en las puntas, con contorno de tinta, color y filo blanco. Se trazan
 ## en la primera mitad de su vida y luego se apagan.
 ## Claws: arcs tapering at the tips, with an ink outline, colour and a white edge. They're drawn in
