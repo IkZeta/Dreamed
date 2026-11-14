@@ -284,10 +284,11 @@ func _panther() -> bool:
 		# Una zarpa de sombra salta hasta la presa (Kroker no se mueve: así no pierdes el control)
 		# A shadow claw leaps onto the prey (Kroker doesn't move: so you never lose control)
 		pounce_anim = 1.0
-		run.fx.bolt(PackedVector2Array([origin(), _body(target)]), COLORS["panther"].darkened(0.3))
-		run.fx.swing(_body(target), 40.0, dir.angle(), 0.9, COLORS["panther"], 4.0)
-	for k in 3:
-		run.fx.swing(_body(target), 26.0 + k * 4.0, dir.angle() + 1.2 + k * 0.25, 0.5, COLORS["panther"], 2.0)
+		run.fx.pounce(origin(), _body(target), COLORS["panther"])
+		run.fx.claw(_body(target), dir.angle(), 54.0, COLORS["panther"], 3, 0.38)
+	else:
+		# Zarpazo de tres garras; más grande si es crítico o emboscada / A three-claw swipe; bigger on a crit or ambush
+		run.fx.claw(_body(target), dir.angle(), 46.0 if crit else 36.0, COLORS["panther"])
 	Audio.play("claw", -8.0, 0.12)
 	return true
 
@@ -341,7 +342,8 @@ func _vulture() -> bool:
 		deal(best, VULTURE_DMG * _mult(), dir * 40.0)
 	_bounce(best, VULTURE_DMG)
 	_strike(best, dir, 0.9)
-	run.fx.swing(_body(best), 22.0, dir.angle(), 0.8, COLORS["vulture"], 3.0)
+	# Baja en picado, raja con las garras y suelta plumas / Dives, rakes with its talons and sheds feathers
+	run.fx.talon(_body(best), dir.angle(), COLORS["vulture"])
 	Audio.play("peck", -8.0, 0.1)
 	return true
 

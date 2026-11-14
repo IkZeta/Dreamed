@@ -154,6 +154,36 @@ func twinkle(pos: Vector2, color := UITheme.GOLD) -> void:
 	_items.append({"kind": "twinkle", "pos": pos, "color": color, "life": 0.3, "max": 0.3})
 
 
+## Zarpazo: «n» garras curvas y afiladas que se trazan de golpe en diagonal sobre el blanco y se
+## apagan. "angle" es hacia dónde va el golpe; "size", el tamaño de las garras.
+## Claw swipe: "n" curved, sharp claws drawn in one stroke diagonally over the target, then fading.
+## "angle" is where the blow travels; "size", the claws' size.
+func claw(center: Vector2, angle: float, size := 30.0, color := UITheme.BONE, n := 3, life := 0.3) -> void:
+	if not _room():
+		return
+	_items.append({"kind": "claw", "pos": center, "a": angle, "r": size, "n": n, "color": color,
+		"flip": 1.0 if randf() < 0.5 else -1.0, "life": life, "max": life})
+
+
+## Rastro del salto de la pantera: una estela de sombra y huellas que se apagan de la salida a la presa
+## The panther's leap trail: a shadow streak and paw prints fading from the start to the prey
+func pounce(from: Vector2, to: Vector2, color := UITheme.BONE) -> void:
+	_items.append({"kind": "pounce", "pos": from, "to": to, "color": color, "life": 0.45, "max": 0.45})
+
+
+## Picado del buitre: baja en picado desde arriba, raja con las garras y suelta unas plumas
+## The vulture's dive: swoops down from above, rakes with its talons and sheds a few feathers
+func talon(center: Vector2, angle: float, color := UITheme.BONE) -> void:
+	if not _room():
+		return
+	_items.append({"kind": "dive", "pos": center, "color": color, "side": 1.0 if randf() < 0.5 else -1.0, "life": 0.22, "max": 0.22})
+	claw(center + Vector2(0, -6), PI * 0.5 + clampf(angle, -0.6, 0.6) * 0.3, 30.0, color, 2, 0.28)
+	for i in 3:
+		_items.append({"kind": "feather", "pos": center + Vector2(randf_range(-14, 14), randf_range(-30, -10)),
+			"vel": Vector2(randf_range(-60, 60), randf_range(-90, -40)), "rot": randf() * TAU,
+			"spin": randf_range(-3.0, 3.0), "color": color, "ph": randf() * TAU, "life": 0.9, "max": 0.9})
+
+
 func clear() -> void:
 	_items.clear()
 
@@ -184,6 +214,12 @@ func _process(delta: float) -> void:
 					v *= 1.0 - 2.5 * delta
 					v.y += float(it["g"]) * delta
 					it["rot"] = float(it["rot"]) + float(it["spin"]) * delta
+				"feather":
+					# Cae despacio meciéndose de lado a lado / Falls slowly, rocking side to side
+					v *= 1.0 - 3.0 * delta
+					v.y += 70.0 * delta
+					v.x += sin(float(it["life"]) * 9.0 + float(it["ph"])) * 220.0 * delta
+					it["rot"] = float(it["rot"]) + float(it["spin"]) * delta
 				_:
 					v *= 1.0 - 2.0 * delta
 			it["vel"] = v
@@ -211,6 +247,22 @@ func _draw() -> void:
 				var w := f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 				var p := Vector2(it["pos"]) - Vector2(w / 2.0, 0)
 				UITheme.ink_text(self, f, p.round(), s, sz, c, 2.0)
+			"claw":
+				_draw_claw(it, k, col)
+			"pounce":
+				_draw_pounce(it, k, col)
+			"dive":
+				# Estela en cuña que baja en picado / A wedge streak diving down
+				var to := Vector2(it["pos"])
+				var e := minf(1.0, (1.0 - k) / 0.5)
+				var from := to + Vector2(70.0 * float(it["side"]), -170.0)
+				var head := from.lerp(to, e)
+				var nrm := (to - from).normalized().orthogonal()
+				var tail := from.lerp(to, maxf(0.0, e - 0.6))
+				draw_colored_polygon(PackedVector2Array([tail, head + nrm * 9.0, head - nrm * 9.0]), Color(col, 0.35 * k))
+				draw_colored_polygon(PackedVector2Array([tail, head + nrm * 4.0, head - nrm * 4.0]), Color(1, 1, 1, 0.7 * k))
+			"feather":
+				_draw_feather(Vector2(it["pos"]), float(it["rot"]), Color(col, minf(1.0, k * 2.0)))
 			"bolt":
 				# Grueso para que se vea en pixel art / Thick so it shows in pixel art
 				draw_polyline(it["points"], Color(col, 0.3 * k), 16.0)
@@ -277,6 +329,103 @@ func _draw() -> void:
 
 
 ## Estrella de cuatro puntas (la de todo el juego) / Four-point star (the game-wide one)
+## Garras: arcos que se afinan en las puntas, con contorno de tinta, color y filo blanco. Se trazan
+## en la primera mitad de su vida y luego se apagan.
+## Claws: arcs tapering at the tips, with an ink outline, colour and a white edge. They're drawn in
+## the first half of their life, then fade.
+func _draw_claw(it: Dictionary, k: float, col: Color) -> void:
+	var c := Vector2(it["pos"])
+	var size := float(it["r"])
+	var n := int(it["n"])
+	var flip := float(it["flip"])
+	var draw_k := minf(1.0, (1.0 - k) / 0.4)
+	var fade := minf(1.0, k * 2.2)
+	# Cruza al blanco en diagonal respecto al golpe / Crosses the target diagonally to the blow
+	var a := float(it["a"]) + 0.9 * flip
+	var dir := Vector2.from_angle(a)
+	var nrm := dir.orthogonal()
+	var soft := DreamBackground.soft_texture()
+	draw_texture_rect(soft, Rect2(c - Vector2(size, size) * 1.4, Vector2(size, size) * 2.8), false, Color(col, 0.35 * fade))
+	for j in n:
+		var off := (j - (n - 1) * 0.5) * size * 0.42
+		var len := size * (2.0 - absf(j - (n - 1) * 0.5) * 0.35)
+		var pts_l := PackedVector2Array()
+		var pts_r := PackedVector2Array()
+		var steps := 10
+		for i in steps + 1:
+			var t := float(i) / steps * draw_k
+			var along := (t - 0.5) * len
+			# Curva de garra (hacia un lado) / Claw curve (to one side)
+			var bend := sin(t * PI) * size * 0.28 * flip
+			var p := c + dir * along + nrm * (off + bend)
+			var w := sin(t / maxf(draw_k, 0.001) * PI) * size * 0.11 + 0.6
+			pts_l.append(p + nrm * w)
+			pts_r.append(p - nrm * w)
+		pts_r.reverse()
+		var body := pts_l + pts_r
+		if body.size() < 3:
+			continue
+		var ink := PackedVector2Array()
+		var mid := c + nrm * off
+		for q in body:
+			ink.append(q + (q - mid).normalized() * 1.5)
+		draw_colored_polygon(ink, Color(INK, 0.8 * fade))
+		draw_colored_polygon(body, Color(col.lightened(0.15), fade))
+		# Filo blanco por el centro / A white edge along the middle
+		var edge := PackedVector2Array()
+		for i in range(1, steps):
+			edge.append(pts_l[i].lerp(pts_r[pts_r.size() - 1 - i], 0.5))
+		if edge.size() >= 2:
+			draw_polyline(edge, Color(1, 1, 1, 0.85 * fade), 1.5)
+
+
+## Salto de la pantera: estela de sombra en cuña y cuatro huellas que se encienden en orden
+## Panther leap: a wedge shadow streak and four paw prints lighting up in order
+func _draw_pounce(it: Dictionary, k: float, col: Color) -> void:
+	var a := Vector2(it["pos"])
+	var b := Vector2(it["to"])
+	var d := b - a
+	if d.length() < 4.0:
+		return
+	var dir := d.normalized()
+	var nrm := dir.orthogonal()
+	var e := minf(1.0, (1.0 - k) / 0.3)
+	var head := a.lerp(b, e)
+	draw_texture_rect(DreamBackground.soft_texture(), Rect2(head - Vector2(40, 40), Vector2(80, 80)), false, Color(col, 0.5 * k))
+	draw_colored_polygon(PackedVector2Array([a + nrm * 2.0, head + nrm * 16.0, head - nrm * 16.0, a - nrm * 2.0]), Color(col, 0.35 * k))
+	draw_colored_polygon(PackedVector2Array([a.lerp(head, 0.45), head + nrm * 6.0, head - nrm * 6.0]), Color(1, 1, 1, 0.6 * k))
+	for i in 4:
+		var t := (i + 1) / 5.0
+		if t > e:
+			break
+		var p := a.lerp(b, t) + nrm * (10.0 if i % 2 == 0 else -10.0)
+		_paw(p, dir.angle(), Color(col.lightened(0.35), minf(1.0, k * 1.6)))
+
+
+func _paw(p: Vector2, ang: float, col: Color) -> void:
+	draw_set_transform(p, ang + PI * 0.5, Vector2(1.4, 1.0))
+	draw_circle(Vector2(0, 3), 6.5, Color(INK, col.a * 0.7))
+	draw_circle(Vector2(0, 3), 5.0, col)
+	for tx: float in [-5.5, -2.0, 2.0, 5.5]:
+		var tp := Vector2(tx, -4.5 - (0.0 if absf(tx) > 3.0 else 1.8))
+		draw_circle(tp, 3.0, Color(INK, col.a * 0.7))
+		draw_circle(tp, 2.0, col)
+	draw_set_transform(Vector2.ZERO)
+
+
+## Pluma: palo y barbas, con su contorno / Feather: quill and vanes, with an outline
+func _draw_feather(p: Vector2, rot: float, col: Color) -> void:
+	draw_set_transform(p, rot, Vector2.ONE)
+	var vane := PackedVector2Array([Vector2(-9, 0), Vector2(-4, -3.2), Vector2(5, -2.6), Vector2(9, 0), Vector2(5, 2.6), Vector2(-4, 3.2)])
+	var ink := PackedVector2Array()
+	for q in vane:
+		ink.append(q * 1.2)
+	draw_colored_polygon(ink, Color(INK, col.a * 0.7))
+	draw_colored_polygon(vane, col.lightened(0.25))
+	draw_line(Vector2(-11, 0), Vector2(8, 0), Color(col.darkened(0.35), col.a), 1.0)
+	draw_set_transform(Vector2.ZERO)
+
+
 func _star(p: Vector2, r: float, rot: float, col: Color) -> void:
 	var pts := PackedVector2Array()
 	for i in 8:

@@ -64,8 +64,11 @@ func _fit() -> void:
 	var h := clampf(want, 0.0, maxf(room, 160.0))
 	if not is_equal_approx(h, custom_minimum_size.y):
 		custom_minimum_size.y = h
-	# Con barra, que no tape el texto / With the bar showing, don't let it cover the text
-	var bar := get_v_scroll_bar().get_combined_minimum_size().x + 8.0 if want > h + 1.0 else 0.0
+	# Siempre con el hueco de la barra, salga o no: si el ancho cambiara al aparecer la barra, el texto
+	# se reajustaría, cambiaría la altura y la barra podría aparecer y desaparecer sin parar
+	# Always with room for the bar, shown or not: if the width changed when the bar appears, the text
+	# would rewrap, the height would change and the bar could keep appearing and disappearing
+	var bar := get_v_scroll_bar().get_combined_minimum_size().x + 8.0
 	var w := c.get_combined_minimum_size().x + bar
 	if not is_equal_approx(w, custom_minimum_size.x):
 		custom_minimum_size.x = w

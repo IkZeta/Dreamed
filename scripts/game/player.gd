@@ -67,7 +67,6 @@ var _last_pos := Vector2.INF
 var _vel := Vector2.ZERO
 var _invuln := 0.0
 var _flash := 0.0
-var _flash_sent := 0.0
 var _facing := 1.0
 var _t := 0.0
 var _regen_acc := 0.0
@@ -264,10 +263,6 @@ func _physics_process(delta: float) -> void:
 		if stench_t <= 0.0:
 			stench_weapon = null
 	_flash = maxf(0.0, _flash - delta * 4.0)
-	# Destello blanco de verdad (ver Enemy.hit_material) / A real white flash (see Enemy.hit_material)
-	if material == null:
-		material = Enemy.hit_material()
-	_flash_sent = Enemy.send_flash(self, _flash * 1.2, _flash_sent)
 	attack_anim = maxf(0.0, attack_anim - delta * 4.0)
 	cast_anim = maxf(0.0, cast_anim - delta * 3.0)
 	reload_anim = maxf(0.0, reload_anim - delta / RELOAD_TIME)

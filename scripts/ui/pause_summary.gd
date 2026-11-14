@@ -125,7 +125,7 @@ func _build(player: Player) -> void:
 			var head := UITheme.label("  ·  ".join(PackedStringArray(parts)), 24, UITheme.BONE, "body")
 			head.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 			v.add_child(head)
-			var desc := Keywords.label(s.upgrade_desc(g, weapon, lvl), 24, UITheme.ASH, "italic")
+			var desc := Keywords.label(UpgradeText.upgrade_desc(g, weapon, lvl), 24, UITheme.ASH, "italic")
 			desc.custom_minimum_size.x = 760
 			v.add_child(desc)
 	for duo: String in s.duos:
@@ -133,7 +133,7 @@ func _build(player: Player) -> void:
 		var head := UITheme.label("%s  ·  %s" % [tr("DUO_ROLE"), tr("DUO_%s_NAME" % duo.to_upper())], 24, UITheme.GOLD, "body")
 		head.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		v.add_child(head)
-		var desc := Keywords.label(s.duo_desc(duo), 24, UITheme.ASH, "italic")
+		var desc := Keywords.label(UpgradeText.duo_desc(duo), 24, UITheme.ASH, "italic")
 		desc.custom_minimum_size.x = 760
 		v.add_child(desc)
 	var combos := s.active_combos()

@@ -12,9 +12,6 @@ uniform float tint : hint_range(0.0, 1.0) = 0.22;
 // A macro, not a function: passing TEXTURE as a sampler2D to a function errors in Godot 4
 #define SOLID(uv) ((uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) ? 0.0 : step(0.5, texture(TEXTURE, uv).a))
 
-// Destello de golpe, como en enemy_hit / Hit flash, as in enemy_hit
-instance uniform float flash : hint_range(0.0, 1.0) = 0.0;
-
 void fragment() {
 	vec4 c = texture(TEXTURE, UV);
 	vec4 col = c * COLOR;
@@ -33,9 +30,6 @@ void fragment() {
 		} else {
 			col.rgb = mix(col.rgb, col.rgb * tint_color * 1.35, tint);
 		}
-	}
-	if (TEXTURE_PIXEL_SIZE.x < 0.5) {
-		col.rgb = mix(col.rgb, vec3(1.0), flash);
 	}
 	COLOR = col;
 }

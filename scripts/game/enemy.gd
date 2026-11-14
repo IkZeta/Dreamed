@@ -17,30 +17,6 @@ enum State { SPAWNING, ALIVE, DYING }
 const ELITE_COLORS := {"split": Color("ff8a1f"), "puddle": Color("2fa8ff"), "haste": Color("c44dff")}
 const ELITE_TINTS := {"split": Vector3(1.0, 0.55, 0.25), "puddle": Vector3(0.3, 0.55, 1.0), "haste": Vector3(0.75, 0.3, 1.0)}
 const ELITE_SHADER := preload("res://assets/shaders/elite.gdshader")
-## Destello blanco al recibir un golpe: el mismo material para todos (se siguen dibujando por lotes)
-## y el destello de cada uno en un parámetro por instancia. Antes el destello iba en el color de
-## dibujo por encima de 1, pero el renderizador lo recorta y no se veía.
-## White flash when hit: the same material for all (they keep being batched) and each one's flash in
-## a per-instance parameter. The flash used to go in the draw colour above 1, but the renderer
-## clamps it and it never showed.
-static var _hit_mat: ShaderMaterial
-var _flash_sent := 0.0
-
-
-static func hit_material() -> ShaderMaterial:
-	if _hit_mat == null:
-		_hit_mat = ShaderMaterial.new()
-		_hit_mat.shader = preload("res://assets/shaders/enemy_hit.gdshader")
-	return _hit_mat
-
-
-## Manda el destello al shader solo cuando cambia / Sends the flash to the shader only when it changes
-static func send_flash(item: CanvasItem, f: float, sent: float) -> float:
-	f = snappedf(clampf(f, 0.0, 1.0), 0.02)
-	if f != sent:
-		item.set_instance_shader_parameter("flash", f)
-	return f
-
 ## Forma de andar: a pasos (con saltito, aplastamiento y balanceo), pisando fuerte (los grandes),
 ## flotando (fantasmas, bichos y cosas que vuelan) o nada (los que llevan su propia animación)
 ## Gait: stepping (with a hop, squash and sway), stomping (the big ones), floating (ghosts, bugs and
@@ -163,8 +139,6 @@ func setup(p_run: Node, hp_mult := 1.0, speed_mult := 1.0) -> void:
 func _ready() -> void:
 	speed *= randf_range(0.92, 1.12)
 	_phase = randf() * TAU
-	if material == null:
-		material = hit_material()
 	# Pesadilla: más vida y más daño / Nightmare: more health and damage
 	max_hp *= GameState.enemy_hp_mult()
 	if not is_boss():
@@ -202,8 +176,6 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_t += delta
 	_flash = maxf(0.0, _flash - delta * 5.0)
-	# Blanco del todo un instante y luego se apaga; los jefes, más suave / Fully white for an instant, then fading; bosses, softer
-	_flash_sent = send_flash(self, _flash * (0.8 if is_boss() else 1.6), _flash_sent)
 	stun_t = maxf(0.0, stun_t - delta)
 	# El escudo se rompe cuando cae su antidisturbios / The shield breaks when its riot officer falls
 	if shield_by != null and not shielded():
@@ -322,10 +294,13 @@ func _animate_motion(delta: float) -> void:
 		_anim_last = position
 	var moved := (position - _anim_last) / maxf(delta, 0.0001)
 	_anim_last = position
-	var k := clampf(_walk_vel.length() / maxf(speed, 60.0), 0.0, 1.0) if stun_t <= 0.0 else 0.0
+	var k := clampf(_walk_vel.length() / maxf(speed, 60.0), 0.0, 1.0) if stun_t <= 0.0 and heavy_t <= 0.0 and knock.length() < 200.0 else 0.0
 	_gait_k = move_toward(_gait_k, k, delta * 6.0)
 	k = _gait_k
-	_step_ph += moved.length() * delta * (0.065 if gait == Gait.STOMP else 0.085)
+	# Con la velocidad con la que anda, no con la de los empujones: si no, al salir lanzado el paso
+	# giraba a toda velocidad / From its walking speed, not from shoves: otherwise, when launched,
+	# the step spun at full speed
+	_step_ph += minf(_walk_vel.length(), moved.length()) * delta * (0.065 if gait == Gait.STOMP else 0.085)
 	var lean := clampf(_walk_vel.x / 900.0, -0.14, 0.14) - clampf(knock.x / 1600.0, -0.3, 0.3)
 	_turn_t = maxf(0.0, _turn_t - delta * 6.0)
 	# Cada paso: sube un poco, se estira en el aire y se aplasta al apoyar; se balancea de un pie al otro
