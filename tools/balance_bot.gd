@@ -19,6 +19,9 @@ var runs_per_weapon := 2
 var weapons: Array[String] = WEAPONS.duplicate()
 var difficulty := "normal"
 var immortal := false
+## Si es mayor que 0, la partida acaba al superar ese sueño (para comparar solo un acto)
+## If above 0, the run ends once that dream is cleared (to compare just one act)
+var max_depth := 0
 ## Vigilante: si nada avanza, pulsa aceptar/escape y apunta dónde se atascó
 ## Watchdog: if nothing moves on, presses accept/escape and notes where it got stuck
 var _stuck_t := 0.0
@@ -29,6 +32,7 @@ var _prev_run := 0.0
 var _prev_real := 0.0
 var _spent := 0
 var _queue: Array[String] = []
+var _old_scene := 0
 var _results: Array = []
 var _cur: Dictionary = {}
 var _t := 0.0
@@ -46,6 +50,8 @@ func _ready() -> void:
 			weapons.assign(a.split("=")[1].split(","))
 		elif a.begins_with("--bot-diff="):
 			difficulty = a.split("=")[1]
+		elif a.begins_with("--bot-max-depth="):
+			max_depth = int(a.split("=")[1])
 		elif a == "--bot-immortal":
 			immortal = true
 		elif a == "--bot-unlocked":
@@ -87,6 +93,10 @@ func _next_run() -> void:
 	_prev_run = 0.0
 	_spent = 0
 	print("[bot] start ", w)
+	# La escena de la partida anterior sigue viva un momento, con su pantalla de fin: no es la nueva
+	# The previous run's scene lingers for a moment, end screen and all: it isn't the new one
+	var old := get_tree().current_scene
+	_old_scene = old.get_instance_id() if old else 0
 	GameState.change_scene("res://scenes/run.tscn")
 
 
@@ -109,6 +119,8 @@ func _physics_process(delta: float) -> void:
 		return
 	_watchdog(sc, delta)
 	if sc is Run:
+		if sc.get_instance_id() == _old_scene:
+			return
 		_drive(sc as Run)
 	elif sc.name == "AstralPlane":
 		_astral(sc, delta)
@@ -329,6 +341,12 @@ func dream_done(run: Run) -> void:
 		"kills": GameState.run_kills, "falls": GameState.run_falls, "fight": snappedf(fight, 0.1), "between": snappedf(between, 0.1),
 		"style": GameState.city_style() if GameState.act() == 4 else "", "deaths": GameState.bot_deaths})
 	print("[bot] ", _cur["weapon"], " dream ", GameState.dream_depth, " hp ", snappedf(run.player.hp, 0.1), "/", run.player.max_hp, " lvl ", GameState.plevel, " ◆", GameState.reality, " deaths ", GameState.bot_deaths)
+	# Partidas cortas (--bot-max-depth): al acabar ese sueño, se apunta y a por la siguiente
+	# Short runs (--bot-max-depth): once that dream ends, record it and move on to the next
+	if max_depth > 0 and GameState.dream_depth >= max_depth and not _cur.has("done"):
+		_cur["done"] = true
+		_record_end(run)
+		_next_run.call_deferred()
 
 
 ## Si en 40 s de juego no cambia nada (escena, sueño, pelea), intenta seguir y lo apunta
