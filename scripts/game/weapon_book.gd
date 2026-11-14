@@ -13,6 +13,9 @@ extends Weapon
 
 const RANGE := 260.0
 const DAMAGE := 9.0
+## Segundos entre descargas (era 1,8: contra un jefe solo se quedaba corto)
+## Seconds between volleys (it was 1.8: against a lone boss it fell short)
+const BASE_CD := 1.6
 const BOLT_WEIGHTS: Array[float] = [40.0, 35.0, 25.0]   # 1, 2 o 3 rayos / 1, 2 or 3 bolts
 const BOLT_GAP := 0.09     # tiempo entre un rayo y el siguiente / time between bolts
 const JUMP_RANGE := 230.0
@@ -20,11 +23,11 @@ const FALLOFF := 0.8       # cada rebote hace un 20 % menos / each bounce deals 
 
 
 func _init() -> void:
-	cooldown = 1.8
+	cooldown = BASE_CD
 
 
 func _ready() -> void:
-	cooldown = 1.8 * (1.0 - uv("stolk", "pct") / 100.0) * (1.0 + uv("doc", "pct") / 100.0)
+	cooldown = BASE_CD * (1.0 - uv("stolk", "pct") / 100.0) * (1.0 + uv("doc", "pct") / 100.0)
 
 
 ## Cuántos rayos caen esta vez; la suerte hace más probables 2 y 3

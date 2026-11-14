@@ -345,8 +345,7 @@ func dream_done(run: Run) -> void:
 	# Short runs (--bot-max-depth): once that dream ends, record it and move on to the next
 	if max_depth > 0 and GameState.dream_depth >= max_depth and not _cur.has("done"):
 		_cur["done"] = true
-		_record_end(run)
-		_next_run.call_deferred()
+		_record_end(run)   # ya programa la partida siguiente / it already schedules the next run
 
 
 ## Si en 40 s de juego no cambia nada (escena, sueño, pelea), intenta seguir y lo apunta

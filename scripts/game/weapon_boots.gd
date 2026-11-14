@@ -20,9 +20,9 @@ extends Weapon
 ##  Doc    — vida máxima a cambio de +"pct" % de recarga de las patadas.
 
 const RANGE := 118.0
-const KICK_DAMAGE := 8.0
+const KICK_DAMAGE := 9.0
 const KICK_KNOCK := 230.0
-const SPIN_DAMAGE := 3.0        # el giro casi no hace daño... / the spin barely hurts...
+const SPIN_DAMAGE := 5.0        # el giro hace poco daño... / the spin does little damage...
 const SPIN_RADIUS := 100.0      # ...es cuerpo a cuerpo, como las patadas... / ...it's melee, like the kicks...
 const SPIN_KNOCK := 600.0       # ...pero empuja mucho / ...but it shoves hard
 const SPIN_TIME := 0.42         # lo que tarda la vuelta entera / how long the full turn takes
