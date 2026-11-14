@@ -24,6 +24,7 @@ var _aim := 0.0
 
 
 func _init() -> void:
+	gait = Gait.FLOAT
 	bestiary_id = "exam"
 	max_hp = 14.0
 	hp = max_hp

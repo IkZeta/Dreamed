@@ -24,6 +24,7 @@ var _swing := 0.0
 
 
 func _init() -> void:
+	gait = Gait.STOMP
 	bestiary_id = "golem"
 	max_hp = 130.0
 	hp = max_hp

@@ -27,6 +27,7 @@ var _arrive := 1.0           # entrando desde fuera (1 → 0) / flying in from o
 
 
 func _init() -> void:
+	gait = Gait.FLOAT
 	bestiary_id = "van"
 	max_hp = 170.0
 	hp = max_hp

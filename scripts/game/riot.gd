@@ -24,6 +24,7 @@ var _beam := 0.0
 
 
 func _init() -> void:
+	gait = Gait.STOMP
 	bestiary_id = "riot"
 	max_hp = 70.0
 	hp = max_hp

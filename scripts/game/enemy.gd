@@ -17,6 +17,36 @@ enum State { SPAWNING, ALIVE, DYING }
 const ELITE_COLORS := {"split": Color("ff8a1f"), "puddle": Color("2fa8ff"), "haste": Color("c44dff")}
 const ELITE_TINTS := {"split": Vector3(1.0, 0.55, 0.25), "puddle": Vector3(0.3, 0.55, 1.0), "haste": Vector3(0.75, 0.3, 1.0)}
 const ELITE_SHADER := preload("res://assets/shaders/elite.gdshader")
+## Destello blanco al recibir un golpe: el mismo material para todos (se siguen dibujando por lotes)
+## y el destello de cada uno en un parámetro por instancia. Antes el destello iba en el color de
+## dibujo por encima de 1, pero el renderizador lo recorta y no se veía.
+## White flash when hit: the same material for all (they keep being batched) and each one's flash in
+## a per-instance parameter. The flash used to go in the draw colour above 1, but the renderer
+## clamps it and it never showed.
+static var _hit_mat: ShaderMaterial
+var _flash_sent := 0.0
+
+
+static func hit_material() -> ShaderMaterial:
+	if _hit_mat == null:
+		_hit_mat = ShaderMaterial.new()
+		_hit_mat.shader = preload("res://assets/shaders/enemy_hit.gdshader")
+	return _hit_mat
+
+
+## Manda el destello al shader solo cuando cambia / Sends the flash to the shader only when it changes
+static func send_flash(item: CanvasItem, f: float, sent: float) -> float:
+	f = snappedf(clampf(f, 0.0, 1.0), 0.02)
+	if f != sent:
+		item.set_instance_shader_parameter("flash", f)
+	return f
+
+## Forma de andar: a pasos (con saltito, aplastamiento y balanceo), pisando fuerte (los grandes),
+## flotando (fantasmas, bichos y cosas que vuelan) o nada (los que llevan su propia animación)
+## Gait: stepping (with a hop, squash and sway), stomping (the big ones), floating (ghosts, bugs and
+## flying things) or none (those with their own animation)
+enum Gait { WALK, STOMP, FLOAT, NONE }
+var gait := Gait.WALK
 
 var run: Node  # Run
 var max_hp := 16.0
@@ -133,6 +163,8 @@ func setup(p_run: Node, hp_mult := 1.0, speed_mult := 1.0) -> void:
 func _ready() -> void:
 	speed *= randf_range(0.92, 1.12)
 	_phase = randf() * TAU
+	if material == null:
+		material = hit_material()
 	# Pesadilla: más vida y más daño / Nightmare: more health and damage
 	max_hp *= GameState.enemy_hp_mult()
 	if not is_boss():
@@ -170,6 +202,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_t += delta
 	_flash = maxf(0.0, _flash - delta * 5.0)
+	# Blanco del todo un instante y luego se apaga; los jefes, más suave / Fully white for an instant, then fading; bosses, softer
+	_flash_sent = send_flash(self, _flash * (0.8 if is_boss() else 1.6), _flash_sent)
 	stun_t = maxf(0.0, stun_t - delta)
 	# El escudo se rompe cuando cae su antidisturbios / The shield breaks when its riot officer falls
 	if shield_by != null and not shielded():
@@ -269,6 +303,9 @@ func _physics_process(delta: float) -> void:
 var _walk_vel := Vector2.ZERO
 var _turn_t := 0.0
 var _step_ph := 0.0
+var _gait_k := 0.0
+## Altura del saltito del paso (la usa _draw) / Height of the step hop (used by _draw)
+var _step_hop := 0.0
 var _anim_last := Vector2.INF
 
 
@@ -286,15 +323,41 @@ func _animate_motion(delta: float) -> void:
 	var moved := (position - _anim_last) / maxf(delta, 0.0001)
 	_anim_last = position
 	var k := clampf(_walk_vel.length() / maxf(speed, 60.0), 0.0, 1.0) if stun_t <= 0.0 else 0.0
-	_step_ph += moved.length() * delta * 0.085
+	_gait_k = move_toward(_gait_k, k, delta * 6.0)
+	k = _gait_k
+	_step_ph += moved.length() * delta * (0.065 if gait == Gait.STOMP else 0.085)
 	var lean := clampf(_walk_vel.x / 900.0, -0.14, 0.14) - clampf(knock.x / 1600.0, -0.3, 0.3)
-	skew = lerpf(skew, lean, minf(1.0, delta * 10.0))
 	_turn_t = maxf(0.0, _turn_t - delta * 6.0)
-	var bounce := absf(sin(_step_ph)) * 0.045 * k
+	# Cada paso: sube un poco, se estira en el aire y se aplasta al apoyar; se balancea de un pie al otro
+	# Every step: rises a little, stretches in the air and squashes on landing; sways from foot to foot
+	var s := absf(sin(_step_ph))
+	var contact := pow(1.0 - s, 3.0)
+	var air := s * s
+	var sq := 0.0
+	var sway := 0.0
+	_step_hop = 0.0
+	match gait:
+		Gait.WALK:
+			sq = 0.07 * k
+			_step_hop = 5.0 * s * k
+			sway = 0.05 * sin(_step_ph) * k
+		Gait.STOMP:
+			# Pesados: apenas despegan, pero aplastan más al pisar / Heavy: barely leave the ground, but squash harder on landing
+			sq = 0.1 * k
+			_step_hop = 2.5 * s * k
+			sway = 0.035 * sin(_step_ph) * k
+		Gait.FLOAT:
+			# Flotan: sin pasos, un vaivén suave que se inclina con el viaje / Float: no steps, a gentle drift leaning with the travel
+			contact = 0.0
+			air = 0.0
+			sway = 0.06 * sin(_t * 2.2 + _phase) * (0.4 + 0.6 * k)
+	skew = lerpf(skew, lean + sway, minf(1.0, delta * 10.0))
 	# Al recibir un golpe se aplasta y rebota (un muelle que se apaga) / When hit it squashes and springs back (a dying spring)
 	_hit_squash = maxf(0.0, _hit_squash - delta * 4.0)
-	var sq := _hit_squash * _hit_squash * cos((1.0 - _hit_squash) * 9.0)
-	scale = Vector2((1.0 + bounce * 0.6 + 0.16 * sq) * (1.0 - 0.3 * sin(_turn_t * PI)), 1.0 - bounce - 0.14 * sq)
+	var hit := _hit_squash * _hit_squash * cos((1.0 - _hit_squash) * 9.0)
+	var sx := 1.0 + sq * contact - sq * 0.5 * air + 0.16 * hit
+	var sy := 1.0 - sq * contact + sq * 0.6 * air - 0.14 * hit
+	scale = Vector2(sx * (1.0 - 0.3 * sin(_turn_t * PI)), sy)
 
 
 ## Velocidad que quiere llevar (por defecto, ir a por Kroker) / Desired velocity (by default, chase Kroker)
@@ -851,7 +914,7 @@ func _death_sound() -> void:
 
 func _draw() -> void:
 	var a := _fade
-	var bob := sin(_t * 2.6 + _phase) * 3.0
+	var bob := sin(_t * 2.6 + _phase) * 3.0 - _step_hop
 	# Flotando: sube un palmo, sombra pequeña y burbuja de ingravidez / Floating: rises a hand's breadth, small shadow and a zero-g bubble
 	if float_t > 0.0 and state == State.ALIVE:
 		var up := minf(1.0, (_float_total - float_t) * 5.0) * minf(1.0, float_t * 4.0)

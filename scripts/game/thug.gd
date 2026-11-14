@@ -10,6 +10,7 @@ const EYES := Color("ffcf7a")
 
 
 func _init() -> void:
+	gait = Gait.STOMP
 	shards = 3
 	bestiary_id = "thug"
 	max_hp = 45.0

@@ -37,7 +37,10 @@ static func draw_top(ci: CanvasItem, sprite: String, top_y: float, bottom_y: flo
 	ci.draw_texture_rect_region(t, Rect2(r.position.x, top_y, r.size.x, h), Rect2(0, 0, t.get_width(), src_h), modulate)
 
 
-## Color para el destello de daño: aclara la textura / Damage-flash colour: brightens the texture
+## Color para el destello de daño. Por encima de 1 el renderizador lo recorta, así que en la práctica
+## solo lleva el alfa: el blanco de verdad lo pone enemy_hit.gdshader (Enemy.hit_material).
+## Damage-flash colour. Above 1 the renderer clamps it, so in practice it only carries the alpha: the
+## real white comes from enemy_hit.gdshader (Enemy.hit_material).
 static func flash_color(flash: float, alpha := 1.0) -> Color:
 	var k := 1.0 + 1.6 * flash
 	return Color(k, k, k, alpha)

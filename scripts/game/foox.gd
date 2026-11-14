@@ -9,6 +9,7 @@ static var _glow: GradientTexture2D
 
 
 func _init() -> void:
+	gait = Gait.FLOAT
 	bestiary_id = "foox"
 	max_hp = 16.0
 	hp = max_hp

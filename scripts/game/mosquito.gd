@@ -9,6 +9,7 @@ var nest: Node   # nido del que salió / nest it came from
 
 
 func _init() -> void:
+	gait = Gait.FLOAT
 	bestiary_id = "mosquito"
 	max_hp = 3.0
 	hp = max_hp

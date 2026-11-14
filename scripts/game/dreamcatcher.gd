@@ -31,6 +31,7 @@ var _grow := 1.0
 
 
 func _init() -> void:
+	gait = Gait.NONE
 	bestiary_id = "dreamcatcher"
 	max_hp = 26.0
 	hp = max_hp
