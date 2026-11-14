@@ -101,6 +101,7 @@ var weird := 0
 var gone: Array[String] = []
 ## Grietas generadas al empezar (paredes, muebles y suelo) / Cracks generated at start (walls, furniture, floor)
 var _cracks: Array[PackedVector2Array] = []
+var _crack_lines := PackedVector2Array()
 var _flakes: Array[Dictionary] = []
 
 var _t := 0.0
@@ -495,7 +496,9 @@ func _draw_motes() -> void:
 		var y := lerpf(WALL_BOTTOM, 960.0, v)
 		var half := lerpf(150.0, 350.0, v)
 		var x := 975.0 + (float(m["u"]) - 0.5) * 2.0 * half + sin(_t + float(m["ph"])) * 8.0
-		draw_circle(Vector2(x, y), 1.8, Color(UITheme.BONE, 0.5 * sin(v * PI)))
+		# Cuadraditos (los rectángulos seguidos se dibujan por lotes; los círculos, uno a uno)
+		# Little squares (rects in a row get batched; circles go one by one)
+		draw_rect(Rect2(x - 1.5, y - 1.5, 3.0, 3.0), Color(UITheme.BONE, 0.5 * sin(v * PI)))
 
 
 func _draw_dream_stars() -> void:
@@ -735,9 +738,17 @@ func _draw_holes() -> void:
 func _draw_corruption() -> void:
 	if weird <= 0:
 		return
-	for line in _cracks:
-		draw_polyline(line, Color(0.03, 0.02, 0.1, 0.85), 3.0, true)
-		draw_polyline(line, Color("8d7ff0", 0.25), 1.0, true)
+	# Todas las grietas de una vez, como segmentos sueltos: con una línea suavizada por grieta eran
+	# cientos de órdenes de dibujo en cada fotograma / All the cracks at once, as loose segments:
+	# one antialiased line per crack meant hundreds of draw calls every frame
+	if _crack_lines.is_empty():
+		for line in _cracks:
+			for j in line.size() - 1:
+				_crack_lines.append(line[j])
+				_crack_lines.append(line[j + 1])
+	if not _crack_lines.is_empty():
+		draw_multiline(_crack_lines, Color(0.03, 0.02, 0.1, 0.85), 3.0)
+		draw_multiline(_crack_lines, Color("8d7ff0", 0.25), 1.0)
 	# Luz que se cuela por las grietas más grandes / Light leaking through the bigger cracks
 	for i in range(0, _cracks.size(), 4):
 		var line: PackedVector2Array = _cracks[i]

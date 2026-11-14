@@ -363,7 +363,8 @@ func _draw_live() -> void:
 		var cl := Color(st[2], Color(st[2]).a * 0.5)
 		ci.draw_multiline(PackedVector2Array([p - Vector2(r * 4.0, 0), p + Vector2(r * 4.0, 0), p - Vector2(0, r * 4.0), p + Vector2(0, r * 4.0)]), cl, 1.0)
 	for st: Array in stars:
-		ci.draw_circle(st[0], st[1], st[2])
+		var r: float = st[1]
+		ci.draw_rect(Rect2(Vector2(st[0]) - Vector2(r, r), Vector2(r, r) * 2.0), st[2])
 	# Estrellitas dentro de los agujeros / Little stars inside the holes
 	var list := holes_list()
 	for i in hole_count():
@@ -373,13 +374,13 @@ func _draw_live() -> void:
 		var seed := float(i) + floorf(h.position.x / PERIOD) * 3.0
 		for kk in 7:
 			var sp := c + Vector2(sin(kk * 2.3 + seed) * rr.x * 0.6, cos(kk * 1.7 + seed) * rr.y * 0.5)
-			ci.draw_circle(sp, 1.4, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
+			ci.draw_rect(Rect2(sp - Vector2(1.5, 1.5), Vector2(3, 3)), Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
 	var wl := wall_holes_list()
 	for i in wall_hole_count():
 		var h := wl[i]
 		for kk in 9:
 			var sp := h.position + Vector2(fposmod(kk * 37.0 + i * 13.0, h.size.x), fposmod(kk * 53.0 + i * 29.0, h.size.y))
-			ci.draw_circle(sp, 1.5, Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
+			ci.draw_rect(Rect2(sp - Vector2(1.5, 1.5), Vector2(3, 3)), Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 2.0 + kk)))
 	# Chispas en las quemaduras del Ovni / Sparks on the UFO's scorch marks
 	var lo := (k - 2) * PERIOD
 	var hi := (k + 2) * PERIOD

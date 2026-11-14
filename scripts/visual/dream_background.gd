@@ -106,16 +106,23 @@ func _draw() -> void:
 	draw_texture_rect(_soft, Rect2(-w * 0.75, -h * 0.12, w * 1.5, h * 0.24), false, Color("c9c4ff", 0.10))
 	draw_set_transform(Vector2.ZERO)
 
-	# Estrellas / Stars
+	# Estrellas: primero las pequeñas (cuadraditos) y luego las grandes, cada tanda con una sola
+	# textura, para que el motor las dibuje por lotes y no una a una (eran cientos de órdenes)
+	# Stars: the small ones first (little squares) and then the big ones, each batch on a single
+	# texture, so the engine batches them instead of drawing one by one (it was hundreds of calls)
 	for s in _stars:
+		if s["big"]:
+			continue
 		var p: Vector2 = s["p"]
 		var tw := 0.55 + 0.45 * sin(_t * float(s["sp"]) + float(s["ph"]))
-		var pos := Vector2(p.x * w, p.y * h)
-		var col: Color = s["c"]
-		if s["big"]:
-			draw_star(self, pos, float(s["r"]) * (0.8 + 0.4 * tw), Color(col, 0.6 + 0.4 * tw))
-		else:
-			draw_circle(pos, s["r"], Color(col, 0.3 + 0.6 * tw))
+		var r := float(s["r"])
+		draw_rect(Rect2(p.x * w - r, p.y * h - r, r * 2.0, r * 2.0), Color(s["c"], 0.3 + 0.6 * tw))
+	for s in _stars:
+		if not s["big"]:
+			continue
+		var p: Vector2 = s["p"]
+		var tw := 0.55 + 0.45 * sin(_t * float(s["sp"]) + float(s["ph"]))
+		draw_star(self, Vector2(p.x * w, p.y * h), float(s["r"]) * (0.8 + 0.4 * tw), Color(s["c"], 0.6 + 0.4 * tw))
 
 	# Estrellas fugaces / Shooting stars
 	for sh in _shooting:
@@ -142,7 +149,14 @@ func _draw() -> void:
 
 ## Estrella brillante con destellos en cruz / Bright star with cross-shaped glints
 static func draw_star(ci: CanvasItem, pos: Vector2, r: float, color: Color) -> void:
-	ci.draw_texture_rect(soft_texture(), Rect2(pos - Vector2(r, r) * 4.0, Vector2(r, r) * 8.0), false, Color(color, color.a * 0.35))
-	ci.draw_line(pos - Vector2(r * 4.0, 0), pos + Vector2(r * 4.0, 0), Color(color, color.a * 0.5), 1.0, true)
-	ci.draw_line(pos - Vector2(0, r * 4.0), pos + Vector2(0, r * 4.0), Color(color, color.a * 0.5), 1.0, true)
-	ci.draw_circle(pos, r, color)
+	# Todo con la misma textura suave (halo, destellos estirados y centro), para que muchas
+	# estrellas seguidas salgan en una sola orden de dibujo
+	# All with the same soft texture (halo, stretched glints and core), so many stars in a row
+	# come out in a single draw call
+	var soft := soft_texture()
+	ci.draw_texture_rect(soft, Rect2(pos - Vector2(r, r) * 4.0, Vector2(r, r) * 8.0), false, Color(color, color.a * 0.35))
+	var thin := maxf(1.5, r * 0.7)
+	ci.draw_texture_rect(soft, Rect2(pos - Vector2(r * 4.5, thin), Vector2(r * 9.0, thin * 2.0)), false, Color(color, color.a * 0.9))
+	ci.draw_texture_rect(soft, Rect2(pos - Vector2(thin, r * 4.5), Vector2(thin * 2.0, r * 9.0)), false, Color(color, color.a * 0.9))
+	ci.draw_texture_rect(soft, Rect2(pos - Vector2(r, r) * 1.6, Vector2(r, r) * 3.2), false, Color(1, 1, 1, color.a))
+	ci.draw_texture_rect(soft, Rect2(pos - Vector2(r, r) * 1.2, Vector2(r, r) * 2.4), false, color)
