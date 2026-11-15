@@ -104,6 +104,14 @@ func _hurt_player(dmg: float) -> void:
 		player.stink(STENCH_TIME)
 
 
+func _draw() -> void:
+	# Dónde va a caer el manotazo / Where the slap is going to land
+	if not preview and state == State.ALIVE and _windup > 0.0:
+		var r := SLAM_REACH * 0.85
+		EnemyShot.draw_area_warning(self, Vector2(_facing * 70.0, -10), Vector2(r, r * 0.45), 1.0 - _windup / SLAM_WINDUP)
+	super._draw()
+
+
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:
 	var mod := Sprites.flash_color(_flash * 0.6, a) * tint
 	var step := sin(_t * 1.6 + _phase)

@@ -203,7 +203,7 @@ func _glitch_line(from: Vector2, to: Vector2, k: float) -> void:
 	draw_polyline(pts, Color(NEON2, 0.25 + 0.5 * k), 4.0)
 	draw_polyline(pts, Color(NEON, 0.4 + 0.5 * k), 1.5)
 	if k < 1.0 and k > 0.3:
-		draw_arc(to, 30.0 * (1.0 - k) + 10.0, 0, TAU, 16, Color(NEON, 0.7 * k), 2.0)
+		draw_arc(to, 30.0 * (1.0 - k) + 10.0, 0, TAU, 16, Color(Settings.warning_color(), 0.8 * k), 2.5)
 
 
 func _draw_body(offset: Vector2, tint: Color, a: float) -> void:

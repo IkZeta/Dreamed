@@ -133,6 +133,12 @@ func _ready() -> void:
 		_pulse_mat = ShaderMaterial.new()
 		_pulse_mat.shader = PULSE_SHADER
 		holder.material = _pulse_mat
+		# Luz del acto: sombras, luces y viñeta / The act's light: shadows, highlights and vignette
+		var look: Array = ACT_LOOK[clampi(act, 1, 4) - 1]
+		_pulse_mat.set_shader_parameter("shade_col", look[0])
+		_pulse_mat.set_shader_parameter("light_col", look[1])
+		_pulse_mat.set_shader_parameter("grade", look[2])
+		_pulse_mat.set_shader_parameter("vignette", look[3])
 	_holder = holder
 	var vp := SubViewport.new()
 	vp.snap_2d_transforms_to_pixel = true
@@ -414,6 +420,18 @@ var _noir_mat: ShaderMaterial = null
 var _noir_holder: Control = null
 
 # --- Jugo visual: golpe de cámara, pulso de pantalla y racha / Visual juice: camera punch, screen pulse and streak ---
+## Luz de cada acto: [color de sombra, color de luz, cuánto tiñe, cuánta viñeta]. Dormitorio de
+## noche (añil y lamparita cálida), salón con chimenea (ámbar), pasillo con fluorescentes (verde
+## frío) y ciudad (violeta suave, que cada estética ya trae su color).
+## Each act's light: [shadow colour, highlight colour, tint amount, vignette amount]. Bedroom at
+## night (indigo and a warm lamp), living room with a fireplace (amber), corridor under strip
+## lights (cold green) and the city (soft violet; each style already brings its own colour).
+const ACT_LOOK := [
+	[Color(0.20, 0.16, 0.42), Color(1.0, 0.97, 0.90), 0.55, 0.55],
+	[Color(0.34, 0.16, 0.20), Color(1.0, 0.94, 0.84), 0.55, 0.6],
+	[Color(0.12, 0.26, 0.28), Color(0.94, 1.0, 0.96), 0.5, 0.5],
+	[Color(0.22, 0.14, 0.36), Color(1.0, 1.0, 1.0), 0.3, 0.45],
+]
 const PULSE_SHADER := preload("res://assets/shaders/dream_pulse.gdshader")
 var _pulse_mat: ShaderMaterial = null
 var _holder: Control = null

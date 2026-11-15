@@ -719,11 +719,21 @@ func _draw() -> void:
 	# Levitando: flota un palmo y se mece / Hovering: floats a hand's breadth up and sways
 	var hover_px := _hover * (16.0 + sin(_t * 2.6) * 4.0)
 	lift += hover_px
-	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift)),
+	# El cuerpo acompaña al golpe: cuerpo a cuerpo se lanza hacia delante y se estira; a distancia,
+	# retrocede un poco con el disparo. Dura lo que la animación del brazo.
+	# The body follows the blow: in melee he lunges forward and stretches; at range, he recoils a
+	# little with the shot. It lasts as long as the arm animation.
+	var hit_k := attack_anim * attack_anim if spin_a <= 0.0 else 0.0
+	var melee_w := outfit in GameState.MELEE
+	var gesture := Vector2(_facing * (9.0 if melee_w else -5.0), clampf(aim.y, -1.0, 1.0) * (4.0 if melee_w else -2.0)) * hit_k
+	var gesture_lean := (0.1 if melee_w else -0.07) * hit_k
+	sx *= 1.0 + (0.06 if melee_w else -0.03) * hit_k
+	sy *= 1.0 - (0.04 if melee_w else -0.02) * hit_k
+	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift) + gesture),
 		outfit, _t, {"facing": facing, "boots": boots != null and armed, "reload": reload_anim,
 		"shades": GameState.run_shades or (run.helpers != null and run.helpers.shades), "fedora": fedora, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
 		"thrust": maxf(boots.thrust, 1.0 if _dash_t > 0.0 else 0.0) if boots else 0.0, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
-		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean,
+		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean + gesture_lean,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
 		"druid": _druid_color(), "hover": hover_px / sy, "yawn": _idle_yawn(),

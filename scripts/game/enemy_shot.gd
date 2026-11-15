@@ -46,6 +46,25 @@ static func draw_warning(ci: CanvasItem, from: Vector2, dir: Vector2, length: fl
 	ci.draw_line(from - side, to - side, Color(col, 0.5), 2.0)
 
 
+## Aviso de zona antes de un golpe en área: el mismo lenguaje que el de trayectoria (mismo color,
+## relleno tenue que se carga y un aro que crece hasta el borde justo cuando cae el golpe).
+## Area warning before an area hit: the same language as the trajectory one (same colour, a faint
+## fill that charges up and a ring that grows to the rim right as the hit lands).
+static func draw_area_warning(ci: CanvasItem, at: Vector2, radii: Vector2, k: float) -> void:
+	var col := Settings.warning_color()
+	var pts := PackedVector2Array()
+	for i in 28:
+		var ang := TAU * i / 28.0
+		pts.append(at + Vector2(cos(ang), sin(ang)) * radii)
+	ci.draw_colored_polygon(pts, Color(col, 0.10 + 0.12 * k))
+	pts.append(pts[0])
+	ci.draw_polyline(pts, Color(col, 0.5), 2.0)
+	var inner := PackedVector2Array()
+	for p in pts:
+		inner.append(at + (p - at) * k)
+	ci.draw_polyline(inner, Color(col, 0.35 + 0.45 * k), 3.0)
+
+
 ## Hasta dónde llega un disparo antes de salir de la habitación / How far a shot goes before leaving the room
 static func reach(run: Node, from: Vector2, dir: Vector2, max_len: float) -> float:
 	var r: Rect2 = run.arena_rect().grow(30)

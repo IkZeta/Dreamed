@@ -169,6 +169,10 @@ func _muzzle() -> Vector2:
 func _draw() -> void:
 	if not preview and state == State.ALIVE and _aiming > 0.0 and _aim_dir != Vector2.ZERO:
 		EnemyShot.draw_warning(self, _muzzle() - global_position, _aim_dir, EnemyShot.reach(run, _muzzle(), _aim_dir, 1000.0), 22.0, _aiming)
+	# Golpe cuerpo a cuerpo: la zona que alcanza / Melee hit: the area it reaches
+	if not preview and state == State.ALIVE and _windup > 0.0 and WINDUP.has(arm):
+		var r := MELEE_REACH + 10.0
+		EnemyShot.draw_area_warning(self, Vector2.ZERO, Vector2(r, r * 0.45), 1.0 - _windup / float(WINDUP[arm]))
 	super._draw()
 
 
