@@ -72,6 +72,16 @@ static func _sp(name: String) -> String:
 	return "hk_" + name if hires and SpriteRects.RECTS.has("hk_" + name) else name
 
 
+## Pose de gateo («crawl» 0..1, «crawl_phase» en radianes): rodillas en el suelo con las piernas
+## hacia atrás, el cuerpo inclinado hacia delante y las manos apoyadas, alternando brazo y pierna.
+## Crawling pose ("crawl" 0..1, "crawl_phase" in radians): knees on the floor with the legs going
+## back, the body tilted forward and the hands on the floor, alternating arm and leg.
+const CRAWL_TILT := 1.15
+const CRAWL_LEG := 1.0
+const CRAWL_DROP := 28.0
+const HIP := Vector2(100, 227)
+
+
 static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts := {}) -> void:
 	_ci = ci
 	# "hires": piezas con el doble de resolución, para cuando se ve en grande junto a otros personajes
@@ -87,6 +97,8 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var cast: float = opts.get("cast", 0.0)
 	var lean: float = opts.get("lean", 0.0)
 	var armed: bool = opts.get("armed", true)
+	var crawl: float = opts.get("crawl", 0.0)
+	var cph: float = opts.get("crawl_phase", 0.0)
 	_reload = opts.get("reload", 0.0)
 	var breath := 1.0 + sin(t * 1.8) * 0.008
 	_xf = xf * Transform2D(0.0, Vector2(facing, breath), 0.0, Vector2(100.0 - 100.0 * facing, 288.0 * (1.0 - breath)))
@@ -114,6 +126,10 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	var land := (1.0 - absf(sin(walk))) * moving
 	var lean_fwd := 0.06 * moving
 	_xf = _xf * Transform2D(lean + lean_fwd, Vector2(1.0 + 0.025 * land, 1.0 - 0.03 * land), 0.0, Vector2(100, 288 + bob)) * Transform2D(0.0, Vector2(-100, -288))
+	# Gateando: baja hasta tener las rodillas en el suelo, con un leve vaivén a cada paso
+	# Crawling: drops until the knees are on the floor, with a slight sway on every step
+	if crawl > 0.0:
+		_xf = _xf * Transform2D(0.0, Vector2(0, (CRAWL_DROP - absf(sin(cph)) * 3.0) * crawl))
 
 	# Qué lleva cada mano: el pijama decide la suya y la segunda arma va en la otra
 	# What each hand holds: the pajama picks its hand and the second weapon goes in the other
@@ -151,6 +167,11 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	if w_l in MIRROR_LEFT:
 		arm_l = -_arm_pose(w_l, swing * 0.8 - 2.7 * stretch, a_l, -swing)
 	var arm_r := _arm_pose(w_r, swing * 0.8 - 2.7 * stretch, a_r, swing)
+	# Gateando, los brazos van rectos al suelo (contra la inclinación del cuerpo) y se turnan
+	# Crawling, the arms go straight to the floor (against the body's tilt) and take turns
+	if crawl > 0.0:
+		arm_l = lerpf(arm_l, -CRAWL_TILT + sin(cph) * 0.35, crawl)
+		arm_r = lerpf(arm_r, -CRAWL_TILT - sin(cph) * 0.35, crawl)
 	# Kroker es bajito: hombros y caderas más abajo, brazos y piernas cortos
 	# Kroker is short: shoulders and hips sit lower, arms and legs are short
 	const SH_L := Vector2(75, 184)
@@ -162,15 +183,20 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	# Legs (with the steampunk boots, kicks and engine flames)
 	var boots: bool = opts.get("boots", outfit == "boots")
 	var thrust: float = opts.get("thrust", 0.0)
-	_limb(swing - 1.25 * float(opts.get("kick_l", 0.0)), Vector2(87, 227), lift_l)
+	var leg_c := CRAWL_LEG * crawl
+	var leg_sw := sin(cph) * 0.22 * crawl
+	_limb(swing - 1.25 * float(opts.get("kick_l", 0.0)) + leg_c - leg_sw, Vector2(87, 227), lift_l * (1.0 - crawl))
 	Sprites.draw(ci, _sp("kroker_leg_l_" + o), mod)
 	if boots:
 		_boot("l", t, thrust, mod)
-	_limb(-swing - 1.25 * float(opts.get("kick_r", 0.0)), Vector2(113, 227), lift_r)
+	_limb(-swing - 1.25 * float(opts.get("kick_r", 0.0)) + leg_c + leg_sw, Vector2(113, 227), lift_r * (1.0 - crawl))
 	Sprites.draw(ci, _sp("kroker_leg_r_" + o), mod)
 	if boots:
 		_boot("r", t, thrust, mod)
 
+	# Gateando, de cintura para arriba se inclina hacia delante / Crawling, from the waist up he tilts forward
+	if crawl > 0.0:
+		_xf = _xf * Transform2D(CRAWL_TILT * crawl, HIP) * Transform2D(0.0, -HIP)
 	# Brazos (detrás del torso) / Arms (behind the torso)
 	_limb(arm_l, SH_L)
 	Sprites.draw(ci, _sp("kroker_arm_l_" + o), mod)
@@ -202,7 +228,8 @@ static func draw(ci: CanvasItem, xf: Transform2D, outfit: String, t: float, opts
 	# Cabeza (se inclina un poco al estirarse) / Head (tilts back when stretching)
 	# La cabeza rebota con un poco de retraso al andar / The head bounces with a slight lag when walking
 	var nod := sin(walk * 2.0 - 0.9) * 1.6 * moving
-	_use(Transform2D(-0.12 * stretch - 0.04 * moving * sin(walk * 2.0 - 0.6), Vector2(100, 170 + nod)) * Transform2D(0.0, Vector2(-100, -170)))
+	# (gateando levanta la cabeza para mirar adelante / crawling, he lifts his head to look ahead)
+	_use(Transform2D(-0.12 * stretch - 0.04 * moving * sin(walk * 2.0 - 0.6) - 0.5 * crawl, Vector2(100, 170 + nod)) * Transform2D(0.0, Vector2(-100, -170)))
 	_head(t, opts.get("glasses", true), opts.get("yawn", stretch), mod, opts.get("asleep", false))
 	if opts.get("shades", false):
 		_shades(t)

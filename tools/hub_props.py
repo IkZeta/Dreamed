@@ -69,6 +69,36 @@ def build(ms):
     b += P([(-6, -46), (0, -51), (6, -46)], STONE_L)
     put("hub_lantern", -8, -54, 16, 56, b)
 
+    # Atril del álbum de pegatinas: peana de piedra, columna de madera torneada con aros dorados,
+    # pupitre inclinado y el álbum abierto con pegatinas y una cinta marcapáginas
+    # Sticker album lectern: stone plinth, turned wooden column with gold rings, slanted desk and
+    # the open album with stickers and a ribbon bookmark
+    WOOD, WOOD_L, WOOD_D = ng("#9a6440"), ng("#c08a5a"), ng("#5e3a26")
+    PAPER, PAPER_S = ng("#f6eed8", 0.12), ng("#e2d4b2", 0.15)
+    b = E(0, -3, 15, 4.5, STONE_D)
+    b += E(0, -6, 12, 3.6, STONE)
+    b += R(-6, -11, 12, 5, WOOD_D)                      # pie / foot
+    b += P([(-3.5, -31), (3.5, -31), (4.5, -11), (-4.5, -11)], WOOD)   # columna / column
+    b += F(-1.8, -30, 1.2, 18, WOOD_L)                   # brillo de la madera / wood sheen
+    b += R(-5.5, -16, 11, 2.6, GOLD, rim=0.7)            # aros / rings
+    b += R(-5, -27, 10, 2.4, GOLD, rim=0.7)
+    b += R(-8, -35, 16, 5, WOOD_D)                       # capitel / capital
+    b += P([(-17, -49), (17, -49), (20, -37), (-20, -37)], WOOD)       # pupitre / desk
+    b += R(-21, -38, 42, 3.4, WOOD_D)                    # reborde / lip
+    b += P([(-16, -50), (16, -50), (18.5, -39), (-18.5, -39)], ng("#8a2e52"), rim=0.3)   # tapas / covers
+    b += P([(-15, -50), (-0.6, -47.6), (-0.6, -38.6), (-17, -40.4)], PAPER, rim=0.2)    # hoja izq. / left page
+    b += P([(15, -50), (0.6, -47.6), (0.6, -38.6), (17, -40.4)], PAPER_S, rim=0.2)      # hoja der. / right page
+    b += F(-0.7, -48, 1.4, 9.6, ng("#c9b890", 0.15))     # lomo / spine
+    for y in (-46.0, -43.6):                              # renglones / ruled lines
+        b += F(-13, y, 4, 0.7, PAPER_S) + F(9.5, y + 0.4, 4.5, 0.7, ng("#cbbd98", 0.15))
+    b += hs(star_d(-8.5, -44.2, 4.2, 0.5), ng("#ffa0d4", 0.05), sh=0.15, rim=0.8)   # pegatina estrella / star sticker
+    b += E(7.5, -44.5, 2.8, 2.8, GOLD, rim=0.7)          # medalla / medal
+    b += F(6.9, -45.1, 1.2, 1.2, ng("#b27a1e", 0.1))
+    b += E(12.2, -41.2, 1.8, 1.8, ng("#8fd8ff", 0.12), rim=0.5)            # pegatina azul / blue sticker
+    b += F(-14, -41.4, 3, 2, ng("#9be3a4", 0.12))        # pegatina cuadrada / square sticker
+    b += P([(2.2, -39), (4.2, -39), (4.2, -30), (3.2, -31.5), (2.2, -30)], ng("#e04a6a", 0.1), rim=0.3)  # cinta / ribbon
+    put("hub_album_lectern", -22, -54, 44, 56, b)
+
     # --- Svinho: campo de fútbol / football pitch ---
     WH = ng("#f4f1e6", 0.15)
     NET = ng("#c8c4d8", 0.2)

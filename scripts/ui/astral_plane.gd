@@ -156,9 +156,11 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	col.add_child(fig_px)
 	_figures.append(fig)
 
-	var card := PanelContainer.new()
+	var card := AstralCard.new()
+	card.aura = GiverFigure.AURA[giver]
 	card.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.8), Color(UITheme.LINE, 0.45), Color(GiverFigure.AURA[giver], 0.18), 22, 18, 28))
 	col.add_child(card)
+	fig.card = card
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
 	card.add_child(v)
@@ -492,6 +494,14 @@ var _talk_speed := 1.0
 
 
 func _process(delta: float) -> void:
+	# Con uno enfocado, los demás se apagan un poco / With one focused, the others dim a little
+	var any := false
+	for f in _figures:
+		if is_instance_valid(f) and (f as GiverFigure).highlight:
+			any = true
+	for f in _figures:
+		if is_instance_valid(f):
+			(f as GiverFigure).dim = any and not (f as GiverFigure).highlight
 	if _talk_t < 0.0 or _leaving:
 		return
 	_talk_t += delta
@@ -592,40 +602,63 @@ func _leave() -> void:
 ## Personaje sobre una roca flotante / A character standing on a floating rock
 class GiverFigure extends Control:
 	const AURA := {"svinho": Color("9be38a"), "stolk": Color("ff8f9e"), "silly": Color("5ff2ff"), "doc": Color("ffe3a3"), "ad": Color("ffb04a"), "pinche": Color("ff9a3a"), "magnus": Color("4fd39a"), "superk": Color("b48cff"), "lilkey": Color("ff6a8a"), "lynx": Color("e0303a"), "luna": Color("c9d4ff"), "duo": Color("f6d993")}
+	const STONE := Color("4a4592")
+	const STONE_L := Color("5f59ae")
+	const STRATA := [Color("39347a"), Color("2c2864"), Color("201c4e")]
 	var who := "svinho"
 	var duo := ""
 	var highlight := false
+	## Otro personaje está enfocado: este se apaga un poco / Another character is focused: this one dims a little
+	var dim := false
+	var card: AstralCard
 	var _t := 0.0
 	var _glow := 0.0
+	var _dim := 0.0
+	## Perfil de la roca de abajo (fijo por personaje) / Profile of the rock underneath (fixed per character)
+	var _jag: Array[float] = []
 
 	func _ready() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
 		_t = randf() * 5.0
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash(who)
+		for i in 13:
+			_jag.append(rng.randf_range(0.75, 1.15))
 
 	func _process(delta: float) -> void:
 		_t += delta
 		_glow = move_toward(_glow, 1.0 if highlight else 0.0, delta * 3.0)
+		_dim = move_toward(_dim, 1.0 if dim else 0.0, delta * 3.0)
+		modulate = Color.WHITE.lerp(Color(0.62, 0.6, 0.75), _dim)
+		if card:
+			card.focus = _glow
 		queue_redraw()
 
 	func _draw() -> void:
-		var s := minf(size.x / 200.0, size.y / 340.0) * 0.95
-		var float_y := sin(_t * 1.1) * 8.0
+		# Con margen arriba para el vaivén y el acercamiento: así no se corta el pelo de nadie
+		# With room at the top for the bob and the step closer: so nobody's hair gets cut off
+		var s := minf(size.x / 200.0, size.y / 395.0) * 0.95
+		var float_y := sin(_t * 1.1) * 8.0 - 6.0 * _glow
 		var origin := Vector2(size.x / 2.0 - 100.0 * s, size.y - 385.0 * s + float_y)
 		var aura: Color = AURA[who]
+		var soft := DreamBackground.soft_texture()
 		var c := origin + Vector2(100, 170) * s
-		draw_texture_rect(DreamBackground.soft_texture(), Rect2(c - Vector2(150, 190) * s, Vector2(300, 380) * s), false, Color(aura, 0.12 + 0.18 * _glow))
-		# Roca flotante con cristales / Floating rock with crystals
 		var rock_c := origin + Vector2(100, 296) * s
-		var top := PackedVector2Array()
-		for i in 24:
-			var a := TAU * i / 24.0
-			top.append(rock_c + Vector2(cos(a) * 92.0, sin(a) * 18.0) * s)
-		var under := PackedVector2Array([rock_c + Vector2(-92, 0) * s, rock_c + Vector2(-50, 40) * s, rock_c + Vector2(-10, 70) * s,
-			rock_c + Vector2(20, 52) * s, rock_c + Vector2(60, 36) * s, rock_c + Vector2(92, 0) * s])
-		draw_colored_polygon(under, Color("2a2a66"))
-		draw_colored_polygon(PackedVector2Array([rock_c + Vector2(-20, 30) * s, rock_c + Vector2(-8, 82) * s, rock_c + Vector2(4, 30) * s]), Color(aura, 0.7))
-		draw_colored_polygon(top, Color("4a4592"))
-		draw_polyline(top + PackedVector2Array([top[0]]), Color(aura, 0.5), 1.5, true)
+		# Haz de luz de su color desde arriba, más vivo al enfocarlo
+		# A beam of their colour from above, brighter when focused
+		var beam_a := 0.05 + 0.12 * _glow
+		var top_w := 40.0 * s
+		var bot_w := 96.0 * s
+		draw_polygon(PackedVector2Array([Vector2(rock_c.x - top_w, 0), Vector2(rock_c.x + top_w, 0), rock_c + Vector2(bot_w, 0), rock_c - Vector2(bot_w, 0)]),
+			PackedColorArray([Color(aura, 0.0), Color(aura, 0.0), Color(aura, beam_a), Color(aura, beam_a)]))
+		draw_texture_rect(soft, Rect2(c - Vector2(150, 190) * s, Vector2(300, 380) * s), false, Color(aura, 0.1 + 0.16 * _glow))
+		_draw_isle(rock_c, s, aura)
+		# Motas que suben desde la isla / Motes rising from the isle
+		for i in 9:
+			var k := fposmod(_t * (0.18 + 0.03 * (i % 3)) + i * 0.111, 1.0)
+			var px := rock_c + Vector2((float(i) / 8.0 - 0.5) * 150.0 + sin(_t + i) * 6.0, -k * 230.0) * s
+			var sz := maxf(1.0, 2.0 * s)
+			draw_rect(Rect2(px.round(), Vector2(sz, sz)), Color(aura.lerp(Color.WHITE, 0.4), sin(k * PI) * (0.35 + 0.4 * _glow)))
 		if who == "duo" and duo != "":
 			# Los dos juntos, un poco más pequeños, sobre la misma roca / Both together, a bit smaller, on the same rock
 			var d: Dictionary = GameState.DUOS[duo]
@@ -634,13 +667,102 @@ class GiverFigure extends Control:
 				var o := rock_c + Vector2((-46.0 if i == 0 else 46.0) * s, -2.0 * s) - Vector2(100, 288) * k
 				var bob := sin(_t * 1.1 + i * 1.7) * 3.0 * s
 				var g: String = d["a"] if i == 0 else d["b"]
-				draw_texture_rect(DreamBackground.soft_texture(), Rect2(o + Vector2(-20, 40) * k, Vector2(240, 300) * k), false, Color(AURA[g], 0.12 + 0.12 * _glow))
+				draw_texture_rect(soft, Rect2(o + Vector2(-20, 40) * k, Vector2(240, 300) * k), false, Color(AURA[g], 0.12 + 0.12 * _glow))
 				NpcArt.draw(self, Transform2D(0.0, Vector2(k * (-1.0 if i == 1 else 1.0), k), 0.0, o + Vector2(200.0 * k if i == 1 else 0.0, bob)), g, _t)
 			return
+		# Al enfocarlo se acerca un poco / When focused, they step a little closer
+		var zs := s * (1.0 + 0.05 * _glow)
+		var zo := origin + Vector2(100.0 * (s - zs), 288.0 * (s - zs))
 		# Luna ya flota sola (y lleva antena): se dibuja un poco más abajo para que no se corte el casco
 		# Luna already floats on her own (and has an antenna): drawn a bit lower so the helmet isn't cut off
 		var drop := Vector2(0, 20.0 * s) if who == "luna" else Vector2.ZERO
-		NpcArt.draw(self, Transform2D(0.0, Vector2(s, s), 0.0, origin + drop), who, _t)
+		NpcArt.draw(self, Transform2D(0.0, Vector2(zs, zs), 0.0, zo + drop), who, _t)
+
+	## Isla flotante: piedra con anillo de runas, estratos de roca, cristales colgando y motas que
+	## gotean, todo en el color del personaje / Floating isle: stone with a ring of runes, rock
+	## strata, hanging crystals and dripping motes, all in the character's colour
+	func _draw_isle(rc: Vector2, s: float, aura: Color) -> void:
+		const RX := 92.0
+		const RY := 18.0
+		var n := _jag.size()
+		# Estratos: cada capa más estrecha y más honda / Strata: each layer narrower and deeper
+		for layer in 3:
+			var depth: float = [16.0, 40.0, 72.0][layer]
+			var width: float = [1.0, 0.78, 0.5][layer]
+			var pts := PackedVector2Array()
+			for i in n:
+				var u := float(i) / (n - 1)
+				var x := (u * 2.0 - 1.0) * RX * width
+				var yb := sin(u * PI) * depth * _jag[i] + (RY * 0.6 if layer == 0 else 0.0)
+				pts.append(rc + Vector2(x, yb) * s)
+			pts.append(rc + Vector2(RX * width, -2.0) * s)
+			pts.append(rc + Vector2(-RX * width, -2.0) * s)
+			draw_colored_polygon(pts, STRATA[layer])
+		# Cristales colgando / Hanging crystals
+		for i in 3:
+			var x: float = [-34.0, 6.0, 40.0][i]
+			var ln: float = [30.0, 52.0, 24.0][i]
+			var y0 := 26.0 + (8.0 if i == 1 else 0.0)
+			var sway := sin(_t * 1.3 + i) * 1.5
+			var tip := rc + Vector2(x + sway, y0 + ln) * s
+			var l := rc + Vector2(x - 7.0, y0) * s
+			var r := rc + Vector2(x + 7.0, y0) * s
+			draw_colored_polygon(PackedVector2Array([l, r, tip]), Color(aura.darkened(0.25), 0.9))
+			draw_colored_polygon(PackedVector2Array([l, rc + Vector2(x, y0) * s, tip]), Color(aura.lerp(Color.WHITE, 0.3), 0.9))
+			draw_texture_rect(DreamBackground.soft_texture(), Rect2(tip - Vector2(10, 10) * s, Vector2(20, 20) * s), false, Color(aura, 0.25 + 0.2 * _glow))
+			# Una gota de luz que cae de la punta / A drop of light falling from the tip
+			var k := fposmod(_t * 0.5 + i * 0.37, 1.0)
+			var drip := tip + Vector2(0, k * 40.0) * s
+			var dsz := maxf(1.0, 2.0 * s)
+			draw_rect(Rect2(drip.round(), Vector2(dsz, dsz)), Color(aura, (1.0 - k) * 0.7))
+		# Superficie: piedra, losa central más clara y anillo de runas / Surface: stone, lighter central slab and ring of runes
+		var top := PackedVector2Array()
+		var inner := PackedVector2Array()
+		for i in 28:
+			var a := TAU * i / 28.0
+			top.append(rc + Vector2(cos(a) * RX, sin(a) * RY) * s)
+			inner.append(rc + Vector2(cos(a) * RX * 0.72, sin(a) * RY * 0.62 - 1.0) * s)
+		draw_colored_polygon(top, STONE)
+		draw_colored_polygon(inner, STONE_L)
+		draw_polyline(inner + PackedVector2Array([inner[0]]), Color(aura, 0.25 + 0.3 * _glow), maxf(1.0, s))
+		draw_polyline(top + PackedVector2Array([top[0]]), Color(aura, 0.55 + 0.3 * _glow), maxf(1.0, 1.4 * s))
+		# Runas que se encienden por turnos alrededor del borde / Runes lighting up in turn around the rim
+		for i in 8:
+			var a := TAU * i / 8.0 + 0.2
+			var at := rc + Vector2(cos(a) * RX * 0.86, sin(a) * RY * 0.8) * s
+			var on := 0.35 + 0.65 * maxf(0.0, sin(_t * 2.0 - i * 0.8))
+			var rsz := maxf(2.0, 3.0 * s)
+			draw_rect(Rect2((at - Vector2(rsz, rsz) * 0.5).round(), Vector2(rsz, rsz)), Color(aura.lerp(Color.WHITE, 0.3), on * (0.5 + 0.5 * _glow)))
+		# Brillo bajo los pies / Glow under the feet
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(rc - Vector2(60, 12) * s, Vector2(120, 24) * s), false, Color(aura, 0.18 + 0.2 * _glow))
+
+
+## Tarjeta de un don: filete de luz del color del personaje arriba, con un rombo en medio, y un
+## borde que se enciende al enfocarla / A gift card: a light trim in the character's colour at the
+## top, with a diamond in the middle, and a border that lights up when focused
+class AstralCard extends PanelContainer:
+	var aura := Color.WHITE
+	var focus := 0.0:
+		set(v):
+			if is_equal_approx(v, focus):
+				return
+			focus = v
+			var sb := get_theme_stylebox("panel") as StyleBoxFlat
+			if sb:
+				sb.border_color = Color(UITheme.LINE, 0.45).lerp(Color(aura, 0.85), focus)
+				sb.shadow_color = Color(aura, 0.18 + 0.2 * focus)
+			queue_redraw()
+
+	func _draw() -> void:
+		var w := size.x
+		var inset := 26.0
+		var col := Color(aura, 0.55 + 0.4 * focus)
+		draw_rect(Rect2(inset, 0, w * 0.5 - inset - 12.0, 3), col)
+		draw_rect(Rect2(w * 0.5 + 12.0, 0, w * 0.5 - inset - 12.0, 3), col)
+		var c := Vector2(w * 0.5, 1.5)
+		var r := 7.0 + 1.5 * focus
+		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), Color(aura.lerp(Color.WHITE, 0.25), 0.8 + 0.2 * focus))
+		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -3), c + Vector2(3, 0), c + Vector2(0, 3), c + Vector2(-3, 0)]), Color(UITheme.VOID, 0.8))
 
 
 ## Kroker flotando en el centro, con su arma / Kroker floating in the middle, with his weapon
@@ -698,9 +820,34 @@ class AstralSky extends Control:
 			draw_set_transform(Vector2(w * 0.5, h * 0.55), _t * 0.03 * (1 + i) + i * 1.3, Vector2.ONE)
 			draw_texture_rect(soft, Rect2(-w * 0.7, -h * 0.08, w * 1.4, h * 0.16), false, Color([Color("8a5bd6"), Color("3fc1c9"), Color("e8a6d8")][i], 0.16))
 		draw_set_transform(Vector2.ZERO)
-		for s in _stars:
-			var p: Vector2 = s["p"]
-			draw_circle(Vector2(p.x * w, p.y * h), s["r"], Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 1.5 + float(s["ph"]))))
+		# Luna lejana con halo, en creciente / A distant crescent moon with a halo
+		var moon := Vector2(w * 0.93, h * 0.09)
+		var mr := h * 0.035
+		draw_texture_rect(soft, Rect2(moon - Vector2(mr, mr) * 3.2, Vector2(mr, mr) * 6.4), false, Color("b8a8ff", 0.12))
+		draw_circle(moon, mr, Color("e6defc", 0.6))
+		draw_circle(moon + Vector2(mr * 0.32, -mr * 0.12), mr * 0.92, Color("2a1f63", 0.9))
+		draw_circle(moon + Vector2(-mr * 0.55, mr * 0.2), mr * 0.12, Color("c8bdf0", 0.6))
+		# Círculo astral girando muy despacio tras el título / An astral circle turning very slowly behind the title
+		var ring_c := Vector2(w * 0.5, h * 0.1)
+		var rx := w * 0.24
+		var ry := h * 0.085
+		var gold := Color(UITheme.GOLD, 0.08)
+		for k in 2:
+			var pts := PackedVector2Array()
+			for i in 49:
+				var a := TAU * i / 48.0
+				pts.append(ring_c + Vector2(cos(a) * rx, sin(a) * ry) * (1.0 - 0.08 * k))
+			draw_polyline(pts, gold, 1.0)
+		for i in 24:
+			var a := TAU * i / 24.0 + _t * 0.05
+			var p0 := ring_c + Vector2(cos(a) * rx, sin(a) * ry)
+			var p1 := ring_c + Vector2(cos(a) * rx, sin(a) * ry) * 0.92
+			draw_line(p0, p1, Color(UITheme.GOLD, 0.14 if i % 6 == 0 else 0.07), 1.0)
+		for st in _stars:
+			var p: Vector2 = st["p"]
+			var r: float = st["r"]
+			var at := Vector2(p.x * w, p.y * h).round()
+			draw_rect(Rect2(at, Vector2(1, 1) * maxf(1.0, round(r))), Color(UITheme.BONE, 0.4 + 0.4 * sin(_t * 1.5 + float(st["ph"]))))
 		# Fragmentos de sueño flotando / Floating dream shards
 		for sh in _shards:
 			var p: Vector2 = sh["p"]

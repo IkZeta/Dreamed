@@ -595,3 +595,6 @@ El informe queda en `user://balance_report.json`. Otras opciones: `--bot-weapons
 - Los avisos de golpe en área (gólem, marionetas) usan el mismo color y forma que los de disparo: zona que se carga y aro que crece.
 - Cada acto tiene su luz: tinte y viñeta suaves (añil, ámbar, verde frío, violeta).
 - La aspiradora, las torretas del portátil, la pelota y el yoyó tienen efectos más legibles: cono de succión vivo, haces afilados, estelas y cuerda con contorno.
+- Al empezar un sueño cayendo del cielo, Kroker cae recto de plancha, se estampa de bruces, se incorpora a cuatro patas y gatea antes de levantarse.
+- El atril del álbum de pegatinas del plano astral es un sprite de pixel art nuevo, con brillos y estrellitas.
+- El plano de las mejoras tiene islas flotantes con cristales y runas, haces de luz, atenuación de los dones no elegidos y tarjetas con el color de cada personaje.

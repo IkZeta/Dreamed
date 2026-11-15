@@ -40,6 +40,13 @@ var _dead_t := 0.0
 var hurt_lean := 0.0         # retroceso al recibir daño / recoil when hit
 var hop := 0.0               # altura de un salto en píxeles / jump height in pixels
 var fedora := false         # sombrero de detective del último sueño / the last dream's detective hat
+## Pose de las llegadas (las mueve RunCinematics): gateo, fase del gateo, brazos estirados y
+## si va cayendo (estelas) / Arrival poses (RunCinematics drives them): crawl, crawl phase,
+## arms stretched out and whether he's falling (streaks)
+var crawl := 0.0
+var crawl_phase := 0.0
+var pose_stretch := 0.0
+var falling := false
 var pose_lean := 0.0        # inclinación de pose (apoyado en la pared) / posing lean (leaning on the wall)
 var shield_charges := 0      # golpes que para la almohada recogida / hits the picked-up pillow blocks
 var slow_t := 0.0            # frenado por un charco / slowed by a puddle
@@ -682,8 +689,37 @@ func weapon_stunk(w: Weapon) -> bool:
 	return stench_t > 0.0 and w == stench_weapon
 
 
+## Sombra en el suelo y estelas mientras cae o está tumbado: van rectas en pantalla aunque Kroker
+## esté girado / Ground shadow and streaks while falling or lying down: they stay upright on
+## screen even when Kroker is rotated
+func _draw_ground_pose() -> void:
+	draw_set_transform(Vector2.ZERO, -rotation, Vector2.ONE)
+	# El cuerpo tumbado ocupa más suelo y la sombra se va a su centro
+	# A body lying down covers more floor, and the shadow moves to its middle
+	var lying := absf(sin(rotation))
+	var centre := Vector2(sin(rotation) * 60.0, 0.0)
+	var high := clampf(hop / 600.0, 0.0, 1.0)
+	var w := (24.0 + 46.0 * lying) * (1.0 - 0.6 * high)
+	var pts := PackedVector2Array()
+	for i in 20:
+		var a := TAU * i / 20.0
+		pts.append(centre + Vector2(cos(a) * w, sin(a) * w * 0.22))
+	draw_colored_polygon(pts, Color(0.05, 0.03, 0.18, 0.35 * (1.0 - 0.5 * high)))
+	if falling and hop > 30.0:
+		# Estelas rectas por encima del cuerpo / Straight streaks above the body
+		var top := -hop - absf(cos(rotation)) * 144.0 - 10.0
+		for i in 4:
+			var x := centre.x + (i - 1.5) * 22.0
+			var len := 60.0 + 30.0 * float(i % 2)
+			draw_line(Vector2(x, top - 30.0), Vector2(x, top - 30.0 - len), Color(1, 1, 1, 0.45), 4.0)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _draw() -> void:
 	# Parpadea mientras es invulnerable / Blinks while invulnerable
+	var posed := rotation != 0.0 or hop > 1.0 or falling
+	if posed:
+		_draw_ground_pose()
 	_draw_dust()
 	_draw_exam_mark()
 	var visible_now := _invuln <= 0.0 or fmod(_t, 0.12) < 0.07 or not alive
@@ -737,15 +773,19 @@ func _draw() -> void:
 	var gesture_lean := (0.1 if melee_w else -0.07) * hit_k
 	sx *= 1.0 + (0.06 if melee_w else -0.03) * hit_k
 	sy *= 1.0 - (0.04 if melee_w else -0.02) * hit_k
-	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - hop - lift) + gesture),
+	# El salto siempre hacia arriba en pantalla, aunque esté girado (al caer de plancha)
+	# The hop always goes up on screen, even when he's rotated (falling flat)
+	var up := Vector2(0.0, -hop).rotated(-rotation)
+	KrokerArt.draw(self, Transform2D(0.0, Vector2(sx, sy), 0.0, Vector2(-200.0 * sx / 2.0, -288.0 * sy - lift) + up + gesture),
 		outfit, _t, {"facing": facing, "boots": boots != null and armed, "reload": reload_anim,
 		"shades": GameState.run_shades or (run.helpers != null and run.helpers.shades), "fedora": fedora, "kick_l": boots.kick_l if boots else 0.0, "kick_r": boots.kick_r if boots else 0.0,
 		"thrust": maxf(boots.thrust, 1.0 if _dash_t > 0.0 else 0.0) if boots else 0.0, "flash": _flash, "attack": attack_anim, "aim": aim, "sucking": sucking,
-		"cast": cast_anim, "walk": _walk, "moving": _moving, "armed": armed and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean + gesture_lean,
+		"cast": cast_anim, "walk": _walk, "moving": _moving * (1.0 - crawl), "armed": armed and crawl < 0.3 and absf(rotation) < 0.3 and not weapon_stunk(weapon) and not _ball_away(weapon), "lean": hurt_lean + pose_lean + gesture_lean,
+		"crawl": crawl, "crawl_phase": crawl_phase, "stretch": pose_stretch, "shadow": not posed,
 		# La segunda arma va en la mano libre / The second weapon goes in the free hand
 		"second": weapon2.id if weapon2 else "", "anim2": weapon2.anim if weapon2 else 0.0,
 		"druid": _druid_color(), "hover": hover_px / sy, "yawn": _idle_yawn(),
-		"hide2": (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),
+		"hide2": crawl >= 0.3 or absf(rotation) >= 0.3 or (weapon2 is WeaponShield and (weapon2 as WeaponShield).hidden_pillow) or weapon_stunk(weapon2) or _ball_away(weapon2),
 		"aim2": (weapon2 as WeaponVacuum).aim_dir() if weapon2 is WeaponVacuum else Vector2(1, 0.5),
 		"sucking2": weapon2 is WeaponVacuum and (weapon2 as WeaponVacuum).sucking})
 	if spin_a > 0.0:

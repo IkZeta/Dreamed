@@ -75,38 +75,88 @@ func drop_in(depth: int) -> void:
 		tw.tween_callback(run._begin.bind(depth))
 
 
-## Cae dando vueltas y se estampa de boca; se queda un momento mareado y se levanta
-## Falls tumbling and faceplants; stays dizzy for a moment and gets up
+## Cae en línea recta, de plancha, y se estampa de bruces; se queda un momento tirado, se
+## incorpora a cuatro patas, gatea un poco y se levanta sacudiéndose
+## Falls in a straight line, flat, and faceplants; lies there for a moment, gets up on all
+## fours, crawls a little and stands up, shaking himself off
 func arrive_faceplant(at: Vector2) -> Tween:
-	var f := run.player._facing
-	run.player.hop = 600.0
-	run.player.rotation = -0.4 * f
+	var p := run.player
+	var f := p._facing
+	# Hacia el lado donde no haya agujeros ni pared delante; si no hay ninguno libre, gatea en el sitio
+	# Towards the side with no holes or wall ahead; if neither is clear, he crawls on the spot
+	var reach := 95.0
+	if not _floor_clear(at, f, reach):
+		if _floor_clear(at, -f, reach):
+			f = -f
+		else:
+			reach = 0.0
+	p.set_facing(f)
+	const LIE := 1.5
+	p.rotation = LIE * f
+	p.hop = 720.0
+	p.pose_stretch = 0.0
+	p.crawl = 0.0
+	p.falling = true
+	var head := at + Vector2(118.0 * Player.ART_SCALE * f, -14)
 	var tw := run.create_tween()
-	tw.tween_interval(0.5)
-	tw.tween_property(run.player, "hop", 0.0, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(run.player, "rotation", 1.45 * f, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_interval(0.35)
+	# Caída recta, cada vez más deprisa / Straight drop, faster and faster
+	tw.tween_property(p, "hop", 0.0, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func() -> void:
+		p.falling = false
 		Audio.play("land")
 		Audio.play("crack", -4.0)
-		run.shake(7.0)
-		run.fx.dissipate(at + Vector2(60 * f, -10), UITheme.BONE)
-		run.fx.ring(at + Vector2(60 * f, 0), 26.0, UITheme.BONE, 0.45, 2.2)
-		# Estrellitas de mareo / Dizzy little stars
+		run.shake(8.0)
+		run.fx.dissipate(head, UITheme.BONE)
+		run.fx.dissipate(at + Vector2(10 * f, -4), UITheme.BONE)
+		run.fx.ring(at + Vector2(55 * f, 0), 34.0, UITheme.BONE, 0.45, 2.2)
+		# Estrellitas de mareo sobre la cabeza / Dizzy little stars over the head
 		for i in 3:
-			run.fx.ring(at + Vector2(70 * f + (i - 1) * 22, -50 - (i % 2) * 10), 5.0, UITheme.GOLD, 0.9, 1.2))
-	# Rebote al estamparse / Bounce on impact
-	tw.tween_property(run.player, "rotation", 1.32 * f, 0.08)
-	tw.tween_property(run.player, "rotation", 1.45 * f, 0.1)
-	tw.tween_interval(0.7)
-	# Se levanta de un salto / Springs back up
+			run.fx.ring(head + Vector2((i - 1) * 20, -30 - (i % 2) * 10), 5.0, UITheme.GOLD, 1.1, 1.2))
+	# Aplastón y rebote contra el suelo / Squash and bounce off the floor
+	tw.tween_method(func(k: float) -> void: p.hop = sin(k * PI) * 10.0, 0.0, 1.0, 0.16)
+	tw.tween_interval(0.45)
+	# Un temblorcito de piernas / A little leg twitch
+	tw.tween_method(func(k: float) -> void: p.rotation = (LIE - sin(k * TAU * 2.0) * 0.04) * f, 0.0, 1.0, 0.25)
+	tw.tween_interval(0.15)
+	# Se incorpora a cuatro patas: el cuerpo gira desde los pies y se adelanta un poco
+	# Gets up on all fours: the body turns from the feet and shifts forward a little
+	tw.tween_callback(Audio.play.bind("puff", -12.0, 0.1))
+	tw.tween_property(p, "rotation", 0.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(p, "crawl", 1.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(p, "position", at + Vector2(34 * f * signf(reach), 0), 0.35).set_trans(Tween.TRANS_SINE)
+	# Gatea tres pasitos / Crawls three little steps
+	var crawl_to := at + Vector2(reach * 0.95 * f, 0)
+	tw.tween_property(p, "crawl_phase", 3.0 * PI, 0.9)
+	tw.parallel().tween_property(p, "position", crawl_to, 0.9)
+	for i in 3:
+		tw.parallel().tween_callback(func() -> void:
+			Audio.play("step", -14.0, 0.15)
+			run.fx.dissipate(p.position + Vector2(20 * f, -2), Color(UITheme.BONE, 0.6))).set_delay(0.15 + i * 0.3)
+	# Se levanta de un impulso / Springs up
 	tw.tween_callback(Audio.play.bind("dash", -10.0, 0.1))
-	tw.tween_property(run.player, "rotation", 0.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_method(func(k: float) -> void: run.player.hop = sin(k * PI) * 26.0, 0.0, 1.0, 0.28)
+	tw.tween_property(p, "crawl", 0.0, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_method(func(k: float) -> void: p.hop = sin(k * PI) * 22.0, 0.0, 1.0, 0.26)
 	tw.tween_callback(func() -> void:
-		run.player.rotation = 0.0
-		run.player.hop = 0.0
-		run.player.land())
+		p.rotation = 0.0
+		p.hop = 0.0
+		p.crawl = 0.0
+		p.crawl_phase = 0.0
+		p.pose_stretch = 0.0
+		p.falling = false
+		p.land())
 	return tw
+
+
+## ¿Hay suelo firme hacia ese lado (sin agujeros ni salirse de la habitación)?
+## Is there solid floor that way (no holes, not leaving the room)?
+func _floor_clear(at: Vector2, f: float, reach: float) -> bool:
+	var area := run.arena_rect().grow(-40.0)
+	for d: float in [30.0, 60.0, reach]:
+		var q := at + Vector2(d * f, 0)
+		if not area.has_point(q) or run.hole_at(q, 40.0, Vector2.ZERO) != Vector2.INF:
+			return false
+	return true
 
 
 ## Asoma por un agujero del suelo, trepa y salta fuera / Pops up through a floor hole, climbs and hops out

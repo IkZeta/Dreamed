@@ -452,20 +452,34 @@ func _build_nexus() -> void:
 			ci.draw_rect(Rect2(r.position + Vector2(5, 11), Vector2(2, 2)), NpcArt.CAT_AURA.darkened(0.3)))
 	# Atril con el álbum de pegatinas del diario, junto a la fuente / Lectern with the diary's sticker album, by the fountain
 	var lec := c + Vector2(140, 6)
-	_blocks.append({"c": lec, "r": Vector2(12, 4)})
-	_spots.append({"kind": "album", "id": "album", "pos": lec + Vector2(0, 10), "height": 64.0})
+	_blocks.append({"c": lec, "r": Vector2(14, 4)})
+	_spots.append({"kind": "album", "id": "album", "pos": lec + Vector2(0, 10), "height": 70.0})
 	_prop(lec, func(ci: CanvasItem) -> void:
-		_shadow(ci, Vector2.ZERO, Vector2(14, 4))
-		ci.draw_rect(Rect2(-3, -30, 6, 30), Color("8a6a4a"))
-		ci.draw_rect(Rect2(-10, -2, 20, 3), Color("6a4e36"))
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(-16, -34), Vector2(16, -34), Vector2(13, -28), Vector2(-13, -28)]), Color("6a4e36"))
-		# Libreta abierta con pegatinas / Open notebook with stickers
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(-15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(-15, -36)]), Color("efe6cf"))
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(15, -44), Vector2(0, -41), Vector2(0, -33), Vector2(15, -36)]), Color("e6dcc0"))
-		ci.draw_circle(Vector2(-8, -39), 2.5, Color("ff9ad0"))
-		ci.draw_circle(Vector2(7, -39), 2.5, Color("e0a93a"))
-		var tw := 0.5 + 0.5 * sin(_t * 2.0)
-		ci.draw_circle(Vector2(0, -50 - tw * 3.0), 1.5, Color(1, 1, 1, 0.4 + 0.4 * tw)))
+		_shadow(ci, Vector2(0, -1), Vector2(16, 4))
+		# El álbum brilla un poco, como si las pegatinas tuvieran luz propia
+		# The album glows a little, as if the stickers had a light of their own
+		var glow := 0.5 + 0.5 * sin(_t * 1.6)
+		ci.draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-30, -66), Vector2(60, 40)), false, Color("ffc8e8", 0.14 + 0.06 * glow))
+		Sprites.draw(ci, "hub_album_lectern")
+		# Destellos que se turnan sobre las pegatinas / Sparkles taking turns over the stickers
+		var spots := [Vector2(-8, -45), Vector2(7, -45), Vector2(12, -42)]
+		for i in spots.size():
+			var k := fposmod(_t * 0.55 + i * 0.33, 1.0)
+			if k < 0.22:
+				var a := sin(k / 0.22 * PI)
+				var at: Vector2 = spots[i]
+				ci.draw_rect(Rect2(at + Vector2(-0.5, -2.5), Vector2(1, 5)), Color(1, 1, 1, 0.85 * a))
+				ci.draw_rect(Rect2(at + Vector2(-2.5, -0.5), Vector2(5, 1)), Color(1, 1, 1, 0.85 * a))
+		# De vez en cuando una estrellita rosa sale flotando del libro
+		# Now and then a little pink star floats up out of the book
+		var f := fposmod(_t * 0.28, 1.0)
+		if f < 0.6:
+			var u := f / 0.6
+			var p := Vector2(-6 + sin(u * 7.0) * 4.0, -50 - u * 26.0).round()
+			var pink := Color("ff9ad0", (1.0 - u) * 0.9)
+			ci.draw_rect(Rect2(p + Vector2(-1, -1), Vector2(2, 2)), pink)
+			ci.draw_rect(Rect2(p + Vector2(-0.5, -3), Vector2(1, 6)), Color(pink, pink.a * 0.6))
+			ci.draw_rect(Rect2(p + Vector2(-3, -0.5), Vector2(6, 1)), Color(pink, pink.a * 0.6)))
 	for p: Vector2 in [Vector2(-150, -62), Vector2(150, -62), Vector2(-178, 62), Vector2(178, 62)]:
 		var at := c + p
 		_blocks.append({"c": at, "r": Vector2(6, 3)})
