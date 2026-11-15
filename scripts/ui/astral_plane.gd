@@ -69,8 +69,8 @@ func _build() -> void:
 	var three := _offer.size() >= 3
 	for side in ["left", "right"]:
 		margin.add_theme_constant_override("margin_" + side, 60 if three else 120)
-	margin.add_theme_constant_override("margin_top", 50)
-	margin.add_theme_constant_override("margin_bottom", 50)
+	margin.add_theme_constant_override("margin_top", 22)
+	margin.add_theme_constant_override("margin_bottom", 34)
 
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 6)
@@ -83,25 +83,39 @@ func _build() -> void:
 		get_viewport().size_changed.connect(_queue_fit)
 	_queue_fit()
 
-	var title := UITheme.label("ASTRAL_TITLE", 64, UITheme.BONE, "display")
+	var title := UITheme.label("ASTRAL_TITLE", 54, UITheme.BONE, "display")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(title)
-	var sub := UITheme.label("ASTRAL_SUBTITLE", 26, UITheme.ASH, "italic")
+	var sub := UITheme.label("ASTRAL_SUBTITLE", 22, UITheme.ASH, "italic")
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(sub)
 
-	var row := HBoxContainer.new()
-	row.size_flags_vertical = SIZE_EXPAND_FILL
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 40)
-	root.add_child(row)
+	root.add_child(Flourish.new())
+
+	# Dos filas: las figuras arriba (se quedan con el sitio que sobre) y las tarjetas abajo, todas de
+	# la misma altura y con el botón alineado al fondo
+	# Two rows: the figures on top (they take whatever room is left) and the cards below, all the
+	# same height with the button lined up at the bottom
+	var figs := HBoxContainer.new()
+	figs.size_flags_vertical = SIZE_EXPAND_FILL
+	figs.alignment = BoxContainer.ALIGNMENT_CENTER
+	figs.add_theme_constant_override("separation", 40)
+	root.add_child(figs)
+	var cards := HBoxContainer.new()
+	cards.alignment = BoxContainer.ALIGNMENT_CENTER
+	cards.add_theme_constant_override("separation", 40)
+	root.add_child(cards)
 
 	var weapon := GameState.selected_character
 	for i in _offer.size():
-		var col := _offer_column(_offer[i], weapon)
-		if three:
-			col.custom_minimum_size.x = 540
-		row.add_child(col)
+		var pair := _offer_column(_offer[i], weapon)
+		var fig_px: Control = pair[0]
+		var card: AstralCard = pair[1]
+		fig_px.custom_minimum_size.x = 540
+		card.custom_minimum_size.x = 540
+		figs.add_child(fig_px)
+		cards.add_child(card)
+		_dress_card(card)
 		# Con tres personajes no queda sitio para Kroker en medio / With three characters there's no room for Kroker in the middle
 		if i == 0 and not three:
 			# Kroker flota en medio, esperando / Kroker floats in the middle, waiting
@@ -109,7 +123,32 @@ func _build() -> void:
 			k.outfit = weapon
 			var k_px := PixelView.wrap(k, 3)
 			k_px.custom_minimum_size = Vector2(260, 0)
-			row.add_child(k_px)
+			figs.add_child(k_px)
+			var gap := Control.new()
+			gap.custom_minimum_size = Vector2(260, 0)
+			cards.add_child(gap)
+
+
+## Remata una tarjeta: el botón al fondo (para que todos queden a la misma altura) y teñido del
+## color del personaje / Finishes a card: the button at the bottom (so they all line up) and tinted
+## in the character's colour
+func _dress_card(card: AstralCard) -> void:
+	var v := card.get_child(0) as VBoxContainer
+	var b := v.get_child(v.get_child_count() - 1) as Button
+	var spacer := Control.new()
+	spacer.size_flags_vertical = SIZE_EXPAND_FILL
+	v.add_child(spacer)
+	v.move_child(spacer, v.get_child_count() - 2)
+	var a := card.aura
+	var normal := UITheme.box(Color(a.darkened(0.55), 0.55), Color(a, 0.45), 1, 12, 14)
+	var hot := UITheme.glow_box(Color(a.darkened(0.35), 0.75), Color(a.lerp(Color.WHITE, 0.3), 0.95), Color(a, 0.35), 16, 12, 14)
+	b.add_theme_stylebox_override("normal", normal)
+	b.add_theme_stylebox_override("hover", hot)
+	b.add_theme_stylebox_override("focus", hot)
+	b.add_theme_stylebox_override("pressed", hot)
+	b.add_theme_color_override("font_color", a.lerp(UITheme.BONE, 0.55))
+	b.add_theme_color_override("font_focus_color", Color.WHITE)
+	b.add_theme_color_override("font_hover_color", Color.WHITE)
 
 
 var _fit_queued := false
@@ -139,10 +178,7 @@ func _fit_content() -> void:
 	_content.size = vp / k
 
 
-func _offer_column(giver: String, weapon: String) -> Control:
-	var col := VBoxContainer.new()
-	col.custom_minimum_size = Vector2(540, 0)
-	col.add_theme_constant_override("separation", 6)
+func _offer_column(giver: String, weapon: String) -> Array:
 
 	var fig := GiverFigure.new()
 	fig.who = giver
@@ -153,13 +189,12 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	# (it's drawn to scale) before the card spills off the bottom
 	fig_px.custom_minimum_size = Vector2(0, 150)
 	fig_px.size_flags_vertical = SIZE_EXPAND_FILL
-	col.add_child(fig_px)
 	_figures.append(fig)
 
 	var card := AstralCard.new()
 	card.aura = GiverFigure.AURA[giver]
-	card.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.8), Color(UITheme.LINE, 0.45), Color(GiverFigure.AURA[giver], 0.18), 22, 18, 28))
-	col.add_child(card)
+	card.add_theme_stylebox_override("panel", UITheme.glow_box(Color(UITheme.VOID, 0.82), Color(UITheme.LINE, 0.45), Color(GiverFigure.AURA[giver], 0.18), 22, 18, 28))
+	card.size_flags_vertical = SIZE_FILL
 	fig.card = card
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
@@ -167,7 +202,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 
 	if giver == "duo":
 		_duo_card(v, fig)
-		return col
+		return [fig_px, card]
 	# Si el nombre es largo, el papel baja a la línea siguiente / If the name is long, the role drops to the next line
 	var name_row := HFlowContainer.new()
 	name_row.add_theme_constant_override("h_separation", 12)
@@ -184,7 +219,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	v.add_child(UITheme.rule(Color(UITheme.LINE, 0.5)))
 	if giver == "magnus":
 		_deal_card(v, fig)
-		return col
+		return [fig_px, card]
 
 	# Con dos armas, pestañas para elegir a cuál va el don / With two weapons, tabs to pick which one gets the gift
 	var weapons := GameState.weapons()
@@ -241,7 +276,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 			t.size_flags_stretch_ratio = 1.0
 			t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-			t.custom_minimum_size = Vector2(1, 64)
+			t.custom_minimum_size = Vector2(1, 56)
 			t.disabled = lvl_w >= GameState.max_level(giver, w)
 			t.button_pressed = w == _target[giver]
 			t.toggled.connect(func(on: bool) -> void:
@@ -268,7 +303,7 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	b.focus_exited.connect(func() -> void: fig.highlight = false)
 	v.add_child(b)
 	_buttons.append(b)
-	return col
+	return [fig_px, card]
 
 
 ## Magnus no da mejora: propone un trato / Magnus gives no upgrade: he proposes a deal
@@ -637,9 +672,12 @@ class GiverFigure extends Control:
 	func _draw() -> void:
 		# Con margen arriba para el vaivén y el acercamiento: así no se corta el pelo de nadie
 		# With room at the top for the bob and the step closer: so nobody's hair gets cut off
-		var s := minf(size.x / 200.0, size.y / 395.0) * 0.95
-		var float_y := sin(_t * 1.1) * 8.0 - 6.0 * _glow
-		var origin := Vector2(size.x / 2.0 - 100.0 * s, size.y - 385.0 * s + float_y)
+		# Todo cabe en 388 de alto: 26 arriba para el vaivén y el acercamiento, 288 del personaje y
+		# la isla bajo los pies / Everything fits in 388 high: 26 on top for the bob and the step
+		# closer, 288 for the character and the isle under the feet
+		var s := minf(size.x / 200.0, size.y / 388.0)
+		var float_y := sin(_t * 1.1) * 6.0 * s - 5.0 * s * _glow
+		var origin := Vector2(size.x / 2.0 - 100.0 * s, size.y - 362.0 * s + float_y)
 		var aura: Color = AURA[who]
 		var soft := DreamBackground.soft_texture()
 		var c := origin + Vector2(100, 170) * s
@@ -687,7 +725,7 @@ class GiverFigure extends Control:
 		var n := _jag.size()
 		# Estratos: cada capa más estrecha y más honda / Strata: each layer narrower and deeper
 		for layer in 3:
-			var depth: float = [16.0, 40.0, 72.0][layer]
+			var depth: float = [12.0, 26.0, 40.0][layer]
 			var width: float = [1.0, 0.78, 0.5][layer]
 			var pts := PackedVector2Array()
 			for i in n:
@@ -701,8 +739,8 @@ class GiverFigure extends Control:
 		# Cristales colgando / Hanging crystals
 		for i in 3:
 			var x: float = [-34.0, 6.0, 40.0][i]
-			var ln: float = [30.0, 52.0, 24.0][i]
-			var y0 := 26.0 + (8.0 if i == 1 else 0.0)
+			var ln: float = [16.0, 26.0, 13.0][i]
+			var y0 := 18.0 + (5.0 if i == 1 else 0.0)
 			var sway := sin(_t * 1.3 + i) * 1.5
 			var tip := rc + Vector2(x + sway, y0 + ln) * s
 			var l := rc + Vector2(x - 7.0, y0) * s
@@ -712,7 +750,7 @@ class GiverFigure extends Control:
 			draw_texture_rect(DreamBackground.soft_texture(), Rect2(tip - Vector2(10, 10) * s, Vector2(20, 20) * s), false, Color(aura, 0.25 + 0.2 * _glow))
 			# Una gota de luz que cae de la punta / A drop of light falling from the tip
 			var k := fposmod(_t * 0.5 + i * 0.37, 1.0)
-			var drip := tip + Vector2(0, k * 40.0) * s
+			var drip := tip + Vector2(0, k * 14.0) * s
 			var dsz := maxf(1.0, 2.0 * s)
 			draw_rect(Rect2(drip.round(), Vector2(dsz, dsz)), Color(aura, (1.0 - k) * 0.7))
 		# Superficie: piedra, losa central más clara y anillo de runas / Surface: stone, lighter central slab and ring of runes
@@ -755,14 +793,71 @@ class AstralCard extends PanelContainer:
 
 	func _draw() -> void:
 		var w := size.x
+		var h := size.y
 		var inset := 26.0
+		var soft := DreamBackground.soft_texture()
+		# Cabecera teñida del color del personaje que se desvanece hacia abajo
+		# A header tinted in the character's colour, fading downwards
+		var hh := minf(150.0, h * 0.4)
+		draw_polygon(PackedVector2Array([Vector2(8, 6), Vector2(w - 8, 6), Vector2(w - 8, hh), Vector2(8, hh)]),
+			PackedColorArray([Color(aura, 0.14 + 0.06 * focus), Color(aura, 0.14 + 0.06 * focus), Color(aura, 0.0), Color(aura, 0.0)]))
+		# Emblema grande y tenue en la esquina de abajo: una estrella de cuatro puntas
+		# A large faint emblem in the bottom corner: a four-pointed star
+		var em := Vector2(w - 70.0, h - 90.0)
+		draw_texture_rect(soft, Rect2(em - Vector2(80, 80), Vector2(160, 160)), false, Color(aura, 0.06 + 0.05 * focus))
+		var er := 46.0
+		draw_colored_polygon(PackedVector2Array([em + Vector2(0, -er), em + Vector2(er * 0.22, -er * 0.22), em + Vector2(er, 0), em + Vector2(er * 0.22, er * 0.22),
+			em + Vector2(0, er), em + Vector2(-er * 0.22, er * 0.22), em + Vector2(-er, 0), em + Vector2(-er * 0.22, -er * 0.22)]), Color(aura, 0.05 + 0.04 * focus))
+		# Polvo de estrellas fijo / Fixed stardust
+		for i in 14:
+			var px := Vector2(fposmod(i * 137.0, w - 40.0) + 20.0, fposmod(i * 89.0 + 40.0, h - 40.0) + 20.0).round()
+			draw_rect(Rect2(px, Vector2(2, 2)), Color(aura.lerp(Color.WHITE, 0.5), 0.08 + 0.05 * float(i % 3)))
+		# Esquinas en escuadra / Corner brackets
 		var col := Color(aura, 0.55 + 0.4 * focus)
+		var L := 20.0
+		var m := 9.0
+		for corner: Vector2 in [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1), Vector2(1, 1)]:
+			var at := Vector2(m + (w - 2.0 * m) * corner.x, m + (h - 2.0 * m) * corner.y)
+			var sx := 1.0 if corner.x == 0.0 else -1.0
+			var sy := 1.0 if corner.y == 0.0 else -1.0
+			if corner.y == 0.0:
+				continue   # arriba ya va el filete / the top has the trim
+			draw_rect(Rect2(at + Vector2(0 if sx > 0 else -L, -2 if sy < 0 else 0), Vector2(L, 2)), col)
+			draw_rect(Rect2(at + Vector2(0 if sx > 0 else -2, 0 if sy > 0 else -L), Vector2(2, L)), col)
+		# Filete de arriba con rombo / Top trim with a diamond
 		draw_rect(Rect2(inset, 0, w * 0.5 - inset - 12.0, 3), col)
 		draw_rect(Rect2(w * 0.5 + 12.0, 0, w * 0.5 - inset - 12.0, 3), col)
 		var c := Vector2(w * 0.5, 1.5)
-		var r := 7.0 + 1.5 * focus
-		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), Color(aura.lerp(Color.WHITE, 0.25), 0.8 + 0.2 * focus))
+		var r := 8.0 + 1.5 * focus
+		draw_texture_rect(soft, Rect2(c - Vector2(22, 22), Vector2(44, 44)), false, Color(aura, 0.25 + 0.3 * focus))
+		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), Color(aura.lerp(Color.WHITE, 0.25), 0.85 + 0.15 * focus))
 		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -3), c + Vector2(3, 0), c + Vector2(0, 3), c + Vector2(-3, 0)]), Color(UITheme.VOID, 0.8))
+
+
+## Adorno bajo el subtítulo: líneas que se afinan, rombos y una estrella en medio
+## Ornament under the subtitle: tapering lines, diamonds and a star in the middle
+class Flourish extends Control:
+	var _t := 0.0
+
+	func _ready() -> void:
+		custom_minimum_size = Vector2(0, 22)
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _process(delta: float) -> void:
+		_t += delta
+		queue_redraw()
+
+	func _draw() -> void:
+		var c := Vector2(size.x * 0.5, size.y * 0.5)
+		var gold := UITheme.GOLD
+		for side: float in [-1.0, 1.0]:
+			for i in 3:
+				var x0 := 22.0 + i * 70.0
+				draw_rect(Rect2(c.x + side * x0 - (66.0 if side < 0 else 0.0), c.y - 1, 66, 2), Color(gold, 0.5 - i * 0.15))
+			var d := c + Vector2(side * 18.0, 0)
+			draw_colored_polygon(PackedVector2Array([d + Vector2(0, -4), d + Vector2(4, 0), d + Vector2(0, 4), d + Vector2(-4, 0)]), Color(gold, 0.7))
+		var tw := 0.8 + 0.2 * sin(_t * 2.0)
+		DreamBackground.draw_star(self, c, 6.0 * tw, Color(gold, 0.95))
 
 
 ## Kroker flotando en el centro, con su arma / Kroker floating in the middle, with his weapon
@@ -793,6 +888,7 @@ class AstralSky extends Control:
 	var _t := 0.0
 	var _shards: Array[Dictionary] = []
 	var _stars: Array[Dictionary] = []
+	var _isles: Array[Dictionary] = []
 
 	func _ready() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
@@ -801,6 +897,10 @@ class AstralSky extends Control:
 		for i in 22:
 			_shards.append({"p": Vector2(rng.randf(), rng.randf()), "s": rng.randf_range(6, 22), "r": rng.randf() * TAU,
 				"v": rng.randf_range(-0.5, 0.5), "c": [Color("9be38a"), Color("ff8f9e"), Color("5ff2ff"), Color("f6d993")][i % 4]})
+		# Islas lejanas, a la deriva / Distant isles, adrift
+		for i in 7:
+			_isles.append({"p": Vector2(rng.randf_range(0.02, 0.98), rng.randf_range(0.08, 0.4)), "s": rng.randf_range(0.35, 0.7),
+				"ph": rng.randf() * TAU, "c": [Color("9be38a"), Color("ff8f9e"), Color("5ff2ff"), Color("f6d993"), Color("b48cff")][i % 5]})
 		for i in 260:
 			_stars.append({"p": Vector2(rng.randf(), rng.randf()), "r": rng.randf_range(0.5, 2.0), "ph": rng.randf() * TAU})
 
@@ -843,6 +943,21 @@ class AstralSky extends Control:
 			var p0 := ring_c + Vector2(cos(a) * rx, sin(a) * ry)
 			var p1 := ring_c + Vector2(cos(a) * rx, sin(a) * ry) * 0.92
 			draw_line(p0, p1, Color(UITheme.GOLD, 0.14 if i % 6 == 0 else 0.07), 1.0)
+		# Islas lejanas: siluetas oscuras con un filo de su color / Distant isles: dark silhouettes with a rim of colour
+		for isle in _isles:
+			var ip: Vector2 = isle["p"]
+			var k: float = isle["s"]
+			var at := Vector2(fposmod(ip.x * w + _t * 3.0 * k, w + 120.0) - 60.0, ip.y * h + sin(_t * 0.5 + float(isle["ph"])) * 4.0)
+			var irx := 26.0 * k
+			var iry := 5.0 * k
+			var itop := PackedVector2Array()
+			for i in 14:
+				var a := TAU * i / 14.0
+				itop.append(at + Vector2(cos(a) * irx, sin(a) * iry))
+			draw_colored_polygon(PackedVector2Array([at + Vector2(-irx, 0), at + Vector2(-irx * 0.4, iry * 3.0), at + Vector2(0, iry * 4.4), at + Vector2(irx * 0.5, iry * 2.6), at + Vector2(irx, 0)]), Color("17123f", 0.55))
+			draw_colored_polygon(itop, Color("2a2466", 0.6))
+			draw_polyline(itop + PackedVector2Array([itop[0]]), Color(isle["c"], 0.2), 1.0)
+			draw_texture_rect(soft, Rect2(at - Vector2(irx, iry * 4.0), Vector2(irx * 2.0, iry * 4.0)), false, Color(isle["c"], 0.08))
 		for st in _stars:
 			var p: Vector2 = st["p"]
 			var r: float = st["r"]

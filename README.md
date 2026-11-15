@@ -597,4 +597,5 @@ El informe queda en `user://balance_report.json`. Otras opciones: `--bot-weapons
 - La aspiradora, las torretas del portátil, la pelota y el yoyó tienen efectos más legibles: cono de succión vivo, haces afilados, estelas y cuerda con contorno.
 - Al empezar un sueño cayendo del cielo, Kroker cae recto de plancha, se estampa de bruces, se incorpora a cuatro patas y gatea antes de levantarse.
 - El atril del álbum de pegatinas del plano astral es un sprite de pixel art nuevo, con brillos y estrellitas.
-- El plano de las mejoras tiene islas flotantes con cristales y runas, haces de luz, atenuación de los dones no elegidos y tarjetas con el color de cada personaje.
+- El plano de las mejoras tiene islas flotantes con cristales y runas, haces de luz, atenuación de los dones no elegidos y tarjetas iguales con el color de cada personaje.
+- En todos los menús se puede aceptar también con F (además de Espacio, Intro y el botón A).

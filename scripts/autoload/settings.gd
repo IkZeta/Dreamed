@@ -319,6 +319,16 @@ func _ensure_input() -> void:
 			jb.button_index = pair[1]
 			jb.device = -1
 			InputMap.action_add_event(pair[0], jb)
+	# Aceptar también con F en todos los menús (como el botón A del mando, que también interactúa)
+	# Accept with F too in every menu (like the gamepad's A button, which also interacts)
+	var has_f := false
+	for ev in InputMap.action_get_events("ui_accept"):
+		if ev is InputEventKey and (ev as InputEventKey).physical_keycode == KEY_F:
+			has_f = true
+	if not has_f:
+		var fk := InputEventKey.new()
+		fk.physical_keycode = KEY_F
+		InputMap.action_add_event("ui_accept", fk)
 	if not InputMap.has_action("pause"):
 		InputMap.add_action("pause")
 		var esc := InputEventKey.new()
