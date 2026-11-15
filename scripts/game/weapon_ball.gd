@@ -85,15 +85,23 @@ class BallShot extends Node2D:
 	var _hit: Array = []
 	var _returning := false
 	var _spin := 0.0
+	## Últimas posiciones, para la estela / Last positions, for the trail
+	var _trail: Array[Vector2] = []
 
 	func _ready() -> void:
 		z_index = 40
+		# Patadón: soplo en el pie de Kroker / The kick: a puff at Kroker's foot
+		if is_instance_valid(weapon):
+			weapon.run.fx.shock(global_position + Vector2(0, 10), 16.0, Color(1, 1, 1, 0.7), 0.2, 6.0)
 
 	func _physics_process(delta: float) -> void:
 		if not is_instance_valid(weapon) or not is_instance_valid(weapon.player):
 			queue_free()
 			return
 		_spin += delta * 16.0
+		_trail.push_front(global_position)
+		if _trail.size() > 6:
+			_trail.pop_back()
 		var goal: Vector2
 		if not _returning and (not is_instance_valid(target) or not target.is_targetable()):
 			_next_target()
@@ -113,6 +121,7 @@ class BallShot extends Node2D:
 			weapon.deal(target, damage, dir * WeaponBall.KNOCKBACK)
 			weapon.on_ball_hit(target)
 			weapon.run.fx.ring(goal, 18.0, Color.WHITE, 0.25, 2.0)
+			weapon.run.fx.spark(goal, dir, Color("ffe066"), 4, 0.8)
 			Audio.play("ricochet", -10.0, 0.1)
 			bounces -= 1
 			damage *= 0.9
@@ -129,6 +138,13 @@ class BallShot extends Node2D:
 			_returning = true
 
 	func _draw() -> void:
+		# Estela: trazos que se afinan detrás del balón (de un píxel del arte como poco)
+		# Trail: strokes tapering behind the ball (at least one art pixel wide)
+		for i in range(1, _trail.size()):
+			var k := 1.0 - float(i) / _trail.size()
+			var a := _trail[i - 1] - global_position
+			var b := _trail[i] - global_position
+			draw_line(a, b, Color(1, 1, 1, 0.45 * k), maxf(4.0, 12.0 * k))
 		draw_circle(Vector2(0, 14), 8.0, Color(0.05, 0.02, 0.15, 0.3))
 		draw_set_transform(Vector2.ZERO, _spin, Vector2(Player.ART_SCALE, Player.ART_SCALE))
 		Sprites.draw(self, "weapon_ball")

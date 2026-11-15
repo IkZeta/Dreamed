@@ -290,7 +290,7 @@ class Turret extends Node2D:
 	var level := 1
 	var _fire := 0.4
 	var _boom := BOOM_ARM
-	var _beams: Array = []    # [[desde, hasta, tiempo], ...] / [[from, to, time], ...]
+	var _recoil := 0.0       # culatazo al disparar / kick when firing
 	var _t := 0.0
 	var _pop := 0.0
 	var _punch := 0.0
@@ -308,9 +308,7 @@ class Turret extends Node2D:
 		_t += delta
 		_pop = minf(1.0, _pop + delta * 5.0)
 		_punch = maxf(0.0, _punch - delta * 4.0)
-		for b: Array in _beams:
-			b[2] = float(b[2]) - delta
-		_beams = _beams.filter(func(b: Array) -> bool: return float(b[2]) > 0.0)
+		_recoil = maxf(0.0, _recoil - delta * 8.0)
 		queue_redraw()
 		if not weapon.run.running or _broken:
 			return
@@ -398,6 +396,17 @@ class Turret extends Node2D:
 				best = en
 		return best
 
+	## Rayo de torreta: el haz afilado de los efectos (mismo píxel que los sprites), un fogonazo
+	## en el cañón y chispas donde pega. Así se lee de un vistazo quién dispara a quién.
+	## Turret beam: the effects' tapered beam (same pixel as the sprites), a muzzle flash and
+	## sparks where it lands. That way you can tell at a glance who is shooting whom.
+	func _zap(from: Vector2, to: Vector2, col: Color) -> void:
+		var fx: FX = weapon.run.fx
+		fx.bolt(PackedVector2Array([from, to]), col)
+		fx.flash(from, 16.0, Color(col.lerp(Color.WHITE, 0.4), 0.9), 0.1)
+		fx.spark(to, to - from, col, 3, 0.7)
+		_recoil = 1.0
+
 	func _shoot() -> void:
 		var target := _weakest() if kind == "ad" else weapon.nearest(RANGE * weapon.range_mult(), global_position + Vector2(0, -24))
 		if target == null:
@@ -409,7 +418,7 @@ class Turret extends Node2D:
 			_face = signf(target.global_position.x - global_position.x)
 		if kind == "ad":
 			var to: Vector2 = target.aim_point()
-			_beams.append([from - global_position, to - global_position, 0.1])
+			_zap(from, to, KIND_COLOR["ad"])
 			weapon.on_ad_hit(target, (to - from).normalized())
 			Audio.play("turret", -10.0, 0.15)
 			return
@@ -418,7 +427,7 @@ class Turret extends Node2D:
 		var cur := target
 		while cur != null and jumps > 0:
 			var to: Vector2 = cur.aim_point()
-			_beams.append([from - global_position, to - global_position, 0.1])
+			_zap(from, to, LEVEL_COLOR[clampi(level, 1, 4) - 1])
 			weapon.on_turret_hit(cur, (to - from).normalized(), level)
 			hit.append(cur)
 			jumps -= 1
@@ -463,7 +472,9 @@ class Turret extends Node2D:
 				draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-26, -12) * SIZE, Vector2(52, 24) * SIZE), false, Color(col, 0.35))
 			elif level == 3:
 				draw_texture_rect(DreamBackground.soft_texture(), Rect2(Vector2(-20, -8) * SIZE, Vector2(40, 16) * SIZE), false, Color(col, 0.2))
-		draw_set_transform(Vector2(0, lift * SIZE), rock, Vector2(s * (_face if kind == "gun" and level >= 2 else 1.0), s))
+		# Culatazo: se encoge y retrocede un pelo al disparar / Recoil: squashes and jolts back a touch when firing
+		var kick := _recoil * _recoil
+		draw_set_transform(Vector2(-_face * 3.0 * kick, lift * SIZE + 2.0 * kick), rock, Vector2(s * (_face if kind == "gun" and level >= 2 else 1.0) * (1.0 + 0.08 * kick), s * (1.0 - 0.1 * kick)))
 		Sprites.draw(self, sprite)
 		if kind == "stove":
 			# Llamas del fogón, más altas cuando está a punto / Stove flames, taller when it's ready
@@ -492,10 +503,6 @@ class Turret extends Node2D:
 		if kind == "dummy" or kind == "stove":
 			# Zona de atracción, muy suave / Pull zone, very faint
 			draw_arc(Vector2.ZERO, DUMMY_PULL_RADIUS if kind == "dummy" else STOVE_PULL_RADIUS, 0, TAU, 48, Color(col, 0.12), 1.5)
-		for b: Array in _beams:
-			var k := float(b[2]) / 0.1
-			draw_line(b[0], b[1], Color(col, 0.9 * k), 3.0)
-			draw_line(b[0], b[1], Color(1, 1, 1, 0.8 * k), 1.0)
 
 
 ## Bala curativa: va siguiendo a Kroker y le cura al tocarle / Healing bullet: homes in on Kroker and heals him on touch

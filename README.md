@@ -594,3 +594,4 @@ El informe queda en `user://balance_report.json`. Otras opciones: `--bot-weapons
 - Kroker acompaña cada ataque con el cuerpo (embestida con armas cuerpo a cuerpo, retroceso con las de distancia).
 - Los avisos de golpe en área (gólem, marionetas) usan el mismo color y forma que los de disparo: zona que se carga y aro que crece.
 - Cada acto tiene su luz: tinte y viñeta suaves (añil, ámbar, verde frío, violeta).
+- La aspiradora, las torretas del portátil, la pelota y el yoyó tienen efectos más legibles: cono de succión vivo, haces afilados, estelas y cuerda con contorno.

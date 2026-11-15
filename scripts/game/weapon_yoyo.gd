@@ -177,6 +177,7 @@ class YoyoShot extends Node2D:
 	var _returning := false
 	var _spin := 0.0
 	var _life := 2.5
+	var _move := Vector2.RIGHT   # hacia dónde va / where it's heading
 
 	func _ready() -> void:
 		z_index = 40
@@ -191,6 +192,7 @@ class YoyoShot extends Node2D:
 			_returning = true
 		var goal: Vector2 = weapon.hand_pos() if _returning else (target as Enemy).aim_point()
 		var dir := (goal - global_position).normalized()
+		_move = dir
 		global_position += dir * WeaponYoyo.SPEED * (1.15 if _returning else 1.0) * delta
 		_graze()
 		if _returning:
@@ -206,6 +208,7 @@ class YoyoShot extends Node2D:
 			weapon.deal(e, damage, dir * WeaponYoyo.KNOCKBACK)
 			weapon.on_yoyo_hit(e)
 			weapon.run.fx.ring(goal, 18.0, WeaponYoyo.PINK, 0.25, 2.0)
+			weapon.run.fx.spark(goal, dir, WeaponYoyo.PINK, 4, 0.8)
 			Audio.play("hit", -10.0, 0.1)
 			if yank and _hit.size() == 1 and e.state == Enemy.State.ALIVE:
 				weapon.yank(e)
@@ -239,12 +242,23 @@ class YoyoShot extends Node2D:
 
 	func _draw() -> void:
 		# Cuerda hasta la mano de Kroker / String back to Kroker's hand
+		# Con un poco de comba al volver, y una línea oscura debajo para que se lea sobre cualquier suelo
+		# With a little sag on the way back, and a dark line underneath so it reads on any floor
 		var hand := weapon.hand_pos() - global_position
-		draw_line(Vector2.ZERO, hand, Color(0.98, 0.95, 0.9, 0.85), 1.5)
+		var mid := hand * 0.5 + Vector2(0, (16.0 if _returning else 4.0) * clampf(hand.length() / 200.0, 0.0, 1.0))
+		var line := PackedVector2Array()
+		for i in 9:
+			var u := i / 8.0
+			line.append(Vector2.ZERO.lerp(mid, u).lerp(mid.lerp(hand, u), u))
+		draw_polyline(line, Color(0.12, 0.06, 0.2, 0.45), 6.0)
+		draw_polyline(line, Color(0.98, 0.95, 0.9, 0.95), 2.5)
+		# Estela del giro: un arco rosa que lo sigue / Spin trail: a pink arc following it
+		var back := (-_move).angle()
+		draw_arc(Vector2.ZERO, 16.0, back - 0.9, back + 0.9, 8, Color(WeaponYoyo.PINK, 0.45), 4.0)
 		draw_circle(Vector2(0, 30), 7.0, Color(0.05, 0.02, 0.15, 0.25))
 		# Gira de canto: se estrecha y se ensancha / Spins edge-on: it narrows and widens
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2(Player.ART_SCALE * (0.55 + 0.45 * absf(cos(_spin))), Player.ART_SCALE))
 		Sprites.draw(self, "weapon_yoyo")
 		draw_set_transform(Vector2.ZERO)
 		if yank and not _returning:
-			draw_arc(Vector2.ZERO, 14.0, _spin, _spin + 4.0, 12, Color(WeaponYoyo.PINK, 0.8), 2.0)
+			draw_arc(Vector2.ZERO, 20.0, _spin, _spin + 4.0, 12, Color(WeaponYoyo.PINK, 0.85), 4.0)

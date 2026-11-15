@@ -35,6 +35,9 @@ var _dir := Vector2.RIGHT
 var _spit_cd := 0.0
 var _boost := 1.0
 var sucking := false
+## Pulso de cada mordisco (1 → 0): el cono se aviva y la boquilla escupe un soplo
+## Each bite's pulse (1 → 0): the cone brightens and the nozzle puffs
+var _bite := 0.0
 
 
 func _ready() -> void:
@@ -43,6 +46,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_t += delta
+	_bite = maxf(0.0, _bite - delta * 5.0)
 	anim = 0.0
 	sucking = false
 	if primary:
@@ -96,6 +100,7 @@ func _physics_process(delta: float) -> void:
 		if GameState.has_duo("silly_lynx") and primary:
 			_digitize(e, delta)
 		if do_tick:
+			_bite = 1.0
 			deal(e, DPS * TICK * _boost * share, Vector2.ZERO, 0.6)
 			share = maxf(0.25, share * 0.7)
 			if lv("silly") > 0:
@@ -169,23 +174,62 @@ func aim_dir() -> Vector2:
 	return _dir
 
 
+## Grosor mínimo de línea: un píxel del arte (4 de pantalla), como en FX
+## Minimum line width: one art pixel (4 on screen), as in FX
+const PXW := 4.0
+
+
 func _draw() -> void:
 	if not sucking:
 		return
-	# Cono de succión con corrientes que viajan hacia la boquilla
-	# Suction cone with currents travelling toward the nozzle
+	# Cono de succión: relleno tenue, bordes marcados y corrientes que entran en espiral hacia la
+	# boquilla, con motas de polvo. En cada mordisco todo se aviva un instante.
+	# Suction cone: faint fill, marked edges and currents spiralling into the nozzle, with dust
+	# motes. On every bite it all brightens for a moment.
 	var c := Vector2(0, -30)
 	var col: Color = KrokerArt.ACCENT["vacuum"]
 	var a := _dir.angle()
+	var reach := RANGE * _boost * range_mult()
+	var bite := _bite * _bite
 	var pts := PackedVector2Array([c])
 	for i in 13:
 		var ang := a - CONE + 2.0 * CONE * i / 12.0
-		pts.append(c + Vector2(cos(ang), sin(ang)) * RANGE * _boost * range_mult())
-	draw_colored_polygon(pts, Color(col, 0.07))
-	for i in 7:
-		var k := fposmod(_t * 1.4 + i / 7.0, 1.0)  # 0 lejos → 1 cerca
-		var r := lerpf(RANGE * _boost * range_mult(), 40.0, k)
-		var off := sin(i * 2.3) * CONE * 0.8
-		var p := c + Vector2.from_angle(a + off) * r
-		var tail := c + Vector2.from_angle(a + off) * minf(RANGE * _boost * range_mult(), r + 36.0)
-		draw_line(tail, p, Color(col, 0.55 * sin(k * PI)), 1.6, true)
+		pts.append(c + Vector2(cos(ang), sin(ang)) * reach)
+	draw_colored_polygon(pts, Color(col, 0.06 + 0.08 * bite))
+	# Bordes: dos rayas discontinuas que avanzan hacia dentro / Edges: two dashed lines marching inwards
+	for side: float in [-1.0, 1.0]:
+		var dir := Vector2.from_angle(a + CONE * side)
+		var dash := 26.0
+		var shift := fposmod(_t * 120.0, dash * 2.0)
+		var d := reach - shift
+		while d > 30.0:
+			var d2 := maxf(30.0, d - dash)
+			draw_line(c + dir * d, c + dir * d2, Color(col, 0.18 + 0.25 * bite), PXW)
+			d -= dash * 2.0
+	# Corrientes: arcos que se curvan hacia la boquilla y aceleran al acercarse
+	# Currents: arcs curving towards the nozzle, speeding up as they get close
+	for i in 6:
+		var k := fposmod(_t * 1.6 + i / 6.0, 1.0)
+		var kk := k * k
+		var r := lerpf(reach, 34.0, kk)
+		var off := sin(i * 2.3) * CONE * 0.75 * (1.0 - kk)
+		var swirl := (1.0 - kk) * 0.5 * (1.0 if i % 2 == 0 else -1.0)
+		var head := c + Vector2.from_angle(a + off) * r
+		var tail := c + Vector2.from_angle(a + off + swirl * 0.35) * minf(reach, r + 30.0 + 40.0 * kk)
+		draw_line(tail, head, Color(col.lerp(Color.WHITE, 0.3), (0.35 + 0.35 * bite) * sin(k * PI)), PXW)
+	# Motas de polvo que entran girando / Dust motes swirling in
+	for i in 9:
+		var k := fposmod(_t * 0.9 + i * 0.137, 1.0)
+		var kk := k * k * k
+		var r := lerpf(reach * 0.95, 26.0, kk)
+		var off := sin(i * 1.7 + _t * 3.0) * CONE * 0.9 * (1.0 - kk)
+		var p := (c + Vector2.from_angle(a + off) * r).round()
+		var sz := PXW if i % 3 else PXW * 1.5
+		draw_rect(Rect2(p - Vector2(sz, sz) * 0.5, Vector2(sz, sz)), Color(Color("e8e0ff") if i % 2 else col, 0.75 * sin(k * PI)))
+	# Boca de la boquilla: un remolino que se aprieta en cada mordisco
+	# Nozzle mouth: a little whirl that tightens on every bite
+	var mouth := c + _dir * 40.0
+	var rr := 14.0 - 5.0 * bite
+	draw_arc(mouth, rr, _t * 9.0, _t * 9.0 + 3.6, 10, Color(col, 0.55 + 0.4 * bite), PXW)
+	if bite > 0.05:
+		draw_texture_rect(DreamBackground.soft_texture(), Rect2(mouth - Vector2(24, 24), Vector2(48, 48)), false, Color(col.lerp(Color.WHITE, 0.5), 0.5 * bite))
