@@ -23,15 +23,28 @@ const DEATH_COLORS := {
 	"dreamcatcher": Color("b48cff"), "chef": Color("ffb04a"),
 }
 const INK := Color("140e26")
+## Lado de un píxel de efecto en unidades del mundo (la capa va a un cuarto: FXLayer): las líneas
+## no pueden ser más finas que esto o se pierden
+## Side of one effect pixel in world units (the layer runs at a quarter: FXLayer): lines can't be
+## thinner than this or they get lost
+const PXW := 4.0
 
 var _items: Array[Dictionary] = []
 var _sparks_this_frame := 0
 var _swing_flip := 1.0
 var _numbers_this_frame := 0
+## Donde van los números y textos: un nodo del mundo, fuera de la capa de efectos a baja
+## resolución (FXLayer). Si no hay, se dibujan aquí mismo.
+## Where numbers and text go: a node in the world, off the low-resolution effects layer (FXLayer).
+## Without one, they're drawn right here.
+var text_layer: Node2D
 
 
 func _ready() -> void:
 	z_index = 50
+	if is_instance_valid(text_layer):
+		text_layer.z_index = 51
+		text_layer.draw.connect(_draw_texts)
 
 
 func _room() -> bool:
@@ -230,29 +243,45 @@ func _process(delta: float) -> void:
 					v *= 1.0 - 2.0 * delta
 			it["vel"] = v
 	queue_redraw()
+	if is_instance_valid(text_layer):
+		text_layer.queue_redraw()
+
+
+## Los números y textos, a la resolución del mundo (en la capa de efectos no se leerían)
+## Numbers and text, at the world's resolution (on the effects layer they'd be unreadable)
+func _draw_texts() -> void:
+	var ci: CanvasItem = text_layer if is_instance_valid(text_layer) else self
+	var font := UITheme.font("caps")
+	var digits := UITheme.font("display")
+	for it in _items:
+		if it["kind"] != "text":
+			continue
+		var k := float(it["life"]) / float(it["max"])
+		var col: Color = it.get("color", UITheme.BONE)
+		var age := float(it["max"]) - float(it["life"])
+		# Aparece de golpe más grande y rebota a su tamaño / Pops in bigger and bounces to its size
+		var pop := 1.0 + (0.9 if it["big"] else 0.5) * maxf(0.0, 1.0 - age / 0.12) - 0.12 * sin(clampf(age / 0.25, 0.0, 1.0) * PI)
+		var sz := maxi(8, int(float(it["size"]) * pop * (1.25 if it["big"] else 1.0)))
+		var c := Color(col, minf(1.0, k * 2.5))
+		var s := String(it["text"])
+		# Las cifras con la fuente gorda del reloj; las palabras con la de siempre
+		# Figures in the clock's chunky font; words in the usual one
+		var f: Font = digits if it["num"] else font
+		var w := f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+		var p := Vector2(it["pos"]) - Vector2(w / 2.0, 0)
+		UITheme.ink_text(ci, f, p.round(), s, sz, c, 2.0)
 
 
 func _draw() -> void:
-	var font := UITheme.font("caps")
-	var digits := UITheme.font("display")
+	if not is_instance_valid(text_layer):
+		_draw_texts()
 	var soft := DreamBackground.soft_texture()
 	for it in _items:
 		var k := float(it["life"]) / float(it["max"])  # 1 → 0
 		var col: Color = it.get("color", UITheme.BONE)
 		match it["kind"]:
 			"text":
-				var age := float(it["max"]) - float(it["life"])
-				# Aparece de golpe más grande y rebota a su tamaño / Pops in bigger and bounces to its size
-				var pop := 1.0 + (0.9 if it["big"] else 0.5) * maxf(0.0, 1.0 - age / 0.12) - 0.12 * sin(clampf(age / 0.25, 0.0, 1.0) * PI)
-				var sz := maxi(8, int(float(it["size"]) * pop * (1.25 if it["big"] else 1.0)))
-				var c := Color(col, minf(1.0, k * 2.5))
-				var s := String(it["text"])
-				# Las cifras con la fuente gorda del reloj; las palabras con la de siempre
-				# Figures in the clock's chunky font; words in the usual one
-				var f: Font = digits if it["num"] else font
-				var w := f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
-				var p := Vector2(it["pos"]) - Vector2(w / 2.0, 0)
-				UITheme.ink_text(self, f, p.round(), s, sz, c, 2.0)
+				pass  # en la capa de texto / on the text layer
 			"claw":
 				_draw_claw(it, k, col)
 			"pounce":
@@ -275,11 +304,11 @@ func _draw() -> void:
 				_draw_swing(it, k, col)
 			"ring":
 				var r := float(it["r"]) * lerpf(float(it["grow"]), 1.0, k)
-				draw_arc(it["pos"], r, 0, TAU, 48, Color(col, k * 0.8), 2.0, true)
+				draw_arc(it["pos"], r, 0, TAU, 48, Color(col, k * 0.8), PXW)
 			"tele":
 				var p := 1.0 - k
 				var c := Vector2(it["pos"])
-				draw_arc(c, 30.0 * (1.0 - p) + 10.0, 0, TAU, 40, Color(UITheme.MIST, 0.25 + 0.5 * p), 1.5, true)
+				draw_arc(c, 30.0 * (1.0 - p) + 10.0, 0, TAU, 40, Color(UITheme.MIST, 0.25 + 0.5 * p), PXW)
 				draw_circle(c, 18.0 * p, Color(UITheme.MIST, 0.12 * p))
 			"mote":
 				draw_circle(it["pos"], float(it["r"]) * k, Color(col, k * 0.8))
@@ -287,7 +316,7 @@ func _draw() -> void:
 				var p: Vector2 = it["pos"]
 				var v: Vector2 = it["vel"]
 				var tail := v.normalized() * float(it["len"]) * k
-				draw_line(p - tail, p, Color(col, k), 4.0 * k + 2.0)
+				draw_line(p - tail, p, Color(col, k), maxf(PXW, 4.0 * k + 2.0))
 			"flash":
 				var r := float(it["r"]) * (1.4 - 0.4 * k)
 				draw_texture_rect(soft, Rect2(Vector2(it["pos"]) - Vector2(r, r) * 1.6, Vector2(r, r) * 3.2), false, Color(col, col.a * k))
@@ -295,7 +324,7 @@ func _draw() -> void:
 			"shock":
 				var e := 1.0 - pow(k, 2.5)
 				var r := float(it["r"]) * (1.0 + e * 2.6)
-				draw_arc(it["pos"], r, 0, TAU, 40, Color(col, 0.9 * k), maxf(1.0, float(it["w"]) * k), true)
+				draw_arc(it["pos"], r, 0, TAU, 40, Color(col, 0.9 * k), maxf(PXW, float(it["w"]) * k))
 				draw_circle(it["pos"], r, Color(col, 0.08 * k))
 			"star":
 				_star(Vector2(it["pos"]), float(it["r"]) * (0.4 + 0.6 * k), float(it["rot"]), Color(col, minf(1.0, k * 1.8)))
@@ -309,7 +338,7 @@ func _draw() -> void:
 				var f := 1.0 - k
 				draw_set_transform(it["pos"], 0.0, Vector2(1.0, 0.5))
 				draw_circle(Vector2.ZERO, 40.0 * sin(f * PI), Color(0.06, 0.02, 0.15, 0.55 * k))
-				draw_arc(Vector2.ZERO, 46.0 * (1.0 - f * 0.6), 0, TAU, 32, Color(col, 0.9 * k), 4.0, true)
+				draw_arc(Vector2.ZERO, 46.0 * (1.0 - f * 0.6), 0, TAU, 32, Color(col, 0.9 * k), PXW)
 				draw_set_transform(Vector2.ZERO)
 				draw_texture_rect(soft, Rect2(Vector2(it["pos"]) - Vector2(60, 40), Vector2(120, 80)), false, Color(col, 0.4 * k))
 			"pillar":
@@ -415,15 +444,15 @@ func _draw_bolt(points: PackedVector2Array, k: float, col: Color) -> void:
 		var side := 1.0 if int(p.x + p.y) % 2 == 0 else -1.0
 		var q1 := p + (along * 0.6 + along.orthogonal() * side).normalized() * 26.0
 		var q2 := q1 + (along + along.orthogonal() * side * 0.3).normalized() * 18.0
-		draw_polyline(PackedVector2Array([p, q1, q2]), Color(col, 0.9 * k), 4.0)
-		draw_polyline(PackedVector2Array([p, q1, q2]), Color(1, 1, 1, k), 1.5)
-	draw_polyline(points, Color(1, 1, 1, k), 3.0)
+		draw_polyline(PackedVector2Array([p, q1, q2]), Color(col, 0.9 * k), PXW * 2.0)
+		draw_polyline(PackedVector2Array([p, q1, q2]), Color(1, 1, 1, k), PXW)
+	draw_polyline(points, Color(1, 1, 1, k), PXW)
 	# Estallido donde cae / Burst where it lands
 	var e := 1.0 - k
 	draw_texture_rect(soft, Rect2(last - Vector2(46, 46), Vector2(92, 92)), false, Color(col, 0.7 * k))
 	for j in 6:
 		var d := Vector2.from_angle(j * TAU / 6.0 + 0.4)
-		draw_line(last + d * (6.0 + 22.0 * e), last + d * (16.0 + 34.0 * e), Color(1, 1, 1, k), 3.0 * k + 1.0)
+		draw_line(last + d * (6.0 + 22.0 * e), last + d * (16.0 + 34.0 * e), Color(1, 1, 1, k), PXW)
 
 
 ## Garras: arcos que se afinan en las puntas, con contorno de tinta, color y filo blanco. Se trazan
@@ -473,7 +502,7 @@ func _draw_claw(it: Dictionary, k: float, col: Color) -> void:
 		for i in range(1, steps):
 			edge.append(pts_l[i].lerp(pts_r[pts_r.size() - 1 - i], 0.5))
 		if edge.size() >= 2:
-			draw_polyline(edge, Color(1, 1, 1, 0.85 * fade), 1.5)
+			draw_polyline(edge, Color(1, 1, 1, 0.85 * fade), PXW)
 
 
 ## Salto de la pantera: estela de sombra en cuña y cuatro huellas que se encienden en orden
@@ -519,7 +548,7 @@ func _draw_feather(p: Vector2, rot: float, col: Color) -> void:
 		ink.append(q * 1.2)
 	draw_colored_polygon(ink, Color(INK, col.a * 0.7))
 	draw_colored_polygon(vane, col.lightened(0.25))
-	draw_line(Vector2(-11, 0), Vector2(8, 0), Color(col.darkened(0.35), col.a), 1.0)
+	draw_line(Vector2(-11, 0), Vector2(8, 0), Color(col.darkened(0.35), col.a), PXW)
 	draw_set_transform(Vector2.ZERO)
 
 

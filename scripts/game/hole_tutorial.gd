@@ -39,7 +39,7 @@ static func start(r: Run) -> void:
 	t.hole = best
 	t._falls0 = GameState.run_falls
 	t.z_index = 1
-	r.fx.get_parent().add_child(t)
+	r.world.add_child(t)
 	Progress.stats["tut_hole"] = 1
 	Progress.save_progress()
 	# Foox entre Kroker y el agujero, un poco más cerca del agujero / Foox between Kroker and the hole, a bit nearer the hole

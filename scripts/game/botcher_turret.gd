@@ -43,7 +43,7 @@ func _ready() -> void:
 	_plank = BotcherPlank.new()
 	_plank.owner_turret = self
 	_plank.rect = hole
-	var world: Node = run.fx.get_parent()
+	var world: Node = run.world
 	world.add_child(_plank)
 	world.move_child(_plank, run.room.get_index() + 1)
 

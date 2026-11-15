@@ -819,8 +819,15 @@ func hit(amount: float, impulse := Vector2.ZERO) -> void:
 	if float_t > 0.0:
 		impulse *= FLOAT_KNOCK
 	knock += impulse / mass
-	_flash = 1.0
-	_hit_squash = 1.0
+	# El destello va con el golpe: un parpadeo en los flojos, blanco del todo en los gordos (un
+	# tercio de su vida o más) y en el que lo mata. Con todos en blanco a cada golpe, una pelea
+	# llena era puro ruido.
+	# The flash matches the blow: a blink for weak ones, fully white for big ones (a third of its
+	# health or more) and for the killing one. With everyone going white on every hit, a packed
+	# fight was pure noise.
+	var strength := clampf(0.3 + 0.7 * amount / maxf(max_hp * 0.35, 8.0), 0.3, 1.0)
+	_flash = maxf(_flash, 1.0 if hp <= 0.0 else strength)
+	_hit_squash = maxf(_hit_squash, 0.5 + 0.5 * strength)
 	Audio.play("hit", -13.0, 0.1)
 	if Settings.damage_numbers:
 		# Los golpes gordos salen más grandes y dorados / Big hits come out larger and golden

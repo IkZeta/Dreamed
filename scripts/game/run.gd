@@ -18,6 +18,7 @@ var running := false
 var player: Player
 var enemies: Node2D
 var fx: FX
+var _fx_layer: FXLayer
 var hud: HUD
 var helpers: Helpers
 var trinkets: Trinkets
@@ -220,8 +221,15 @@ func _ready() -> void:
 	actors.add_child(player)
 	player.setup(self, GameState.selected_character)
 
+	# Efectos: en su capa a baja resolución (mismo píxel que los sprites); los números, aparte
+	# Effects: on their low-resolution layer (same pixel as the sprites); numbers, separately
 	fx = FX.new()
-	world.add_child(fx)
+	fx.text_layer = Node2D.new()
+	_fx_layer = FXLayer.new()
+	_fx_layer.world_camera = _camera
+	world.add_child(_fx_layer)
+	_fx_layer.add_fx(fx)
+	world.add_child(fx.text_layer)
 	# Cachivaches del kiosco de Charo / Charo's kiosk knick-knacks
 	trinkets = Trinkets.new()
 	trinkets.setup(self)
