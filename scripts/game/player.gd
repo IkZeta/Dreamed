@@ -63,6 +63,7 @@ var _dash_t := 0.0
 var _walk := 0.0
 var _moving := 0.0
 var _last_pos := Vector2.INF
+var _spd_smooth := 0.0
 
 var _vel := Vector2.ZERO
 var _invuln := 0.0
@@ -319,7 +320,14 @@ func _physics_process(delta: float) -> void:
 func _process(delta: float) -> void:
 	if _last_pos != Vector2.INF and delta > 0.0:
 		var spd := position.distance_to(_last_pos) / delta
-		_moving = move_toward(_moving, clampf(spd / 200.0, 0.0, 1.0), delta * 8.0)
+		# Kroker se mueve en la física (60 veces por segundo), pero esto va por fotograma dibujado: con
+		# muchos FPS casi todos los fotogramas «no se ha movido» y uno sí, de golpe. Se suaviza la
+		# velocidad (unos 0,06 s) para que la zancada siga a la de verdad a cualquier FPS.
+		# Kroker moves in physics (60 times a second), but this runs per drawn frame: at high FPS most
+		# frames "haven't moved" and one has, all at once. The speed is smoothed (about 0.06 s) so the
+		# stride follows the real one at any FPS.
+		_spd_smooth += (spd - _spd_smooth) * (1.0 - exp(-delta / 0.06))
+		_moving = move_toward(_moving, clampf(_spd_smooth / 200.0, 0.0, 1.0), delta * 8.0)
 		var before := int(_walk / PI)
 		_walk += spd * delta * 0.045
 		# Polvillo a cada pisada (no si levita) / A little dust at each footstep (not when hovering)
