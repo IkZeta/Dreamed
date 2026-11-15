@@ -75,6 +75,13 @@ func _build() -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 6)
 	margin.add_child(root)
+	# Si aun con las figuras pequeñas no cabe (mejoras con mucho texto, pantallas bajas), todo se
+	# escala para entrar entero / If it still doesn't fit with small figures (wordy upgrades, short
+	# screens), everything scales down to fit whole
+	root.minimum_size_changed.connect(_queue_fit)
+	if not get_viewport().size_changed.is_connected(_queue_fit):
+		get_viewport().size_changed.connect(_queue_fit)
+	_queue_fit()
 
 	var title := UITheme.label("ASTRAL_TITLE", 64, UITheme.BONE, "display")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -105,6 +112,33 @@ func _build() -> void:
 			row.add_child(k_px)
 
 
+var _fit_queued := false
+
+
+func _queue_fit() -> void:
+	if _fit_queued:
+		return
+	_fit_queued = true
+	_fit_content.call_deferred()
+
+
+## Escala el contenido para que quepa entero en la pantalla (nunca lo agranda)
+## Scales the content so it fits whole on screen (never enlarges it)
+func _fit_content() -> void:
+	_fit_queued = false
+	if not is_instance_valid(_content) or not is_inside_tree():
+		return
+	var vp := get_viewport_rect().size
+	var need := _content.get_combined_minimum_size()
+	var k := 1.0
+	if need.x > 0.0 and need.y > 0.0:
+		k = clampf(minf(vp.x / need.x, vp.y / need.y), 0.6, 1.0)
+	_content.set_anchors_preset(PRESET_TOP_LEFT)
+	_content.scale = Vector2(k, k)
+	_content.position = Vector2.ZERO
+	_content.size = vp / k
+
+
 func _offer_column(giver: String, weapon: String) -> Control:
 	var col := VBoxContainer.new()
 	col.custom_minimum_size = Vector2(540, 0)
@@ -114,7 +148,10 @@ func _offer_column(giver: String, weapon: String) -> Control:
 	fig.who = giver
 	fig.duo = _duo
 	var fig_px := PixelView.wrap(fig, 3)
-	fig_px.custom_minimum_size = Vector2(0, 380)
+	# La figura se queda con lo que sobre: con textos largos encoge (se dibuja a escala) antes de que
+	# la tarjeta se salga por abajo / The figure takes whatever is left: with long texts it shrinks
+	# (it's drawn to scale) before the card spills off the bottom
+	fig_px.custom_minimum_size = Vector2(0, 150)
 	fig_px.size_flags_vertical = SIZE_EXPAND_FILL
 	col.add_child(fig_px)
 	_figures.append(fig)
