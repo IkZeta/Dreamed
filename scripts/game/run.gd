@@ -959,6 +959,7 @@ func on_enemy_killed(e: Node) -> void:
 		trinkets.on_kill(e as Enemy)
 	if e.get("bestiary_id") == "golden_foox":
 		Progress.add_stat("golden")
+		gain_reality(GoldenFoox.REALITY, e.global_position)
 	# En las peleas contra jefes, los enemigos de alrededor sueltan un tercio de estrellas (para no
 	# subir diez niveles en una pelea larga); los élites, todas
 	# In boss fights the surrounding enemies drop a third of the stars (so a long fight doesn't

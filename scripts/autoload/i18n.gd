@@ -634,7 +634,7 @@ const STRINGS := {
 	"BEST_BOSS_CHEF_NAME": {"es": "El Chef", "en": "The Chef"},
 	"BEST_BOSS_CHEF_DESC": {"es": "Salió de la tele y se parecía a mí de mayor. Sus cuchillos me hacían sangrar, su sartén me dejaba clavado y sus platos rotos cortaban el suelo.", "en": "He came out of the TV and looked like a grown-up me. His knives made me bleed, his pan left me stuck and his broken plates cut up the floor."},
 	"BEST_GOLDEN_FOOX_NAME": {"es": "Foox dorado", "en": "Golden Foox"},
-	"BEST_GOLDEN_FOOX_DESC": {"es": "Corre muchísimo y no hace daño. Si lo pillo antes de que se esfume, me llueven estrellas.", "en": "It runs so fast and never hurts. If I catch it before it fades away, it rains stars."},
+	"BEST_GOLDEN_FOOX_DESC": {"es": "Corre muchísimo y no hace daño. Si lo pillo antes de que se esfume, me llueven estrellas y algún trozo de realidad.", "en": "It runs so fast and never hurts. If I catch it before it fades away, it rains stars and a few bits of reality."},
 	"BEST_ELITE_NAME": {"es": "Élite", "en": "Elite"},
 	"BEST_ELITE_DESC": {"es": "Algunos enemigos se ponen feos de verdad: cuernos, más tamaño y el triple de aguante. Por lo menos sueltan más estrellas. El color me dice qué hacen:", "en": "Some enemies get really ugly: horns, bigger size and triple toughness. At least they drop more stars. Their colour tells me what they do:"},
 	"BEST_ELITE_SPLIT": {"es": "Naranja: al caer se parte en dos Foox.", "en": "Orange: when it falls it splits into two Foox."},

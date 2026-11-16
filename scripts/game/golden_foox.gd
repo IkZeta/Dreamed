@@ -1,11 +1,13 @@
 class_name GoldenFoox
 extends Foox
-## Foox dorado (evento): no hace daño, huye de Kroker y suelta muchos trozos de estrella
-## si lo pillas. Se esfuma al cabo de un rato.
-## Golden Foox (event): harmless, runs away from Kroker and drops lots of star shards if
-## you catch it. It fades away after a while.
+## Foox dorado (evento): no hace daño, huye de Kroker y suelta muchos trozos de estrella y
+## algo de Realidad Fragmentada si lo pillas (Run.on_enemy_killed). Se esfuma al cabo de un rato.
+## Golden Foox (event): harmless, runs away from Kroker and drops lots of star shards and some
+## Fragmented Reality if you catch it (Run.on_enemy_killed). It fades away after a while.
 
-const LIFETIME := 7.0   # se esfuma a los 7 s si no lo pillas / vanishes after 7 s if not caught
+const LIFETIME := 11.0   # se esfuma a los 11 s si no lo pillas / vanishes after 11 s if not caught
+## Realidad Fragmentada que suelta (como un élite y medio) / Fragmented Reality it drops (an elite and a half)
+const REALITY := 3
 const GOLD := Color(1.0, 0.82, 0.35)
 
 
@@ -16,7 +18,7 @@ func _init() -> void:
 	hp = max_hp
 	speed = 165.0
 	contact_damage = 0.0
-	shards = 15
+	shards = 25
 
 
 func is_dangerous() -> bool:
