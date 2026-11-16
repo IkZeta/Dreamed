@@ -146,10 +146,24 @@ static func on_focus(owner: Control, label: RichTextLabel) -> void:
 				ids.append(m.get_string(1))
 		if ids.is_empty():
 			return
+		# Esperar a que el botón esté colocado: al abrir una pantalla el foco llega antes de maquetar
+		# y la tarjeta saldría en la esquina de arriba a la izquierda
+		# Wait until the button has been laid out: when a screen opens, focus arrives before layout
+		# and the card would show up in the top-left corner
+		var tree := owner.get_tree()
+		await tree.process_frame
+		await tree.process_frame
+		if not is_instance_valid(owner) or not owner.has_focus() or not owner.is_visible_in_tree():
+			return
+		var rect := owner.get_global_rect()
+		if rect.size.x < 2.0 or rect.position == Vector2.ZERO:
+			return
+		if owner.get_global_rect().has_point(owner.get_global_mouse_position()):
+			return
 		if not is_instance_valid(_tip):
 			_tip = KeywordTip.new()
-			owner.get_tree().root.add_child(_tip)
-		_tip.show_many(ids, owner.get_global_rect()))
+			tree.root.add_child(_tip)
+		_tip.show_many(ids, rect))
 	owner.focus_exited.connect(hide_tip)
 	owner.tree_exiting.connect(hide_tip)
 
