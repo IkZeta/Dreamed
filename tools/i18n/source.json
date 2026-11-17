@@ -35,6 +35,14 @@
 		"es": "¡POW!",
 		"en": "POW!"
 	},
+	"HUB_REPS": {
+		"es": "¡%d!",
+		"en": "%d!"
+	},
+	"HUB_HMM": {
+		"es": "¿Hmm?",
+		"en": "Hmm?"
+	},
 	"MENU_TAGLINE": {
 		"es": "Un sueño dentro de otro sueño",
 		"en": "A dream within a dream"

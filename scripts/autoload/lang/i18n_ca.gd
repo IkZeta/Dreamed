@@ -12,6 +12,8 @@ const STRINGS := {
 	"MENU_RESET_LAST": "Prem un altre cop: no es pot desfer",
 	"MENU_VERSION": "Versió",
 	"FX_POW": "POW!",
+	"HUB_REPS": "%d!",
+	"HUB_HMM": "Hmm?",
 	"MENU_TAGLINE": "Un somni dins d'un altre somni",
 	"MENU_ACT_1": "Acte 1 · L'habitació",
 	"MENU_ACT_2": "Acte 2 · La sala d'estar",

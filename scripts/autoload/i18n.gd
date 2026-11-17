@@ -26,6 +26,8 @@ const STRINGS := {
 	"MENU_RESET_LAST": {"es": "Pulsa otra vez: no se puede deshacer", "en": "Press again: this can't be undone"},
 	"MENU_VERSION": {"es": "Versión", "en": "Version"},
 	"FX_POW": {"es": "¡POW!", "en": "POW!"},
+	"HUB_REPS": {"es": "¡%d!", "en": "%d!"},
+	"HUB_HMM": {"es": "¿Hmm?", "en": "Hmm?"},
 	"MENU_TAGLINE": {"es": "Un sueño dentro de otro sueño", "en": "A dream within a dream"},
 	"MENU_ACT_1": {"es": "Acto 1 · La habitación", "en": "Act 1 · The bedroom"},
 	"MENU_ACT_2": {"es": "Acto 2 · El salón", "en": "Act 2 · The living room"},

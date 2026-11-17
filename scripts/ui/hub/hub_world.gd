@@ -669,7 +669,7 @@ func _build_stolk() -> void:
 		_draw_npc(ci, "stolk", Vector2.ZERO, false, {"lift": up})
 		if up > 0.9:
 			var reps := 27 + int(_t / 2.6) % 4
-			ci.draw_string(UITheme.font("caps"), Vector2(16, -90), "¡%d!" % reps, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ff8f9e"))
+			ci.draw_string(UITheme.font("caps"), Vector2(16, -90), TranslationServer.translate("HUB_REPS") % reps, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ff8f9e"))
 
 # --- Silly: entre pantallas con código verde / among screens of green code ---
 
@@ -748,7 +748,7 @@ func _build_doc() -> void:
 		var tgt := pts[i].lerp(pts[(i + 1) % pts.size()], k) + Vector2(sin(_t * 5.0), cos(_t * 4.0)) * 0.6
 		_draw_npc(ci, "doc", Vector2.ZERO, false, {"lens": _to_canvas(couch + tgt, at)})
 		if i == 3 and k == 0.0:
-			ci.draw_string(UITheme.font("caps"), Vector2(-12, -76), "¿Hmm?", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ffe3a3"))
+			ci.draw_string(UITheme.font("caps"), Vector2(-12, -76), TranslationServer.translate("HUB_HMM"), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ffe3a3"))
 
 # --- Mr. Ad: sale en todas las teles del escaparate / is on every TV in the window ---
 

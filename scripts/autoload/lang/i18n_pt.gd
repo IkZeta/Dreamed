@@ -12,6 +12,8 @@ const STRINGS := {
 	"MENU_RESET_LAST": "Aperte de novo: não dá para desfazer",
 	"MENU_VERSION": "Versão",
 	"FX_POW": "POW!",
+	"HUB_REPS": "%d!",
+	"HUB_HMM": "Hum?",
 	"MENU_TAGLINE": "Um sonho dentro de outro sonho",
 	"MENU_ACT_1": "Ato 1 · O quarto",
 	"MENU_ACT_2": "Ato 2 · A sala",

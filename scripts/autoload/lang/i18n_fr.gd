@@ -12,6 +12,8 @@ const STRINGS := {
 	"MENU_RESET_LAST": "Appuie encore : impossible d'annuler",
 	"MENU_VERSION": "Version",
 	"FX_POW": "POW !",
+	"HUB_REPS": "%d !",
+	"HUB_HMM": "Hmm ?",
 	"MENU_TAGLINE": "Un rêve dans un autre rêve",
 	"MENU_ACT_1": "Acte 1 · La chambre",
 	"MENU_ACT_2": "Acte 2 · Le salon",
