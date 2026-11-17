@@ -9,12 +9,13 @@ Translations live in `tools/i18n/<code>.json` and are turned into `scripts/autol
 with `python3 tools/i18n_build.py`. Anything missing in a language shows in English.
 
 ## Nombres que no se traducen / Names that stay as they are
-Kroker, Foox, Svinho, Stolk, Silly, Doc, Luna, Magnus, SuperK, Lil Key, D. Lynx, Charo, Mr. Ad,
+Kroker, Foox, Svinho, Stolk, Silly, Doc, Luna, Magnus, SuperK, Lil Key, D. Lynx, Mr. Ad,
 Evil Ad, Botcher. En chino también se dejan en letras latinas. / In Chinese they also stay in Latin letters.
 
 | es | en | pt | fr | ca | zh |
 |---|---|---|---|---|---|
 | El Pinche | The Kitchen Boy | o Ajudante | le Commis | el Marmitó | 小帮厨 |
+| Charo (la kioskera; nombre-arquetipo, se localiza) | Karen | Cleide (Dona Cleide) | Josiane (Madame Josiane) | Xaro (la Xaro) | 王阿姨 (Doc: 王女士) |
 | sueño | dream | sonho | rêve | somni | 梦 |
 | Acto | Act | Ato | Acte | Acte | 第…幕 |
 | plano astral | astral plane | plano astral | plan astral | pla astral | 星界 |
@@ -32,7 +33,7 @@ Evil Ad, Botcher. En chino también se dejan en letras latinas. / In Chinese the
 | nivel | level | nível | niveau | nivell | 等级 |
 | museo | museum | museu | musée | museu | 博物馆 |
 | álbum de pegatinas | sticker album | álbum de figurinhas | album d'autocollants | àlbum d'adhesius | 贴纸册 |
-| kiosco de Charo | Charo's kiosk | quiosque da Charo | kiosque de Charo | quiosc de la Charo | Charo的小卖部 |
+| kiosco de Charo | Karen's kiosk | quiosque da Cleide | kiosque de Josiane | quiosc de la Xaro | 王阿姨的小卖部 |
 | dúo | duo | dupla | duo | duo | 双人 |
 
 ## Palabras clave (se resaltan; ver `scripts/ui/keywords.gd`) / Keywords (highlighted)
