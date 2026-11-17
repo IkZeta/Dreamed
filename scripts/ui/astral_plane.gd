@@ -147,8 +147,12 @@ func _dress_card(card: AstralCard) -> void:
 	b.add_theme_stylebox_override("focus", hot)
 	b.add_theme_stylebox_override("pressed", hot)
 	b.add_theme_color_override("font_color", a.lerp(UITheme.BONE, 0.55))
-	b.add_theme_color_override("font_focus_color", Color.WHITE)
-	b.add_theme_color_override("font_hover_color", Color.WHITE)
+	# Sobre los colores claros (Doc, Luna, el dúo) el texto blanco no se lee: entonces va oscuro
+	# On light colours (Doc, Luna, the duo) white text can't be read: then it goes dark
+	var lit := Color(UITheme.VOID, 1.0) if a.get_luminance() > 0.62 else Color.WHITE
+	b.add_theme_color_override("font_focus_color", lit)
+	b.add_theme_color_override("font_hover_color", lit)
+	b.add_theme_color_override("font_pressed_color", lit)
 
 
 var _fit_queued := false

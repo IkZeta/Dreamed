@@ -144,19 +144,22 @@ func _slider_row(key: String, bus: String) -> Control:
 
 func _build_language() -> Control:
 	var page := _page()
-	var choices := HBoxContainer.new()
-	choices.add_theme_constant_override("separation", 14)
+	# En rejilla de tres: seis idiomas no caben en una fila / In a grid of three: six languages don't fit in a row
+	var choices := GridContainer.new()
+	choices.columns = 3
+	choices.add_theme_constant_override("h_separation", 14)
+	choices.add_theme_constant_override("v_separation", 12)
 	var group := ButtonGroup.new()
 	# Los nombres de idioma se muestran siempre en su propio idioma.
 	# Language names always appear in their own language.
-	for pair in [["es", "Español"], ["en", "English"]]:
+	for pair in I18n.NAMES:
 		var b := Button.new()
 		b.text = pair[1]
 		b.auto_translate_mode = AUTO_TRANSLATE_MODE_DISABLED
 		b.toggle_mode = true
 		b.button_group = group
 		b.button_pressed = Settings.locale == pair[0]
-		b.custom_minimum_size = Vector2(220, 68)
+		b.custom_minimum_size = Vector2(220, 60)
 		b.pressed.connect(Settings.set_locale.bind(pair[0]))
 		choices.add_child(b)
 	page.add_child(_row("LANGUAGE_LABEL", choices))

@@ -161,6 +161,13 @@ ACCENTED = {
     "ñ": ("n", "tilde"), "ç": ("c", None),
     "Á": ("A", "acute"), "É": ("E", "acute"), "Í": ("I", "acute"), "Ó": ("O", "acute"), "Ú": ("U", "acute"),
     "Ü": ("U", "diaer"), "Ñ": ("N", "tilde"), "Ç": ("C", None),
+    # Portugués, francés y catalán / Portuguese, French and Catalan
+    "ì": ("i", "grave"), "ù": ("u", "grave"),
+    "â": ("a", "circ"), "ê": ("e", "circ"), "î": ("i", "circ"), "ô": ("o", "circ"), "û": ("u", "circ"),
+    "ã": ("a", "tilde"), "õ": ("o", "tilde"), "ë": ("e", "diaer"), "ÿ": ("y", "diaer"),
+    "À": ("A", "grave"), "È": ("E", "grave"), "Ì": ("I", "grave"), "Ò": ("O", "grave"), "Ù": ("U", "grave"),
+    "Â": ("A", "circ"), "Ê": ("E", "circ"), "Î": ("I", "circ"), "Ô": ("O", "circ"), "Û": ("U", "circ"),
+    "Ã": ("A", "tilde"), "Õ": ("O", "tilde"), "Ë": ("E", "diaer"), "Ï": ("I", "diaer"), "Ö": ("O", "diaer"), "Ä": ("A", "diaer"),
 }
 
 
@@ -209,6 +216,11 @@ def glyphs():
                 # Accented capitals: the mark sits in rows 0-1 above the letter
                 pass
         out[ch] = g
+    # Ligaduras francesas: la o y la e pegadas / French ligatures: o and e joined
+    for lig, a, b in (("œ", "o", "e"), ("Œ", "O", "E")):
+        ga, gb = out[a], out[b]
+        # Sin la columna derecha de la o / Without the o's right column
+        out[lig] = [ra[:-1] + rb for ra, rb in zip(ga, gb)]
     out[" "] = [[0] * 3 for _ in range(ROWS)]
     return out
 
@@ -276,8 +288,9 @@ def main():
     export("dreampix", g)
     export("dreampix_italic", {c: italic(v) for c, v in g.items()})
     # Vista previa / Preview
-    text = ["¿QUÉ SOÑARÁ HOY KROKER?", "Sueño 1 · Plano astral · ¡Al vacío!", "+12% daño · Nv 3 · 0:28", "Svinho, Stolk, Silly y Doc — «Pijama de estrellas»"]
-    prev = Image.new("RGB", (420, 70), (30, 34, 90))
+    text = ["¿QUÉ SOÑARÁ HOY KROKER?", "Sueño 1 · Plano astral · ¡Al vacío!", "+12% daño · Nv 3 · 0:28", "Svinho, Stolk, Silly y Doc — «Pijama de estrellas»",
+            "Português: sonho, ação, pão, você · Français: rêve, cœur, être, où, Noël", "Català: col·lecció, això, què, Òscar · ÀÈÌÒÙ ÂÊÎÔÛ ÃÕ"]
+    prev = Image.new("RGB", (460, 100), (30, 34, 90))
     y = 4
     for t in text:
         x = 4

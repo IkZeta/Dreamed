@@ -26,6 +26,9 @@ const PANEL := SLATE
 ## Our own pixel-art font (tools/make_font.py), scaled only by whole multiples
 const _PIX := preload("res://assets/fonts/dreampix.fnt")
 const _PIX_ITALIC := preload("res://assets/fonts/dreampix_italic.fnt")
+## Respaldo para el chino (tools/make_font_zh.py): solo los caracteres que usa la traducción
+## Fallback for Chinese (tools/make_font_zh.py): only the characters the translation uses
+const _PIX_ZH := preload("res://assets/fonts/dreampix_zh.fnt")
 
 static var _fonts := {}
 
@@ -34,6 +37,12 @@ static var _fonts := {}
 static func font(role := "body") -> Font:
 	if _fonts.has(role):
 		return _fonts[role]
+	# Lo que Dreampix no tiene (el chino) sale de su fuente de respaldo
+	# Whatever Dreampix lacks (Chinese) comes from its fallback font
+	var zh: Font = _PIX_ZH
+	for base: Font in [_PIX, _PIX_ITALIC]:
+		if base.fallbacks.is_empty():
+			base.fallbacks = [zh]
 	var f: Font
 	match role:
 		"display":

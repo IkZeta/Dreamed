@@ -505,7 +505,7 @@ class Actor extends Node2D:
 		e.hit(dmg * run.player.damage_mult, dir * PUNCH_PUSH * e.mass)
 		run.shake(7.0)
 		run.fx.ring(e.global_position + Vector2(0, -40), 46.0, Color("ffe08a"), 0.35, 2.2)
-		run.fx.text(e.global_position + Vector2(0, -120), tr("DUO_VOLLEY") if has_meta("volley") else ("¡POW!" if TranslationServer.get_locale().begins_with("es") else "POW!"), Color("ffe08a"), 30)
+		run.fx.text(e.global_position + Vector2(0, -120), tr("DUO_VOLLEY") if has_meta("volley") else tr("FX_POW"), Color("ffe08a"), 30)
 		Audio.play("punch", -2.0)
 
 	func _grab() -> void:

@@ -12,31 +12,31 @@ class_name Keywords
 const COLOR := "#ffd27a"
 ## Patrones (expresiones regulares, sin distinguir mayúsculas) / Patterns (regular expressions, case-insensitive)
 const PATTERNS := {
-	"bleed": {"es": "sangr\\w*", "en": "bleed\\w*"},
-	"burn": {"es": "quem\\w*", "en": "burn\\w*"},
-	"slow": {"es": "cámara lenta|ralentiz\\w*", "en": "slow motion|slows|slowing|slowed"},
-	"freeze": {"es": "congel\\w*", "en": "freez\\w*|frozen"},
-	"glitch": {"es": "glitch\\w*", "en": "glitch\\w*"},
-	"fluff": {"es": "pelusas?", "en": "fluff"},
-	"stuck": {"es": "pegad[oa]s", "en": "stuck"},
-	"heavy": {"es": "golpes? fuertes?", "en": "heavy hits?"},
-	"knockback": {"es": "empuj\\w*", "en": "push\\w*|shov\\w*"},
+	"bleed": {"es": "sangr\\w*", "en": "bleed\\w*", "pt": "sangr\\w*", "fr": "saign\\w*", "ca": "sagn\\w*", "zh": "流血"},
+	"burn": {"es": "quem\\w*", "en": "burn\\w*", "pt": "queim\\w*", "fr": "brûl\\w*", "ca": "crem\\w*", "zh": "灼烧|燃烧"},
+	"slow": {"es": "cámara lenta|ralentiz\\w*", "en": "slow motion|slows|slowing|slowed", "pt": "câmera lenta|desaceler\\w*", "fr": "ralenti\\w*", "ca": "càmera lenta|alent\\w*", "zh": "慢动作|减速"},
+	"freeze": {"es": "congel\\w*", "en": "freez\\w*|frozen", "pt": "congel\\w*", "fr": "congel\\w*|gel(?:é|ée|és|ées|er)", "ca": "congel\\w*", "zh": "冻结|冰冻"},
+	"glitch": {"es": "glitch\\w*", "en": "glitch\\w*", "pt": "glitch\\w*", "fr": "glitch\\w*", "ca": "glitch\\w*", "zh": "故障"},
+	"fluff": {"es": "pelusas?", "en": "fluff", "pt": "fiapos?", "fr": "duvets?", "ca": "borrissols?", "zh": "绒毛"},
+	"stuck": {"es": "pegad[oa]s", "en": "stuck", "pt": "grudad[oa]s?", "fr": "collé(?:e|s|es)?", "ca": "enganxat(?:s|da|des)?", "zh": "粘住"},
+	"heavy": {"es": "golpes? fuertes?", "en": "heavy hits?", "pt": "golpes? fortes?", "fr": "coups? puissants?", "ca": "cops? forts?", "zh": "重击"},
+	"knockback": {"es": "empuj\\w*", "en": "push\\w*|shov\\w*", "pt": "empurr\\w*", "fr": "repouss\\w*", "ca": "empeny\\w*|empent\\w*", "zh": "击退"},
 	# Paralizado e inmovilizado son lo mismo / Paralysed and rooted are the same thing
-	"rooted": {"es": "inmoviliz\\w*|clavad[oa]|paraliz\\w*", "en": "rooted|immobili\\w*|paraly\\w*"},
-	"stench": {"es": "mal olor|peste|huel\\w* tan mal", "en": "stench|stink\\w*|smell\\w*"},
-	"hack": {"es": "hacke\\w*", "en": "hack\\w*"},
-	"crit": {"es": "crític\\w*", "en": "critical|crits?"},
-	"defense": {"es": "defensa", "en": "defen[cs]e"},
-	"luck": {"es": "suerte", "en": "luck"},
-	"parry": {"es": "parry", "en": "parry"},
-	"attack_speed": {"es": "velocidad de ataque", "en": "attack speed"},
-	"regen": {"es": "regeneración|recuperación de salud", "en": "regeneration|regen"},
-	"lifesteal": {"es": "robo de (?:salud|vida)", "en": "lifesteal|life steal"},
-	"reality": {"es": "Realidad Fragmentada", "en": "Fragmented Reality"},
-	"bully": {"es": "abusón|indefens\\w*", "en": "bully|defen[cs]eless"},
-	"grudge": {"es": "revancha|fichad[oa]s?", "en": "payback|on (?:the|his|your) list"},
-	"plaster": {"es": "tiritas", "en": "plasters"},
-	"rescue": {"es": "segunda opinión", "en": "second opinion"},
+	"rooted": {"es": "inmoviliz\\w*|clavad[oa]|paraliz\\w*", "en": "rooted|immobili\\w*|paraly\\w*", "pt": "imobiliz\\w*|paralis\\w*", "fr": "immobilis\\w*|paralys\\w*", "ca": "immobilitz\\w*|paralitz\\w*", "zh": "定身|麻痹"},
+	"stench": {"es": "mal olor|peste|huel\\w* tan mal", "en": "stench|stink\\w*|smell\\w*", "pt": "mau cheiro|fedor\\w*", "fr": "puanteur|pu(?:e|ent) tellement", "ca": "pudor\\w*|fa tanta pudor", "zh": "恶臭"},
+	"hack": {"es": "hacke\\w*", "en": "hack\\w*", "pt": "hacke\\w*", "fr": "hack\\w*", "ca": "hacke\\w*", "zh": "入侵"},
+	"crit": {"es": "crític\\w*", "en": "critical|crits?", "pt": "crític\\w*", "fr": "critique\\w*", "ca": "crític\\w*", "zh": "暴击"},
+	"defense": {"es": "defensa", "en": "defen[cs]e", "pt": "defesa", "fr": "défense", "ca": "defensa", "zh": "防御"},
+	"luck": {"es": "suerte", "en": "luck", "pt": "sorte", "fr": "chance", "ca": "sort", "zh": "幸运"},
+	"parry": {"es": "parry", "en": "parry", "pt": "parry", "fr": "parry", "ca": "parry", "zh": "格挡"},
+	"attack_speed": {"es": "velocidad de ataque", "en": "attack speed", "pt": "velocidade de ataque", "fr": "vitesse d'attaque", "ca": "velocitat d'atac", "zh": "攻击速度"},
+	"regen": {"es": "regeneración|recuperación de salud", "en": "regeneration|regen", "pt": "regeneração", "fr": "régénération", "ca": "regeneració", "zh": "生命恢复"},
+	"lifesteal": {"es": "robo de (?:salud|vida)", "en": "lifesteal|life steal", "pt": "roubo de vida", "fr": "vol de vie", "ca": "robatori de vida", "zh": "吸血"},
+	"reality": {"es": "Realidad Fragmentada", "en": "Fragmented Reality", "pt": "Realidade Fragmentada", "fr": "Réalité Fragmentée", "ca": "Realitat Fragmentada", "zh": "碎裂现实"},
+	"bully": {"es": "abusón|indefens\\w*", "en": "bully|defen[cs]eless", "pt": "valentão|indefes\\w*", "fr": "caïd|sans défense", "ca": "abusó|indefens\\w*", "zh": "恃强凌弱|毫无防备"},
+	"grudge": {"es": "revancha|fichad[oa]s?", "en": "payback|on (?:the|his|your) list", "pt": "revanche|na (?:sua )?lista", "fr": "revanche|sur (?:sa|ta|la) liste", "ca": "revenja|a la llista", "zh": "报复|记仇"},
+	"plaster": {"es": "tiritas", "en": "plasters", "pt": "curativos", "fr": "pansements", "ca": "tiretes", "zh": "创可贴"},
+	"rescue": {"es": "segunda opinión", "en": "second opinion", "pt": "segunda opinião", "fr": "deuxième avis", "ca": "segona opinió", "zh": "第二意见"},
 }
 
 static var _regex := {}
@@ -46,14 +46,19 @@ static var _tip: KeywordTip
 ## Devuelve el texto con las palabras clave resaltadas en BBCode / Returns the text with keywords highlighted in BBCode
 static func markup(text: String) -> String:
 	var lang := TranslationServer.get_locale().substr(0, 2)
-	if lang != "es":
+	if not (PATTERNS["luck"] as Dictionary).has(lang):
 		lang = "en"
 	if not _regex.has(lang):
 		var parts: Array[String] = []
 		for id: String in PATTERNS:
-			parts.append("(?<%s>%s)" % [id, PATTERNS[id][lang]])
+			parts.append("(?<%s>%s)" % [id, PATTERNS[id].get(lang, PATTERNS[id]["en"])])
 		var re := RegEx.new()
-		re.compile("(?i)(?<![\\p{L}\\[=])(?:%s)(?![\\p{L}])" % "|".join(parts))
+		if lang == "zh":
+			# En chino no hay espacios entre palabras: sin límites de palabra (solo que no esté dentro de un [url=...])
+			# Chinese has no spaces between words: no word boundaries (only not inside a [url=...])
+			re.compile("(?<![\\[=])(?:%s)" % "|".join(parts))
+		else:
+			re.compile("(?i)(?<![\\p{L}\\[=])(?:%s)(?![\\p{L}])" % "|".join(parts))
 		_regex[lang] = re
 	var out := ""
 	var last := 0

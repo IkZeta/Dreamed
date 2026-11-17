@@ -6,6 +6,14 @@ extends Node
 ## de cualquier Label/Button, o `tr("CLAVE")` en código.
 
 const LOCALES: Array[String] = ["es", "en"]
+## Idiomas traducidos aparte, cada uno en scripts/autoload/lang/i18n_<código>.gd (generados con
+## tools/i18n_build.py). Lo que falte en uno de ellos sale en inglés.
+## Languages translated separately, each in scripts/autoload/lang/i18n_<code>.gd (generated with
+## tools/i18n_build.py). Anything missing from one of them falls back to English.
+const EXTRA: Array[String] = ["pt", "fr", "ca", "zh"]
+## Todos los idiomas con su nombre en su propio idioma, en el orden del menú
+## Every language with its name in its own language, in menu order
+const NAMES := [["es", "Español"], ["en", "English"], ["pt", "Português"], ["fr", "Français"], ["ca", "Català"], ["zh", "中文"]]
 
 const STRINGS := {
 	# --- Menú principal / Main menu ---
@@ -17,6 +25,7 @@ const STRINGS := {
 	"MENU_RESET_SURE": {"es": "¿Borrar todo el progreso?", "en": "Delete all progress?"},
 	"MENU_RESET_LAST": {"es": "Pulsa otra vez: no se puede deshacer", "en": "Press again: this can't be undone"},
 	"MENU_VERSION": {"es": "Versión", "en": "Version"},
+	"FX_POW": {"es": "¡POW!", "en": "POW!"},
 	"MENU_TAGLINE": {"es": "Un sueño dentro de otro sueño", "en": "A dream within a dream"},
 	"MENU_ACT_1": {"es": "Acto 1 · La habitación", "en": "Act 1 · The bedroom"},
 	"MENU_ACT_2": {"es": "Acto 2 · El salón", "en": "Act 2 · The living room"},
@@ -1464,3 +1473,16 @@ func _enter_tree() -> void:
 		for key: String in STRINGS:
 			t.add_message(key, STRINGS[key][loc])
 		TranslationServer.add_translation(t)
+	for loc in EXTRA:
+		var src: Script = load("res://scripts/autoload/lang/i18n_%s.gd" % loc)
+		var strings: Dictionary = src.get_script_constant_map()["STRINGS"] if src else {}
+		var t := Translation.new()
+		t.locale = loc
+		for key: String in STRINGS:
+			t.add_message(key, strings.get(key, STRINGS[key]["en"]))
+		TranslationServer.add_translation(t)
+
+
+## ¿Este idioma escribe los decimales con coma? / Does this language write decimals with a comma?
+static func decimal_comma() -> bool:
+	return TranslationServer.get_locale().substr(0, 2) in ["es", "pt", "fr", "ca"]

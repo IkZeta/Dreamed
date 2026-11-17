@@ -110,4 +110,4 @@ func _draw_panel() -> void:
 ## Con coma o punto según el idioma, y un decimal / Comma or point by language, one decimal
 func _ms(v: float) -> String:
 	var s := "%.1f" % v
-	return s.replace(".", ",") if TranslationServer.get_locale().begins_with("es") else s
+	return s.replace(".", ",") if I18n.decimal_comma() else s

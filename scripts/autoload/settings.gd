@@ -97,7 +97,12 @@ func _ready() -> void:
 func reset_defaults(apply := true) -> void:
 	volumes = {"Master": 0.8, "Music": 0.7, "SFX": 0.8}
 	muted = false
-	locale = "es" if OS.get_locale_language() == "es" else "en"
+	# El idioma del sistema si el juego lo tiene; si no, inglés / The system language if the game has it; otherwise English
+	var sys := OS.get_locale_language()
+	locale = "en"
+	for pair: Array in I18n.NAMES:
+		if pair[0] == sys:
+			locale = sys
 	window_mode = WindowMode.WINDOWED
 	resolution_index = 1
 	vsync = true
