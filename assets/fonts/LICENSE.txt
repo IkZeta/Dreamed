@@ -1,2 +1,5 @@
 Dreampix (dreampix*.fnt / .png): fuente pixel art propia del juego, generada con tools/make_font.py.
 Dreampix (dreampix*.fnt / .png): the game's own pixel-art font, generated with tools/make_font.py.
+
+Dreampix ZH (dreampix_zh.fnt / .png): glifos chinos rasterizados a 12 px desde Noto Sans CJK SC (© Adobe / Google, SIL Open Font License 1.1) con tools/make_font_zh.py. Solo incluye los caracteres que usa el juego.
+Dreampix ZH (dreampix_zh.fnt / .png): Chinese glyphs rasterised at 12 px from Noto Sans CJK SC (© Adobe / Google, SIL Open Font License 1.1) by tools/make_font_zh.py. It only contains the characters the game uses.

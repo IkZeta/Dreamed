@@ -8,7 +8,7 @@
 Kroker es un niño con gafas y pelo negro que se queda dormido... y cada oleada es un sueño dentro del anterior, cada vez más raro y abstracto. Se juega como **Brotato**: el arma ataca sola y tú solo te mueves y esquivas. Entre sueño y sueño mejoras al estilo de **Hades**: en el plano astral aparecen dos personajes (tres desde el nivel 3 de Kroker) y cada uno te ofrece un don distinto.
 
 - **Motor:** Godot 4.7, probado en **Godot 4.7.2**.
-- **Idiomas:** español e inglés, que se cambian en Ajustes.
+- **Idiomas:** español, inglés, portugués, francés, catalán y chino simplificado, que se cambian en Ajustes. La primera vez el juego arranca en el idioma del sistema si está disponible. Las traducciones viven en `tools/i18n/<idioma>.json` y `tools/i18n_build.py` las valida (marcadores, etiquetas) y genera `scripts/autoload/lang/i18n_<idioma>.gd`; lo que falte cae al inglés. El chino usa una fuente pixel de apoyo (`tools/make_font_zh.py`) que hay que regenerar si cambia `zh.json`. Glosario de términos en `tools/i18n/GLOSSARY.md`.
 - **Controles:** teclado, ratón y mando. Los textos de controles cambian solos según uses teclado o mando.
 - **Arte y sonido:** todo hecho con código, desde los sprites y la fuente hasta la música y los efectos (ver [Herramientas](#herramientas)).
 
@@ -573,7 +573,7 @@ El informe queda en `user://balance_report.json`. Otras opciones: `--bot-weapons
 
 ## English summary
 
-**Dreamed** is a Brotato-style survival roguelite with Hades-style upgrades, made in Godot 4.7 (tested on 4.7.2), fully playable in **English and Spanish**.
+**Dreamed** is a Brotato-style survival roguelite with Hades-style upgrades, made in Godot 4.7 (tested on 4.7.2), fully playable in **English, Spanish, Portuguese, French, Catalan and Simplified Chinese**.
 
 - **Kroker:** a boy with glasses who falls asleep. Every wave is a dream inside the previous one, each stranger than the last.
 - **Eight pajamas, eight auto-attacking weapons:** bat, pillow shield, storybook (lightning from the sky) and vacuum from the start; a finger gun (Act 2) and a teddy bear (Act 3) unlocked by playing; a bouncing football (friendship 4 with Svinho) and a laptop that places permanent turrets which level up with your attack (friendship 4 with Silly). The character select shows them in pages of four, each card with a full stat sheet.
